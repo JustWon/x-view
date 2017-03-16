@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-project(ba_test)
+project(g2o-examples)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -31,9 +31,6 @@ include_directories(
         ${CSPARSE_INCLUDE_DIR}
 )
 
-add_executable(simple-circle-g2o circle-2D.cpp)
-add_executable(simple-square-g2o square-2D.cpp)
-
 SET(G2O_LIBS
         g2o_cli
         g2o_ext_freeglut_minimal
@@ -57,22 +54,5 @@ SET(G2O_LIBS
         g2o_types_sim3
         cxsparse)
 
-target_link_libraries(simple-circle-g2o
 
-        #  ${CHOLMOD_LIBRARIES}
-        ${CSPARSE_LIBRARY}
-        cholmod
-        cxsparse
-        ${G2O_LIBS}
-        ${catkin_LIBRARIES}
-        )
-
-target_link_libraries(simple-square-g2o
-
-        #  ${CHOLMOD_LIBRARIES}
-        ${CSPARSE_LIBRARY}
-        cholmod
-        cxsparse
-        ${G2O_LIBS}
-        ${catkin_LIBRARIES}
-        )
+add_subdirectory(src)
