@@ -1,6 +1,0 @@
-/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/cmake-build-debug/src/CMakeFiles/rebuild_cache.dir
-/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/cmake-build-debug/src/CMakeFiles/gtsam-example-handposed.dir
-/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/cmake-build-debug/src/CMakeFiles/edit_cache.dir
-/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/cmake-build-debug/src/CMakeFiles/gtsam-example.dir
