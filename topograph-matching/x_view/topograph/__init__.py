@@ -1,7 +1,7 @@
 from __future__ import division, absolute_import, print_function
 
-from .topograph import TopoGraph
-from .topograph_drawer import TopoGraphPlotter, EdgeColor, EdgeWidth
-from .topograph_builder import AbstractGraphNode, GraphEdge, NodeEntity, generate_topograph
+from .graph_node import AbstractGraphNode,NodeEntity, RestrictedGraphNode, WordNetGraphNode
 
-from .similarity import WordNetGraphNode
+from .topograph import TopoGraph
+from .topograph_drawer import TopoGraphDrawer, EdgeColor, EdgeWidth
+from .topograph_builder import GraphEdge, generate_topograph

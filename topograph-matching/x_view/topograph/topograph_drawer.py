@@ -19,15 +19,25 @@ class EdgeColor(Enum):
     EDGE_COLOR = 2
 
 
-class TopoGraphPlotter(object):
+class TopoGraphDrawer(object):
+    """Simple class able to plots the content of a TopoGraph
+    """
     def __init__(self, topograph_list, labels_visible=True, nodes_visible=True, edges_visible=True,
-                 outer_connections_visible=False, directorty_name="fig/"):
+                 outer_connections_visible=False, directory_name="fig/"):
+        """
+        :param topograph_list: a list of (or single) TopoGraph object(s)
+        :param labels_visible: flag indicating if labels should be rendered
+        :param nodes_visible: flag indicating if nodes should be rendered
+        :param edges_visible: flag indicating if edges should be rendered
+        :param outer_connections_visible: flag indicating if outer connections (links) should be rendered
+        :param directory_name: directory where to store the rendered plots
+        """
 
         plt.figure()
-        if not os.path.exists(directorty_name):
-            os.makedirs(directorty_name)
+        if not os.path.exists(directory_name):
+            os.makedirs(directory_name)
 
-        self.directory_name = directorty_name
+        self.directory_name = directory_name
 
         if not isinstance(topograph_list, list):
             topograph_list = [topograph_list]
@@ -46,6 +56,8 @@ class TopoGraphPlotter(object):
         self.edge_color_type = EdgeColor.LENGTH_DEVIATION
 
     def draw(self):
+        """Draws the graph(s) passed through the constructor
+        """
 
         for topograph in self.topograph_list:
             _, node_dicts = zip(*topograph.nodes(data=True))
@@ -107,9 +119,9 @@ class TopoGraphPlotter(object):
                 # iterate over all nodes in nodes1 and nodes2
                 for idx1, (node1, dict1) in enumerate(zip(nodes1, dicts1)):
                     for idx2, (node2, dict2) in enumerate(zip(nodes2, dicts2)):
-                        # compute semantic similarity
+                        # compute semantic graph_node
                         sim12 = node1.similarity(node2)
-                        if sim12 > 0.3:
+                        if sim12 > 0.7:
                             pos1, pos2 = dict1['pos'][0:2], dict2['pos'][0:2]
                             plt.gca().add_patch(FancyArrowPatch((pos1[0], pos1[1]), (pos2[0], pos2[1]),
                                                                 arrowstyle='<->', mutation_scale=30,
@@ -122,11 +134,15 @@ class TopoGraphPlotter(object):
         plt.xlim([0, 7])
 
     def show(self):
+        """Draws and shows the graph
+        """
         self.draw()
         plt.show()
         plt.close()
 
     def save(self, filename):
+        """Draws and renders the drawing to 'directory_name/filename.png'
+        """
         self.draw()
         plt.savefig(filename)
         plt.close()

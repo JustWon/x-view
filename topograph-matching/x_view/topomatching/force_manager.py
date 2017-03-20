@@ -66,12 +66,12 @@ class ForceManager(object):
             # iterate over all nodes in nodes1
             for idx1, (node1, dict1) in enumerate(zip(nodes1, dicts1)):
                 for idx2, (node2, dict2) in enumerate(zip(nodes2, dicts2)):
-                    # compute semantic similarity
+                    # compute semantic graph_node
                     sim12 = node1.similarity(node2)
-                    sim12 = 0 if sim12 < 0.3 else sim12
+                    sim12 = 0 if sim12 < 0.7 else sim12
                     pos1, pos2 = dict1['pos'], dict2['pos']
 
-                    # scale the force based on similarity
+                    # scale the force based on graph_node
                     f12 = self.outer_force.interact(pos1=pos1, pos2=pos2, rest_length=0, stiffness=sim12)
 
                     self.force_list[topo1_idx][idx1, :] -= f12

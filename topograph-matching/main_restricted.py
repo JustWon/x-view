@@ -1,12 +1,13 @@
 import x_view as xv
 import os
+import random
+import numpy as np
 
 
 def main():
-
     dim = 3
-    G1 = xv.get_restricted_topograph1(dim=dim, num_elements=5)
-    G2 = xv.get_restricted_topograph2(dim=dim, num_elements=3)
+    G1 = xv.get_restricted_topograph1(dim=dim, num_elements=6)
+    G2 = xv.get_restricted_topograph2(dim=dim, num_elements=6)
 
     f_inner = xv.force.Hooke(k=100)
     f_outer = xv.force.Hooke(k=20)
@@ -22,7 +23,7 @@ def main():
     for step in range(max_it):
 
         if draw_every > 0 and step % draw_every == 0:
-            drawer = xv.TopoGraphPlotter(scene.topograph_list)
+            drawer = xv.TopoGraphDrawer(scene.topograph_list)
             drawer.font_size = 14
             drawer.label_color = "#FF8400"
             drawer.outer_connections_visible = True
@@ -37,4 +38,6 @@ def main():
 
 
 if __name__ == '__main__':
+    np.random.seed(0)
+    random.seed(0)
     main()

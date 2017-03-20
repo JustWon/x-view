@@ -21,7 +21,7 @@ def main():
     for step in range(max_it):
 
         if draw_every > 0 and step % draw_every == 0:
-            drawer = xv.TopoGraphPlotter(scene.topograph_list)
+            drawer = xv.TopoGraphDrawer(scene.topograph_list)
             drawer.font_size = 14
             drawer.label_color = "#FF8400"
             drawer.outer_connections_visible = True
@@ -33,6 +33,7 @@ def main():
 
         scene.step()
         xv.printProgressBar(iteration=step, total=max_it)
+
 
 if __name__ == '__main__':
     main()
