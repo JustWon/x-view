@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="gtsam-examples"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\..\..\..\usr\local\lib\;CMake Files\..\..\..\..\..\..\..\..\usr\local\lib\cmake\;CMake Files\..\..\..\..\..\..\..\..\usr\local\lib\cmake\GTSAM\;CMake Files\src\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gtsam-example-handposed">
+				<Option output="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/build/gtsam-example-handposed" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/lib/cmake/GTSAM/../../../include"/>
+					<Add directory="/usr/local/include/gtsam/3rdparty/Eigen"/>
+					<Add directory="/opt/intel/mkl/include"/>
+					<Add directory="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/src/."/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 gtsam-example-handposed"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gtsam-example-handposed/fast">
+				<Option output="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/build/gtsam-example-handposed" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/lib/cmake/GTSAM/../../../include"/>
+					<Add directory="/usr/local/include/gtsam/3rdparty/Eigen"/>
+					<Add directory="/opt/intel/mkl/include"/>
+					<Add directory="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/src/."/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 gtsam-example-handposed/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gtsam-example">
+				<Option output="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/build/gtsam-example" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/lib/cmake/GTSAM/../../../include"/>
+					<Add directory="/usr/local/include/gtsam/3rdparty/Eigen"/>
+					<Add directory="/opt/intel/mkl/include"/>
+					<Add directory="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/src/."/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 gtsam-example"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gtsam-example/fast">
+				<Option output="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/build/gtsam-example" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/lib/cmake/GTSAM/../../../include"/>
+					<Add directory="/usr/local/include/gtsam/3rdparty/Eigen"/>
+					<Add directory="/opt/intel/mkl/include"/>
+					<Add directory="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/src/."/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 gtsam-example/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/carlo/polybox/Master/Master\ thesis/git/x-view/gtsam-examples/cmake-build-debug/src/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/src/Simulator.cpp">
+			<Option target="gtsam-example"/>
+		</Unit>
+		<Unit filename="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/src/Simulator.hpp">
+			<Option target="gtsam-example"/>
+		</Unit>
+		<Unit filename="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/src/handMade.cpp">
+			<Option target="gtsam-example-handposed"/>
+		</Unit>
+		<Unit filename="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/src/main.cpp">
+			<Option target="gtsam-example"/>
+		</Unit>
+		<Unit filename="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/../../../../../../../../usr/local/lib/cmake/GTSAM/GTSAMConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\..\..\usr\local\lib\cmake\GTSAM\"/>
+		</Unit>
+		<Unit filename="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/../../../../../../../../usr/local/lib/cmake/GTSAM/GTSAM-exports.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\..\..\usr\local\lib\cmake\GTSAM\"/>
+		</Unit>
+		<Unit filename="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/../../../../../../../../usr/local/lib/cmake/GTSAM/GTSAM-exports-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\..\..\usr\local\lib\cmake\GTSAM\"/>
+		</Unit>
+		<Unit filename="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/../../../../../../../../usr/local/lib/cmake/GTSAM/gtsam_extra.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\..\..\usr\local\lib\cmake\GTSAM\"/>
+		</Unit>
+		<Unit filename="/home/carlo/polybox/Master/Master thesis/git/x-view/gtsam-examples/src/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
