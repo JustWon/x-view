@@ -6,4 +6,7 @@ from .topograph import generate_topograph
 
 from .topomatching import MatchingScene, force, integrator, printProgressBar
 
-from .example_graphs import get_topograph1, get_topograph2
+from .restrictedClasses import restrictedSimilarity, semantic_concepts
+
+from .example_graphs import get_wordnet_topograph1, get_wordnet_topograph2
+from .example_graphs import get_restricted_topograph1, get_restricted_topograph2

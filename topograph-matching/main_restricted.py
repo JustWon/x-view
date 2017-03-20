@@ -3,9 +3,10 @@ import os
 
 
 def main():
+
     dim = 3
-    G1 = xv.get_topograph1(dim=dim)
-    G2 = xv.get_topograph2(dim=dim)
+    G1 = xv.get_restricted_topograph1(dim=dim, num_elements=5)
+    G2 = xv.get_restricted_topograph2(dim=dim, num_elements=3)
 
     f_inner = xv.force.Hooke(k=100)
     f_outer = xv.force.Hooke(k=20)
@@ -33,6 +34,7 @@ def main():
 
         scene.step()
         xv.printProgressBar(iteration=step, total=max_it)
+
 
 if __name__ == '__main__':
     main()

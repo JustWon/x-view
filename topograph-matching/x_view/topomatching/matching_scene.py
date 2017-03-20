@@ -1,5 +1,5 @@
 from ..topograph import TopoGraph
-from . import AbstractForce, AbstractIntegrator, ForceManager
+from . import AbstractForce, AbstractIntegrator, WordnetForceManager, RestrictedForceManager
 
 
 class MatchingScene(object):
@@ -8,7 +8,7 @@ class MatchingScene(object):
 
     def __init__(self, topograph_list, integrator, inner_force, outer_force, dim=3):
         if not all(isinstance(topograph, TopoGraph) for topograph in topograph_list):
-            raise TypeError("'topograph_list' parameter passed to 'MatchingScene' must be a list of TopoGrph objects")
+            raise TypeError("'topograph_list' parameter passed to 'MatchingScene' must be a list of TopoGraph objects")
         self.topograph_list = topograph_list
 
         if not isinstance(integrator, AbstractIntegrator):
@@ -28,9 +28,10 @@ class MatchingScene(object):
             nodes, dicts = zip(*topograph.nodes(data=True))
             self.node_list.append(nodes)
             self.dict_list.append(dicts)
-        self.force_manager = ForceManager(topograph_list=self.topograph_list, node_list=self.node_list,
-                                          dict_list=self.dict_list, inner_force=self.inner_force,
-                                          outer_force=self.outer_force, dim=self.dim)
+
+        self.force_manager = RestrictedForceManager(topograph_list=self.topograph_list, node_list=self.node_list,
+                                                 dict_list=self.dict_list, inner_force=self.inner_force,
+                                                 outer_force=self.outer_force, dim=self.dim)
 
     def step(self):
 
