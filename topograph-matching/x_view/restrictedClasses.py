@@ -132,7 +132,7 @@ class RestrictedSimilarityTable(object):
     def __new__(cls):
         if cls.__instance == None:
             cls.__instance = object.__new__(cls)
-            cls.__instance.name = "Singleton instance"
+            cls.__instance.name = "IdFactory instance"
             cls.__table = create_similarity_table()
         return cls.__instance
 
@@ -143,4 +143,10 @@ class RestrictedSimilarityTable(object):
 
 
 def restrictedSimilarity(concept1, concept2):
+    """Returns the similarity measure stored in the data defined above
+    :param concept1: first concept to be compared
+    :param concept2: second concept to be compared
+    :return: a similarity measure between concept1 and concept2, where '1' corresponds to maximal similarity, and '0'
+    to complete dissimilarity
+    """
     return RestrictedSimilarityTable.similarity(concept1, concept2)

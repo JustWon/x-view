@@ -103,13 +103,12 @@ class TopoGraphPlotter(object):
                 nodes_list.append(nodes)
                 dicts_list.append(dicts)
 
-            """
             for ((dicts1, nodes1), (dicts2, nodes2)) in itertools.combinations(zip(dicts_list, nodes_list), 2):
                 # iterate over all nodes in nodes1 and nodes2
                 for idx1, (node1, dict1) in enumerate(zip(nodes1, dicts1)):
                     for idx2, (node2, dict2) in enumerate(zip(nodes2, dicts2)):
                         # compute semantic similarity
-                        sim12 = node1.node.value.path_similarity(node2.node.value)
+                        sim12 = node1.similarity(node2)
                         if sim12 > 0.3:
                             pos1, pos2 = dict1['pos'][0:2], dict2['pos'][0:2]
                             plt.gca().add_patch(FancyArrowPatch((pos1[0], pos1[1]), (pos2[0], pos2[1]),
@@ -117,7 +116,6 @@ class TopoGraphPlotter(object):
                                                                 connectionstyle='arc3, rad=-0.1', color='#B54343',
                                                                 linestyle='dotted', linewidth=2.5 * sim12 ** 0.6))
 
-            """
 
         plt.grid()
         plt.ylim([-1, 7])

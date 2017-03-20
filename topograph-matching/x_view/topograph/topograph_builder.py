@@ -2,8 +2,8 @@ import numpy as np
 from .topograph import TopoGraph
 
 
-class Singleton(object):
-    """Singleton class used to generate unique ids for the graph nodes. This is necessary as
+class IdFactory(object):
+    """IdFactory class used to generate unique ids for the graph nodes. This is necessary as
     when merging two graphs together, even if they have the same node we don't want the nodes to collapse together
     """
     __instance = None
@@ -11,11 +11,10 @@ class Singleton(object):
 
     def __new__(cls, *args, **kwargs):
         if not cls.__instance:
-            cls.__instance = super(Singleton, cls).__new__(
-                cls, *args, **kwargs)
+            cls.__instance = super(IdFactory, cls).__new__(cls, *args, **kwargs)
         return cls.__instance
 
-    def id(self):
+    def next_id(self):
         """Generates a unique id each time it is called
         :return: a unique id (sequentially increasing) whenever this function is called
         """
@@ -34,10 +33,10 @@ class NodeEntity(object):
         :param value: any object one wants to store in the networkx structure
         """
         self.value = value
-        self.node_id = Singleton().id()
+        self.node_id = IdFactory().next_id()
 
 
-class GraphNode(object):
+class AbstractGraphNode(object):
     """Class exposed to the user which must be used to add new nodes
     to the graph structure represented by TopoGraph"""
 
@@ -51,8 +50,8 @@ class GraphNode(object):
         :param node_color: optional, if available the associated node will be plotted in that color
         """
         if not isinstance(node, NodeEntity):
-            raise TypeError("node parameter passed to 'GraphNode' constructor must be an instance"
-                            "of 'NodeEntity' (or be an instance of a subclass of 'NodeEntity'")
+            raise TypeError("node parameter passed to '{}' constructor must be an instance"
+                            "of 'NodeEntity' (or be an instance of a subclass of 'NodeEntity'".format(self.__class__.__name__))
         self.node = node
 
         self.pos = pos
@@ -63,17 +62,20 @@ class GraphNode(object):
         self.plot_pos = plot_pos if plot_pos is not None else pos[0:2]
         self.node_color = node_color
 
+    def similarity(self, other):
+        raise NotImplementedError("Each GraphNode object must implement the 'similarity' method")
+
 
 class GraphEdge(object):
     """Class exposed to the user which must be used to add edges between the nodes in the graph structure
     """
 
-    def __init__(self, node1: GraphNode, node2: GraphNode, stiffness=1.0, rest_length=1.0, edge_color='#125E87'):
+    def __init__(self, node1: AbstractGraphNode, node2: AbstractGraphNode, stiffness=1.0, rest_length=1.0, edge_color='#125E87'):
         """Simply constructs an edge in the graph structure linking node1 and node2
         """
 
-        if not isinstance(node1, GraphNode) or not isinstance(node2, GraphNode):
-            raise TypeError("Nodes passed to 'GraphEdge' constructor must be instances of class 'GraphNode'")
+        if not isinstance(node1, AbstractGraphNode) or not isinstance(node2, AbstractGraphNode):
+            raise TypeError("Nodes passed to 'GraphEdge' constructor must be instances of class 'AbstractGraphNode'")
 
         self.node1 = node1
         self.node2 = node2
@@ -84,7 +86,7 @@ class GraphEdge(object):
 
 
 def generate_topograph(graph_node_list, graph_edge_list, name="TopoGraph"):
-    if not all(isinstance(graph_node, GraphNode) for graph_node in graph_node_list):
+    if not all(isinstance(graph_node, AbstractGraphNode) for graph_node in graph_node_list):
         raise TypeError("All elements in 'graph_node_list' must be of type 'GraphNode'")
 
     if not all(isinstance(graph_edge, GraphEdge) for graph_edge in graph_edge_list):

@@ -1,4 +1,5 @@
-from .topograph import NodeEntity, GraphNode, GraphEdge, TopoGraph, generate_topograph
+from .topograph import NodeEntity, GraphEdge, generate_topograph
+from .topograph.similarity import WordNetGraphNode, RestrictedGraphNode
 from . import semantic_concepts
 
 import itertools
@@ -38,7 +39,7 @@ def get_wordnet_topograph1(dim=3):
     # generate graph nodes
     graph_nodes = []
     for node, sem, col, pos, plot_pos in zip(nodes, semantic, colors, positions, plot_positions):
-        graph_nodes.append(GraphNode(node=node, pos=pos, label=sem, plot_pos=plot_pos, lemma=sem, node_color=col))
+        graph_nodes.append(WordNetGraphNode(node=node, pos=pos, label=sem, plot_pos=plot_pos, lemma=sem, node_color=col))
 
     edges = generate_edges(nodes=graph_nodes, positions=positions, fill_factor=0.8, stretch_variation=0.05)
 
@@ -56,7 +57,7 @@ def get_wordnet_topograph2(dim=3):
     # generate graph nodes
     graph_nodes = []
     for node, sem, col, pos, plot_pos in zip(nodes, semantic, colors, positions, plot_positions):
-        graph_nodes.append(GraphNode(node=node, pos=pos, label=sem, plot_pos=plot_pos, lemma=sem, node_color=col))
+        graph_nodes.append(WordNetGraphNode(node=node, pos=pos, label=sem, plot_pos=plot_pos, lemma=sem, node_color=col))
 
     edges = generate_edges(nodes=graph_nodes, positions=positions, fill_factor=0.6, stretch_variation=0.1)
 
@@ -73,7 +74,7 @@ def get_restricted_topograph1(dim=3, num_elements = 5):
 
     graph_nodes = []
     for node, sem, col, pos, plot_pos in zip(nodes, semantic, colors, positions, plot_positions):
-        graph_nodes.append(GraphNode(node=node, pos=pos, label=sem, plot_pos=plot_pos, lemma=sem, node_color=col))
+        graph_nodes.append(RestrictedGraphNode(node=node, pos=pos, label=sem, plot_pos=plot_pos, lemma=sem, node_color=col))
 
     edges = generate_edges(nodes=graph_nodes, positions = positions, fill_factor=0.8, stretch_variation=0.1)
     return generate_topograph(graph_node_list=graph_nodes, graph_edge_list=edges, name="Restricted example graph 1")
@@ -88,7 +89,7 @@ def get_restricted_topograph2(dim=3, num_elements = 5):
 
     graph_nodes = []
     for node, sem, col, pos, plot_pos in zip(nodes, semantic, colors, positions, plot_positions):
-        graph_nodes.append(GraphNode(node=node, pos=pos, label=sem, plot_pos=plot_pos, lemma=sem, node_color=col))
+        graph_nodes.append(RestrictedGraphNode(node=node, pos=pos, label=sem, plot_pos=plot_pos, lemma=sem, node_color=col))
 
     edges = generate_edges(nodes=graph_nodes, positions = positions, fill_factor=0.8, stretch_variation=0.1)
     return generate_topograph(graph_node_list=graph_nodes, graph_edge_list=edges, name="Restricted example graph 2")

@@ -1,5 +1,5 @@
 from ..topograph import TopoGraph
-from . import AbstractForce, AbstractIntegrator, WordnetForceManager, RestrictedForceManager
+from . import AbstractForce, AbstractIntegrator, ForceManager
 
 
 class MatchingScene(object):
@@ -29,7 +29,7 @@ class MatchingScene(object):
             self.node_list.append(nodes)
             self.dict_list.append(dicts)
 
-        self.force_manager = RestrictedForceManager(topograph_list=self.topograph_list, node_list=self.node_list,
+        self.force_manager = ForceManager(topograph_list=self.topograph_list, node_list=self.node_list,
                                                  dict_list=self.dict_list, inner_force=self.inner_force,
                                                  outer_force=self.outer_force, dim=self.dim)
 
