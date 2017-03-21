@@ -68,7 +68,7 @@ class ForceManager(object):
                 for idx2, (node2, dict2) in enumerate(zip(nodes2, dicts2)):
                     # compute semantic graph_node
                     sim12 = node1.similarity(node2)
-                    sim12 = 0 if sim12 < 0.7 else sim12
+                    sim12 = 0 if sim12 < 0.4 else sim12
                     pos1, pos2 = dict1['pos'], dict2['pos']
 
                     # scale the force based on graph_node

@@ -2,6 +2,7 @@ import networkx as nx
 import os
 from matplotlib import pylab as plt
 from matplotlib.patches import FancyArrowPatch
+from matplotlib import colors as cols
 import itertools
 
 import numpy as np
@@ -22,6 +23,7 @@ class EdgeColor(Enum):
 class TopoGraphDrawer(object):
     """Simple class able to plots the content of a TopoGraph
     """
+
     def __init__(self, topograph_list, labels_visible=True, nodes_visible=True, edges_visible=True,
                  outer_connections_visible=False, directory_name="fig/"):
         """
@@ -49,7 +51,6 @@ class TopoGraphDrawer(object):
         self.edges_visible = edges_visible
         self.outer_connections_visible = outer_connections_visible
 
-        self.label_color = 'k'
         self.font_size = 16
 
         self.edge_width_type = EdgeWidth.STIFFNESS
@@ -104,7 +105,10 @@ class TopoGraphDrawer(object):
                                            edge_vmin=-0.5, edge_vmax=0.0)
 
             if self.labels_visible:
-                nx.draw_networkx_labels(topograph, pos=plot_pos, labels=labels, font_color=self.label_color,
+                edge_color_rgb = cols.hex2color(edge_dicts[0]["edge_color"])
+                label_color = (edge_color_rgb[0] * 0.5, edge_color_rgb[1] * 0.5, edge_color_rgb[2] * 0.5)
+                label_color = cols.rgb2hex(label_color)
+                nx.draw_networkx_labels(topograph, pos=plot_pos, labels=labels, font_color=label_color,
                                         font_size=self.font_size)
 
         if self.outer_connections_visible:
@@ -121,17 +125,15 @@ class TopoGraphDrawer(object):
                     for idx2, (node2, dict2) in enumerate(zip(nodes2, dicts2)):
                         # compute semantic graph_node
                         sim12 = node1.similarity(node2)
-                        if sim12 > 0.7:
+                        if sim12 > 0.4:
                             pos1, pos2 = dict1['pos'][0:2], dict2['pos'][0:2]
                             plt.gca().add_patch(FancyArrowPatch((pos1[0], pos1[1]), (pos2[0], pos2[1]),
                                                                 arrowstyle='<->', mutation_scale=30,
                                                                 connectionstyle='arc3, rad=-0.1', color='#B54343',
-                                                                linestyle='dotted', linewidth=2.5 * sim12 ** 0.6))
-
+                                                                linestyle='dotted', linewidth=2.5 * sim12**2))
 
         plt.grid()
-        plt.ylim([-1, 7])
-        plt.xlim([0, 7])
+        plt.axis("equal")
 
     def show(self):
         """Draws and shows the graph
@@ -146,9 +148,6 @@ class TopoGraphDrawer(object):
         self.draw()
         plt.savefig(filename)
         plt.close()
-
-    def set_label_color(self, col):
-        self.label_color = col
 
     def set_font_size(self, size):
         self.font_size = size
