@@ -4,6 +4,8 @@ from .topograph import AbstractGraphNode, GraphEdge, NodeEntity
 from .topograph import TopoGraph, TopoGraphDrawer, EdgeColor, EdgeWidth
 from .topograph import generate_topograph
 
+from .topograph import Map2D, generate_map
+
 from .topomatching import MatchingScene, force, integrator, printProgressBar
 
 from .restricted_classes import RestrictedSimilarityTable

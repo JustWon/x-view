@@ -5,6 +5,10 @@ import numpy as np
 
 
 def main():
+
+    map = xv.generate_map(10, 5, 3)
+    return
+
     dim = 2
     G1 = xv.get_restricted_topograph1(edge_color='#2B3EAB', node_color='#455BD9')
     G2 = xv.get_restricted_topograph2(edge_color='#69D14D', node_color='#33A614')
