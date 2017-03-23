@@ -20,6 +20,7 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
     cv_bridge::CvImagePtr image_ptr = cv_bridge::toCvCopy(msg, "bgr8");
     cv::Mat image = image_ptr->image;
     // TODO: Process image using x-view functions.
+    CHECK(false) << "Not implemented.";
   }
   catch (cv_bridge::Exception& e)
   {
