@@ -1,5 +1,5 @@
-#ifndef X_VIEW_NODE_H_
-#define X_VIEW_NODE_H_
+#ifndef X_VIEW_WORKER_H_
+#define X_VIEW_WORKER_H_
 
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <kindr/minimal/quat-transformation.h>
@@ -8,11 +8,11 @@
 
 namespace x_view_ros {
 
-class XViewNode {
+class XViewWorker {
 
  public:
-  explicit XViewNode(ros::NodeHandle& n);
-  ~XViewNode();
+  explicit XViewWorker(ros::NodeHandle& n);
+  ~XViewWorker();
 
  private:
   // Get ROS parameters.
@@ -35,4 +35,4 @@ class XViewNode {
 }; // XViewNode
 
 }
-#endif /* X_VIEW_NODE_H_ */
+#endif /* X_VIEW_WORKER_H_ */

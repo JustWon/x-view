@@ -6,19 +6,19 @@ add_definitions(-std=c++11)
 find_package(catkin_simple 0.1.0 REQUIRED COMPONENTS
     roscpp
     rospy
-    std_msgs
     genmsg
     message_generation
-    tf
     rosbag
-    visualization_msgs
 )
 
 catkin_simple(ALL_DEPS_REQUIRED)
 
 cs_add_library(${PROJECT_NAME} 
-    src/x-view_node.cc
+    src/x-view_worker.cc
 )
+
+add_executable(x-view src/x-view_node.cc)
+target_link_libraries(x-view ${catkin_LIBRARIES} ${PROJECT_NAME})
 
 cs_install()
 cs_export()

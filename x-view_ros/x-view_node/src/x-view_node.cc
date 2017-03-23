@@ -1,12 +1,26 @@
-#include "x-view_node/x-view_node.h"
+#include <thread>
 
-namespace x_view_ros {
+#include <ros/ros.h>
 
-XViewNode::XViewNode(ros::NodeHandle& n) : nh_(n) { }
+#include "x-view_node/x-view_worker.h"
 
-void XViewNode::getParameters() {
-  // TODO: read in parameters from node.
-  CHECK(false) << "Not implemented.";
-}
+int main(int argc, char **argv) {
+  ros::init(argc, argv, "X-View");
+  ros::NodeHandle node_handle("~");
 
+  x_view_ros::XViewWorker worker(node_handle);
+
+  try {
+    ros::spin();
+  }
+  catch (const std::exception& e) {
+    ROS_ERROR_STREAM("Exception: " << e.what());
+    return 1;
+  }
+  catch (...) {
+    ROS_ERROR_STREAM("Unknown Exception");
+    return 1;
+  }
+
+  return 0;
 }
