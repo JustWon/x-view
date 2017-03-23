@@ -6,8 +6,6 @@
 #include <opencv2/core/core.hpp>
 #include <ros/ros.h>
 
-
-// TODO(gawela): Move non-ros functions to non ros package.
 namespace x_view_ros {
 
 class XViewNode {
