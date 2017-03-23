@@ -5,6 +5,7 @@
 #include <kindr/minimal/quat-transformation.h>
 #include <opencv2/core/core.hpp>
 #include <ros/ros.h>
+#include <sensor_msgs/Image.h>
 
 namespace x_view_ros {
 
@@ -14,8 +15,13 @@ class XViewWorker {
   explicit XViewWorker(ros::NodeHandle& n);
   ~XViewWorker();
 
+ protected:
+
+  /// \brief Process semantics image.
+  void semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg);
+
  private:
-  // Get ROS parameters.
+  /// \brief Get ROS parameters.
   void getParameters();
 
   // TODO: Add further setters / getters where necessary.
@@ -24,13 +30,7 @@ class XViewWorker {
   ros::NodeHandle& nh_;
 
   // Subscribers.
-  ros::Subscriber image_sub_;
-
-  // Publishers.
-  ros::Publisher matches_pub_;
-
-  // Services.
-  ros::ServiceServer trigger_xview_;
+  ros::Subscriber semantics_image_sub_;
 
 }; // XViewNode
 
