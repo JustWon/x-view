@@ -16,6 +16,7 @@ struct XViewParams
 struct XViewSemantics
 {
   SE3 pose;
+  // TODO: Define structure of semantics graph.
   gtsam::NonlinearFactorGraph& factor_graph;
 };
 // struct XViewSemantics

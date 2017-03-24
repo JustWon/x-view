@@ -6,7 +6,7 @@ XView::XView(XViewParams& params) : params_(params) { }
 
 void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
                                       XViewSemantics* semantics_out) {
-  // TODO: build semantic descriptor from image input.
+  // TODO: build semantic descriptor from smenatics image input.
   CHECK(false) << "Not implemented.";
 }
 
