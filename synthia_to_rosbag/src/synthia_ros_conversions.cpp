@@ -49,10 +49,6 @@ void calibrationToRos(uint64_t cam_id, const CameraCalibration& cam,
       cam_msg->P[4 * i + j] = cam.projection_mat(i, j);
     }
   }
-
-  // Set the translation of the projection matrix.
-  //cam_msg->P[3] = cam.T_cam0_cam.getPosition().x();
-  //cam_msg->P[7] = cam.T_cam0_cam.getPosition().y();
 }
 
 void stereoCalibrationToRos(uint64_t left_cam_id, uint64_t right_cam_id,
@@ -63,13 +59,6 @@ void stereoCalibrationToRos(uint64_t left_cam_id, uint64_t right_cam_id,
   // Fill in the basics for each camera.
   calibrationToRos(left_cam_id, left_cam, left_cam_msg);
   calibrationToRos(right_cam_id, right_cam, right_cam_msg);
-
-  // Since all transforms are given relative to cam0, need to remove the cam0
-  // transform from both to get the relative one between the two (cam0 to cam0
-  // is ostensibly identity anyway).
-  // This is probably not even necessary.
-  // Transformation T_left_cam0 = left_cam.T_cam0_cam.inverse();
-  // Transformation T_left_right = T_left_cam0 * right_cam.T_cam0_cam;
 }
 
 void imageToRos(const cv::Mat& image, sensor_msgs::Image* image_msg) {
