@@ -1,0 +1,192 @@
+#include <opencv2/highgui/highgui.hpp>
+#include <pcl_ros/point_cloud.h>
+#include <rosbag/bag.h>
+#include <tf/tfMessage.h>
+
+#include "synthia_to_rosbag/synthia_parser.h"
+#include "synthia_to_rosbag/synthia_ros_conversions.h"
+
+namespace synthia {
+
+class SynthiaBagConverter {
+ public:
+  SynthiaBagConverter(const std::string& dataset_path,
+                      const std::string& output_filename);
+
+  void convertAll();
+  bool convertEntry(uint64_t entry);
+  bool convertEntry2(uint64_t entry);
+  void convertTf(uint64_t timestamp_ns, const synthia::Transformation& imu_pose);
+
+ private:
+  synthia::SynthiaParser parser_;
+
+  rosbag::Bag bag_;
+
+  std::string world_frame_id_;
+  std::string imu_frame_id_;
+  std::string cam_frame_id_prefix_;
+
+  std::string pose_topic_;
+  std::string transform_topic_;
+  std::string pointcloud_topic_;
+};
+
+SynthiaBagConverter::SynthiaBagConverter(const std::string& dataset_path,
+                                         const std::string& output_filename)
+: parser_(dataset_path, true),
+  world_frame_id_("world"),
+  imu_frame_id_("imu"),
+  cam_frame_id_prefix_("cam"),
+  pose_topic_("pose_imu"),
+  transform_topic_("transform_imu") {
+  // Load all the timestamp maps and calibration parameters.
+  parser_.loadCalibration();
+  parser_.loadTimestampMaps();
+
+  bag_.open(output_filename, rosbag::bagmode::Write);
+}
+
+void SynthiaBagConverter::convertAll() {
+  uint64_t entry = 0;
+  while (convertEntry(entry)) {
+    entry++;
+  }
+  std::cout << "Converted " << entry << " entries into a rosbag.\n";
+}
+
+bool SynthiaBagConverter::convertEntry(uint64_t entry) {
+  ros::Time timestamp_ros;
+  uint64_t timestamp_ns;
+
+  // Convert poses + TF transforms.
+  synthia::Transformation pose;
+  if (parser_.getPoseAtEntry(entry, &timestamp_ns, &pose)) {
+    geometry_msgs::PoseStamped pose_msg;
+    geometry_msgs::TransformStamped transform_msg;
+
+    synthia::timestampToRos(timestamp_ns, &timestamp_ros);
+    pose_msg.header.frame_id = world_frame_id_;
+    pose_msg.header.stamp = timestamp_ros;
+    transform_msg.header.frame_id = world_frame_id_;
+    transform_msg.header.stamp = timestamp_ros;
+
+    synthia::poseToRos(pose, &pose_msg);
+    synthia::transformToRos(pose, &transform_msg);
+    bag_.write(pose_topic_, timestamp_ros, pose_msg);
+    bag_.write(transform_topic_, timestamp_ros, transform_msg);
+
+    convertTf(timestamp_ns, pose);
+  } else {
+    return false;
+  }
+
+  // Convert images.
+  cv::Mat image, depth_image, labels_image, labels;
+  //todo(gawela) reactivate
+  for (size_t cam_id = 0; cam_id < parser_.getNumCameras(); ++cam_id) {
+    if (parser_.getImageAtEntry(entry, cam_id, &timestamp_ns, &image) &&
+        parser_.getDepthImageAtEntry(entry, cam_id, &timestamp_ns, &depth_image) &&
+        parser_.getLabelImageAtEntry(entry, cam_id, &timestamp_ns, &labels_image) &&
+        parser_.getLabelsAtEntry(entry, cam_id, &timestamp_ns, &labels)) {
+      synthia::timestampToRos(timestamp_ns, &timestamp_ros);
+
+      sensor_msgs::Image image_msg, depth_image_msg, labels_image_msg, labels_msg;
+      synthia::imageToRos(image, &image_msg);
+      synthia::depthImageToRos(depth_image, &depth_image_msg);
+      synthia::imageToRos(labels_image, &labels_image_msg);
+      synthia::imageToRos(labels, &labels_msg);
+      image_msg.header.stamp = timestamp_ros;
+      image_msg.header.frame_id = synthia::getCameraFrameId(cam_id);
+      depth_image_msg.header.stamp = timestamp_ros;
+      depth_image_msg.header.frame_id = synthia::getCameraFrameId(cam_id);
+
+      labels_image_msg.header.stamp = timestamp_ros;
+      labels_image_msg.header.frame_id = synthia::getCameraFrameId(cam_id);
+
+      labels_msg.header.stamp = timestamp_ros;
+      labels_msg.header.frame_id = synthia::getCameraFrameId(cam_id);
+
+      // Get the calibration info for this camera.
+      synthia::CameraCalibration cam_calib;
+      parser_.getCameraCalibration(cam_id, &cam_calib);
+      sensor_msgs::CameraInfo cam_info;
+      synthia::calibrationToRos(cam_id, cam_calib, &cam_info);
+      cam_info.header = image_msg.header;
+
+      bag_.write(parser_.getCameraPath(cam_id) + "/image_raw", timestamp_ros,
+                 image_msg);
+      bag_.write(parser_.getCameraPath(cam_id) + "/depth", timestamp_ros,
+                 depth_image_msg);
+      bag_.write(parser_.getCameraPath(cam_id) + "/labels_image", timestamp_ros,
+                 labels_image_msg);
+      bag_.write(parser_.getCameraPath(cam_id) + "/labels", timestamp_ros,
+                 labels_msg);
+      bag_.write(parser_.getCameraPath(cam_id) + "/camera_info", timestamp_ros,
+                 cam_info);
+    }
+  }
+
+  return true;
+}
+
+void SynthiaBagConverter::convertTf(uint64_t timestamp_ns,
+                                    const synthia::Transformation& imu_pose) {
+  tf::tfMessage tf_msg;
+  ros::Time timestamp_ros;
+  synthia::timestampToRos(timestamp_ns, &timestamp_ros);
+
+  // Create the full transform chain.
+  Eigen::Matrix4d identity = Eigen::Matrix4d::Identity();
+  synthia::Transformation identity_transform(identity);
+  synthia::Transformation T_imu_world = imu_pose;
+  synthia::Transformation T_vel_imu = identity_transform;
+  synthia::Transformation T_cam_imu = identity_transform;
+
+  geometry_msgs::TransformStamped tf_imu_world, tf_vel_imu, tf_cam_imu;
+  synthia::transformToRos(T_imu_world, &tf_imu_world);
+  tf_imu_world.header.frame_id = world_frame_id_;
+  tf_imu_world.child_frame_id = imu_frame_id_;
+  tf_imu_world.header.stamp = timestamp_ros;
+
+  // Put them into one tf_msg.
+  tf_msg.transforms.push_back(tf_imu_world);
+
+  // Get all of the camera transformations as well.
+  for (size_t cam_id = 0; cam_id < parser_.getNumCameras(); ++cam_id) {
+    synthia::CameraCalibration calibration;
+    parser_.getCameraCalibration(cam_id, &calibration);
+    T_cam_imu = calibration.T_cam0_cam;
+    synthia::transformToRos(T_cam_imu.inverse(), &tf_cam_imu);
+    tf_cam_imu.header.frame_id = imu_frame_id_;
+    tf_cam_imu.child_frame_id = synthia::getCameraFrameId(cam_id);
+    tf_cam_imu.header.stamp = timestamp_ros;
+    tf_msg.transforms.push_back(tf_cam_imu);
+  }
+
+  bag_.write("/tf", timestamp_ros, tf_msg);
+}
+
+}  // namespace Synthia
+
+int main(int argc, char** argv) {
+  google::InitGoogleLogging(argv[0]);
+  google::ParseCommandLineFlags(&argc, &argv, false);
+  google::InstallFailureSignalHandler();
+
+  if (argc < 3) {
+    std::cout << "Usage: rosrun synthia_to_rosbag synthia_rosbag_converter "
+        "dataset_path output_path\n";
+    std::cout << "Note: no trailing slashes.\n";
+    return 0;
+  }
+
+  const std::string dataset_path = argv[1];
+  const std::string output_path = argv[2];
+
+  synthia::SynthiaBagConverter converter(dataset_path,
+                                         output_path);
+  converter.convertAll();
+
+  return 0;
+}
