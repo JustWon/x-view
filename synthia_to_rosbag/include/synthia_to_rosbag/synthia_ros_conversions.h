@@ -4,6 +4,7 @@
 #include <sensor_msgs/CameraInfo.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <nav_msgs/Path.h>
 #include <tf/transform_datatypes.h>
 
 #include "synthia_to_rosbag/synthia_common.h"
@@ -20,6 +21,8 @@ void imageToRos(const cv::Mat& image, sensor_msgs::Image* image_msg);
 void depthImageToRos(const cv::Mat& depth_image, sensor_msgs::Image* depth_image_msg);
 void poseToRos(const Transformation& transform,
                geometry_msgs::PoseStamped* pose_msg);
+void posesToPath(const std::vector<geometry_msgs::PoseStamped>& poses,
+                 nav_msgs::Path* path_msg);
 void transformToTf(const Transformation& transform,
                    tf::Transform* tf_transform);
 void transformToRos(const Transformation& transform,

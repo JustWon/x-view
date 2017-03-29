@@ -81,6 +81,10 @@ void depthImageToRos(const cv::Mat& depth_image, sensor_msgs::Image* depth_image
     image_cv_bridge.encoding = "mono8";
   } else if (depth_image.type() == CV_16UC1) {
     image_cv_bridge.encoding = "mono16";
+  } else if (depth_image.type() == CV_8UC3) {
+    image_cv_bridge.encoding = "bgr8";
+  } else if (depth_image.type() == CV_8UC4) {
+    image_cv_bridge.encoding = "bgra8";
   }
   image_cv_bridge.toImageMsg(*depth_image_msg);
 }
@@ -88,6 +92,16 @@ void depthImageToRos(const cv::Mat& depth_image, sensor_msgs::Image* depth_image
 void poseToRos(const Transformation& transform,
                geometry_msgs::PoseStamped* pose_msg) {
   tf::poseKindrToMsg(transform, &pose_msg->pose);
+}
+
+void posesToPath(const std::vector<geometry_msgs::PoseStamped>& poses,
+                 nav_msgs::Path* path_msg) {
+  if(poses.size() > 0) {
+    path_msg->poses.resize(poses.size());
+    for (size_t i = 0u; i < poses.size(); ++i) {
+      path_msg->poses[i] = poses[i];
+    }
+  }
 }
 
 void transformToTf(const Transformation& transform,

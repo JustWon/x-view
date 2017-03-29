@@ -151,15 +151,10 @@ bool SynthiaParser::getPoseAtEntry(uint64_t entry, uint64_t* timestamp,
   std::string line;
   std::getline(import_file_cam0, line);
   if (parseVectorOfDoubles(line, &parsed_doubles)) {
-    std::cout << "parsed doubles: ";
-    for (int i = 0; i < parsed_doubles.size(); ++i) {
-      std::cout << parsed_doubles[i] << " ";
-    }
     // flip z,y
     double temp = parsed_doubles[14];
     parsed_doubles[14] = parsed_doubles[13];
     parsed_doubles[13] = temp;
-    std::cout << std::endl;
     if (convertVectorToPose(parsed_doubles, pose)) {
       return true;
     }

@@ -15,7 +15,6 @@ class SynthiaBagConverter {
 
   void convertAll();
   bool convertEntry(uint64_t entry);
-  bool convertEntry2(uint64_t entry);
   void convertTf(uint64_t timestamp_ns, const synthia::Transformation& imu_pose);
 
  private:
@@ -27,9 +26,12 @@ class SynthiaBagConverter {
   std::string imu_frame_id_;
   std::string cam_frame_id_prefix_;
 
+  std::string path_topic_;
   std::string pose_topic_;
   std::string transform_topic_;
   std::string pointcloud_topic_;
+
+  std::vector<geometry_msgs::PoseStamped> poses_;
 };
 
 SynthiaBagConverter::SynthiaBagConverter(const std::string& dataset_path,
@@ -38,6 +40,7 @@ SynthiaBagConverter::SynthiaBagConverter(const std::string& dataset_path,
   world_frame_id_("world"),
   imu_frame_id_("imu"),
   cam_frame_id_prefix_("cam"),
+  path_topic_("path"),
   pose_topic_("pose_imu"),
   transform_topic_("transform_imu") {
   // Load all the timestamp maps and calibration parameters.
@@ -64,17 +67,24 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
   if (parser_.getPoseAtEntry(entry, &timestamp_ns, &pose)) {
     geometry_msgs::PoseStamped pose_msg;
     geometry_msgs::TransformStamped transform_msg;
+    nav_msgs::Path path_msg;
 
     synthia::timestampToRos(timestamp_ns, &timestamp_ros);
     pose_msg.header.frame_id = world_frame_id_;
     pose_msg.header.stamp = timestamp_ros;
     transform_msg.header.frame_id = world_frame_id_;
     transform_msg.header.stamp = timestamp_ros;
+    path_msg.header.frame_id = world_frame_id_;
+    path_msg.header.stamp = timestamp_ros;
 
     synthia::poseToRos(pose, &pose_msg);
     synthia::transformToRos(pose, &transform_msg);
     bag_.write(pose_topic_, timestamp_ros, pose_msg);
     bag_.write(transform_topic_, timestamp_ros, transform_msg);
+
+    poses_.push_back(pose_msg);
+    synthia::posesToPath(poses_, &path_msg);
+    bag_.write(path_topic_, timestamp_ros, path_msg);
 
     convertTf(timestamp_ns, pose);
   } else {
