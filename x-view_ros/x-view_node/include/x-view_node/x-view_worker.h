@@ -7,9 +7,16 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 
+#include "x-view_core/x-view.h"
+
 namespace x_view_ros {
 
 class XViewWorker {
+
+  struct XViewWorkerParams {
+    std::string semantics_image_topic;
+    x_view::XViewParams x_view_params;
+  }; // struct XViewWorkerParams
 
  public:
   explicit XViewWorker(ros::NodeHandle& n);
@@ -31,6 +38,12 @@ class XViewWorker {
 
   // Subscribers.
   ros::Subscriber semantics_image_sub_;
+
+  // Parameters.
+  XViewWorkerParams params_;
+
+  // X-View core.
+  x_view::XView x_view_;
 
 }; // XViewNode
 

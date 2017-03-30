@@ -4,6 +4,8 @@ namespace x_view {
 
 XView::XView(XViewParams& params) : params_(params) { }
 
+XView::~XView() {};
+
 void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
                                       XViewSemantics* semantics_out) {
   // TODO: build semantic descriptor from smenatics image input.

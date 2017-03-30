@@ -1,5 +1,5 @@
-#ifndef X_VIEW_H_
-#define X_VIEW_H_
+#ifndef X_VIEW_X_VIEW_H_
+#define X_VIEW_X_VIEW_H_
 
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <kindr/minimal/quat-transformation.h>
@@ -8,24 +8,27 @@
 namespace x_view {
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 
-struct XViewParams
-{
-};
-// struct XViewParams
+struct XViewParams {
+}; // struct XViewParams
 
 struct XViewSemantics
 {
   SE3 pose;
   // TODO: Define structure of semantics graph.
-  gtsam::NonlinearFactorGraph& factor_graph;
-};
-// struct XViewSemantics
+  gtsam::NonlinearFactorGraph factor_graph;
+
+  XViewSemantics() {};
+  ~XViewSemantics() {};
+}; // struct XViewSemantics
 
 class XView
 {
 
  public:
+  XView() {};
+
   explicit XView(XViewParams& params);
+
   ~XView();
 
   /// \brief Extract semantic descriptor from semantics image.
@@ -59,8 +62,7 @@ class XView
   XViewParams params_;
   // Semantics database.
   std::vector<XViewSemantics> semantics_db_;
-};
-// XView
+}; // XView
 
 }
-#endif /* X_VIEW_ */
+#endif /* X_VIEW_X_VIEW_H_ */
