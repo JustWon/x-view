@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>x-view_node</name>
+  <version>0.0.1</version>
+  <description>x-view_node</description>
+  
+  <maintainer email="gawela@ethz.ch">Abel Gawel</maintainer>
+  <maintainer email="deldonc@student.ethz.ch">Carlo Del Don</maintainer>
+  
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+  
+  <depend>cv_bridge</depend>
+  <depend>glog_catkin</depend>
+  <depend>message_generation</depend>
+  <depend>message_runtime</depend>
+  <depend>minkindr</depend>
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>x-view_core</depend>
+</package>
+

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>x-view_core</name>
+  <version>0.0.1</version>
+  <description>x-view_core</description>
+  
+  <maintainer email="gawela@ethz.ch">Abel Gawel</maintainer>
+  <maintainer email="deldonc@student.ethz.ch">Carlo Del Don</maintainer>
+  
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+  
+  <depend>gtsam_catkin</depend>
+  <depend>minkindr</depend>
+</package>
+
