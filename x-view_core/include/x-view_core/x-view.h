@@ -6,63 +6,62 @@
 #include <opencv2/core/core.hpp>
 
 namespace x_view {
-typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
+    typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 
-struct XViewParams {
-}; // struct XViewParams
+    struct XViewParams {
+    }; // struct XViewParams
 
-struct XViewSemantics
-{
-  SE3 pose;
-  // TODO: Define structure of semantics graph.
-  gtsam::NonlinearFactorGraph factor_graph;
+    struct XViewSemantics {
+        SE3 pose;
+        // TODO: Define structure of semantics graph.
+        gtsam::NonlinearFactorGraph factor_graph;
 
-  XViewSemantics() {};
-  ~XViewSemantics() {};
-}; // struct XViewSemantics
+        XViewSemantics() {};
 
-class XView
-{
+        ~XViewSemantics() {};
+    }; // struct XViewSemantics
 
- public:
-  XView() {};
+    class XView {
 
-  explicit XView(XViewParams& params);
+    public:
+        XView() {};
 
-  ~XView();
+        explicit XView(XViewParams &params);
 
-  /// \brief Extract semantic descriptor from semantics image.
-  void extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
-                                 XViewSemantics* semantics_out);
+        ~XView();
 
-  /// \brief Match semantics instance to database and return score.
-  void matchSemantics(const XViewSemantics& semantics_a,
-                      Eigen::MatrixXd* matches);
+        /// \brief Extract semantic descriptor from semantics image.
+        void extractSemanticsFromImage(const cv::Mat &image, const SE3 &pose,
+                                       XViewSemantics *semantics_out);
 
-  /// \brief Filter matches, e.g., geometric verification etc.
-  void filterMatches(const XViewSemantics& semantics_a,
-                     Eigen::MatrixXd* matches);
+        /// \brief Match semantics instance to database and return score.
+        void matchSemantics(const XViewSemantics &semantics_a,
+                            Eigen::MatrixXd *matches);
 
-  /// \brief Merge semantics instance into database according to matches.
-  void mergeSemantics(const XViewSemantics& semantics_a,
-                      const Eigen::MatrixXd& matches);
+        /// \brief Filter matches, e.g., geometric verification etc.
+        void filterMatches(const XViewSemantics &semantics_a,
+                           Eigen::MatrixXd *matches);
 
-  /// \brief Clean database by doing full semantics matching.
-  void cleanDatabase();
+        /// \brief Merge semantics instance into database according to matches.
+        void mergeSemantics(const XViewSemantics &semantics_a,
+                            const Eigen::MatrixXd &matches);
 
-  // TODO: Add further functions.
+        /// \brief Clean database by doing full semantics matching.
+        void cleanDatabase();
 
- private:
-  // Set the parameters.
-  void setParameters(const XViewParams& params) { params_ = params; }
+        // TODO: Add further functions.
 
-  // TODO: Add further setters / getters where necessary.
+    private:
+        // Set the parameters.
+        void setParameters(const XViewParams &params) { params_ = params; }
 
-  // Parameters.
-  XViewParams params_;
-  // Semantics database.
-  std::vector<XViewSemantics> semantics_db_;
-}; // XView
+        // TODO: Add further setters / getters where necessary.
+
+        // Parameters.
+        XViewParams params_;
+        // Semantics database.
+        std::vector<XViewSemantics> semantics_db_;
+    }; // XView
 
 }
 #endif /* X_VIEW_X_VIEW_H_ */
