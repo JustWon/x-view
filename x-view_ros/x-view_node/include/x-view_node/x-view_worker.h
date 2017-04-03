@@ -25,7 +25,7 @@ namespace x_view_ros {
 
     protected:
 
-        /// \brief Process semantics image.
+        /// \brief Process semantics image generating internal representation of semantic entities.
         void semanticsImageCallback(const sensor_msgs::ImageConstPtr &msg);
 
     private:

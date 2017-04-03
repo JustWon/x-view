@@ -5,7 +5,7 @@
 #include <x-view_node/x-view_worker.h>
 
 int main(int argc, char **argv) {
-    std::cout << "Running x-view node" << std::endl;
+
     // name cannot contain '-' char
     ros::init(argc, argv, "XView");
     ros::NodeHandle node_handle("~");

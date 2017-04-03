@@ -7,6 +7,7 @@
 namespace x_view_ros {
 
     XViewWorker::XViewWorker(ros::NodeHandle &n) : nh_(n) {
+        // FIXME: who initializes 'params_'?
         semantics_image_sub_ = nh_.subscribe(params_.semantics_image_topic, 1,
                                              &XViewWorker::semanticsImageCallback,
                                              this);
@@ -24,7 +25,7 @@ namespace x_view_ros {
             // TODO: Process image using x-view functions.
             CHECK(false) << "Not implemented.";
         } catch (cv_bridge::Exception &e) {
-            ROS_ERROR("Could not convert from '%s' to 'bgr8'.", msg->encoding.c_str());
+            ROS_ERROR_STREAM("Could not convert from " << msg->encoding.c_str() <<" to 'bgr8'.");
         }
     }
 
