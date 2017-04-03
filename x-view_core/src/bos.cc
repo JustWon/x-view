@@ -7,5 +7,9 @@ namespace x_view {
     BoS::BoS(const cv::Mat &image, const SE3& pose) : XViewSemantics(image, pose) {
         CHECK(false) << "Not implemented yet";
     }
+
+    XViewSemanticMatchingResult BoS::match(const XViewSemantics& other) {
+        CHECK(false) << "Not implemented yet";
+    }
 }
 

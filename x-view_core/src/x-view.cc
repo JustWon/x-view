@@ -16,7 +16,7 @@ namespace x_view {
     }
 
     void XView::matchSemantics(const XViewSemantics &semantics_a, Eigen::MatrixXd &matches) {
-        // TODO: match input semantics against semantics_db_.
+        // TODO: match input semantics against semantics_db_ by doing a sort of loop and calling "this->semantics_db_[i].match(semantics_a)".
         CHECK(false) << "Not implemented.";
     }
 

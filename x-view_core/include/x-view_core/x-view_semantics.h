@@ -44,7 +44,7 @@ namespace x_view {
          * \param other other landmark to be compared to this
          * \return struct containing matching results
          */
-        virtual XViewSemanticMatchingResult match(const std::unique_ptr<XViewSemantics>& other) = 0;
+        virtual XViewSemanticMatchingResult match(const XViewSemantics& other) = 0;
 
     }; // struct XViewSemantics
 
