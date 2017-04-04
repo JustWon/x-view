@@ -10,11 +10,11 @@ catkin_simple(ALL_DEPS_REQUIRED)
 cs_add_library(${PROJECT_NAME}
         src/x_view.cc
 
-        src/x-view_semantics.cc
+        src/abstract_semantic_landmark.cc
         src/bos.cc
-        src/semantic_graph.cc
+        src/graph.cc
 
-        src/semantic_factory.cc
+        src/semantic_landmark_factory.cc
         )
 
 cs_install()
