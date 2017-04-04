@@ -1,7 +1,7 @@
-#ifndef X_VIEW_X_VIEW_SEMANTICS_H
-#define X_VIEW_X_VIEW_SEMANTICS_H
+#ifndef X_VIEW_ABSTRACT_SEMANTIC_LANDMARK_H
+#define X_VIEW_ABSTRACT_SEMANTIC_LANDMARK_H
 
-#include <x-view_core/types.h>
+#include <x-view_core/x-view_types.h>
 
 #include <opencv2/core/core.hpp>
 
@@ -19,23 +19,23 @@ namespace x_view {
      * \brief Internal representation of a semantic landmark
      * \note The effective implementation of a semantic landmark might be a subclass of XViewSemantics
      */
-    struct XViewSemantics {
+    struct AbstractSemanticLandmark {
 
-        XViewSemantics(){}
+        AbstractSemanticLandmark(){}
 
         /**
          * \brief Semantic representation of viewed image is build from the instantiated class
          * \param image image containing semantic segmentation
          * \param pose 3D pose of the robot
          */
-        XViewSemantics(const cv::Mat &image, const SE3 &pose);
+        AbstractSemanticLandmark(const cv::Mat &image, const SE3 &pose);
 
-        virtual ~XViewSemantics() {};
+        virtual ~AbstractSemanticLandmark() {};
 
         /// \brief Robot's pose associated to this semantic landmark
         SE3 pose_;
 
-        /// \brief Imge given as input for the landmark
+        /// \brief Image given as input for the landmark
         cv::Mat image_;
 
         /**
@@ -43,10 +43,10 @@ namespace x_view {
          * \param other other landmark to be compared to this
          * \return struct containing matching results
          */
-        virtual XViewSemanticMatchingResult match(const XViewSemantics& other) = 0;
+        virtual XViewSemanticMatchingResult match(const AbstractSemanticLandmark& other) = 0;
 
 
-    }; // struct XViewSemantics
+    }; // struct AbstractSemanticLandmark
 
 }
-#endif //X_VIEW_X_VIEW_SEMANTICS_H
+#endif //X_VIEW_ABSTRACT_SEMANTIC_LANDMARK_H

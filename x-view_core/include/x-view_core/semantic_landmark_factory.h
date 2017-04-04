@@ -1,19 +1,19 @@
-#ifndef X_VIEW_SEMANTIC_FACTORY_H
-#define X_VIEW_SEMANTIC_FACTORY_H
+#ifndef X_VIEW_SEMANTIC_LANDMARK_FACTORY_H
+#define X_VIEW_SEMANTIC_LANDMARK_FACTORY_H
 
-#include <x-view_core/types.h>
+#include <x-view_core/x-view_types.h>
 
 #include <opencv2/core/core.hpp>
 
 namespace x_view {
 
     // forward declaration
-    struct XViewSemantics;
+    struct AbstractSemanticLandmark;
 
     /**
      * \brief Class responsible for creating new landmarks
      */
-    class XViewSemanticFactory {
+    class SemanticLandmarkFactory {
 
     public:
 
@@ -28,7 +28,7 @@ namespace x_view {
          * \brief Creates a factory object which will create semantic landmarks defined by the passed argument
          * \param type enum specifying the semantic landmark type to be constructed
          */
-        explicit XViewSemanticFactory(SEMANTIC_LANDMARK_TYPE type = SEMANTIC_LANDMARK_TYPE::UNDEFINED_SEMANTIC_LANDMARK_TYPE)
+        explicit SemanticLandmarkFactory(SEMANTIC_LANDMARK_TYPE type = SEMANTIC_LANDMARK_TYPE::UNDEFINED_SEMANTIC_LANDMARK_TYPE)
                 : semanticLandmarkType_(type) {}
 
         void setSemanticLandmarkType(const SEMANTIC_LANDMARK_TYPE type) {
@@ -45,7 +45,7 @@ namespace x_view {
          * \param pose  3D pose of the robot associated to the image
          * \param landmark pointer to abstract base landmark class which is filled up with a concrete landmark type
          */
-        void createSemanticLandmark(const cv::Mat &image, const SE3 &pose, std::shared_ptr<XViewSemantics> &landmark);
+        void createSemanticLandmark(const cv::Mat &image, const SE3 &pose, std::shared_ptr<AbstractSemanticLandmark> &landmark);
 
     private:
         SEMANTIC_LANDMARK_TYPE semanticLandmarkType_;
@@ -53,4 +53,4 @@ namespace x_view {
     };
 }
 
-#endif //X_VIEW_SEMANTIC_FACTORY_H
+#endif //X_VIEW_SEMANTIC_LANDMARK_FACTORY_H

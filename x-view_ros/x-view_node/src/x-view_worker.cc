@@ -1,6 +1,6 @@
 #include <x-view_node/x-view_worker.h>
 
-#include <x-view_core/semantic_factory.h>
+#include <x-view_core/semantic_landmark_factory.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
@@ -51,9 +51,9 @@ namespace x_view_ros {
         if (nh_.getParam("semanticLandmarkType", semanticLandmarkTypeString)) {
             ROS_INFO_STREAM("XView is using the following semantic landmark type: " << semanticLandmarkTypeString);
             if (semanticLandmarkTypeString.compare("bos") == 0) {
-                params_.x_view_params.semantic_landmark_type_ = x_view::XViewSemanticFactory::SEMANTIC_LANDMARK_TYPE::BOS;
+                params_.x_view_params.semantic_landmark_type_ = x_view::SemanticLandmarkFactory::SEMANTIC_LANDMARK_TYPE::BOS;
             } else if (semanticLandmarkTypeString.compare("graph") == 0) {
-                params_.x_view_params.semantic_landmark_type_ = x_view::XViewSemanticFactory::SEMANTIC_LANDMARK_TYPE::GRAPH;
+                params_.x_view_params.semantic_landmark_type_ = x_view::SemanticLandmarkFactory::SEMANTIC_LANDMARK_TYPE::GRAPH;
             } else {
                 ROS_ERROR_STREAM("Parameter associated to 'semanticLandmarkType' is unknown:\n\tgiven: "
                                          << semanticLandmarkTypeString << "\n\tvalid: {'bos', 'graph'}");

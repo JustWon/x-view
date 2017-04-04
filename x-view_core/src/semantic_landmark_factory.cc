@@ -1,15 +1,15 @@
-#include <x-view_core/semantic_factory.h>
+#include <x-view_core/semantic_landmark_factory.h>
 
-#include <x-view_core/x-view_semantics.h>
-#include <x-view_core/bos.h>
-#include <x-view_core/semantic_graph.h>
+#include <x-view_core/landmarks/abstract_semantic_landmark.h>
+#include <x-view_core/landmarks/bos.h>
+#include <x-view_core/landmarks/graph.h>
 
 #include <exception>
 
 namespace x_view {
 
-    void XViewSemanticFactory::createSemanticLandmark(const cv::Mat &image, const SE3 &pose,
-                                                      std::shared_ptr<XViewSemantics> &landmark) {
+    void SemanticLandmarkFactory::createSemanticLandmark(const cv::Mat &image, const SE3 &pose,
+                                                      std::shared_ptr<AbstractSemanticLandmark> &landmark) {
         CHECK(this->semanticLandmarkType_ >= 0 &&
               this->semanticLandmarkType_ < SEMANTIC_LANDMARK_TYPE::NUM_SEMANTIC_LANDMARK_TYPES);
 
