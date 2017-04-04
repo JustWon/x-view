@@ -9,6 +9,19 @@ namespace x_view {
         semantic_factory_.setSemanticLandmarkType(params_.semantic_landmark_type_);
     }
 
+    XView &XView::operator=(const XView &other) {
+
+        semantic_factory_ = other.semantic_factory_;
+        params_ = other.params_;
+
+        semantics_db_.reserve(other.semantics_db_.size());
+        std::transform(std::begin(other.semantics_db_), std::end(other.semantics_db_),
+                       std::back_inserter(semantics_db_), [](const std::unique_ptr<XViewSemantics> &up) {
+                    return std::unique_ptr<XViewSemantics>{up ? up.get() : nullptr};
+                });
+
+    }
+
     XView::~XView() {};
 
     void XView::extractSemanticsFromImage(const cv::Mat &image, const SE3 &pose,

@@ -3,15 +3,13 @@
 
 #include <x-view_core/types.h>
 #include <x-view_core/semantic_factory.h>
+#include <x-view_core/x-view_semantics.h>
 
 #include <opencv2/core/core.hpp>
 
 #include <memory>
 
 namespace x_view {
-
-    // forward declarations
-    struct XViewSemantics;
 
     struct XViewParams {
         /// semantic landmark type to be used as landmark representation,
@@ -25,6 +23,9 @@ namespace x_view {
     public:
 
         XView() {};
+        XView(const XView&) = delete;
+        /// Need to manually overwrite copy constructor as XView object has a vector of non-copyable unique_ptr
+        XView& operator=(const XView& other);
 
         /**
          * \brief Constructs the XView object which handles the semantic SLAM problem
@@ -70,7 +71,7 @@ namespace x_view {
         XViewParams params_;
 
         // Semantics database.
-        std::vector<XViewSemantics *> semantics_db_;
+        std::vector<std::unique_ptr<XViewSemantics> > semantics_db_;
     }; // XView
 
 }
