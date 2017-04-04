@@ -2,7 +2,8 @@
 
 namespace x_view {
 
-AbstractSemanticLandmark::AbstractSemanticLandmark(const cv::Mat& image, const SE3& pose)
-: image_(image), pose_(pose) {}
+AbstractSemanticLandmark::AbstractSemanticLandmark(const cv::Mat& image,
+                                                   const SE3& pose)
+    : image_(image), pose_(pose) {}
 
 }

@@ -6,18 +6,20 @@
 
 #include <memory>
 
-
 namespace x_view {
 
 // forward declaration
 struct AbstractSemanticLandmark;
 
-
 // typedefs
-typedef gtsam::NonlinearFactorGraph FactorGraph;                  /// factor graph used for graph optimization
-typedef kindr::minimal::QuatTransformationTemplate<double> SE3;   /// 3D pose (position + orientation)
+/// factor graph used for graph optimization
+typedef gtsam::NonlinearFactorGraph FactorGraph;
 
-typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;   /// pointer to semantic landmark
+/// 3D pose (position + orientation)
+typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
+
+/// pointer to semantic landmark
+typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;
 }
 
 #endif //X_VIEW_X_VIEW_TYPES_H

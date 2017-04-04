@@ -1,5 +1,9 @@
 XView: {
-  placeholder: "placeholder"
+  placeholder: "placeholder",
+  landmarks: {
+    type: "bos",
+    other_properties: "placeholder"
+  }
 }
 
 XViewWorker: {

@@ -8,10 +8,12 @@
 
 namespace x_view {
 
-void SemanticLandmarkFactory::createSemanticLandmark(const cv::Mat& image, const SE3& pose,
+void SemanticLandmarkFactory::createSemanticLandmark(const cv::Mat& image,
+                                                     const SE3& pose,
                                                      SemanticLandmarkPtr& landmark) {
   CHECK(this->semanticLandmarkType_ >= 0 &&
-        this->semanticLandmarkType_ < SEMANTIC_LANDMARK_TYPE::NUM_SEMANTIC_LANDMARK_TYPES);
+      this->semanticLandmarkType_
+          < SEMANTIC_LANDMARK_TYPE::NUM_SEMANTIC_LANDMARK_TYPES);
 
   switch (this->semanticLandmarkType_) {
     case SEMANTIC_LANDMARK_TYPE::BOS : {
@@ -23,10 +25,12 @@ void SemanticLandmarkFactory::createSemanticLandmark(const cv::Mat& image, const
       break;
     }
     case SEMANTIC_LANDMARK_TYPE::UNDEFINED_SEMANTIC_LANDMARK_TYPE : {
-      throw std::runtime_error("Make sure to set a valid landmark type in the landmark factory");
+      throw std::runtime_error(
+          "Make sure to set a valid landmark type in the landmark factory");
     }
     default : {
-      throw std::runtime_error("Unrecognized semantic landmark type in semantic landmark factory");
+      throw std::runtime_error(
+          "Unrecognized semantic landmark type in semantic landmark factory");
     }
   }
 }

@@ -4,7 +4,7 @@
 
 #include <x_view_node/x_view_worker.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ros::init(argc, argv, "X_View");
   ros::NodeHandle node_handle("~");
 

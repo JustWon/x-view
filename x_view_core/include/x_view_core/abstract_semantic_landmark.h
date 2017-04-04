@@ -21,7 +21,7 @@ struct SemanticMatchingResult {
  */
 struct AbstractSemanticLandmark {
 
-  AbstractSemanticLandmark(){}
+  AbstractSemanticLandmark() {}
 
   /**
    * \brief Semantic representation of viewed image is build from the instantiated class
@@ -44,7 +44,6 @@ struct AbstractSemanticLandmark {
    * \return struct containing matching results
    */
   virtual SemanticMatchingResult match(const AbstractSemanticLandmark& other) = 0;
-
 
 }; // struct AbstractSemanticLandmark
 

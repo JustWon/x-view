@@ -29,7 +29,7 @@ class XView {
    * \brief Constructs the XView object which handles the semantic SLAM problem
    * \param params struct containing all parameters used by XView
    */
-  explicit XView(XViewParams &params);
+  explicit XView(XViewParams& params);
 
   ~XView();
 

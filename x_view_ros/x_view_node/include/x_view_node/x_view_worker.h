@@ -1,13 +1,13 @@
 #ifndef X_VIEW_WORKER_H_
 #define X_VIEW_WORKER_H_
 
-#include <gtsam/nonlinear/NonlinearFactorGraph.h>
-#include <kindr/minimal/quat-transformation.h>
+#include <x_view_core/x_view.h>
+
+//#include <gtsam/nonlinear/NonlinearFactorGraph.h>
+//#include <kindr/minimal/quat-transformation.h>
 #include <opencv2/core/core.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
-
-#include <x_view_core/x_view.h>
 
 namespace x_view_ros {
 
