@@ -18,7 +18,7 @@ namespace x_view {
     public:
 
         enum SEMANTIC_LANDMARK_TYPE {
-            UNDEFINED_SEMANTIC_LANDMARK_TYPE = -1,
+            UNDEFINED_SEMANTIC_LANDMARK_TYPE = -1,  // factory is initialized with this landmark type, it will raise an exception if not changed
             BOS,    /// Bag of Semantics approach
             GRAPH,  /// Graph approach
             NUM_SEMANTIC_LANDMARK_TYPES
@@ -28,7 +28,7 @@ namespace x_view {
          * \brief Creates a factory object which will create semantic landmarks defined by the passed argument
          * \param type enum specifying the semantic landmark type to be constructed
          */
-        XViewSemanticFactory(SEMANTIC_LANDMARK_TYPE type = SEMANTIC_LANDMARK_TYPE::UNDEFINED_SEMANTIC_LANDMARK_TYPE)
+        explicit XViewSemanticFactory(SEMANTIC_LANDMARK_TYPE type = SEMANTIC_LANDMARK_TYPE::UNDEFINED_SEMANTIC_LANDMARK_TYPE)
                 : semanticLandmarkType_(type) {}
 
         void setSemanticLandmarkType(const SEMANTIC_LANDMARK_TYPE type) {

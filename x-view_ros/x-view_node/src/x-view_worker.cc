@@ -1,8 +1,10 @@
+#include <x-view_node/x-view_worker.h>
+
+#include <x-view_core/semantic_factory.h>
+
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/highgui/highgui.hpp>
-
-#include <x-view_node/x-view_worker.h>
 
 namespace x_view_ros {
 
@@ -25,13 +27,29 @@ namespace x_view_ros {
             // TODO: Process image using x-view functions.
             CHECK(false) << "Not implemented.";
         } catch (cv_bridge::Exception &e) {
-            ROS_ERROR_STREAM("Could not convert from " << msg->encoding.c_str() <<" to 'bgr8'.");
+            ROS_ERROR_STREAM("Could not convert from " << msg->encoding.c_str() << " to 'bgr8'.");
         }
     }
 
     void XViewWorker::getParameters() {
+
+        std::string semanticLandmarkTypeString;
+        if (nh_.getParam("semanticLandmarkType", semanticLandmarkTypeString)) {
+            ROS_INFO_STREAM("XView is using the following semantic landmark type: " << semanticLandmarkTypeString);
+            if (semanticLandmarkTypeString.compare("bos") == 0) {
+                params_.x_view_params.semantic_landmark_type_ = x_view::XViewSemanticFactory::SEMANTIC_LANDMARK_TYPE::BOS;
+            } else if (semanticLandmarkTypeString.compare("graph") == 0) {
+                params_.x_view_params.semantic_landmark_type_ = x_view::XViewSemanticFactory::SEMANTIC_LANDMARK_TYPE::GRAPH;
+            } else {
+                ROS_ERROR_STREAM("Parameter associated to 'semanticLandmarkType' is unknown:\n\tgiven: "
+                                         << semanticLandmarkTypeString << "\n\tvalid: {'bos', 'graph'}");
+            }
+
+        } else {
+            ROS_ERROR_STREAM("Failed to get param 'semanticLandmarkType'");
+        }
+
         // TODO: read in parameters from node.
-        CHECK(false) << "Not implemented.";
     }
 
 }
