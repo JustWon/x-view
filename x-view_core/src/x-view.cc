@@ -1,18 +1,25 @@
 #include <x-view_core/x-view.h>
+#include <x-view_core/x-view_semantics.h>
 
 namespace x_view {
 
-    XView::XView(XViewParams &params) : params_(params) {}
+    XView::XView(XViewParams &params) : params_(params) {
+
+        // create a factory object which is responsible for generating new semantic landmark observations
+        semantic_factory_.setSemanticLandmarkType(params_.semantic_landmark_type_);
+    }
 
     XView::~XView() {};
 
     void XView::extractSemanticsFromImage(const cv::Mat &image, const SE3 &pose,
                                           std::unique_ptr<XViewSemantics> &semantics_out) {
-        // TODO: build semantic descriptor from semantics image input.
-        semantics_out.get()->pose_ = pose;
-        semantics_out.get()->image_ = image;
 
-        CHECK(false) << "Not implemented.";
+        // TODO: preprocess image and pose
+
+        // create the actual landmark representation
+        semantic_factory_.createSemanticLandmark(image, pose, semantics_out);
+
+        // TODO: add the semantics_out landmark to the database
     }
 
     void XView::matchSemantics(const XViewSemantics &semantics_a, Eigen::MatrixXd &matches) {
