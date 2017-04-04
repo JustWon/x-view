@@ -36,4 +36,8 @@ ENV/
 # Pycharm & Clion
 *.idea
 
-# local foldersfig/
+# Catkin
+.catkin_tools
+
+# local folders
+fig/

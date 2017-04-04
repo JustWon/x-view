@@ -7,7 +7,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 
-#include "x-view_core/x-view.h"
+#include <x_view_core/x_view.h>
 
 namespace x_view_ros {
 
@@ -20,11 +20,12 @@ class XViewWorker {
 
  public:
   explicit XViewWorker(ros::NodeHandle& n);
+
   ~XViewWorker();
 
  protected:
 
-  /// \brief Process semantics image.
+  /// \brief Process semantics image generating internal representation of semantic entities.
   void semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg);
 
  private:
@@ -42,7 +43,7 @@ class XViewWorker {
   // Parameters.
   XViewWorkerParams params_;
 
-  // X-View core.
+  // X_View core.
   x_view::XView x_view_;
 
 }; // XViewNode
