@@ -12,7 +12,7 @@ namespace x_view {
 
         explicit BoS(const cv::Mat &image, const SE3& pose);
 
-        virtual XViewSemanticMatchingResult match(const AbstractSemanticLandmark& other);
+        virtual SemanticMatchingResult match(const AbstractSemanticLandmark& other);
 
     };
 }

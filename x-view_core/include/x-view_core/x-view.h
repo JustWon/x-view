@@ -39,16 +39,16 @@ namespace x_view {
          * \param semantics_out representation of semantic entities, either a BoS, or a more complex representation
          */
         void extractSemanticsFromImage(const cv::Mat &image, const SE3 &pose,
-                                       std::shared_ptr<AbstractSemanticLandmark> &semantics_out);
+                                       SemanticLandmarkPtr &semantics_out);
 
         /// \brief Match semantics instance to database and return score.
-        void matchSemantics(const AbstractSemanticLandmark &semantics_a, Eigen::MatrixXd &matches);
+        void matchSemantics(const SemanticLandmarkPtr &semantics_a, Eigen::MatrixXd &matches);
 
         /// \brief Filter matches, e.g., geometric verification etc.
-        void filterMatches(const AbstractSemanticLandmark &semantics_a, Eigen::MatrixXd &matches);
+        void filterMatches(const SemanticLandmarkPtr &semantics_a, Eigen::MatrixXd &matches);
 
         /// \brief Merge semantics instance into database according to matches.
-        void mergeSemantics(const AbstractSemanticLandmark &semantics_a, const Eigen::MatrixXd &matches);
+        void mergeSemantics(const SemanticLandmarkPtr &semantics_a, const Eigen::MatrixXd &matches);
 
         /// \brief Clean database by doing full semantics matching.
         void cleanDatabase();
@@ -68,7 +68,7 @@ namespace x_view {
         XViewParams params_;
 
         // Semantics database.
-        std::vector<std::shared_ptr<AbstractSemanticLandmark> > semantics_db_;
+        std::vector<SemanticLandmarkPtr> semantics_db_;
     }; // XView
 
 }

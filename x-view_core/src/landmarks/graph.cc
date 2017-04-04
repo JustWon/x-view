@@ -8,7 +8,7 @@ namespace x_view {
         CHECK(false) << "Not implemented yet";
     }
 
-    XViewSemanticMatchingResult SemanticGraph::match(const AbstractSemanticLandmark& other) {
+    SemanticMatchingResult SemanticGraph::match(const AbstractSemanticLandmark& other) {
         CHECK(false) << "Not implemented yet";
     }
 }

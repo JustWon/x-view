@@ -8,7 +8,7 @@ namespace x_view {
         CHECK(false) << "Not implemented yet";
     }
 
-    XViewSemanticMatchingResult BoS::match(const AbstractSemanticLandmark& other) {
+    SemanticMatchingResult BoS::match(const AbstractSemanticLandmark& other) {
         CHECK(false) << "Not implemented yet";
     }
 }
