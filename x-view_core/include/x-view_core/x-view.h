@@ -11,6 +11,7 @@
 namespace x_view {
 
     struct XViewParams {
+        // TODO: define if we want to use BoS or other structure as semantic landmark representation
 
     };
 
