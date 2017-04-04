@@ -23,9 +23,6 @@ namespace x_view {
     public:
 
         XView() {};
-        XView(const XView&) = delete;
-        /// Need to manually overwrite copy constructor as XView object has a vector of non-copyable unique_ptr
-        XView& operator=(const XView& other);
 
         /**
          * \brief Constructs the XView object which handles the semantic SLAM problem
@@ -42,7 +39,7 @@ namespace x_view {
          * \param semantics_out representation of semantic entities, either a BoS, or a more complex representation
          */
         void extractSemanticsFromImage(const cv::Mat &image, const SE3 &pose,
-                                       std::unique_ptr<XViewSemantics> &semantics_out);
+                                       std::shared_ptr<XViewSemantics> &semantics_out);
 
         /// \brief Match semantics instance to database and return score.
         void matchSemantics(const XViewSemantics &semantics_a, Eigen::MatrixXd &matches);
@@ -71,7 +68,7 @@ namespace x_view {
         XViewParams params_;
 
         // Semantics database.
-        std::vector<std::unique_ptr<XViewSemantics> > semantics_db_;
+        std::vector<std::shared_ptr<XViewSemantics> > semantics_db_;
     }; // XView
 
 }

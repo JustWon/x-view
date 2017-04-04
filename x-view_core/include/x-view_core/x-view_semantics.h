@@ -45,12 +45,6 @@ namespace x_view {
          */
         virtual XViewSemanticMatchingResult match(const XViewSemantics& other) = 0;
 
-        /**
-         * \brief Clones the object calling the function
-         * \return A pointer to a deep copy of the object calling the function
-         * \note This is necessary in order to work with unique_ptr
-         */
-        virtual XViewSemantics* clone() const = 0;
 
     }; // struct XViewSemantics
 

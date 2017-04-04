@@ -45,7 +45,7 @@ namespace x_view {
          * \param pose  3D pose of the robot associated to the image
          * \param landmark pointer to abstract base landmark class which is filled up with a concrete landmark type
          */
-        void createSemanticLandmark(const cv::Mat &image, const SE3 &pose, std::unique_ptr<XViewSemantics> &landmark);
+        void createSemanticLandmark(const cv::Mat &image, const SE3 &pose, std::shared_ptr<XViewSemantics> &landmark);
 
     private:
         SEMANTIC_LANDMARK_TYPE semanticLandmarkType_;

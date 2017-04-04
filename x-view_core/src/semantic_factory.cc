@@ -9,7 +9,7 @@
 namespace x_view {
 
     void XViewSemanticFactory::createSemanticLandmark(const cv::Mat &image, const SE3 &pose,
-                                                      std::unique_ptr<XViewSemantics> &landmark) {
+                                                      std::shared_ptr<XViewSemantics> &landmark) {
         CHECK(this->semanticLandmarkType_ >= 0 &&
               this->semanticLandmarkType_ < SEMANTIC_LANDMARK_TYPE::NUM_SEMANTIC_LANDMARK_TYPES);
 

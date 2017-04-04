@@ -14,10 +14,6 @@ namespace x_view {
 
         virtual XViewSemanticMatchingResult match(const XViewSemantics& other);
 
-        virtual XViewSemantics* clone() const {
-            return new SemanticGraph(this->image_, this->pose_);
-        }
-
     };
 }
 
