@@ -1,4 +1,4 @@
-#include "x-view_core/x-view.h"
+#include "../include/x_view_core/x_view.h"
 
 namespace x_view {
 

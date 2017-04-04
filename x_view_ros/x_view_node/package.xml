@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>x-view_node</name>
+  <name>x_view_node</name>
   <version>0.0.1</version>
-  <description>x-view_node</description>
+  <description>x_view_node</description>
   
   <maintainer email="gawela@ethz.ch">Abel Gawel</maintainer>
   <maintainer email="deldonc@student.ethz.ch">Carlo Del Don</maintainer>
@@ -19,6 +19,6 @@
   <depend>minkindr</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
-  <depend>x-view_core</depend>
+  <depend>x_view_core</depend>
 </package>
 

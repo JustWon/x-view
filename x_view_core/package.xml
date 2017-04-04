@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>x-view_core</name>
+  <name>x_view_core</name>
   <version>0.0.1</version>
-  <description>x-view_core</description>
+  <description>x_view_core</description>
   
   <maintainer email="gawela@ethz.ch">Abel Gawel</maintainer>
   <maintainer email="deldonc@student.ethz.ch">Carlo Del Don</maintainer>

@@ -9,6 +9,8 @@ namespace x_view {
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 
 struct XViewParams {
+  // TODO: Replace placeholder for meaningful params, just for demonstration purposes.
+  std::string placeholder;
 }; // struct XViewParams
 
 struct XViewSemantics

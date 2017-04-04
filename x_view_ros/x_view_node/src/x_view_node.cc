@@ -2,10 +2,10 @@
 
 #include <ros/ros.h>
 
-#include "x-view_node/x-view_worker.h"
+#include "../include/x_view_node/x_view_worker.h"
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "X-View");
+  ros::init(argc, argv, "X_View");
   ros::NodeHandle node_handle("~");
 
   x_view_ros::XViewWorker worker(node_handle);

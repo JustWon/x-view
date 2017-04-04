@@ -7,7 +7,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 
-#include "x-view_core/x-view.h"
+#include "../../../../x_view_core/include/x_view_core/x_view.h"
 
 namespace x_view_ros {
 
