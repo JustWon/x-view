@@ -34,6 +34,20 @@ namespace x_view_ros {
     void XViewWorker::getParameters() {
 
         std::string semanticLandmarkTypeString;
+        // TODO: how do we get the parameters? should there be a 'hierarchical' structure in the yaml file to follow
+        /* e.g. core:
+         *          landmarks:
+         *              type: "bos"
+         *              num: 10
+         *              ...
+         *          ...
+         *      worker:
+         *          topics:
+         *              semantic_images = "semantic_image_topic"
+         *              ...
+         *          ...
+         *      ....
+         */
         if (nh_.getParam("semanticLandmarkType", semanticLandmarkTypeString)) {
             ROS_INFO_STREAM("XView is using the following semantic landmark type: " << semanticLandmarkTypeString);
             if (semanticLandmarkTypeString.compare("bos") == 0) {
@@ -49,7 +63,7 @@ namespace x_view_ros {
             ROS_ERROR_STREAM("Failed to get param 'semanticLandmarkType'");
         }
 
-        // TODO: read in parameters from node.
+        // TODO: read in other parameters from node.
     }
 
 }
