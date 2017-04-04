@@ -7,45 +7,46 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 
-#include "../../../../x_view_core/include/x_view_core/x_view.h"
+#include <x_view_core/x_view.h>
 
 namespace x_view_ros {
 
-class XViewWorker {
+    class XViewWorker {
 
-  struct XViewWorkerParams {
-    std::string semantics_image_topic;
-    x_view::XViewParams x_view_params;
-  }; // struct XViewWorkerParams
+        struct XViewWorkerParams {
+            std::string semantics_image_topic;
+            x_view::XViewParams x_view_params;
+        }; // struct XViewWorkerParams
 
- public:
-  explicit XViewWorker(ros::NodeHandle& n);
-  ~XViewWorker();
+    public:
+        explicit XViewWorker(ros::NodeHandle &n);
 
- protected:
+        ~XViewWorker();
 
-  /// \brief Process semantics image.
-  void semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg);
+    protected:
 
- private:
-  /// \brief Get ROS parameters.
-  void getParameters();
+        /// \brief Process semantics image generating internal representation of semantic entities.
+        void semanticsImageCallback(const sensor_msgs::ImageConstPtr &msg);
 
-  // TODO: Add further setters / getters where necessary.
+    private:
+        /// \brief Get ROS parameters.
+        void getParameters();
 
-  // Node handle.
-  ros::NodeHandle& nh_;
+        // TODO: Add further setters / getters where necessary.
 
-  // Subscribers.
-  ros::Subscriber semantics_image_sub_;
+        // Node handle.
+        ros::NodeHandle &nh_;
 
-  // Parameters.
-  XViewWorkerParams params_;
+        // Subscribers.
+        ros::Subscriber semantics_image_sub_;
 
-  // X-View core.
-  x_view::XView x_view_;
+        // Parameters.
+        XViewWorkerParams params_;
 
-}; // XViewNode
+        // X_View core.
+        x_view::XView x_view_;
+
+    }; // XViewNode
 
 }
 #endif /* X_VIEW_WORKER_H_ */

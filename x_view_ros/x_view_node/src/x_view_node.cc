@@ -2,7 +2,7 @@
 
 #include <ros/ros.h>
 
-#include "../include/x_view_node/x_view_worker.h"
+#include <x_view_node/x_view_worker.h>
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "X_View");
