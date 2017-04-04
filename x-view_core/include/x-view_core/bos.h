@@ -14,6 +14,10 @@ namespace x_view {
 
         virtual XViewSemanticMatchingResult match(const XViewSemantics& other);
 
+        virtual XViewSemantics* clone() const {
+            return new BoS(this->image_, this->pose_);
+        }
+
     };
 }
 

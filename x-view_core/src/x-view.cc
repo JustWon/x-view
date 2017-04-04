@@ -17,7 +17,7 @@ namespace x_view {
         semantics_db_.reserve(other.semantics_db_.size());
         std::transform(std::begin(other.semantics_db_), std::end(other.semantics_db_),
                        std::back_inserter(semantics_db_), [](const std::unique_ptr<XViewSemantics> &up) {
-                    return std::unique_ptr<XViewSemantics>{up ? up.get() : nullptr};
+                    return std::unique_ptr<XViewSemantics>(up->clone());
                 });
 
     }
