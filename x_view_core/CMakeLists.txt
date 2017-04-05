@@ -15,6 +15,9 @@ cs_add_library(${PROJECT_NAME}
         src/graph.cc
 
         src/semantic_landmark_factory.cc
+
+
+        src/bos_trainer.cc
         )
 
 cs_install()
