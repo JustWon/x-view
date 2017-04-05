@@ -55,25 +55,25 @@ bool SynthiaParser::loadCalibration() {
     calibration.D = Eigen::Matrix<double, 1, 5>::Zero();
     // Extrinsics.
     Eigen::Matrix3d cam_orientation = Eigen::Matrix3d::Identity();
-    cam_orientation(0,0) = cos(cam_id * M_PI / 2);
-    cam_orientation(0,2) = -sin(cam_id * M_PI / 2);
-    cam_orientation(2,0) = sin(cam_id * M_PI / 2);
-    cam_orientation(2,2) = cos(cam_id * M_PI / 2);
+
+    //    if (cam_id % 2 == 0) {
+    //cam_orientation(0,0) = cos(cam_id * M_PI / 2);
+    //cam_orientation(0,2) = sin(cam_id * M_PI / 2);
+    //cam_orientation(2,0) = -sin(cam_id * M_PI / 2);
+    //cam_orientation(2,2) = cos(cam_id * M_PI / 2);
+    //    } else {
+    //cam_orientation(0,0) = cos(cam_id * M_PI / 2);
+    //cam_orientation(0,1) = -sin(cam_id * M_PI / 2);
+    //cam_orientation(1,0) = sin(cam_id * M_PI / 2);
+    //cam_orientation(1,1) = cos(cam_id * M_PI / 2);
+    //    }
     calibration.T_cam0_cam.getRotation() =
         synthia::Rotation::fromApproximateRotationMatrix(cam_orientation);
     Eigen::Vector3d translation(0,0,0);
     if (cam_id < 4) {
-      if (cam_id % 2 == 0) {
-        translation(1) = -0.4;
-      } else {
-        translation(0) = -0.4;
-      }
+      translation(0) = 0.4;
     } else {
-      if (cam_id % 2 == 0) {
-        translation(1) = 0.4;
-      } else {
-        translation(0) = 0.4;
-      }
+      translation(0) = -0.4;
     }
     calibration.T_cam0_cam.getPosition() = translation;
     ++cam_id;
@@ -145,8 +145,6 @@ bool SynthiaParser::getPoseAtEntry(uint64_t entry, uint64_t* timestamp,
   }
   *timestamp = timestamps_ns_[entry];
 
-  // todo(gawela) pose is presently on cam0, need to add the intermediate frame
-  // between am0 and cam1
   std::vector<double> parsed_doubles_0, parsed_doubles_1;
   std::string line_0, line_1;
   std::getline(import_file_cam0, line_0);
@@ -169,6 +167,34 @@ bool SynthiaParser::getPoseAtEntry(uint64_t entry, uint64_t* timestamp,
   return false;
 }
 
+bool SynthiaParser::getCameraPoseAtEntry(uint64_t entry, uint64_t id,
+                                         synthia::Transformation* pose) {
+  // Read in both camera poses and spawn one in between.
+  std::string filename_cam = dataset_path_ + "/" + kPosesFolder +
+      "/" + cam_paths_[id] + "/" + getFilenameForEntry(entry) + ".txt";
+
+  std::ifstream import_file_cam(filename_cam, std::ios::in);
+  if (!import_file_cam) {
+    return false;
+  }
+  std::vector<double> parsed_doubles;
+  std::string line;
+  std::getline(import_file_cam, line);
+  if (parseVectorOfDoubles(line, &parsed_doubles)) {
+    // Flip z,y.
+    if (!flipYZ(&parsed_doubles)) {
+      return false;
+    }
+    // Make position between two cameras.
+
+    if (convertVectorToPose(parsed_doubles, pose)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 bool SynthiaParser::flipYZ(std::vector<double>* parsed_doubles) {
   if (parsed_doubles->size() == 16) {
     std::iter_swap(parsed_doubles->begin() + 1,parsed_doubles->begin() + 2);
@@ -178,49 +204,6 @@ bool SynthiaParser::flipYZ(std::vector<double>* parsed_doubles) {
     return true;
   } else {
     return false;
-  }
-}
-
-bool SynthiaParser::getPoseAtEntry2(uint64_t entry, uint64_t* timestamp,
-                                    synthia::Transformation* pose) {
-  // Read in front camera (global) poses and interpolate base between.
-  std::string filename_cam_left_front = dataset_path_ + "/" + kPosesFolder + "/" +
-      cam_paths_[1] + "/" + getFilenameForEntry(entry) + ".txt";
-  std::ifstream import_file_cam_left_front(filename_cam_left_front, std::ios::in);
-  std::string filename_cam_right_front = dataset_path_ + "/" + kPosesFolder + "/" +
-      cam_paths_[5] + "/" + getFilenameForEntry(entry) + ".txt";
-  std::ifstream import_file_cam_right_front(filename_cam_right_front, std::ios::in);
-
-  if (!import_file_cam_left_front || !import_file_cam_right_front) {
-    return false;
-  }
-  if (timestamps_ns_.size() <= entry) {
-    return false;
-  }
-  *timestamp = timestamps_ns_[entry];
-  synthia::Transformation pose_left_front, pose_right_front;
-  std::vector<double> parsed_doubles;
-  std::string line;
-  std::getline(import_file_cam_left_front, line);
-  if (parseVectorOfDoubles(line, &parsed_doubles)) {
-    synthia::Transformation pose_left_front;
-    if (convertVectorToPose(parsed_doubles, &pose_left_front)) {
-      std::getline(import_file_cam_right_front, line);
-      if (parseVectorOfDoubles(line, &parsed_doubles)) {
-        synthia::Transformation pose_right_front;
-        if (convertVectorToPose(parsed_doubles, &pose_right_front)) {
-          //          CHECK(EIGEN_MATRIX_NEAR(pose_left_front.getRotationMatrix(),
-          //                          pose_right_front.getRotationMatrix(),1e-5))
-          //                                    << "Rotation of cameras do not agree.";
-          Eigen::Vector3d base_position = pose_right_front.getPosition() -
-              pose_left_front.getPosition();
-          synthia::Transformation base_pose(pose_right_front.getRotation(),
-                                            base_position);
-          *pose = base_pose;
-          return true;
-        }
-      }
-    }
   }
 }
 
