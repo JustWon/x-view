@@ -35,21 +35,6 @@ class BoSTrainer : public cv::BOWKMeansTrainer {
    */
   void add( const SemanticLandmarkPtr& semanticLandmarkPtr );
 
-  /**
-   * \brief  Returns trained vocabulary (i.e. cluster centers).
-   * \note This function internally arranges all descriptors and calls
-   * 'cluster( const Mat& descriptors)'
-   */
-  virtual Mat cluster() const;
-
-  /**
-   * \brief Returns trained vocabulary based on the descriptors passed as
-   * argument
-   * \param descriptors descriptors to be clustered
-   * \return matrix containing cluster centers
-   */
-  virtual Mat cluster(const Mat& descriptors) const;
-
 };
 
 }
