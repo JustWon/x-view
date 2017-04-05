@@ -19,8 +19,9 @@ class SemanticLandmarkFactory {
 
   enum SEMANTIC_LANDMARK_TYPE {
     UNDEFINED_SEMANTIC_LANDMARK_TYPE = -1,
-    BOS,    /// Bag of Semantics approach
-    GRAPH,  /// Graph approach
+    BOS_HISTOGRAM,
+    BOS_VISUAL_FEATURE,
+    GRAPH,
     NUM_SEMANTIC_LANDMARK_TYPES
   };
 
@@ -43,9 +44,10 @@ class SemanticLandmarkFactory {
    * \brief Function exposed to the user to create new semantic landmark objects
    * \param image Image containing semantic segmentation
    * \param pose  3D pose of the robot associated to the image
-   * \param landmark pointer to abstract base landmark class which is filled up with a concrete landmark type
+   * \return landmark pointer to abstract base landmark class which is filled
+   * up with a concrete landmark type
    */
-  void createSemanticLandmark(const cv::Mat& image, const SE3& pose, SemanticLandmarkPtr& landmark);
+  SemanticLandmarkPtr createSemanticLandmark(const cv::Mat& image, const SE3& pose);
 
  private:
   SEMANTIC_LANDMARK_TYPE semanticLandmarkType_;

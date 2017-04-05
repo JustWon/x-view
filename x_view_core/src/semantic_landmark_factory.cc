@@ -4,25 +4,29 @@
 #include <x_view_core/bos.h>
 #include <x_view_core/graph.h>
 
+#include <opencv2/features2d/features2d.hpp>
+
 #include <exception>
 
 namespace x_view {
 
-void SemanticLandmarkFactory::createSemanticLandmark(const cv::Mat& image,
-                                                     const SE3& pose,
-                                                     SemanticLandmarkPtr& landmark) {
+SemanticLandmarkPtr SemanticLandmarkFactory::createSemanticLandmark(const cv::Mat& image,
+                                                     const SE3& pose) {
   CHECK(this->semanticLandmarkType_ >= 0 &&
       this->semanticLandmarkType_
           < SEMANTIC_LANDMARK_TYPE::NUM_SEMANTIC_LANDMARK_TYPES);
 
   switch (this->semanticLandmarkType_) {
-    case SEMANTIC_LANDMARK_TYPE::BOS : {
-      landmark.reset(new BoS(image, pose));
-      break;
+    case SEMANTIC_LANDMARK_TYPE::BOS_HISTOGRAM : {
+      return SemanticLandmarkPtr(new BoSHistogram(image, pose));
+    }
+    case SEMANTIC_LANDMARK_TYPE::BOS_VISUAL_FEATURE : {
+      // FIXME: in case of this feature we need to know also how many
+      // features we need to detect for each image
+      return SemanticLandmarkPtr(new BoSVisualFeatures<cv::ORB>(image, pose, 200));
     }
     case SEMANTIC_LANDMARK_TYPE::GRAPH : {
-      landmark.reset(new SemanticGraph(image, pose));
-      break;
+      return SemanticLandmarkPtr(new SemanticGraph(image, pose));
     }
     case SEMANTIC_LANDMARK_TYPE::UNDEFINED_SEMANTIC_LANDMARK_TYPE : {
       throw std::runtime_error(

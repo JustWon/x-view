@@ -11,13 +11,23 @@ XView::XView(XViewParams& params) : params_(params) {
 
 XView::~XView() {};
 
+void XView::process(const cv::Mat& image, const SE3& pose) {
+  // generate a new semantic landmark object
+  SemanticLandmarkPtr landmarkPtr;
+
+  // extract associated semantics
+  extractSemanticsFromImage(image, pose, landmarkPtr);
+
+  // TODO: call other functions like "matchSemantics" etc. here
+}
+
 void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
                                       SemanticLandmarkPtr& semantics_out) {
 
   // TODO: preprocess image and pose
 
   // create the actual landmark representation
-  semantic_factory_.createSemanticLandmark(image, pose, semantics_out);
+  semantics_out = semantic_factory_.createSemanticLandmark(image, pose);
 
   // TODO: add the semantics_out landmark to the database
 }

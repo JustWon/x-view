@@ -34,6 +34,13 @@ class XView {
   ~XView();
 
   /**
+   * \brief x_view processes new landmark associated to image and pose
+   * \param image semantic image representing landmark
+   * \param pose robot's pose
+   */
+  void process(const cv::Mat& image, const SE3& pose);
+
+  /**
    * \brief Extract semantic descriptor from semantics image.
    * \param image image containing semantic segmentation
    * \param pose current pose of the robot

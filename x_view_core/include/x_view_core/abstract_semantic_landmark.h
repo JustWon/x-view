@@ -21,8 +21,6 @@ struct SemanticMatchingResult {
  */
 struct AbstractSemanticLandmark {
 
-  AbstractSemanticLandmark() {}
-
   /**
    * \brief Semantic representation of viewed image is build from the instantiated class
    * \param image image containing semantic segmentation
@@ -33,10 +31,10 @@ struct AbstractSemanticLandmark {
   virtual ~AbstractSemanticLandmark() {};
 
   /// \brief Robot's pose associated to this semantic landmark
-  SE3 pose_;
+  const SE3& pose_;
 
   /// \brief Image given as input for the landmark
-  cv::Mat image_;
+  const cv::Mat& image_;
 
   /**
    * \brief Computes matching score between this and other semantic landmark

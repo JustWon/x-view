@@ -22,7 +22,7 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
     cv_bridge::CvImagePtr image_ptr = cv_bridge::toCvCopy(msg, "bgr8");
     cv::Mat image = image_ptr->image;
     // TODO: Process image using x-view functions.
-    CHECK(false) << "Not implemented.";
+
   } catch (cv_bridge::Exception& e) {
     ROS_ERROR_STREAM(
         "Could not convert from " << msg->encoding.c_str() << " to 'bgr8'.");
@@ -36,9 +36,13 @@ void XViewWorker::getParameters() {
     ROS_INFO_STREAM(
         "XView is using the following semantic landmark type: <"
             << semanticLandmarkTypeString << ">");
-    if (semanticLandmarkTypeString.compare("bos") == 0) {
+    if (semanticLandmarkTypeString.compare("bos_histogram") == 0) {
       params_.x_view_params.semantic_landmark_type_ =
-          x_view::SemanticLandmarkFactory::SEMANTIC_LANDMARK_TYPE::BOS;
+          x_view::SemanticLandmarkFactory::SEMANTIC_LANDMARK_TYPE::BOS_HISTOGRAM;
+    } else if (semanticLandmarkTypeString.compare("bos_visual") == 0) {
+      params_.x_view_params.semantic_landmark_type_ =
+          x_view::SemanticLandmarkFactory::SEMANTIC_LANDMARK_TYPE
+          ::BOS_VISUAL_FEATURE;
     } else if (semanticLandmarkTypeString.compare("graph") == 0) {
       params_.x_view_params.semantic_landmark_type_ =
           x_view::SemanticLandmarkFactory::SEMANTIC_LANDMARK_TYPE::GRAPH;

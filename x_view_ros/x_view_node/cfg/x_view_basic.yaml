@@ -1,7 +1,7 @@
 XView: {
   placeholder: "placeholder",
   landmarks: {
-    type: "bos",
+    type: "bos_visual",
     other_properties: "placeholder"
   }
 }
