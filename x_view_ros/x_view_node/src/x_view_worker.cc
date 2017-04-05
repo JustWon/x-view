@@ -21,8 +21,10 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
   try {
     cv_bridge::CvImagePtr image_ptr = cv_bridge::toCvCopy(msg, "bgr8");
     cv::Mat image = image_ptr->image;
+
+    // add the gathered image to the x-view
     // TODO: Process image using x-view functions.
-    CHECK(false) << "Not implemented.";
+
   } catch (cv_bridge::Exception& e) {
     ROS_ERROR_STREAM(
         "Could not convert from " << msg->encoding.c_str() << " to 'bgr8'.");

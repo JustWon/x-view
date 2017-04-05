@@ -13,7 +13,6 @@ struct BoS : public AbstractSemanticLandmark {
   explicit BoS(const cv::Mat& image, const SE3& pose);
 
   virtual SemanticMatchingResult match(const AbstractSemanticLandmark& other);
-
 };
 }
 
