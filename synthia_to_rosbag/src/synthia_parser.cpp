@@ -155,6 +155,16 @@ bool SynthiaParser::getPoseAtEntry(uint64_t entry, uint64_t* timestamp,
     double temp = parsed_doubles[14];
     parsed_doubles[14] = parsed_doubles[13];
     parsed_doubles[13] = temp;
+    temp = parsed_doubles[2];
+    parsed_doubles[2] = parsed_doubles[1];
+    parsed_doubles[1] = temp;
+    temp = parsed_doubles[6];
+    parsed_doubles[6] = parsed_doubles[5];
+    parsed_doubles[5] = temp;
+    temp = parsed_doubles[10];
+    parsed_doubles[10] = parsed_doubles[9];
+    parsed_doubles[9] = temp;
+
     if (convertVectorToPose(parsed_doubles, pose)) {
       return true;
     }
