@@ -53,30 +53,8 @@ bool SynthiaParser::loadCalibration() {
     calibration.projection_mat = Eigen::Matrix<double, 3, 4>::Identity();
     calibration.K = Eigen::Matrix3d::Zero();
     calibration.D = Eigen::Matrix<double, 1, 5>::Zero();
-    // Extrinsics.
-    Eigen::Matrix3d cam_orientation = Eigen::Matrix3d::Identity();
 
-    //    if (cam_id % 2 == 0) {
-    //cam_orientation(0,0) = cos(cam_id * M_PI / 2);
-    //cam_orientation(0,2) = sin(cam_id * M_PI / 2);
-    //cam_orientation(2,0) = -sin(cam_id * M_PI / 2);
-    //cam_orientation(2,2) = cos(cam_id * M_PI / 2);
-    //    } else {
-    //cam_orientation(0,0) = cos(cam_id * M_PI / 2);
-    //cam_orientation(0,1) = -sin(cam_id * M_PI / 2);
-    //cam_orientation(1,0) = sin(cam_id * M_PI / 2);
-    //cam_orientation(1,1) = cos(cam_id * M_PI / 2);
-    //    }
-    calibration.T_cam0_cam.getRotation() =
-        synthia::Rotation::fromApproximateRotationMatrix(cam_orientation);
-    Eigen::Vector3d translation(0,0,0);
-    if (cam_id < 4) {
-      translation(0) = 0.4;
-    } else {
-      translation(0) = -0.4;
-    }
-    calibration.T_cam0_cam.getPosition() = translation;
-    ++cam_id;
+    // TExtrinsics are loaded from file.
   }
   return true;
 }
@@ -185,8 +163,6 @@ bool SynthiaParser::getCameraPoseAtEntry(uint64_t entry, uint64_t id,
     if (!flipYZ(&parsed_doubles)) {
       return false;
     }
-    // Make position between two cameras.
-
     if (convertVectorToPose(parsed_doubles, pose)) {
       return true;
     }

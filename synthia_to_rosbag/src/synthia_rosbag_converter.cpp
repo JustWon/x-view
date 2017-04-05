@@ -15,7 +15,6 @@ class SynthiaBagConverter {
 
   void convertAll();
   bool convertEntry(uint64_t entry);
-  void convertTf(uint64_t timestamp_ns, const synthia::Transformation& imu_pose);
   void convertTf(uint64_t timestamp_ns, const synthia::Transformation& imu_pose,
                  const std::vector<synthia::Transformation>& camera_poses);
 
@@ -98,7 +97,6 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
       camera_poses.push_back(camera_pose);
     }
 
-//    convertTf(timestamp_ns, pose);
     convertTf(timestamp_ns, pose, camera_poses);
   } else {
     return false;
@@ -106,7 +104,6 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
 
   // Convert images.
   cv::Mat image, depth_image, labels_image, labels;
-  //todo(gawela) reactivate
   for (size_t cam_id = 0; cam_id < parser_.getNumCameras(); ++cam_id) {
     if (parser_.getImageAtEntry(entry, cam_id, &timestamp_ns, &image) &&
         parser_.getDepthImageAtEntry(entry, cam_id, &timestamp_ns, &depth_image) &&
@@ -151,43 +148,6 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
   }
 
   return true;
-}
-
-void SynthiaBagConverter::convertTf(uint64_t timestamp_ns,
-                                    const synthia::Transformation& imu_pose) {
-  tf::tfMessage tf_msg;
-  ros::Time timestamp_ros;
-  synthia::timestampToRos(timestamp_ns, &timestamp_ros);
-
-  // Create the full transform chain.
-  Eigen::Matrix4d identity = Eigen::Matrix4d::Identity();
-  synthia::Transformation identity_transform(identity);
-  synthia::Transformation T_imu_world = imu_pose;
-  synthia::Transformation T_vel_imu = identity_transform;
-  synthia::Transformation T_cam_imu = identity_transform;
-
-  geometry_msgs::TransformStamped tf_imu_world, tf_vel_imu, tf_cam_imu;
-  synthia::transformToRos(T_imu_world, &tf_imu_world);
-  tf_imu_world.header.frame_id = world_frame_id_;
-  tf_imu_world.child_frame_id = imu_frame_id_;
-  tf_imu_world.header.stamp = timestamp_ros;
-
-  // Put them into one tf_msg.
-  tf_msg.transforms.push_back(tf_imu_world);
-
-  // Get all of the camera transformations as well.
-  for (size_t cam_id = 0; cam_id < parser_.getNumCameras(); ++cam_id) {
-    synthia::CameraCalibration calibration;
-    parser_.getCameraCalibration(cam_id, &calibration);
-    T_cam_imu = calibration.T_cam0_cam;
-    synthia::transformToRos(T_cam_imu.inverse(), &tf_cam_imu);
-    tf_cam_imu.header.frame_id = imu_frame_id_;
-    tf_cam_imu.child_frame_id = synthia::getCameraFrameId(cam_id);
-    tf_cam_imu.header.stamp = timestamp_ros;
-    tf_msg.transforms.push_back(tf_cam_imu);
-  }
-
-  bag_.write("/tf", timestamp_ros, tf_msg);
 }
 
 void SynthiaBagConverter::convertTf(uint64_t timestamp_ns,
