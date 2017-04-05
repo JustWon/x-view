@@ -56,9 +56,9 @@ bool SynthiaParser::loadCalibration() {
     // Extrinsics.
     Eigen::Matrix3d cam_orientation = Eigen::Matrix3d::Identity();
     cam_orientation(0,0) = cos(cam_id * M_PI / 2);
-    cam_orientation(0,1) = -sin(cam_id * M_PI / 2);
-    cam_orientation(1,0) = sin(cam_id * M_PI / 2);
-    cam_orientation(1,1) = cos(cam_id * M_PI / 2);
+    cam_orientation(0,2) = -sin(cam_id * M_PI / 2);
+    cam_orientation(2,0) = sin(cam_id * M_PI / 2);
+    cam_orientation(2,2) = cos(cam_id * M_PI / 2);
     calibration.T_cam0_cam.getRotation() =
         synthia::Rotation::fromApproximateRotationMatrix(cam_orientation);
     Eigen::Vector3d translation(0,0,0);
@@ -147,29 +147,38 @@ bool SynthiaParser::getPoseAtEntry(uint64_t entry, uint64_t* timestamp,
 
   // todo(gawela) pose is presently on cam0, need to add the intermediate frame
   // between am0 and cam1
-  std::vector<double> parsed_doubles;
-  std::string line;
-  std::getline(import_file_cam0, line);
-  if (parseVectorOfDoubles(line, &parsed_doubles)) {
-    // flip z,y
-    double temp = parsed_doubles[14];
-    parsed_doubles[14] = parsed_doubles[13];
-    parsed_doubles[13] = temp;
-    temp = parsed_doubles[2];
-    parsed_doubles[2] = parsed_doubles[1];
-    parsed_doubles[1] = temp;
-    temp = parsed_doubles[6];
-    parsed_doubles[6] = parsed_doubles[5];
-    parsed_doubles[5] = temp;
-    temp = parsed_doubles[10];
-    parsed_doubles[10] = parsed_doubles[9];
-    parsed_doubles[9] = temp;
+  std::vector<double> parsed_doubles_0, parsed_doubles_1;
+  std::string line_0, line_1;
+  std::getline(import_file_cam0, line_0);
+  std::getline(import_file_cam1, line_1);
+  if (parseVectorOfDoubles(line_0, &parsed_doubles_0) &&
+      parseVectorOfDoubles(line_1, &parsed_doubles_1)) {
+    // Flip z,y.
+    if (!flipYZ(&parsed_doubles_0) || !flipYZ(&parsed_doubles_1)) {
+      return false;
+    }
+    // Make position between two cameras.
+    parsed_doubles_0[12] = (parsed_doubles_0[12] + parsed_doubles_1[12]) / 2;
+    parsed_doubles_0[13] = (parsed_doubles_0[13] + parsed_doubles_1[13]) / 2;
+    parsed_doubles_0[14] = (parsed_doubles_0[14] + parsed_doubles_1[14]) / 2;
 
-    if (convertVectorToPose(parsed_doubles, pose)) {
+    if (convertVectorToPose(parsed_doubles_0, pose)) {
       return true;
     }
   }
   return false;
+}
+
+bool SynthiaParser::flipYZ(std::vector<double>* parsed_doubles) {
+  if (parsed_doubles->size() == 16) {
+    std::iter_swap(parsed_doubles->begin() + 1,parsed_doubles->begin() + 2);
+    std::iter_swap(parsed_doubles->begin() + 5,parsed_doubles->begin() + 6);
+    std::iter_swap(parsed_doubles->begin() + 9,parsed_doubles->begin() + 10);
+    std::iter_swap(parsed_doubles->begin() + 13,parsed_doubles->begin() + 14);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 bool SynthiaParser::getPoseAtEntry2(uint64_t entry, uint64_t* timestamp,

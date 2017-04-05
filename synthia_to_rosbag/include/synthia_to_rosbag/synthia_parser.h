@@ -46,6 +46,7 @@ class SynthiaParser {
   // Load specific entries (indexed by filename).
   bool getPoseAtEntry(uint64_t entry, uint64_t* timestamp,
                       synthia::Transformation* pose);
+  bool flipYZ(std::vector<double>* parsed_doubles);
   bool getPoseAtEntry2(uint64_t entry, uint64_t* timestamp,
                        synthia::Transformation* pose);
   uint64_t getPoseTimestampAtEntry(uint64_t entry);
