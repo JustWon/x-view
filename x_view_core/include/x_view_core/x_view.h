@@ -50,13 +50,16 @@ class XView {
                                  SemanticLandmarkPtr& semantics_out);
 
   /// \brief Match semantics instance to database and return score.
-  void matchSemantics(const SemanticLandmarkPtr& semantics_a, Eigen::MatrixXd& matches);
+  void matchSemantics(const SemanticLandmarkPtr& semantics_a,
+                      Eigen::MatrixXd& matches);
 
   /// \brief Filter matches, e.g., geometric verification etc.
-  void filterMatches(const SemanticLandmarkPtr& semantics_a, Eigen::MatrixXd& matches);
+  void filterMatches(const SemanticLandmarkPtr& semantics_a,
+                     Eigen::MatrixXd& matches);
 
   /// \brief Merge semantics instance into database according to matches.
-  void mergeSemantics(const SemanticLandmarkPtr& semantics_a, const Eigen::MatrixXd& matches);
+  void mergeSemantics(const SemanticLandmarkPtr& semantics_a,
+                      const Eigen::MatrixXd& matches);
 
   /// \brief Clean database by doing full semantics matching.
   void cleanDatabase();

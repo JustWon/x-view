@@ -18,6 +18,7 @@ cs_add_library(${PROJECT_NAME}
 )
 
 add_executable(x_view src/x_view_node.cc)
+message(STATUS "AAAAA:libraries: ${catkin_LIBRARIES}")
 target_link_libraries(x_view ${catkin_LIBRARIES} ${PROJECT_NAME})
 
 cs_install()
