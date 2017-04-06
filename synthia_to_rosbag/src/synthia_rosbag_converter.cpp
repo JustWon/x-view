@@ -3,6 +3,9 @@
 #include <rosbag/bag.h>
 #include <tf/tfMessage.h>
 
+#include <pcl_conversions/pcl_conversions.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
+
 #include "synthia_to_rosbag/synthia_parser.h"
 #include "synthia_to_rosbag/synthia_ros_conversions.h"
 
@@ -65,6 +68,7 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
 
   // Convert poses + TF transforms + path.
   synthia::Transformation pose;
+  std::vector<synthia::Transformation> camera_poses;
   if (parser_.getPoseAtEntry(entry, &timestamp_ns, &pose)) {
     geometry_msgs::PoseStamped pose_msg;
     geometry_msgs::TransformStamped transform_msg;
@@ -88,7 +92,6 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
     bag_.write(path_topic_, timestamp_ros, path_msg);
 
     // Get all camera poses.
-    std::vector<synthia::Transformation> camera_poses;
     for (size_t id = 0u; id < parser_.getNumCameras(); ++id) {
       synthia::Transformation camera_pose;
       if(!parser_.getCameraPoseAtEntry(entry, id, &camera_pose)) {
@@ -134,6 +137,19 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
       synthia::calibrationToRos(cam_id, cam_calib, &cam_info);
       cam_info.header = image_msg.header;
 
+      // Convert depth image to pointloud.
+      sensor_msgs::PointCloud2 ptcloud_msg;
+      ptcloud_msg.header.stamp = timestamp_ros;
+      ptcloud_msg.header.frame_id = synthia::getCameraFrameId(cam_id);
+      ptcloud_msg.height = depth_image_msg.height;
+      ptcloud_msg.width  = depth_image_msg.width;
+      ptcloud_msg.is_dense = false;
+      ptcloud_msg.is_bigendian = false;
+
+      sensor_msgs::PointCloud2Modifier pcd_modifier(ptcloud_msg);
+      pcd_modifier.setPointCloud2FieldsByString(1, "xyz");
+      parser_.convertDepthImageToDepthCloud(depth_image, cam_info, &ptcloud_msg);
+
       bag_.write(parser_.getCameraPath(cam_id) + "/image_raw", timestamp_ros,
                  image_msg);
       bag_.write(parser_.getCameraPath(cam_id) + "/depth", timestamp_ros,
@@ -144,6 +160,8 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
                  labels_msg);
       bag_.write(parser_.getCameraPath(cam_id) + "/camera_info", timestamp_ros,
                  cam_info);
+      bag_.write(parser_.getCameraPath(cam_id) + "/depth_cloud", timestamp_ros,
+                 ptcloud_msg);
     }
   }
 

@@ -54,7 +54,17 @@ bool SynthiaParser::loadCalibration() {
     calibration.image_size << 1280, 760;
     calibration.rect_mat = Eigen::Matrix3d::Identity();
     calibration.projection_mat = Eigen::Matrix<double, 3, 4>::Identity();
-    calibration.K = Eigen::Matrix3d::Zero();
+    calibration.K = Eigen::Matrix3d::Identity();
+    calibration.K(0,0) = 532.740352;
+    calibration.K(1,1) = 532.740352;
+    calibration.K(0,2) = 640;
+    calibration.K(1,2) = 380;
+
+    calibration.projection_mat(0,0) = 532.740352;
+    calibration.projection_mat(1,1) = 532.740352;
+    calibration.projection_mat(0,2) = 640;
+    calibration.projection_mat(1,2) = 380;
+
     calibration.D = Eigen::Matrix<double, 1, 5>::Zero();
 
     // TExtrinsics are loaded from file.
@@ -128,26 +138,29 @@ bool SynthiaParser::convertDepthImageToDepthCloud(const cv::Mat& depth_image,
   sensor_msgs::PointCloud2Iterator<float> iter_y(*ptcloud, "y");
   sensor_msgs::PointCloud2Iterator<float> iter_z(*ptcloud, "z");
   const uint16_t* depth_row = reinterpret_cast<const uint16_t*>(depth_image.data[0]);
+  uint16_t dr = depth_image.data[0];
   int row_step = depth_image.step / sizeof(uint16_t);
-  for (int v = 0; v < (int)ptcloud->height; ++v, depth_row += row_step)
-  {
-    for (int u = 0; u < (int)ptcloud->width; ++u, ++iter_x, ++iter_y, ++iter_z)
-    {
-      uint16_t depth = depth_row[u];
+  for (size_t row = 0u; row < ptcloud->height; ++row) {
+    for (size_t col = 0u; col < ptcloud->width; ++col) {
 
-      // Missing points denoted by NaNs
+      uint16_t depth = depth_image.data[row * row_step + col];
+
+      // Missing points denoted by NaNs.
       if (!DepthTraits<uint16_t>::valid(depth))
       {
         *iter_x = *iter_y = *iter_z = bad_point;
         continue;
       }
-
       // Fill in XYZ
-      *iter_x = (u - center_x) * depth * constant_x;
-      *iter_y = (v - center_y) * depth * constant_y;
+      *iter_x = (row - center_x) * depth * constant_x;
+      *iter_y = (col - center_y) * depth * constant_y;
       *iter_z = DepthTraits<uint16_t>::toMeters(depth);
+      ++iter_x;
+      ++iter_y;
+      ++iter_z;
     }
   }
+  return true;
 }
 
 bool SynthiaParser::getPoseAtEntry(uint64_t entry, uint64_t* timestamp,
