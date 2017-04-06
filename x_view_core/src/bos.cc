@@ -34,6 +34,14 @@ BoSVisualFeatures::BoSVisualFeatures(const cv::Mat& image, const SE3& pose,
 
   features_extractor_->compute(gray, keypoints_, descriptors_);
 
+  cv::Mat image_with_keypoints;
+  cv::drawKeypoints( image, keypoints_, image_with_keypoints, cv::Scalar::all
+                         (-1),
+                  cv::DrawMatchesFlags::DEFAULT );
+
+  cv::imshow("Keypoints", image_with_keypoints);
+  cv::waitKey(1000);
+
   std::cout << "\t:==\tComputed " << descriptors_.rows << " descriptors of "
       "length "
       "" << descriptors_.cols << " from " << keypoints_.size() << " "

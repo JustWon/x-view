@@ -4,6 +4,8 @@
 #include <x_view_core/bos.h>
 #include <x_view_core/graph.h>
 
+#include <x
+
 #include <opencv2/features2d/features2d.hpp>
 
 #include <exception>

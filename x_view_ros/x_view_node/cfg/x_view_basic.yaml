@@ -1,11 +1,20 @@
 XView: {
-  placeholder: "placeholder",
   landmarks: {
-    type: "bos_visual",
-    other_properties: "placeholder"
+    type: "visual",
+    name: "ORB",
+    parameters: {
+      nfeatures: 100,
+      scaleFactor: 1.2,
+      nlevels: 8,
+      edgeThreshold: 31,
+      firstLevel: 0,
+      WTA_K: 2,
+      patchSize: 31,
+      fastThreshold: 20
+    }
   }
 }
 
 XViewWorker: {
-  semantics_image_topic: "/Stereo_Left/Omni_B/image_raw"
+  semantics_image_topic: "/Stereo_Left/Omni_B/labels_image"
 }

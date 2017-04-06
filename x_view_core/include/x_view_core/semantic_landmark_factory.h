@@ -10,6 +10,11 @@ namespace x_view {
 // forward declaration
 struct AbstractSemanticLandmark;
 
+// parameters used by the landmarks
+struct AbstractSemanticLandmarkParameters {
+  AbstractSemanticLandmarkParameters(){}
+};
+
 /**
  * \brief Class responsible for creating new landmarks
  */

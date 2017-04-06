@@ -1,4 +1,5 @@
 #include <x_view_node/x_view_worker.h>
+#include <x_view_node/x_view_parameter_handler.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/highgui/highgui.hpp>
@@ -31,6 +32,12 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
 }
 
 void XViewWorker::getParameters() {
+
+  if(nh_.hasParam("/XView")) {
+    XViewParameterHandler::initialize(nh_);
+  } else {
+    ROS_FATAL_STREAM("Impossible to load parameters \"/XView\"");
+  }
 
   std::string semanticLandmarkTypeString;
   if (nh_.getParam("/XView/landmarks/type", semanticLandmarkTypeString)) {
