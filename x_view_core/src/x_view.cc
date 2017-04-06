@@ -1,6 +1,8 @@
 #include <x_view_core/x_view.h>
 #include <x_view_core/abstract_semantic_landmark.h>
 
+#include <opencv2/highgui/highgui.hpp>
+
 namespace x_view {
 
 XView::XView(XViewParams& params) : params_(params) {
@@ -14,6 +16,11 @@ XView::~XView() {};
 void XView::process(const cv::Mat& image, const SE3& pose) {
   // generate a new semantic landmark object
   SemanticLandmarkPtr landmarkPtr;
+
+  cv::namedWindow("Parsed image", cv::WINDOW_AUTOSIZE);
+  cv::imshow("Parsed image", image);
+  cv::waitKey(1000);
+  cv::destroyWindow("Parsed image");
 
   // extract associated semantics
   extractSemanticsFromImage(image, pose, landmarkPtr);

@@ -1,7 +1,6 @@
 #include <x_view_node/x_view_worker.h>
 
 #include <cv_bridge/cv_bridge.h>
-#include <image_transport/image_transport.h>
 #include <opencv2/highgui/highgui.hpp>
 
 namespace x_view_ros {
@@ -19,10 +18,10 @@ XViewWorker::~XViewWorker() {
 
 void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) {
   try {
-    cv_bridge::CvImagePtr image_ptr = cv_bridge::toCvCopy(msg, "bgr8");
-    cv::Mat image = image_ptr->image;
 
-    // add the gathered image to the x-view
+    cv::Mat image = cv_bridge::toCvCopy(msg, "bgr8")->image;
+    x_view_.process(image, x_view::SE3());
+
     // TODO: Process image using x-view functions.
 
   } catch (cv_bridge::Exception& e) {

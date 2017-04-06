@@ -7,5 +7,5 @@ XView: {
 }
 
 XViewWorker: {
-  semantics_image_topic: "/Stereo_Left/Omni_B/labels_image"
+  semantics_image_topic: "/Stereo_Left/Omni_B/image_raw"
 }

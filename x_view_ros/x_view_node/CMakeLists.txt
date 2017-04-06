@@ -11,6 +11,7 @@ find_package(catkin_simple 0.1.0 REQUIRED COMPONENTS
     rosbag
 )
 
+
 catkin_simple(ALL_DEPS_REQUIRED)
 
 cs_add_library(${PROJECT_NAME} 
@@ -18,7 +19,6 @@ cs_add_library(${PROJECT_NAME}
 )
 
 add_executable(x_view src/x_view_node.cc)
-message(STATUS "AAAAA:libraries: ${catkin_LIBRARIES}")
 target_link_libraries(x_view ${catkin_LIBRARIES} ${PROJECT_NAME})
 
 cs_install()

@@ -23,7 +23,7 @@ SemanticLandmarkPtr SemanticLandmarkFactory::createSemanticLandmark(const cv::Ma
     case SEMANTIC_LANDMARK_TYPE::BOS_VISUAL_FEATURE : {
       // FIXME: in case of this feature we need to know also how many
       // features we need to detect for each image
-      return SemanticLandmarkPtr(new BoSVisualFeatures<cv::ORB>(image, pose, 200));
+      return SemanticLandmarkPtr(new BoSVisualFeatures(image, pose, 200));
     }
     case SEMANTIC_LANDMARK_TYPE::GRAPH : {
       return SemanticLandmarkPtr(new SemanticGraph(image, pose));

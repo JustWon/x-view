@@ -8,6 +8,7 @@
 #include <opencv2/features2d/features2d.hpp>
 
 #include <vector>
+#include <iostream>
 
 namespace x_view {
 
@@ -30,24 +31,16 @@ struct BoSHistogram : public BoS {
   std::vector<int> semantic_entity_count_;
 };
 
-template<typename T>
 struct BoSVisualFeatures : public BoS {
 
-  typedef T VisualFeatureType;
-
   explicit BoSVisualFeatures(const cv::Mat& image, const SE3& pose,
-                             const int num_desired_visual_features)
-      : BoS(image, pose),
-        num_desired_visual_features_(num_desired_visual_features) {
-    feature_.reset(new cv::ORB(num_desired_visual_features_));
-    feature_->compute(image, keypoints_, descriptors_);
-  }
+                             const int num_desired_visual_features);
 
-  virtual SemanticMatchingResult match(const AbstractSemanticLandmark& other);
+  virtual SemanticMatchingResult match(const AbstractSemanticLandmark& other) {}
 
   const int num_desired_visual_features_;
 
-  std::shared_ptr<VisualFeatureType> feature_;
+  cv::Ptr<cv::Feature2D> features_extractor_;
   std::vector<cv::KeyPoint> keypoints_;
   cv::Mat descriptors_;
 };
