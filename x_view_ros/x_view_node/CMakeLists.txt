@@ -16,7 +16,6 @@ catkin_simple(ALL_DEPS_REQUIRED)
 
 cs_add_library(${PROJECT_NAME}
         src/x_view_worker.cc
-        src/x_view_parameter_handler.cc
         )
 
 add_executable(x_view src/x_view_node.cc)

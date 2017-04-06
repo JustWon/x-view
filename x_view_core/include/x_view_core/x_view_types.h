@@ -20,6 +20,7 @@ typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 
 /// pointer to semantic landmark
 typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;
+
 }
 
 #endif //X_VIEW_X_VIEW_TYPES_H

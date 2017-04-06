@@ -1,5 +1,5 @@
 #include <x_view_core/bos_trainer.h>
-#include <x_view_core/bos.h>
+#include <x_view_core/visual_feature.h>
 
 namespace x_view {
 

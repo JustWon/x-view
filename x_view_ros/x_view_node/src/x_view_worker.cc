@@ -1,5 +1,4 @@
 #include <x_view_node/x_view_worker.h>
-#include <x_view_node/x_view_parameter_handler.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/highgui/highgui.hpp>
@@ -33,27 +32,15 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
 
 void XViewWorker::getParameters() {
 
-  if(nh_.hasParam("/XView")) {
-    XViewParameterHandler::initialize(nh_);
-  } else {
-    ROS_FATAL_STREAM("Impossible to load parameters \"/XView\"");
-  }
-
   std::string semanticLandmarkTypeString;
   if (nh_.getParam("/XView/landmarks/type", semanticLandmarkTypeString)) {
     ROS_INFO_STREAM(
         "XView is using the following semantic landmark type: <"
             << semanticLandmarkTypeString << ">");
-    if (semanticLandmarkTypeString.compare("bos_histogram") == 0) {
-      params_.x_view_params.semantic_landmark_type_ =
-          x_view::SemanticLandmarkFactory::SEMANTIC_LANDMARK_TYPE::BOS_HISTOGRAM;
-    } else if (semanticLandmarkTypeString.compare("bos_visual") == 0) {
+    if (semanticLandmarkTypeString.compare("ORB") == 0) {
       params_.x_view_params.semantic_landmark_type_ =
           x_view::SemanticLandmarkFactory::SEMANTIC_LANDMARK_TYPE
-          ::BOS_VISUAL_FEATURE;
-    } else if (semanticLandmarkTypeString.compare("graph") == 0) {
-      params_.x_view_params.semantic_landmark_type_ =
-          x_view::SemanticLandmarkFactory::SEMANTIC_LANDMARK_TYPE::GRAPH;
+          ::ORB_VISUAL_FEATURE;
     } else {
       ROS_ERROR_STREAM(
           "Parameter associated to 'semanticLandmarkType' is unknown:\n\tgiven: "

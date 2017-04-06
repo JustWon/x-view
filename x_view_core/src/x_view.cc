@@ -1,7 +1,10 @@
 #include <x_view_core/x_view.h>
 #include <x_view_core/abstract_semantic_landmark.h>
+#include <x_view_core/visual_feature.h>
 
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/features2d/features2d.hpp>
+
 
 namespace x_view {
 
@@ -17,13 +20,17 @@ void XView::process(const cv::Mat& image, const SE3& pose) {
   // generate a new semantic landmark object
   SemanticLandmarkPtr landmarkPtr;
 
-  cv::namedWindow("Parsed image", cv::WINDOW_AUTOSIZE);
-  cv::imshow("Parsed image", image);
-  cv::waitKey(1000);
-  cv::destroyWindow("Parsed image");
-
   // extract associated semantics
   extractSemanticsFromImage(image, pose, landmarkPtr);
+
+  cv::Mat imageWithFeatures;
+  cv::drawKeypoints(image, std::dynamic_pointer_cast<VisualFeature>
+      (landmarkPtr)->keypoints_, imageWithFeatures);
+  cv::imshow("Extracted visual features", imageWithFeatures);
+  cv::waitKey(500);
+
+  LOG(INFO) << "Detected " <<  std::dynamic_pointer_cast<VisualFeature>
+      (landmarkPtr)->keypoints_.size() << " keypoints" << std::endl;
 
   // TODO: call other functions like "matchSemantics" etc. here
 }

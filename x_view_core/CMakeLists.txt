@@ -11,8 +11,8 @@ cs_add_library(${PROJECT_NAME}
         src/x_view.cc
 
         src/abstract_semantic_landmark.cc
-        src/bos.cc
-        src/graph.cc
+        src/visual_feature.cc
+        src/orb_visual_feature.cc
 
         src/semantic_landmark_factory.cc
 
