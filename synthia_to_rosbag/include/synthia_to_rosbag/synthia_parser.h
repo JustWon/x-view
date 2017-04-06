@@ -8,6 +8,9 @@
 #include <pcl/conversions.h>
 #include <opencv2/core/core.hpp>
 
+#include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/PointCloud2.h>
+
 #include "synthia_to_rosbag/synthia_common.h"
 
 namespace synthia {
@@ -74,6 +77,10 @@ class SynthiaParser {
                         uint64_t* timestamp, cv::Mat* label_image);
 
   bool getCameraCalibration(uint64_t cam_id, synthia::CameraCalibration* cam) const;
+
+  bool convertDepthImageToDepthCloud(const cv::Mat& depth_image,
+                                     const sensor_msgs::CameraInfo& cam_info,
+                                     sensor_msgs::PointCloud2* ptcloud);
 
   synthia::Transformation T_camN_vel(int cam_number) const;
   synthia::Transformation T_camN_imu(int cam_number) const;

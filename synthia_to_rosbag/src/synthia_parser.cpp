@@ -1,4 +1,5 @@
 #include "synthia_to_rosbag/synthia_parser.h"
+#include "synthia_to_rosbag/depth_traits.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -12,6 +13,8 @@
 
 #include <opencv2/highgui/highgui.hpp>
 
+#include <image_geometry/pinhole_camera_model.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
 
 namespace synthia {
 
@@ -103,6 +106,48 @@ bool SynthiaParser::getCameraCalibration(uint64_t cam_id,
   }
   *cam = camera_calibrations_[cam_id];
   return true;
+}
+
+bool SynthiaParser::convertDepthImageToDepthCloud(const cv::Mat& depth_image,
+                                                  const sensor_msgs::CameraInfo& cam_info,
+                                                  sensor_msgs::PointCloud2* ptcloud) {
+  // Function adapted from https://github.com/ros-perception/image_pipeline/tree/indigo/depth_image_proc.
+  image_geometry::PinholeCameraModel model;
+  model.fromCameraInfo(cam_info);
+  // Use correct principal point from calibration
+  float center_x = model.cx();
+  float center_y = model.cy();
+
+  // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
+  double unit_scaling = DepthTraits<uint16_t>::toMeters( uint16_t(1) );
+  float constant_x = unit_scaling / model.fx();
+  float constant_y = unit_scaling / model.fy();
+  float bad_point = std::numeric_limits<float>::quiet_NaN();
+
+  sensor_msgs::PointCloud2Iterator<float> iter_x(*ptcloud, "x");
+  sensor_msgs::PointCloud2Iterator<float> iter_y(*ptcloud, "y");
+  sensor_msgs::PointCloud2Iterator<float> iter_z(*ptcloud, "z");
+  const uint16_t* depth_row = reinterpret_cast<const uint16_t*>(depth_image.data[0]);
+  int row_step = depth_image.step / sizeof(uint16_t);
+  for (int v = 0; v < (int)ptcloud->height; ++v, depth_row += row_step)
+  {
+    for (int u = 0; u < (int)ptcloud->width; ++u, ++iter_x, ++iter_y, ++iter_z)
+    {
+      uint16_t depth = depth_row[u];
+
+      // Missing points denoted by NaNs
+      if (!DepthTraits<uint16_t>::valid(depth))
+      {
+        *iter_x = *iter_y = *iter_z = bad_point;
+        continue;
+      }
+
+      // Fill in XYZ
+      *iter_x = (u - center_x) * depth * constant_x;
+      *iter_y = (v - center_y) * depth * constant_y;
+      *iter_z = DepthTraits<uint16_t>::toMeters(depth);
+    }
+  }
 }
 
 bool SynthiaParser::getPoseAtEntry(uint64_t entry, uint64_t* timestamp,
