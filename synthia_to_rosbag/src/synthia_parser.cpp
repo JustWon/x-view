@@ -212,11 +212,10 @@ bool SynthiaParser::getDepthImageAtEntry(uint64_t entry, uint64_t cam_id,
   std::string filename = dataset_path_ + "/Depth/" + cam_paths_[cam_id] + "/" +
       getFilenameForEntry(entry) + ".png";
 
-  *depth_image = cv::imread(filename, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
-  cv::imshow("window", *depth_image);
+  *depth_image = cv::imread(filename, CV_LOAD_IMAGE_ANYDEPTH);
 
   if (!depth_image->data) {
-    std::cout << "Could not load image data.\n";
+    std::cout << "Could not load depth image data.\n";
     return false;
   }
   return true;
@@ -231,10 +230,9 @@ bool SynthiaParser::getLabelImageAtEntry(uint64_t entry, uint64_t cam_id,
       getFilenameForEntry(entry) + ".png";
 
   *label_image = cv::imread(filename, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
-  cv::imshow("window", *label_image);
 
   if (!label_image->data) {
-    std::cout << "Could not load image data.\n";
+    std::cout << "Could not load labels image data.\n";
     return false;
   }
   return true;
