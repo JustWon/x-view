@@ -148,7 +148,8 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
 
       sensor_msgs::PointCloud2Modifier pcd_modifier(ptcloud_msg);
       pcd_modifier.setPointCloud2FieldsByString(1, "xyz");
-      parser_.convertDepthImageToDepthCloud(depth_image_msg, cam_info, &ptcloud_msg);
+      parser_.convertDepthImageToDepthCloud(depth_image_msg, image_msg,
+                                            cam_info, &ptcloud_msg);
 
       bag_.write(parser_.getCameraPath(cam_id) + "/image_raw", timestamp_ros,
                  image_msg);

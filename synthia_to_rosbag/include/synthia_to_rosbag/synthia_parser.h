@@ -78,6 +78,7 @@ class SynthiaParser {
   bool getCameraCalibration(uint64_t cam_id, synthia::CameraCalibration* cam) const;
 
   bool convertDepthImageToDepthCloud(const sensor_msgs::Image& depth_image_msg,
+                                     const sensor_msgs::Image& rgb_image_msg,
                                      const sensor_msgs::CameraInfo& cam_info,
                                      sensor_msgs::PointCloud2* ptcloud);
 

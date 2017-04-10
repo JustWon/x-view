@@ -119,6 +119,7 @@ bool SynthiaParser::getCameraCalibration(uint64_t cam_id,
 }
 
 bool SynthiaParser::convertDepthImageToDepthCloud(const sensor_msgs::Image& depth_image_msg,
+                                                  const sensor_msgs::Image& rgb_image_msg,
                                                   const sensor_msgs::CameraInfo& cam_info,
                                                   sensor_msgs::PointCloud2* ptcloud) {
   // Function adapted from https://github.com/ros-perception/image_pipeline/tree/indigo/depth_image_proc.
@@ -134,18 +135,26 @@ bool SynthiaParser::convertDepthImageToDepthCloud(const sensor_msgs::Image& dept
   float constant_y = unit_scaling / model.fy();
   float bad_point = std::numeric_limits<float>::quiet_NaN();
 
+  sensor_msgs::PointCloud2Modifier pcd_modifier(*ptcloud);
+  pcd_modifier.setPointCloud2FieldsByString(2, "xyz", "rgb");
   sensor_msgs::PointCloud2Iterator<float> iter_x(*ptcloud, "x");
   sensor_msgs::PointCloud2Iterator<float> iter_y(*ptcloud, "y");
   sensor_msgs::PointCloud2Iterator<float> iter_z(*ptcloud, "z");
+  sensor_msgs::PointCloud2Iterator<uint8_t> iter_r(*ptcloud, "r");
+  sensor_msgs::PointCloud2Iterator<uint8_t> iter_g(*ptcloud, "g");
+  sensor_msgs::PointCloud2Iterator<uint8_t> iter_b(*ptcloud, "b");
 
   const uint16_t* depth_row = reinterpret_cast<const uint16_t*>(&depth_image_msg.data[0]);
+  const uint8_t* rgb = &rgb_image_msg.data[0];
+  int color_step = 3;
+  int rgb_skip = rgb_image_msg.step - rgb_image_msg.width * color_step;
   uint16_t dr = depth_image_msg.data[0];
   int row_step = depth_image_msg.step / sizeof(uint16_t);
 
-
-  for (int v = 0; v < (int)ptcloud->height; ++v, depth_row += row_step)
+  for (int v = 0; v < (int)ptcloud->height; ++v, depth_row += row_step, rgb += rgb_skip)
   {
-    for (int u = 0; u < (int)ptcloud->width; ++u, ++iter_x, ++iter_y, ++iter_z)
+    for (int u = 0; u < (int)ptcloud->width; ++u, ++iter_x, ++iter_y,
+    ++iter_z, ++iter_r, ++iter_g, ++iter_b, rgb += color_step)
     {
       uint16_t depth = uint16_t(depth_row[u]);
       // TODO(gawela): Presently arbitrary distance to crop point cloud (needed for sky removal).
@@ -154,6 +163,9 @@ bool SynthiaParser::convertDepthImageToDepthCloud(const sensor_msgs::Image& dept
         *iter_x = (u - center_x) * depth * constant_x;
         *iter_y = (v - center_y) * depth * constant_y;
         *iter_z = DepthTraits<uint16_t>::toMeters(depth);
+        *iter_r = rgb[0];
+        *iter_g = rgb[1];
+        *iter_b = rgb[2];
       }
     }
   }
