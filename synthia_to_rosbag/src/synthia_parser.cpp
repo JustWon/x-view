@@ -12,6 +12,12 @@
 #include <gtest/gtest.h>
 
 #include <opencv2/highgui/highgui.hpp>
+#include <pcl/io/ply_io.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_types.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/conversions.h>
+#include <pcl_ros/transforms.h>
 
 #include <image_geometry/pinhole_camera_model.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
@@ -42,6 +48,7 @@ SynthiaParser::SynthiaParser(const std::string& dataset_path, bool rectified)
   cam_paths_.push_back(kRightCameraFolder + "/" + kRightFacingFolder);
   cam_paths_.push_back(kRightCameraFolder + "/" + kBackFacingFolder);
   cam_paths_.push_back(kRightCameraFolder + "/" + kLeftFacingFolder);
+  save_counter = 0;
 
 }
 
@@ -118,7 +125,7 @@ bool SynthiaParser::getCameraCalibration(uint64_t cam_id,
   return true;
 }
 
-bool SynthiaParser::convertDepthImageToDepthCloud(const cv::Mat& depth_image,
+bool SynthiaParser::convertDepthImageToDepthCloud(const sensor_msgs::Image& depth_image_msg,
                                                   const sensor_msgs::CameraInfo& cam_info,
                                                   sensor_msgs::PointCloud2* ptcloud) {
   // Function adapted from https://github.com/ros-perception/image_pipeline/tree/indigo/depth_image_proc.
@@ -137,29 +144,32 @@ bool SynthiaParser::convertDepthImageToDepthCloud(const cv::Mat& depth_image,
   sensor_msgs::PointCloud2Iterator<float> iter_x(*ptcloud, "x");
   sensor_msgs::PointCloud2Iterator<float> iter_y(*ptcloud, "y");
   sensor_msgs::PointCloud2Iterator<float> iter_z(*ptcloud, "z");
-  const uint16_t* depth_row = reinterpret_cast<const uint16_t*>(depth_image.data[0]);
-  uint16_t dr = depth_image.data[0];
-  int row_step = depth_image.step / sizeof(uint16_t);
-  for (size_t row = 0u; row < ptcloud->height; ++row) {
-    for (size_t col = 0u; col < ptcloud->width; ++col) {
 
-      uint16_t depth = depth_image.data[row * row_step + col];
+  const uint16_t* depth_row = reinterpret_cast<const uint16_t*>(&depth_image_msg.data[0]);
+  uint16_t dr = depth_image_msg.data[0];
+  int row_step = depth_image_msg.step / sizeof(uint16_t);
 
-      // Missing points denoted by NaNs.
-      if (!DepthTraits<uint16_t>::valid(depth))
-      {
-        *iter_x = *iter_y = *iter_z = bad_point;
-        continue;
+
+  for (int v = 0; v < (int)ptcloud->height; ++v, depth_row += row_step)
+  {
+    for (int u = 0; u < (int)ptcloud->width; ++u, ++iter_x, ++iter_y, ++iter_z)
+    {
+      uint16_t depth = uint16_t(depth_row[u]);
+      if (DepthTraits<uint16_t>::toMeters(depth) < 200) {
+        // Fill in XYZ
+        *iter_x = (u - center_x) * depth * constant_x;
+        *iter_y = (v - center_y) * depth * constant_y;
+        *iter_z = DepthTraits<uint16_t>::toMeters(depth);
       }
-      // Fill in XYZ
-      *iter_x = (row - center_x) * depth * constant_x;
-      *iter_y = (col - center_y) * depth * constant_y;
-      *iter_z = DepthTraits<uint16_t>::toMeters(depth);
-      ++iter_x;
-      ++iter_y;
-      ++iter_z;
     }
   }
+
+  pcl::PCLPointCloud2 pcl_pc2;
+  pcl_conversions::toPCL(*ptcloud, pcl_pc2);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
+  pcl::io::savePLYFileASCII("/tmp/pointcloud" + std::to_string(save_counter) + ".ply", *temp_cloud);
+  ++save_counter;
   return true;
 }
 

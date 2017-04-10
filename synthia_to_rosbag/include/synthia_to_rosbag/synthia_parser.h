@@ -9,6 +9,7 @@
 #include <opencv2/core/core.hpp>
 
 #include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/Image.h>
 #include <sensor_msgs/PointCloud2.h>
 
 #include "synthia_to_rosbag/synthia_common.h"
@@ -78,7 +79,7 @@ class SynthiaParser {
 
   bool getCameraCalibration(uint64_t cam_id, synthia::CameraCalibration* cam) const;
 
-  bool convertDepthImageToDepthCloud(const cv::Mat& depth_image,
+  bool convertDepthImageToDepthCloud(const sensor_msgs::Image& depth_image_msg,
                                      const sensor_msgs::CameraInfo& cam_info,
                                      sensor_msgs::PointCloud2* ptcloud);
 
@@ -137,6 +138,7 @@ class SynthiaParser {
   bool initial_pose_set_;
   synthia::Transformation T_initial_pose_;
   double mercator_scale_;
+  int save_counter;
 };
 }
 
