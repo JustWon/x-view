@@ -4,8 +4,6 @@
 #include <memory>
 #include <map>
 
-#include <pcl/point_types.h>
-#include <pcl/conversions.h>
 #include <opencv2/core/core.hpp>
 
 #include <sensor_msgs/CameraInfo.h>
@@ -138,7 +136,6 @@ class SynthiaParser {
   bool initial_pose_set_;
   synthia::Transformation T_initial_pose_;
   double mercator_scale_;
-  int save_counter;
 };
 }
 

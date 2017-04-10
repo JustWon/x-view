@@ -12,12 +12,6 @@
 #include <gtest/gtest.h>
 
 #include <opencv2/highgui/highgui.hpp>
-#include <pcl/io/ply_io.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/point_types.h>
-#include <pcl/PCLPointCloud2.h>
-#include <pcl/conversions.h>
-#include <pcl_ros/transforms.h>
 
 #include <image_geometry/pinhole_camera_model.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
@@ -48,7 +42,6 @@ SynthiaParser::SynthiaParser(const std::string& dataset_path, bool rectified)
   cam_paths_.push_back(kRightCameraFolder + "/" + kRightFacingFolder);
   cam_paths_.push_back(kRightCameraFolder + "/" + kBackFacingFolder);
   cam_paths_.push_back(kRightCameraFolder + "/" + kLeftFacingFolder);
-  save_counter = 0;
 
 }
 
@@ -74,7 +67,7 @@ bool SynthiaParser::loadCalibration() {
 
     calibration.D = Eigen::Matrix<double, 1, 5>::Zero();
 
-    // TExtrinsics are loaded from file.
+    // Extrinsics are loaded from file.
   }
   return true;
 }
@@ -155,6 +148,7 @@ bool SynthiaParser::convertDepthImageToDepthCloud(const sensor_msgs::Image& dept
     for (int u = 0; u < (int)ptcloud->width; ++u, ++iter_x, ++iter_y, ++iter_z)
     {
       uint16_t depth = uint16_t(depth_row[u]);
+      // TODO(gawela): Presently arbitrary distance to crop point cloud (needed for sky removal).
       if (DepthTraits<uint16_t>::toMeters(depth) < 200) {
         // Fill in XYZ
         *iter_x = (u - center_x) * depth * constant_x;
@@ -164,12 +158,6 @@ bool SynthiaParser::convertDepthImageToDepthCloud(const sensor_msgs::Image& dept
     }
   }
 
-  pcl::PCLPointCloud2 pcl_pc2;
-  pcl_conversions::toPCL(*ptcloud, pcl_pc2);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
-  pcl::io::savePLYFileASCII("/tmp/pointcloud" + std::to_string(save_counter) + ".ply", *temp_cloud);
-  ++save_counter;
   return true;
 }
 
