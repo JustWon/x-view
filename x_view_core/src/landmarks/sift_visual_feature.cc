@@ -1,10 +1,10 @@
-#include <x_view_core/visual_feature.h>
+#include <x_view_core/landmarks/visual_feature.h>
 
 #include <opencv2/imgproc/imgproc.hpp>
 
 namespace x_view {
 
-ORBVisualFeature::ORBVisualFeature(const cv::Mat& image, const SE3& pose)
+SIFTVisualFeature::SIFTVisualFeature(const cv::Mat& image, const SE3& pose)
     : VisualFeature(image, pose) {
 
   // convert RGB image to gray as visual feature detectors only work on
@@ -12,7 +12,7 @@ ORBVisualFeature::ORBVisualFeature(const cv::Mat& image, const SE3& pose)
   cv::Mat gray;
   cv::cvtColor(image, gray, CV_BGR2GRAY);
 
-  features_extractor_.reset(new cv::ORB(NUM_VISUAL_FEATURES));
+  features_extractor_.reset(new cv::SIFT(NUM_VISUAL_FEATURES));
   features_extractor_->detect(gray, keypoints_);
 
   // retains only the desired number of features
@@ -23,9 +23,5 @@ ORBVisualFeature::ORBVisualFeature(const cv::Mat& image, const SE3& pose)
   features_extractor_->compute(gray, keypoints_, descriptors_);
 }
 
-SemanticMatchingResult
-ORBVisualFeature::match(const AbstractSemanticLandmark& other) {
-
-}
 
 }

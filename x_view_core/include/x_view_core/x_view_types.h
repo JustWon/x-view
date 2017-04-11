@@ -9,7 +9,7 @@
 namespace x_view {
 
 // forward declaration
-struct AbstractSemanticLandmark;
+class AbstractSemanticLandmark;
 
 /// Different types of semantic landmarks to be used in XView
 enum SemanticLandmarkType {
@@ -29,6 +29,8 @@ typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 
 /// pointer to semantic landmark
 typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;
+typedef std::shared_ptr<const AbstractSemanticLandmark>
+    ConstSemanticLandmarkPtr;
 
 }
 

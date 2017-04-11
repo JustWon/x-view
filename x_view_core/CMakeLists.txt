@@ -10,18 +10,19 @@ catkin_simple(ALL_DEPS_REQUIRED)
 cs_add_library(${PROJECT_NAME}
         src/x_view.cc
 
-        src/abstract_semantic_landmark.cc
-        src/visual_feature.cc
-        src/orb_visual_feature.cc
-        src/sift_visual_feature.cc
-        src/surf_visual_feature.cc
+        src/landmarks/abstract_semantic_landmark.cc
+        src/landmarks/visual_feature.cc
+        src/landmarks/orb_visual_feature.cc
+        src/landmarks/sift_visual_feature.cc
+        src/landmarks/surf_visual_feature.cc
 
-        src/semantic_landmark_factory.cc
+        src/landmarks/semantic_landmark_factory.cc
         )
 
-# Link to opencv library (needed because of 'nonfree' module)
+# Link to opencv library (needed because of 'nonfree' module which is not
+# contained in the standard ros-libraries)
 find_package( OpenCV REQUIRED )
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES} opencv_nonfree)
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES})
 
 
 # X-View tests

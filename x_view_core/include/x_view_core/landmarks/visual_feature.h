@@ -2,7 +2,7 @@
 #define  X_VIEW_BOS_H_
 
 #include <x_view_core/x_view_types.h>
-#include <x_view_core/abstract_semantic_landmark.h>
+#include <x_view_core/landmarks/abstract_semantic_landmark.h>
 
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/nonfree/features2d.hpp>
@@ -20,7 +20,7 @@ class VisualFeature : public AbstractSemanticLandmark {
  public:
   explicit VisualFeature(const cv::Mat& image, const SE3& pose);
 
-  virtual SemanticMatchingResult match(const AbstractSemanticLandmark& other)  = 0;
+  SemanticMatchingResult match(const ConstSemanticLandmarkPtr& other) const;
 
   ///\brief number of features to be extracted by the detector
   static int NUM_VISUAL_FEATURES;
@@ -41,8 +41,6 @@ class dName##VisualFeature : public VisualFeature { \
   static SemanticLandmarkPtr create(const cv::Mat& image, const SE3& pose) {  \
     return SemanticLandmarkPtr(new dName##VisualFeature(image, pose));  \
   } \
-  \
- virtual SemanticMatchingResult match(const AbstractSemanticLandmark& other); \
   \
  protected:  \
   explicit dName##VisualFeature(const cv::Mat& image, const SE3& pose);  \

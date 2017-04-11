@@ -1,6 +1,6 @@
 XView: {
   landmarks: {
-    type: "SURF"
+    type: "SIFT"
   }
 }
 

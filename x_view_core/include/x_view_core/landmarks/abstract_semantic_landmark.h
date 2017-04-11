@@ -4,6 +4,7 @@
 #include <x_view_core/x_view_types.h>
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/features2d/features2d.hpp>
 
 #include <memory>
 
@@ -14,6 +15,7 @@ namespace x_view {
  */
 struct SemanticMatchingResult {
   double score_;
+  std::vector<cv::DMatch> matches_;
 };
 
 /**
@@ -31,9 +33,8 @@ class AbstractSemanticLandmark {
   * \param other other landmark to be compared to this
   * \return struct containing matching results
   */
-  virtual SemanticMatchingResult match(const AbstractSemanticLandmark& other) = 0;
-
- protected:
+  virtual SemanticMatchingResult match(const ConstSemanticLandmarkPtr&  other)
+  const  = 0;
 
   /// \brief Image given as input for the landmark
   const cv::Mat& image_;

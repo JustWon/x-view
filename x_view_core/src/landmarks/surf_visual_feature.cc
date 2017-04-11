@@ -1,4 +1,4 @@
-#include <x_view_core/visual_feature.h>
+#include <x_view_core/landmarks/visual_feature.h>
 
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -24,9 +24,5 @@ SURFVisualFeature::SURFVisualFeature(const cv::Mat& image, const SE3& pose)
   features_extractor_->compute(gray, keypoints_, descriptors_);
 }
 
-SemanticMatchingResult
-SURFVisualFeature::match(const AbstractSemanticLandmark& other) {
-
-}
 
 }

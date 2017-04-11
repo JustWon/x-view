@@ -2,8 +2,8 @@
 #define X_VIEW_X_VIEW_H_
 
 #include <x_view_core/x_view_types.h>
-#include <x_view_core/semantic_landmark_factory.h>
-#include <x_view_core/abstract_semantic_landmark.h>
+#include <x_view_core/landmarks/semantic_landmark_factory.h>
+#include <x_view_core/landmarks/abstract_semantic_landmark.h>
 
 #include <opencv2/core/core.hpp>
 
@@ -73,7 +73,7 @@ class XView {
 
   // semantic landmark properties and factory
   SemanticLandmarkType semantic_landmark_type_;
-  SemanticLandmarkFactory semantic_factory_;
+  SemanticLandmarkFactory semantic_landmark_factory_;
 
   // Parameters.
   XViewParams params_;
