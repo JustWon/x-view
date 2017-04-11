@@ -8,15 +8,14 @@
 
 namespace x_view {
 
-struct VisualFeature : public AbstractSemanticLandmark {
+class VisualFeature : public AbstractSemanticLandmark {
 
-  explicit VisualFeature(const cv::Mat& image, const SE3& pose,
-                         int num_desired_visual_features);
+ public:
+  explicit VisualFeature(const cv::Mat& image, const SE3& pose);
 
-  virtual SemanticMatchingResult
-  match(const AbstractSemanticLandmark& other)  = 0;
+  virtual SemanticMatchingResult match(const AbstractSemanticLandmark& other)  = 0;
 
-  const int num_desired_visual_features_;
+  static int NUM_VISUAL_FEATURES;
 
   std::unique_ptr<cv::Feature2D> features_extractor_;
   std::vector<cv::KeyPoint> keypoints_;

@@ -2,9 +2,10 @@
 
 namespace x_view {
 
-VisualFeature::VisualFeature(const cv::Mat& image, const SE3& pose,
-                             int num_desired_visual_features)
-    : AbstractSemanticLandmark(image, pose),
-      num_desired_visual_features_(num_desired_visual_features) {
+// TODO: read number of desired features from config file
+int VisualFeature::NUM_VISUAL_FEATURES = 100;
+
+VisualFeature::VisualFeature(const cv::Mat& image, const SE3& pose)
+    : AbstractSemanticLandmark(image, pose) {
 }
 }

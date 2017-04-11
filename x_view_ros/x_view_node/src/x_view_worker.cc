@@ -32,27 +32,16 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
 
 void XViewWorker::getParameters() {
 
-  std::string semanticLandmarkTypeString;
-  if (nh_.getParam("/XView/landmarks/type", semanticLandmarkTypeString)) {
+  // XView parameters.
+  if (nh_.getParam("/XView/landmarks/type", params_
+      .x_view_params.semantic_landmark_type_string_)) {
     ROS_INFO_STREAM(
         "XView is using the following semantic landmark type: <"
-            << semanticLandmarkTypeString << ">");
-    if (semanticLandmarkTypeString.compare("ORB") == 0) {
-      params_.x_view_params.semantic_landmark_type_ =
-          x_view::SemanticLandmarkFactory::SEMANTIC_LANDMARK_TYPE
-          ::ORB_VISUAL_FEATURE;
-    } else {
-      ROS_ERROR_STREAM(
-          "Parameter associated to 'semanticLandmarkType' is unknown:\n\tgiven: "
-              << semanticLandmarkTypeString << "\n\tvalid: {'bos', 'graph'}");
-    }
-
+            << params_.x_view_params.semantic_landmark_type_string_ << ">");
   } else {
     ROS_ERROR_STREAM("Failed to get param 'semanticLandmarkType'");
   }
 
-  // XView parameters.
-  nh_.getParam("/XView/placeholder", params_.x_view_params.placeholder);
 
   // XViewWorker parameters.
   nh_.getParam("/XViewWorker/semantics_image_topic",

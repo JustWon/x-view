@@ -8,12 +8,17 @@
 
 namespace x_view {
 
-struct ORBVisualFeature : public VisualFeature {
+class ORBVisualFeature : public VisualFeature {
 
-  explicit ORBVisualFeature(const cv::Mat& image, const SE3& pose,
-                             const int num_desired_visual_features);
+ public:
+  static SemanticLandmarkPtr create(const cv::Mat& image, const SE3& pose) {
+    return SemanticLandmarkPtr(new ORBVisualFeature(image, pose));
+  }
 
   virtual SemanticMatchingResult match(const AbstractSemanticLandmark& other) {}
+
+ protected:
+  explicit ORBVisualFeature(const cv::Mat& image, const SE3& pose);
 
 };
 

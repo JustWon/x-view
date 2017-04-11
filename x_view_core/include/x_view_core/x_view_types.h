@@ -11,6 +11,13 @@ namespace x_view {
 // forward declaration
 struct AbstractSemanticLandmark;
 
+/// Different types of semantic landmarks to be used in XView
+enum SemanticLandmarkType {
+  UNDEFINED_SEMANTIC_LANDMARK_TYPE = -1,
+  ORB_VISUAL_FEATURE,
+  NUM_SEMANTIC_LANDMARK_TYPES
+};
+
 // typedefs
 /// factor graph used for graph optimization
 typedef gtsam::NonlinearFactorGraph FactorGraph;

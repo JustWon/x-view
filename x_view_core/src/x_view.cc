@@ -1,17 +1,19 @@
 #include <x_view_core/x_view.h>
-#include <x_view_core/abstract_semantic_landmark.h>
-#include <x_view_core/visual_feature.h>
+#include <x_view_core/orb_visual_feature.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
-
 
 namespace x_view {
 
 XView::XView(XViewParams& params) : params_(params) {
 
   // create a factory object which is responsible for generating new semantic landmark observations
-  semantic_factory_.setSemanticLandmarkType(params_.semantic_landmark_type_);
+  if (params.semantic_landmark_type_string_.compare("ORB") == 0) {
+    semantic_landmark_type_ = SemanticLandmarkType::ORB_VISUAL_FEATURE;
+    semantic_factory_.setCreatorFunction(ORBVisualFeature::create);
+  }
+
 }
 
 XView::~XView() {};
@@ -29,7 +31,7 @@ void XView::process(const cv::Mat& image, const SE3& pose) {
   cv::imshow("Extracted visual features", imageWithFeatures);
   cv::waitKey(500);
 
-  LOG(INFO) << "Detected " <<  std::dynamic_pointer_cast<VisualFeature>
+  LOG(INFO) << "Detected " << std::dynamic_pointer_cast<VisualFeature>
       (landmarkPtr)->keypoints_.size() << " keypoints" << std::endl;
 
   // TODO: call other functions like "matchSemantics" etc. here
@@ -42,6 +44,9 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
 
   // create the actual landmark representation
   semantics_out = semantic_factory_.createSemanticLandmark(image, pose);
+  semantics_db_.push_back(semantics_out);
+  std::cout << "Semantic database has size: "
+            << semantics_db_.size() << std::endl;
 
   // TODO: add the semantics_out landmark to the database
 }
