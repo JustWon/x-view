@@ -1,8 +1,8 @@
 #include <x_view_core/x_view.h>
-#include <x_view_core/orb_visual_feature.h>
-#include <x_view_core/sift_visual_feature.h>
+#include <x_view_core/visual_feature.h>
 
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/features2d/features2d.hpp>
 
 namespace x_view {
 
@@ -14,7 +14,9 @@ XView::XView(XViewParams& params) : params_(params) {
   } else if (params.semantic_landmark_type_string_.compare("SIFT") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::SIFT_VISUAL_FEATURE;
     semantic_factory_.setCreatorFunction(SIFTVisualFeature::create);
-
+  } else if (params.semantic_landmark_type_string_.compare("SURF") == 0) {
+    semantic_landmark_type_ = SemanticLandmarkType::SURF_VISUAL_FEATURE;
+    semantic_factory_.setCreatorFunction(SURFVisualFeature::create);
   }
 }
 
@@ -27,6 +29,7 @@ void XView::process(const cv::Mat& image, const SE3& pose) {
   // extract associated semantics
   extractSemanticsFromImage(image, pose, landmarkPtr);
 
+  // display image with detected keypoints
   cv::Mat imageWithFeatures;
   cv::drawKeypoints(image, std::dynamic_pointer_cast<VisualFeature>
       (landmarkPtr)->keypoints_, imageWithFeatures);
