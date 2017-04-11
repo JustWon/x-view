@@ -10,6 +10,7 @@ XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n) {
   semantics_image_sub_ = nh_.subscribe(params_.semantics_image_topic, 1,
                                        &XViewWorker::semanticsImageCallback,
                                        this);
+
   x_view_ = x_view::XView(params_.x_view_params);
 }
 
@@ -18,10 +19,9 @@ XViewWorker::~XViewWorker() {
 
 void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) {
   try {
-
     cv::Mat image = cv_bridge::toCvCopy(msg, "bgr8")->image;
-    x_view_.process(image, x_view::SE3());
 
+    x_view_.process(image, x_view::SE3());
     // TODO: Process image using x-view functions.
 
   } catch (cv_bridge::Exception& e) {

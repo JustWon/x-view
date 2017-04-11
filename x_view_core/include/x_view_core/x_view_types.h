@@ -15,6 +15,7 @@ struct AbstractSemanticLandmark;
 enum SemanticLandmarkType {
   UNDEFINED_SEMANTIC_LANDMARK_TYPE = -1,
   ORB_VISUAL_FEATURE,
+  SIFT_VISUAL_FEATURE,
   NUM_SEMANTIC_LANDMARK_TYPES
 };
 

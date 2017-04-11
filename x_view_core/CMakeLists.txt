@@ -13,12 +13,13 @@ cs_add_library(${PROJECT_NAME}
         src/abstract_semantic_landmark.cc
         src/visual_feature.cc
         src/orb_visual_feature.cc
+        src/sift_visual_feature.cc
 
         src/semantic_landmark_factory.cc
-
-
-        #src/bos_trainer.cc
         )
+
+find_package( OpenCV REQUIRED )
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES} opencv_nonfree)
 
 catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_main.cc

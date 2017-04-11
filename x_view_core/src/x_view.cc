@@ -1,19 +1,21 @@
 #include <x_view_core/x_view.h>
 #include <x_view_core/orb_visual_feature.h>
+#include <x_view_core/sift_visual_feature.h>
 
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/features2d/features2d.hpp>
 
 namespace x_view {
 
 XView::XView(XViewParams& params) : params_(params) {
-
   // create a factory object which is responsible for generating new semantic landmark observations
   if (params.semantic_landmark_type_string_.compare("ORB") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::ORB_VISUAL_FEATURE;
     semantic_factory_.setCreatorFunction(ORBVisualFeature::create);
-  }
+  } else if (params.semantic_landmark_type_string_.compare("SIFT") == 0) {
+    semantic_landmark_type_ = SemanticLandmarkType::SIFT_VISUAL_FEATURE;
+    semantic_factory_.setCreatorFunction(SIFTVisualFeature::create);
 
+  }
 }
 
 XView::~XView() {};

@@ -1,6 +1,6 @@
 XView: {
   landmarks: {
-    type: "ORB"
+    type: "SIFT"
   }
 }
 

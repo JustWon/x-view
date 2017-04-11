@@ -19,8 +19,7 @@ class SemanticLandmarkFactory {
 
   /**
    * \brief Sets the landmark type the factory is going to generate
-   * \param type the type of semantic landmark one wants to generate through
-   * the factory
+   * \param cb function pointer called to create a new landmark
    */
   static void setCreatorFunction(CreateCallBack cb);
 
@@ -34,6 +33,8 @@ class SemanticLandmarkFactory {
   static SemanticLandmarkPtr createSemanticLandmark(const cv::Mat& image, const SE3& pose);
 
  private:
+  ///\brief A function pointer to the static function responsible for
+  /// creating new semantic landmarks given an image and a pose
   static CreateCallBack cb_;
 
 };
