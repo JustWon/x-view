@@ -3,6 +3,9 @@
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#define CAST(object, type) std::dynamic_pointer_cast<type>(object)
 
 namespace x_view {
 
@@ -18,6 +21,10 @@ XView::XView(XViewParams& params) : params_(params) {
     semantic_landmark_type_ = SemanticLandmarkType::SURF_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction(SURFVisualFeature::create);
   }
+
+  // set a landmark matcher
+  landmarks_matcher_type_ = LandmarksMatcherType::VISUAL_FEATURES_MATCHER;
+  descriptor_matcher_ = VisualFeaturesMatcher::create();
 }
 
 XView::~XView() {};
@@ -29,22 +36,18 @@ void XView::process(const cv::Mat& image, const SE3& pose) {
   // extract associated semantics
   extractSemanticsFromImage(image, pose, landmarkPtr);
 
-  // display image with detected keypoints
-//  cv::Mat imageWithFeatures;
-//  cv::drawKeypoints(image, std::dynamic_pointer_cast<VisualFeature>
-//      (landmarkPtr)->keypoints_, imageWithFeatures);
-//  cv::imshow("Extracted visual features", imageWithFeatures);
-//  cv::waitKey(500);
-//
-//  LOG(INFO) << "Detected " << std::dynamic_pointer_cast<VisualFeature>
-//      (landmarkPtr)->keypoints_.size() << " keypoints" << std::endl;
+  // add the features to the matcher
+  std::shared_ptr<VisualFeature> vPtr = CAST(landmarkPtr, VisualFeature);
 
   // compute the matchings between the new feature and the ones present in
   // the database
   Eigen::MatrixXd matchingScores;
   matchSemantics(landmarkPtr, matchingScores);
 
-  // TODO: call other functions like "matchSemantics" etc. here
+  // add the newly computed descriptor to the descriptor matcher
+  CAST(descriptor_matcher_, VectorFeaturesMatcher)->add_descriptor(vPtr->descriptors_);
+
+  // TODO: call other functions to process semantic landmarks here
 }
 
 void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
@@ -61,33 +64,35 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
 }
 
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
-                           Eigen::MatrixXd& matches) {
+                           Eigen::MatrixXd& matches_mat) {
+
   std::shared_ptr<const VisualFeature> sem_a =
-      std::dynamic_pointer_cast<const VisualFeature>(semantics_a);
+      CAST(semantics_a, const VisualFeature);
 
-  // iterate over the existing semantic landmarks and store their similarity
-  for (int l = 0; l < semantics_db_.size(); ++l) {
-    const SemanticLandmarkPtr& semantics_b = semantics_db_[l];
+  std::vector<std::vector<cv::DMatch>> matches;
+  CAST(descriptor_matcher_, VectorFeaturesMatcher)->match(sem_a->descriptors_, matches);
 
-    std::shared_ptr<const VisualFeature> sem_b =
-        std::dynamic_pointer_cast<const VisualFeature>(semantics_b);
+  const unsigned long number_of_training_images = semantics_db_.size();
 
-    SemanticMatchingResult comparison_result = sem_a->match(sem_b);
-
-    std::cerr<<"Computing and showing matches between current frame (left) "
-        "and " << l+1<< "th frame stored in the database" << std::endl;
-
-    if (comparison_result.matches_.size() > 0) {
-      cv::Mat img_matches;
-      cv::drawMatches(semantics_a->image_, sem_a->keypoints_,
-                      semantics_b->image_, sem_b->keypoints_,
-                      comparison_result.matches_,
-                      img_matches);
-
-      cv::imshow("Matches", img_matches);
-      cv::waitKey(2000);
+  if (number_of_training_images > 0) {
+    std::vector<int> voting_per_image(number_of_training_images, 0);
+    for (int feature = 0; feature < matches.size(); ++feature) {
+      for (int vote = 0; vote < matches[feature].size(); ++vote) {
+        int preference = matches[feature][vote].imgIdx;
+        voting_per_image[preference]++;
+      }
     }
 
+    auto max_vote = std::max_element(voting_per_image.begin(), voting_per_image
+        .end());
+
+    std::cout << "Current frame (" << number_of_training_images
+              << ") voted " << 100 * ((double) *max_vote) / (matches.size())
+              << "% for image "
+              << std::distance(voting_per_image.begin(), max_vote)
+              << std::endl;
+
+    std::cout << std::endl;
   }
 
   semantics_db_.push_back(semantics_a);

@@ -17,6 +17,9 @@ cs_add_library(${PROJECT_NAME}
         src/landmarks/surf_visual_feature.cc
 
         src/landmarks/semantic_landmark_factory.cc
+
+
+        src/matchers/visual_features_matcher.cc
         )
 
 # Link to opencv library (needed because of 'nonfree' module which is not

@@ -4,8 +4,11 @@
 #include <x_view_core/x_view_types.h>
 #include <x_view_core/landmarks/semantic_landmark_factory.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
+#include <x_view_core/matchers/abstrac_landmarks_matcher.h>
+#include <x_view_core/matchers/visual_features_matcher.h>
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/features2d/features2d.hpp>
 
 #include <memory>
 
@@ -74,6 +77,10 @@ class XView {
   // semantic landmark properties and factory
   SemanticLandmarkType semantic_landmark_type_;
   SemanticLandmarkFactory semantic_landmark_factory_;
+
+  // semantic landmark matcher
+  LandmarksMatcherType landmarks_matcher_type_;
+  LandmarksMatcherPtr descriptor_matcher_;
 
   // Parameters.
   XViewParams params_;

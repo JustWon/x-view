@@ -37,10 +37,10 @@ class AbstractSemanticLandmark {
   const  = 0;
 
   /// \brief Image given as input for the landmark
-  const cv::Mat& image_;
+  const cv::Mat image_;
 
   /// \brief Robot's pose associated to this semantic landmark
-  const SE3& pose_;
+  const SE3 pose_;
 
 }; // struct AbstractSemanticLandmark
 

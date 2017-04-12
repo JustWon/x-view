@@ -10,6 +10,7 @@ namespace x_view {
 
 // forward declaration
 class AbstractSemanticLandmark;
+class AbstractLandmarksMatcher;
 
 /// Different types of semantic landmarks to be used in XView
 enum SemanticLandmarkType {
@@ -19,6 +20,14 @@ enum SemanticLandmarkType {
   SURF_VISUAL_FEATURE,
   NUM_SEMANTIC_LANDMARK_TYPES
 };
+
+/// Different types of landmarks matchers to be used in XView
+enum LandmarksMatcherType {
+  UNDEFINED_LANDMARKS_MATCHER_TYPE = -1,
+  VISUAL_FEATURES_MATCHER,
+  NUM_LANDMARKS_MATCHER_TYPES
+};
+
 
 // typedefs
 /// factor graph used for graph optimization
@@ -31,6 +40,11 @@ typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;
 typedef std::shared_ptr<const AbstractSemanticLandmark>
     ConstSemanticLandmarkPtr;
+
+/// pointer to landmark matchers
+typedef std::shared_ptr<AbstractLandmarksMatcher> LandmarksMatcherPtr;
+typedef std::shared_ptr<const AbstractLandmarksMatcher>
+    ConstLandmarksMatcherPtr;
 
 }
 
