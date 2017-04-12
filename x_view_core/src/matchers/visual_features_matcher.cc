@@ -1,12 +1,11 @@
 #include <x_view_core/matchers/visual_features_matcher.h>
-#include <boost/serialization/shared_ptr.hpp>
 
 namespace x_view {
 
 VisualFeaturesMatcher::VisualFeaturesMatcher()
-    : num_retained_best_matches_(2) {
+    : num_retained_best_matches_(1) {
   descriptor_matcher_ =
-      std::shared_ptr<cv::DescriptorMatcher>(new cv::BFMatcher());
+      std::shared_ptr<cv::DescriptorMatcher>(new cv::BFMatcher);
 }
 
 VisualFeaturesMatcher::~VisualFeaturesMatcher() {

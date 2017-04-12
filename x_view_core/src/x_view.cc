@@ -11,20 +11,22 @@ namespace x_view {
 
 XView::XView(XViewParams& params) : params_(params) {
   // create a factory object which is responsible for generating new semantic landmark observations
-  if (params.semantic_landmark_type_string_.compare("ORB") == 0) {
+  if (params_.semantic_landmark_type_.compare("ORB") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::ORB_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction(ORBVisualFeature::create);
-  } else if (params.semantic_landmark_type_string_.compare("SIFT") == 0) {
+  } else if (params_.semantic_landmark_type_.compare("SIFT") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::SIFT_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction(SIFTVisualFeature::create);
-  } else if (params.semantic_landmark_type_string_.compare("SURF") == 0) {
+  } else if (params_.semantic_landmark_type_.compare("SURF") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::SURF_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction(SURFVisualFeature::create);
   }
 
   // set a landmark matcher
-  landmarks_matcher_type_ = LandmarksMatcherType::VISUAL_FEATURES_MATCHER;
-  descriptor_matcher_ = VisualFeaturesMatcher::create();
+  if (params_.landmark_matching_type_.compare("VISUAL") == 0) {
+    landmarks_matcher_type_ = LandmarksMatcherType::VISUAL_FEATURES_MATCHER;
+    descriptor_matcher_ = VisualFeaturesMatcher::create();
+  }
 }
 
 XView::~XView() {};
@@ -39,8 +41,8 @@ void XView::process(const cv::Mat& image, const SE3& pose) {
   // add the features to the matcher
   std::shared_ptr<VisualFeature> vPtr = CAST(landmarkPtr, VisualFeature);
 
-  // compute the matchings between the new feature and the ones present in
-  // the database
+  // compute the matches between the new feature and the ones
+  // stored in the database
   Eigen::MatrixXd matchingScores;
   matchSemantics(landmarkPtr, matchingScores);
 

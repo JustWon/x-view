@@ -1,6 +1,9 @@
 XView: {
   landmarks: {
-    type: "ORB"
+    type: "SURF"
+  },
+  matcher: {
+    type: "VISUAL"
   }
 }
 

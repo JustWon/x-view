@@ -34,12 +34,25 @@ void XViewWorker::getParameters() {
 
   // XView parameters.
   if (nh_.getParam("/XView/landmarks/type", params_
-      .x_view_params.semantic_landmark_type_string_)) {
+      .x_view_params.semantic_landmark_type_)) {
     ROS_INFO_STREAM(
         "XView is using the following semantic landmark type: <"
-            << params_.x_view_params.semantic_landmark_type_string_ << ">");
+            << params_.x_view_params.semantic_landmark_type_ << ">");
   } else {
-    ROS_ERROR_STREAM("Failed to get param 'semanticLandmarkType'");
+    ROS_ERROR_STREAM("Failed to get param '/XView/landmarks/type'\nUsing "
+                         "default <SIFT> landmark type.");
+    params_.x_view_params.semantic_landmark_type_ = "SIFT";
+  }
+
+  if (nh_.getParam("/XView/matcher/type", params_
+      .x_view_params.landmark_matching_type_)) {
+    ROS_INFO_STREAM(
+        "XView is using the following landmark matcher type: <"
+            << params_.x_view_params.landmark_matching_type_ << ">");
+  } else {
+    ROS_ERROR_STREAM("Failed to get param '/XView/matcher/type'\nUsing "
+                         "default <VISUAL> landmark matcher.");
+    params_.x_view_params.landmark_matching_type_ = "VISUAL";
   }
 
 
