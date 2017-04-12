@@ -10,16 +10,16 @@ catkin_simple(ALL_DEPS_REQUIRED)
 cs_add_library(${PROJECT_NAME}
         src/x_view.cc
 
+        # Landmarks
         src/landmarks/abstract_semantic_landmark.cc
-        src/landmarks/visual_feature.cc
-        src/landmarks/orb_visual_feature.cc
-        src/landmarks/sift_visual_feature.cc
-        src/landmarks/surf_visual_feature.cc
-
         src/landmarks/semantic_landmark_factory.cc
 
+        # Landmakrs defined thorugh classical visual features
+        src/landmarks/visual_feature.cc
 
-        src/matchers/visual_features_matcher.cc
+
+        # Features matchers
+        src/matchers/vector_features_matcher.cc
         )
 
 # Link to opencv library (needed because of 'nonfree' module which is not

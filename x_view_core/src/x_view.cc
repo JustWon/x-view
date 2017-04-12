@@ -1,5 +1,6 @@
 #include <x_view_core/x_view.h>
 #include <x_view_core/landmarks/visual_feature.h>
+#include <x_view_core/matchers/vector_features_matcher.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -23,9 +24,9 @@ XView::XView(XViewParams& params) : params_(params) {
   }
 
   // set a landmark matcher
-  if (params_.landmark_matching_type_.compare("VISUAL") == 0) {
-    landmarks_matcher_type_ = LandmarksMatcherType::VISUAL_FEATURES_MATCHER;
-    descriptor_matcher_ = VisualFeaturesMatcher::create();
+  if (params_.landmark_matching_type_.compare("VECTOR") == 0) {
+    landmarks_matcher_type_ = LandmarksMatcherType::VECTOR_FEATURES_MATCHER;
+    descriptor_matcher_ = VectorFeaturesMatcher::create();
   }
 }
 

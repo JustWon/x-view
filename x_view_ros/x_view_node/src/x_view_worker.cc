@@ -52,7 +52,7 @@ void XViewWorker::getParameters() {
   } else {
     ROS_ERROR_STREAM("Failed to get param '/XView/matcher/type'\nUsing "
                          "default <VISUAL> landmark matcher.");
-    params_.x_view_params.landmark_matching_type_ = "VISUAL";
+    params_.x_view_params.landmark_matching_type_ = "VECTOR";
   }
 
 

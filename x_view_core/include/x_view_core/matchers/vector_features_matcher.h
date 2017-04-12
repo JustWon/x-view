@@ -1,11 +1,14 @@
 #ifndef X_VIEW_VECTOR_FEATURES_MATCHER_H
 #define X_VIEW_VECTOR_FEATURES_MATCHER_H
 
+#include <x_view_core/x_view_types.h>
 #include <x_view_core/matchers/abstrac_landmarks_matcher.h>
 
+#include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
 
 #include <vector>
+#include <memory>
 
 namespace x_view {
 
@@ -29,7 +32,7 @@ class VectorFeaturesMatcher : public AbstractLandmarksMatcher {
    * \param descriptor a descriptor to be added to the internal
    * representation of the matcher
    */
-  virtual void add_descriptor(cv::Mat descriptor) = 0;
+  virtual void add_descriptor(cv::Mat descriptor);
 
   /**
    * \brief Matches a new descriptor to the ones stored in its internal
@@ -44,7 +47,13 @@ class VectorFeaturesMatcher : public AbstractLandmarksMatcher {
    * which contain a reference to the matched image
    */
   virtual void match(const cv::Mat& queryDescriptor,
-                     MatchingResult& matchingResult) = 0;
+                     MatchingResult& matchingResult);
+
+  static LandmarksMatcherPtr create();
+
+ protected:
+  std::shared_ptr<cv::DescriptorMatcher> descriptor_matcher_;
+  const int num_retained_best_matches_;
 
 };
 

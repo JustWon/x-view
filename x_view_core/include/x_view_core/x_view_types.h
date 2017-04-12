@@ -24,7 +24,7 @@ enum SemanticLandmarkType {
 /// Different types of landmarks matchers to be used in XView
 enum LandmarksMatcherType {
   UNDEFINED_LANDMARKS_MATCHER_TYPE = -1,
-  VISUAL_FEATURES_MATCHER,
+  VECTOR_FEATURES_MATCHER,
   NUM_LANDMARKS_MATCHER_TYPES
 };
 

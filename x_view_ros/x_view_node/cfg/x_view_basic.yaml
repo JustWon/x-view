@@ -3,7 +3,8 @@ XView: {
     type: "SURF"
   },
   matcher: {
-    type: "VISUAL"
+    type: "VECTOR"
+    type: "VECTOR"
   }
 }
 

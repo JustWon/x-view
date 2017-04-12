@@ -1,23 +1,23 @@
-#include <x_view_core/matchers/visual_features_matcher.h>
+#include <x_view_core/matchers/vector_features_matcher.h>
 
 namespace x_view {
 
-VisualFeaturesMatcher::VisualFeaturesMatcher()
+VectorFeaturesMatcher::VectorFeaturesMatcher()
     : num_retained_best_matches_(1) {
   descriptor_matcher_ =
       std::shared_ptr<cv::DescriptorMatcher>(new cv::BFMatcher);
 }
 
-VisualFeaturesMatcher::~VisualFeaturesMatcher() {
+VectorFeaturesMatcher::~VectorFeaturesMatcher() {
 }
 
-void VisualFeaturesMatcher::add_descriptor(cv::Mat descriptor) {
+void VectorFeaturesMatcher::add_descriptor(cv::Mat descriptor) {
   std::vector<cv::Mat> v(1);
   v[0] = descriptor;
   descriptor_matcher_->add(v);
 }
 
-void VisualFeaturesMatcher::match(const cv::Mat& queryDescriptor,
+void VectorFeaturesMatcher::match(const cv::Mat& queryDescriptor,
                                   MatchingResult& matches) {
 
   descriptor_matcher_->knnMatch(queryDescriptor,
@@ -25,8 +25,8 @@ void VisualFeaturesMatcher::match(const cv::Mat& queryDescriptor,
                                 num_retained_best_matches_);
 }
 
-LandmarksMatcherPtr VisualFeaturesMatcher::create() {
-  return LandmarksMatcherPtr(new VisualFeaturesMatcher());
+LandmarksMatcherPtr VectorFeaturesMatcher::create() {
+  return LandmarksMatcherPtr(new VectorFeaturesMatcher());
 }
 
 }
