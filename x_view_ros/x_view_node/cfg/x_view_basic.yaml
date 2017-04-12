@@ -1,9 +1,11 @@
 XView: {
+  semantics: {
+   dataset: "SYNTHIA"
+  },
   landmarks: {
     type: "SURF"
   },
   matcher: {
-    type: "VECTOR"
     type: "VECTOR"
   }
 }

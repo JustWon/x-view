@@ -14,8 +14,11 @@ cs_add_library(${PROJECT_NAME}
         src/landmarks/abstract_semantic_landmark.cc
         src/landmarks/semantic_landmark_factory.cc
 
-        # Landmakrs defined thorugh classical visual features
-        src/landmarks/visual_feature.cc
+        # Landmarks defined thorugh classical visual features
+        src/landmarks/visual_feature_landmark.cc
+
+        # Landmarks defined with use of histograms
+        src/landmarks/histogram_landmark.cc
 
 
         # Features matchers

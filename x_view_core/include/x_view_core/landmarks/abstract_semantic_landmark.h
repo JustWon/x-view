@@ -25,16 +25,13 @@ struct SemanticMatchingResult {
 class AbstractSemanticLandmark {
 
  public:
+  /**
+   * \brief When a landmark is initialized, it must directly
+   * \param image
+   * \param pose
+   */
   AbstractSemanticLandmark(const cv::Mat& image, const SE3& pose);
   virtual ~AbstractSemanticLandmark();
-
-  /**
-  * \brief Computes matching score between this and other semantic landmark
-  * \param other other landmark to be compared to this
-  * \return struct containing matching results
-  */
-  virtual SemanticMatchingResult match(const ConstSemanticLandmarkPtr&  other)
-  const  = 0;
 
   /// \brief Image given as input for the landmark
   const cv::Mat image_;

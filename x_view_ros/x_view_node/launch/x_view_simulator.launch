@@ -6,7 +6,7 @@
   <include file="$(find x_view_node)/launch/x_view_node.launch"/>
 
   <!-- X_View simulator bag file -->
-  <arg name="x_view_simulator_bag_file" default="$(find x_view_node)/data/Synthia_seq.bag"/>
+  <arg name="x_view_simulator_bag_file" default="$(find x_view_node)/data/Synthia_3_cams.bag"/>
   
   <!-- X_View simulator -->
   <node name="x_view_simulator_bag" pkg="rosbag" type="play" output="screen" args="--clock $(arg x_view_simulator_bag_file)"/>

@@ -41,7 +41,7 @@ class SynthiaDataset : public AbstractDataset {
 
   virtual ~SynthiaDataset(){}
 
-  virtual const std::string& datasetName() const {
+  virtual const std::string datasetName() const {
     return std::string("Synthia Dataset");
   }
 

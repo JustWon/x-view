@@ -9,6 +9,7 @@
 namespace x_view {
 
 // forward declaration
+class AbstractDataset;
 class AbstractSemanticLandmark;
 class AbstractLandmarksMatcher;
 
@@ -18,6 +19,7 @@ enum SemanticLandmarkType {
   ORB_VISUAL_FEATURE,
   SIFT_VISUAL_FEATURE,
   SURF_VISUAL_FEATURE,
+  SEMANTIC_HISTOGRAM,
   NUM_SEMANTIC_LANDMARK_TYPES
 };
 
@@ -35,6 +37,10 @@ typedef gtsam::NonlinearFactorGraph FactorGraph;
 
 /// 3D pose (position + orientation)
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
+
+/// pointer to dataset object
+typedef std::shared_ptr<AbstractDataset> DatasetPtr;
+typedef std::shared_ptr<const AbstractDataset> ConstDatasetPrt;
 
 /// pointer to semantic landmark
 typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;

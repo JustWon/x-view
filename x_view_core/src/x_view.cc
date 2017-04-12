@@ -1,6 +1,8 @@
 #include <x_view_core/x_view.h>
-#include <x_view_core/landmarks/visual_feature.h>
+#include <x_view_core/landmarks/visual_feature_landmark.h>
 #include <x_view_core/matchers/vector_features_matcher.h>
+#include <x_view_core/datasets/synthia_dataset.h>
+#include <x_view_core/datasets/airsim_dataset.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -11,16 +13,34 @@
 namespace x_view {
 
 XView::XView(XViewParams& params) : params_(params) {
+
+  parseParameters();
+}
+
+XView::~XView() {};
+
+void XView::parseParameters() {
+  // define the dataset being used
+  if(params_.semantic_dataset_name_.compare("SYNTHIA") == 0) {
+    dataset_ = ConstDatasetPrt(new SynthiaDataset);
+  } else if (params_.semantic_dataset_name_.compare("AIRSIM") == 0) {
+    dataset_ = ConstDatasetPrt(new AirsimDataset);
+  }
+  std::cout << dataset_->datasetInfo() << std::endl;
+
   // create a factory object which is responsible for generating new semantic landmark observations
   if (params_.semantic_landmark_type_.compare("ORB") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::ORB_VISUAL_FEATURE;
-    semantic_landmark_factory_.setCreatorFunction(ORBVisualFeature::create);
+    semantic_landmark_factory_.setCreatorFunction
+        (ORBVisualFeatureLandmark::create);
   } else if (params_.semantic_landmark_type_.compare("SIFT") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::SIFT_VISUAL_FEATURE;
-    semantic_landmark_factory_.setCreatorFunction(SIFTVisualFeature::create);
+    semantic_landmark_factory_.setCreatorFunction
+        (SIFTVisualFeatureLandmark::create);
   } else if (params_.semantic_landmark_type_.compare("SURF") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::SURF_VISUAL_FEATURE;
-    semantic_landmark_factory_.setCreatorFunction(SURFVisualFeature::create);
+    semantic_landmark_factory_.setCreatorFunction
+        (SURFVisualFeatureLandmark::create);
   }
 
   // set a landmark matcher
@@ -30,8 +50,6 @@ XView::XView(XViewParams& params) : params_(params) {
   }
 }
 
-XView::~XView() {};
-
 void XView::process(const cv::Mat& image, const SE3& pose) {
   // generate a new semantic landmark object
   SemanticLandmarkPtr landmarkPtr;
@@ -40,7 +58,8 @@ void XView::process(const cv::Mat& image, const SE3& pose) {
   extractSemanticsFromImage(image, pose, landmarkPtr);
 
   // add the features to the matcher
-  std::shared_ptr<VisualFeature> vPtr = CAST(landmarkPtr, VisualFeature);
+  std::shared_ptr<VisualFeatureLandmark> vPtr =
+      CAST(landmarkPtr, VisualFeatureLandmark);
 
   // compute the matches between the new feature and the ones
   // stored in the database
@@ -69,8 +88,8 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
                            Eigen::MatrixXd& matches_mat) {
 
-  std::shared_ptr<const VisualFeature> sem_a =
-      CAST(semantics_a, const VisualFeature);
+  std::shared_ptr<const VisualFeatureLandmark> sem_a =
+      CAST(semantics_a, const VisualFeatureLandmark);
 
   std::vector<std::vector<cv::DMatch>> matches;
   CAST(descriptor_matcher_, VectorFeaturesMatcher)->match(sem_a->descriptors_, matches);

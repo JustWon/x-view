@@ -22,8 +22,8 @@ class VectorFeaturesMatcher : public AbstractLandmarksMatcher {
 
   typedef std::vector<std::vector<cv::DMatch>> MatchingResult;
 
-  VectorFeaturesMatcher() {}
-  virtual ~VectorFeaturesMatcher() {}
+  VectorFeaturesMatcher();
+  virtual ~VectorFeaturesMatcher();
 
   /**
    * \brief Prototypical function each landmarksmatcher based on vector

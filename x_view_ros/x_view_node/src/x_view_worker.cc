@@ -21,6 +21,7 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
   try {
     cv::Mat image = cv_bridge::toCvCopy(msg, "bgr8")->image;
 
+
     x_view_.process(image, x_view::SE3());
     // TODO: Process image using x-view functions.
 
@@ -33,6 +34,15 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
 void XViewWorker::getParameters() {
 
   // XView parameters.
+  if (nh_.getParam("/XView/semantics/dataset", params_
+      .x_view_params.semantic_dataset_name_)) {
+    ROS_INFO_STREAM(
+        "XView is working on the following semantic dataset: <"
+            << params_.x_view_params.semantic_dataset_name_ << ">");
+  } else {
+    ROS_FATAL_STREAM("Failed to get param '/XView/semantics/dataset'");
+  }
+
   if (nh_.getParam("/XView/landmarks/type", params_
       .x_view_params.semantic_landmark_type_)) {
     ROS_INFO_STREAM(
@@ -40,8 +50,8 @@ void XViewWorker::getParameters() {
             << params_.x_view_params.semantic_landmark_type_ << ">");
   } else {
     ROS_ERROR_STREAM("Failed to get param '/XView/landmarks/type'\nUsing "
-                         "default <SIFT> landmark type.");
-    params_.x_view_params.semantic_landmark_type_ = "SIFT";
+                         "default <SURF> landmark type.");
+    params_.x_view_params.semantic_landmark_type_ = "SURF";
   }
 
   if (nh_.getParam("/XView/matcher/type", params_

@@ -22,7 +22,7 @@ class AirsimDataset : public AbstractDataset {
 
   virtual ~AirsimDataset(){}
 
-  virtual const std::string& datasetName() const {
+  virtual const std::string datasetName() const {
     return std::string("Airsim Dataset");
   }
 
