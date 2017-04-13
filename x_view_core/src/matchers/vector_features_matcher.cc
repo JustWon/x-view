@@ -12,9 +12,8 @@ VectorFeaturesMatcher::~VectorFeaturesMatcher() {
 }
 
 void VectorFeaturesMatcher::add_descriptor(const cv::Mat& descriptor) {
-  std::vector<cv::Mat> v(1);
-  v[0] = descriptor;
-  descriptor_matcher_->add(v);
+  // forward the call to the cv::BFMatcher
+  descriptor_matcher_->add(std::vector<cv::Mat>{descriptor});
 }
 
 void VectorFeaturesMatcher::match(const cv::Mat& queryDescriptor,

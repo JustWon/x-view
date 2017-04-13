@@ -10,8 +10,18 @@ namespace x_view {
 
 // forward declaration
 class AbstractDataset;
+class AbstractFeature;
 class AbstractSemanticLandmark;
 class AbstractLandmarksMatcher;
+
+
+/// Different types of feature representation used in XView
+enum FeatureType {
+  UNDEFINED_FEATURE_TYPE = -1,
+  VECTOR_FEATURE,
+  GRAPH_FEATURE,
+  NUM_FEATURE_TYPES
+};
 
 /// Different types of semantic landmarks to be used in XView
 enum SemanticLandmarkType {
@@ -41,6 +51,10 @@ typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 /// pointer to dataset object
 typedef std::shared_ptr<AbstractDataset> DatasetPtr;
 typedef std::shared_ptr<const AbstractDataset> ConstDatasetPrt;
+
+/// pointer to feature
+typedef std::shared_ptr<AbstractFeature> FeaturePtr;
+typedef std::shared_ptr<const AbstractFeature> ConstFeaturePtr;
 
 /// pointer to semantic landmark
 typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;
