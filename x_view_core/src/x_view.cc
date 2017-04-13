@@ -14,7 +14,8 @@
 namespace x_view {
 
 XView::XView(XViewParams& params) : params_(params) {
-
+  // parse the passed parameters and instantiate concrete classes for all
+  // class members
   parseParameters();
 }
 
@@ -29,7 +30,8 @@ void XView::parseParameters() {
   }
   std::cout << dataset_->datasetInfo() << std::endl;
 
-  // create a factory object which is responsible for generating new semantic landmark observations
+  // create a factory object which is responsible for generating
+  // new semantic landmarks
   if (params_.semantic_landmark_type_.compare("ORB") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::ORB_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction
@@ -52,15 +54,11 @@ void XView::parseParameters() {
 }
 
 void XView::process(const cv::Mat& image, const SE3& pose) {
-  // generate a new semantic landmark object
+  // generate a new semantic landmark pointer
   SemanticLandmarkPtr landmarkPtr;
 
-  // extract associated semantics
+  // extract semantics associated to the image and pose
   extractSemanticsFromImage(image, pose, landmarkPtr);
-
-  // add the features to the matcher
-  std::shared_ptr<VisualFeatureLandmark> vPtr =
-      CAST(landmarkPtr, VisualFeatureLandmark);
 
   // compute the matches between the new feature and the ones
   // stored in the database
@@ -68,8 +66,7 @@ void XView::process(const cv::Mat& image, const SE3& pose) {
   matchSemantics(landmarkPtr, matchingScores);
 
   // add the newly computed descriptor to the descriptor matcher
-  CAST(descriptor_matcher_, VectorFeaturesMatcher)->add_descriptor
-      (CAST(vPtr->getFeature(), const VisualFeature)->getFeature());
+  descriptor_matcher_->addLandmark(landmarkPtr);
 
   // TODO: call other functions to process semantic landmarks here
 }
@@ -79,12 +76,12 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
 
   // TODO: preprocess image and pose
 
-  // create the actual landmark representation
+  // create the actual landmark representation whose implementation depends
+  // on the parameters passed to XView
   semantics_out =
       semantic_landmark_factory_.createSemanticLandmark(image, pose);
 
-  // TODO: post process the semantic landmark representation given its
-  // neighbors stored in the semantic database
+  // TODO: post process the semantic landmark representation given its neighbors stored in the semantic database
 }
 
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,

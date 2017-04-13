@@ -25,14 +25,7 @@ class VectorFeaturesMatcher : public AbstractLandmarksMatcher {
   VectorFeaturesMatcher();
   virtual ~VectorFeaturesMatcher();
 
-  /**
-   * \brief Prototypical function each landmarksmatcher based on vector
-   * features must implement. This function adds a descriptor (cv::Mat to
-   * its internal representation
-   * \param descriptor a descriptor to be added to the internal
-   * representation of the matcher
-   */
-  virtual void add_descriptor(const cv::Mat& descriptor);
+  virtual void addLandmark(const SemanticLandmarkPtr& landmark);
 
   /**
    * \brief Matches a new descriptor to the ones stored in its internal

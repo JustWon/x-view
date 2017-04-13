@@ -30,6 +30,13 @@ struct XViewParams {
   std::string landmark_matching_type_;
 };
 
+
+/**
+ * \brief The XView class is responsible for performing semantic SLAM
+ * \details The class operates on abstract types through pointers. This
+ * allows XView to be functional with different types of features/landmarks
+ * with no need to change the existing code
+ */
 class XView {
 
  public:
@@ -46,7 +53,8 @@ class XView {
 
   /**
    * \brief Parses the elements contained into the parameters and initializes
-   * all class members accordingly
+   * all members with a specific instance of the corresponding abstract
+   * classes based on the parameters
    */
   void parseParameters();
 
@@ -61,7 +69,10 @@ class XView {
    * \brief Extract semantic descriptor from semantics image.
    * \param image image containing semantic segmentation
    * \param pose current pose of the robot
-   * \param semantics_out representation of semantic entities, either a BoS, or a more complex representation
+   * \param semantics_out generated landmark
+   * \details depending on the XView parameters passed to the class
+   * constructor, the dynamic type of the object pointed by semantics_out
+   * will be different.
    */
   void extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
                                  SemanticLandmarkPtr& semantics_out);
@@ -89,15 +100,19 @@ class XView {
 
   // TODO: Add further setters / getters where necessary.
 
-  // dataset information
+  /// \brief dataset information
   ConstDatasetPrt dataset_;
 
-  // semantic landmark properties and factory
+  /// \brief semantic landmark type being used by XView
   SemanticLandmarkType semantic_landmark_type_;
+  /// \brief semantic landmark factory which generates instances of semantic
+  /// landmarks
   SemanticLandmarkFactory semantic_landmark_factory_;
 
-  // semantic landmark matcher
+  /// \brief semantic matcher type used by XView
   LandmarksMatcherType landmarks_matcher_type_;
+  /// \brief semantic landmark matcher computes a matching between a new
+  /// semantic landmark and the ones previously added to it
   LandmarksMatcherPtr descriptor_matcher_;
 
   // Parameters.
@@ -105,7 +120,8 @@ class XView {
 
   // Semantics database.
   std::vector<SemanticLandmarkPtr> semantics_db_;
+
 }; // XView
 
 }
-#endif /* X_VIEW_X_VIEW_H_ */
+#endif //X_VIEW_X_VIEW_H_

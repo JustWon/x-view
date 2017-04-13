@@ -1,4 +1,8 @@
 #include <x_view_core/matchers/vector_features_matcher.h>
+#include <x_view_core/landmarks/visual_feature_landmark.h>
+#include <x_view_core/features/vector_feature.h>
+
+#include <memory>
 
 namespace x_view {
 
@@ -11,9 +15,13 @@ VectorFeaturesMatcher::VectorFeaturesMatcher()
 VectorFeaturesMatcher::~VectorFeaturesMatcher() {
 }
 
-void VectorFeaturesMatcher::add_descriptor(const cv::Mat& descriptor) {
-  // forward the call to the cv::BFMatcher
-  descriptor_matcher_->add(std::vector<cv::Mat>{descriptor});
+void VectorFeaturesMatcher::addLandmark(const SemanticLandmarkPtr& landmark) {
+
+  std::shared_ptr<const CVMatFeature> vecFeature =
+      std::dynamic_pointer_cast<const CVMatFeature>(landmark->getFeature());
+
+
+  descriptor_matcher_->add(std::vector<cv::Mat>{vecFeature->getFeature() });
 }
 
 void VectorFeaturesMatcher::match(const cv::Mat& queryDescriptor,

@@ -6,8 +6,8 @@
 namespace x_view {
 
 /**
- * \brief Internal representation of a feature. Each feature used in XView
- * must implement this interface.
+ * \brief Internal representation of a feature.
+ * Each feature used in XView must implement this interface.
  * \details The introduction of AbstractFeatures allow XView to operate
  * seamlessly with different features such as 'vector-based' features
  * (histograms, visual features, etc) an with more complex ones such as
@@ -17,6 +17,7 @@ class AbstractFeature {
 
  public:
   AbstractFeature();
+
   // trick to make AbstractFeature a pure virtual class with no need to
   // introduce useless abstract methods which must be implemented in the
   // subclass
