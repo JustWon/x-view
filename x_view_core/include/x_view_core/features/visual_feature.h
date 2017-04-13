@@ -1,5 +1,5 @@
-#ifndef X_VIRW_VISUAL_FEATURE_H
-#define X_VIRW_VISUAL_FEATURE_H
+#ifndef X_VIEW_VISUAL_FEATURE_H
+#define X_VIEW_VISUAL_FEATURE_H
 
 #include <x_view_core/features/vector_feature.h>
 
@@ -27,4 +27,4 @@ class VisualFeature : public CVMatFeature {
 };
 }
 
-#endif //X_VIRW_VISUAL_FEATURE_H
+#endif //X_VIEW_VISUAL_FEATURE_H

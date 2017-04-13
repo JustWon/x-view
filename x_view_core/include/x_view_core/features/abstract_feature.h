@@ -16,14 +16,14 @@ namespace x_view {
 class AbstractFeature {
 
  public:
-  AbstractFeature() {}
+  AbstractFeature();
+  // trick to make AbstractFeature a pure virtual class with no need to
+  // introduce useless abstract methods which must be implemented in the
+  // subclass
   virtual ~AbstractFeature() = 0;
 
 }; // AbstractFeature
 
-// trick to make AbstractFeature a pure virtual class with no need to
-// introduce useless abstract methods which must be implemented in the subclass
-AbstractFeature::~AbstractFeature() {}
 
 }
 #endif //X_VIEW_ABSTRACT_FEATURE_H

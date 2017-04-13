@@ -1,4 +1,5 @@
 #include <x_view_core/landmarks/visual_feature_landmark.h>
+#include <x_view_core/features/visual_feature.h>
 
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -26,14 +27,19 @@ ORBVisualFeatureLandmark::ORBVisualFeatureLandmark(const cv::Mat& image,
   cv::cvtColor(image, gray, CV_BGR2GRAY);
 
   features_extractor_.reset(new cv::ORB(NUM_VISUAL_FEATURES));
-  features_extractor_->detect(gray, keypoints_);
+
+  std::vector<cv::KeyPoint> keypoints;
+  features_extractor_->detect(gray, keypoints);
 
   // retains only the desired number of features
-  if (keypoints_.size() > NUM_VISUAL_FEATURES)
-    cv::KeyPointsFilter::retainBest(keypoints_, NUM_VISUAL_FEATURES);
+  if (keypoints.size() > NUM_VISUAL_FEATURES)
+    cv::KeyPointsFilter::retainBest(keypoints, NUM_VISUAL_FEATURES);
 
   // compute the feature descriptors
-  features_extractor_->compute(gray, keypoints_, descriptors_);
+  cv::Mat descriptors;
+  features_extractor_->compute(gray, keypoints, descriptors);
+
+  feature_.reset(new VisualFeature(descriptors, keypoints));
 }
 
 //**************************** SIFT visual feature ***************************//
@@ -48,14 +54,19 @@ SIFTVisualFeatureLandmark::SIFTVisualFeatureLandmark(const cv::Mat& image,
   cv::cvtColor(image, gray, CV_BGR2GRAY);
 
   features_extractor_.reset(new cv::SIFT(NUM_VISUAL_FEATURES));
-  features_extractor_->detect(gray, keypoints_);
+
+  std::vector<cv::KeyPoint> keypoints;
+  features_extractor_->detect(gray, keypoints);
 
   // retains only the desired number of features
-  if (keypoints_.size() > NUM_VISUAL_FEATURES)
-    cv::KeyPointsFilter::retainBest(keypoints_, NUM_VISUAL_FEATURES);
+  if (keypoints.size() > NUM_VISUAL_FEATURES)
+    cv::KeyPointsFilter::retainBest(keypoints, NUM_VISUAL_FEATURES);
 
   // compute the feature descriptors
-  features_extractor_->compute(gray, keypoints_, descriptors_);
+  cv::Mat descriptors;
+  features_extractor_->compute(gray, keypoints, descriptors);
+
+  feature_.reset(new VisualFeature(descriptors, keypoints));
 }
 
 //**************************** SURF visual feature ***************************//
@@ -71,14 +82,19 @@ SURFVisualFeatureLandmark::SURFVisualFeatureLandmark(const cv::Mat& image,
 
   const double hessian_threshold = 0.2;
   features_extractor_.reset(new cv::SURF(hessian_threshold));
-  features_extractor_->detect(gray, keypoints_);
+
+  std::vector<cv::KeyPoint> keypoints;
+  features_extractor_->detect(gray, keypoints);
 
   // retains only the desired number of features
-  if (keypoints_.size() > NUM_VISUAL_FEATURES)
-    cv::KeyPointsFilter::retainBest(keypoints_, NUM_VISUAL_FEATURES);
+  if (keypoints.size() > NUM_VISUAL_FEATURES)
+    cv::KeyPointsFilter::retainBest(keypoints, NUM_VISUAL_FEATURES);
 
   // compute the feature descriptors
-  features_extractor_->compute(gray, keypoints_, descriptors_);
+  cv::Mat descriptors;
+  features_extractor_->compute(gray, keypoints, descriptors);
+
+  feature_.reset(new VisualFeature(descriptors, keypoints));
 }
 
 }

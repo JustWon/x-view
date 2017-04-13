@@ -23,12 +23,8 @@ class VisualFeatureLandmark : public AbstractSemanticLandmark {
   ///\brief number of features to be extracted by the detector
   static int NUM_VISUAL_FEATURES;
 
+  ///\brief class responsible for extracting visual features
   std::unique_ptr<cv::Feature2D> features_extractor_;
-  ///\brief set of keypoints detected by the feature detector
-  std::vector<cv::KeyPoint> keypoints_;
-  ///\brief set of descriptors extracted by the feature extractor
-  cv::Mat descriptors_;
-
 };
 
 // Macro used to create definition of visual features implemented in opencv

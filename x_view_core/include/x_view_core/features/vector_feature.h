@@ -41,29 +41,12 @@ class VectorFeature : public AbstractFeature {
   const FeatureRepr feature_repr_;
 };
 
-
-/////////////////////////////// CV::MAT-based //////////////////////////////////
-
 // Features extracted from images such as SIFT/SURF/ORB are internally
 // represented as a cv::Mat
 typedef VectorFeature<cv::Mat> CVMatFeature;
-template<> int CVMatFeature::featureDimension() const {
-  return feature_repr_.cols;
-}
-template<> int CVMatFeature::numFeatures() const {
-  return feature_repr_.rows;
-}
-
-///////////////////////////// std::vec-based  //////////////////////////////////
 
 // A histogram feature only needs a vector of integers (votes) as representation
 typedef VectorFeature<std::vector<int>> IntVecFeature;
-template<> int IntVecFeature::featureDimension() const {
-  return feature_repr_.size();
-}
-template<> int IntVecFeature::numFeatures() const {
-  return 1;
-}
 
 }
 

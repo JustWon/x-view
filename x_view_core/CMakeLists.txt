@@ -11,6 +11,8 @@ cs_add_library(${PROJECT_NAME}
         src/x_view.cc
 
         # Features
+        src/features/abstract_feature.cc
+        src/features/vector_feature.cc
         src/features/visual_feature.cc
 
         # Landmarks

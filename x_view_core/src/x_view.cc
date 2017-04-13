@@ -1,4 +1,5 @@
 #include <x_view_core/x_view.h>
+#include <x_view_core/features/visual_feature.h>
 #include <x_view_core/landmarks/visual_feature_landmark.h>
 #include <x_view_core/matchers/vector_features_matcher.h>
 #include <x_view_core/datasets/synthia_dataset.h>
@@ -67,7 +68,8 @@ void XView::process(const cv::Mat& image, const SE3& pose) {
   matchSemantics(landmarkPtr, matchingScores);
 
   // add the newly computed descriptor to the descriptor matcher
-  CAST(descriptor_matcher_, VectorFeaturesMatcher)->add_descriptor(vPtr->descriptors_);
+  CAST(descriptor_matcher_, VectorFeaturesMatcher)->add_descriptor
+      (CAST(vPtr->getFeature(), const VisualFeature)->getFeature());
 
   // TODO: call other functions to process semantic landmarks here
 }
@@ -92,7 +94,8 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
       CAST(semantics_a, const VisualFeatureLandmark);
 
   std::vector<std::vector<cv::DMatch>> matches;
-  CAST(descriptor_matcher_, VectorFeaturesMatcher)->match(sem_a->descriptors_, matches);
+  CAST(descriptor_matcher_, VectorFeaturesMatcher)->match(
+      CAST(sem_a->getFeature (), const VisualFeature)->getFeature(), matches);
 
   const unsigned long number_of_training_images = semantics_db_.size();
 
