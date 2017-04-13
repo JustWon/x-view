@@ -1,8 +1,12 @@
 XView: {
-  placeholder: "placeholder",
+  semantics: {
+   dataset: "SYNTHIA"
+  },
   landmarks: {
-    type: "bos",
-    other_properties: "placeholder"
+    type: "SURF"
+  },
+  matcher: {
+    type: "VECTOR"
   }
 }
 
