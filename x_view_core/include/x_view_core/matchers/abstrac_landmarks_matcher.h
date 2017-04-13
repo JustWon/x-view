@@ -23,6 +23,25 @@ class AbstractLandmarksMatcher {
    * parameter to the one expected by the concrete class.
    */
   virtual void addLandmark(const SemanticLandmarkPtr& landmark) = 0;
+
+
+  /**
+   * \brief Computes a match between the query landmark passed as parameter
+   * and the features internally stored
+   * \param queryLandmark const reference to semantic landmark pointer
+   */
+  virtual void match(const SemanticLandmarkPtr& queryLandmark) = 0;
+
+
+  // FIXME: match function should fill up a pointer to a matching result,
+  // each subclass of abstractLandmarkMatcher has to inherit and define a new
+  // return type for itself
+  class AbstractMatchingReturnType {
+   public:
+    AbstractMatchingReturnType();
+    virtual ~AbstractMatchingReturnType() = 0;
+  };
+
 };
 
 }

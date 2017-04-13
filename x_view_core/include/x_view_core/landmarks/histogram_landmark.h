@@ -13,6 +13,7 @@ namespace x_view {
 class HistogramLandmark : public AbstractSemanticLandmark {
 
  public:
+  // FIXME: the histogram representation must be stored in feature_
   ///\brief histogram of size \f$N\f$ where \f$N\f$ is the number of possible
   /// semantic classes contained/supported by the dataset
   cv::Mat histogram_;
