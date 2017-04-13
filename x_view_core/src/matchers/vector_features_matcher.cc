@@ -11,7 +11,7 @@ VectorFeaturesMatcher::VectorFeaturesMatcher()
 VectorFeaturesMatcher::~VectorFeaturesMatcher() {
 }
 
-void VectorFeaturesMatcher::add_descriptor(cv::Mat descriptor) {
+void VectorFeaturesMatcher::add_descriptor(const cv::Mat& descriptor) {
   std::vector<cv::Mat> v(1);
   v[0] = descriptor;
   descriptor_matcher_->add(v);

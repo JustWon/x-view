@@ -16,7 +16,8 @@ class GraphFeaturesMatcher : public AbstractLandmarksMatcher {
   //FIXME: clearly the result is not a double
   typedef double MatchingResult;
 
-  // FIXME: clearly a semantic graph is not represented as a double
+  // FIXME: clearly a semantic graph is not represented as a double, this is
+  // just a placeholder
   typedef double Graph;
 
   GraphFeaturesMatcher() {}

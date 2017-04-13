@@ -32,7 +32,7 @@ class VectorFeaturesMatcher : public AbstractLandmarksMatcher {
    * \param descriptor a descriptor to be added to the internal
    * representation of the matcher
    */
-  virtual void add_descriptor(cv::Mat descriptor);
+  virtual void add_descriptor(const cv::Mat& descriptor);
 
   /**
    * \brief Matches a new descriptor to the ones stored in its internal
