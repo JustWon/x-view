@@ -26,18 +26,24 @@ class AbstractSemanticLandmark {
   AbstractSemanticLandmark(const cv::Mat& image, const SE3& pose);
   virtual ~AbstractSemanticLandmark();
 
+  /// \brief Returns a const reference to the image associated with this
+  /// landmark
+  const cv::Mat& getImage() const;
+
+  /// \brief Returns a const reference to the robot's pose associated with
+  /// this landmark
+  const SE3& getPose() const;
+
+  /// \brief Returns a const reference to the stored feature representation
+  const ConstFeaturePtr& getFeature() const;
+
+ protected:
   /// \brief Image given as input for the landmark
   const cv::Mat image_;
 
   /// \brief Robot's pose associated to this semantic landmark
   const SE3 pose_;
 
-  /// \brief Returns a const reference to the stored feature representation
-  const ConstFeaturePtr& getFeature() const {
-    return feature_;
-  }
-
- protected:
   /// \brief internal representation of features extracted in this landmark
   ConstFeaturePtr feature_;
 

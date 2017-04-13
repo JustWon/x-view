@@ -16,7 +16,7 @@ namespace x_view {
 class AbstractFeature {
 
  public:
-  AbstractFeature();
+  AbstractFeature() {}
   virtual ~AbstractFeature() = 0;
 
 }; // AbstractFeature

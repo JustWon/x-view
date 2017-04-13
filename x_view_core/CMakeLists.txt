@@ -10,6 +10,9 @@ catkin_simple(ALL_DEPS_REQUIRED)
 cs_add_library(${PROJECT_NAME}
         src/x_view.cc
 
+        # Features
+        src/features/visual_feature.cc
+
         # Landmarks
         src/landmarks/abstract_semantic_landmark.cc
         src/landmarks/semantic_landmark_factory.cc
