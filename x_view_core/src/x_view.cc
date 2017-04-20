@@ -9,7 +9,6 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#define CAST(object, type) std::dynamic_pointer_cast<type>(object)
 
 namespace x_view {
 
@@ -54,6 +53,7 @@ void XView::parseParameters() {
 }
 
 void XView::process(const cv::Mat& image, const SE3& pose) {
+
   // generate a new semantic landmark pointer
   SemanticLandmarkPtr landmarkPtr;
 
@@ -87,10 +87,10 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
                            Eigen::MatrixXd& matches_mat) {
 
-  std::shared_ptr<AbstractLandmarksMatcher::AbstractMatchingResult>
-      matchingResult;
+  AbstractLandmarksMatcher::MatchingResultPtr matchingResult;
   descriptor_matcher_->match(semantics_a, matchingResult);
 
+  // FIXME: depending on the feature types, we extract the matches in a different way, how to encapsulate this in the Abstract interface?
   auto matching =
       std::dynamic_pointer_cast<VectorFeaturesMatcher::VectorMatchingResult>
           (matchingResult);

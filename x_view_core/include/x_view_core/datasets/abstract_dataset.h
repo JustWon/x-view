@@ -53,6 +53,11 @@ class AbstractDataset {
     return semantic_entities_;
   }
 
+  const std::string& label(const int index) const {
+    CHECK(index >= 0 && index < num_semantic_classes_);
+    return semantic_entities_[index].semantic_entity_name_;
+  }
+
  private:
   const int num_semantic_classes_;
 

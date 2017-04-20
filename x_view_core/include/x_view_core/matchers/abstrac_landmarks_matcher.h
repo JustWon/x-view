@@ -22,8 +22,24 @@ class AbstractLandmarksMatcher {
    */
   class AbstractMatchingResult {
    public:
-    AbstractMatchingResult();
+    AbstractMatchingResult()
+        : matching_found_(false),
+          matching_landmark_index_(-1) {}
     virtual ~AbstractMatchingResult() = 0;
+
+   protected:
+    /**
+     * \brief indicates if the passed landmark has been matched or not to an
+     * other previously inserted in the database
+     */
+    bool matching_found_;
+
+    /**
+     * \brief if matching_found_ is true, then matching_landmark_index_
+     * indicates which previously visited landmark is the closest match to
+     * the queried one
+     */
+    int matching_landmark_index_;
   };
 
   typedef std::shared_ptr<AbstractMatchingResult> MatchingResultPtr;
