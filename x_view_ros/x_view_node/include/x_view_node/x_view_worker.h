@@ -2,6 +2,7 @@
 #define X_VIEW_WORKER_H_
 
 #include <x_view_core/x_view.h>
+#include <x_view_core/datasets/abstract_dataset.h>
 
 //#include <gtsam/nonlinear/NonlinearFactorGraph.h>
 //#include <kindr/minimal/quat-transformation.h>
@@ -14,6 +15,7 @@ namespace x_view_ros {
 class XViewWorker {
 
   struct XViewWorkerParams {
+    std::string dataset_name;
     std::string semantics_image_topic;
     x_view::XViewParams x_view_params;
   }; // struct XViewWorkerParams
@@ -45,6 +47,9 @@ class XViewWorker {
 
   // X_View core.
   x_view::XView x_view_;
+
+  // Dataset handler
+  std::shared_ptr<x_view::AbstractDataset> dataset_;
 
 }; // XViewNode
 

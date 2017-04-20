@@ -10,6 +10,10 @@ catkin_simple(ALL_DEPS_REQUIRED)
 cs_add_library(${PROJECT_NAME}
         src/x_view.cc
 
+        # Datasets
+        src/datasets/abstract_dataset.cc
+        src/datasets/synthia_dataset.cc
+
         # Features
         src/features/abstract_feature.cc
         src/features/vector_feature.cc

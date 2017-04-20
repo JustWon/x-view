@@ -1,7 +1,4 @@
 XView: {
-  semantics: {
-   dataset: "SYNTHIA"
-  },
   landmarks: {
     type: "SURF"
   },
@@ -11,5 +8,6 @@ XView: {
 }
 
 XViewWorker: {
-  semantics_image_topic: "/Stereo_Left/Omni_B/labels"
+  dataset: "SYNTHIA",
+  semantics_image_topic: "/Stereo_Left/Omni_B/labels_image"
 }

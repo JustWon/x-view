@@ -1,6 +1,13 @@
 #ifndef X_VIEW_ABSTRACT_DATASET_H
 #define X_VIEW_ABSTRACT_DATASET_H
 
+#include <opencv2/core/core.hpp>
+
+#include <sensor_msgs/Image.h>
+#include <ros/ros.h>
+
+#include <glog/logging.h>
+
 #include <vector>
 #include <string>
 
@@ -22,9 +29,7 @@ class AbstractDataset {
     int semantic_entity_id_;
   };
 
-  AbstractDataset(const int num_semantic_classes)
-      : num_semantic_classes_(num_semantic_classes) {}
-
+  AbstractDataset(const int num_semantic_classes);
   virtual ~AbstractDataset() {}
 
   /**
@@ -34,16 +39,7 @@ class AbstractDataset {
   virtual const std::string datasetName() const = 0;
 
   ///\brief Generates a human readable descripion of the database
-  virtual const std::string datasetInfo() const {
-    std::string description = datasetName() + ":\n";
-    for(auto elem : semantic_entities_) {
-      description += "\t";
-      description += std::to_string(elem.semantic_entity_id_) + ": ";
-      description += elem.semantic_entity_name_;
-      description += "\n";
-    }
-    return description;
-  }
+  virtual const std::string datasetInfo() const;
 
   ///\brief returns the number of semantic classes contained in the dataset
   int numSemanticClasses() const { return num_semantic_classes_; }
@@ -53,15 +49,22 @@ class AbstractDataset {
     return semantic_entities_;
   }
 
+  ///\brief returns the label (string) associated to a given index
   const std::string& label(const int index) const {
     CHECK(index >= 0 && index < num_semantic_classes_);
     return semantic_entities_[index].semantic_entity_name_;
   }
 
- private:
-  const int num_semantic_classes_;
+  /**
+   * \brief Function called by ROS each time a new semantic image is available
+   * \details This function is called by the x_view worker before passing the
+   * image to the x_view
+   */
+  virtual cv::Mat preprocessSemanticImage(const sensor_msgs::ImageConstPtr&
+  msg) const;
 
  protected:
+  const int num_semantic_classes_;
   std::vector<SemanticEntity> semantic_entities_;
 };
 

@@ -26,6 +26,11 @@ class AirsimDataset : public AbstractDataset {
     return std::string("Airsim Dataset");
   }
 
+  virtual void semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg)
+  const {
+    CHECK(false) << "Not implemented yet";
+  }
+
 };
 
 }

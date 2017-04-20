@@ -19,7 +19,7 @@ int CVMatFeature::numFeatures() const {
 
 template<>
 int IntVecFeature::featureDimension() const {
-  return feature_repr_.size();
+  return (int) feature_repr_.size();
 }
 template<>
 int IntVecFeature::numFeatures() const {
