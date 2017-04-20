@@ -18,10 +18,10 @@ XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n) {
   x_view_ = x_view::XView(params_.x_view_params);
 
   // set the usage of the specified dataset
-  if(params_.dataset_name.compare("SYNTHIA") == 0)
+  if (params_.dataset_name.compare("SYNTHIA") == 0)
     dataset_.reset(new x_view::SynthiaDataset);
   else
-    CHECK(false) << "Dataset '" << params_.dataset_name<<"' is not supported"
+    CHECK(false) << "Dataset '" << params_.dataset_name << "' is not supported"
                  << std::endl;
 }
 
@@ -31,22 +31,10 @@ XViewWorker::~XViewWorker() {
 void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) {
 
   // preprocess the ros message
-  cv::Mat image;// = dataset_->preprocessSemanticImage(msg);
+  cv::Mat image = dataset_->preprocessSemanticImage(msg);
 
-  try {
-    cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, enc::BGR8);
-
-    image = cv_ptr->image;
-    ROS_INFO_STREAM("Ready to process image");
-    x_view_.process(image, x_view::SE3());
-
-  }
-  catch (cv_bridge::Exception& e) {
-    ROS_ERROR_STREAM("Could not convert from '"
-                         << msg->encoding
-                         << "' to '" << enc::BGR8 << "'"
-                         << "\nError: " << e.what());
-  }
+  x_view_.process(image, x_view::SE3());
+  
 
 // TODO: Process image using x-view functions.
 
@@ -90,9 +78,10 @@ void XViewWorker::getParameters() {
   }
   params_.x_view_params.semantic_dataset_name_ = params_.dataset_name;
 
-  if (nh_.getParam("/XViewWorker/semantics_image_topic", params_.semantics_image_topic)) {
+  if (nh_.getParam("/XViewWorker/semantics_image_topic",
+                   params_.semantics_image_topic)) {
     ROS_INFO_STREAM("XView is listening to: <"
-            << params_.semantics_image_topic << "> topic");
+                        << params_.semantics_image_topic << "> topic");
   } else {
     ROS_ERROR_STREAM("Failed to get param "
                          "'/XViewWorker/semantics_image_topic'");

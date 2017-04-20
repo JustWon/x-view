@@ -30,14 +30,15 @@ void VectorFeaturesMatcher::match(const SemanticLandmarkPtr& queryLandmark,
 
   const cv::Mat& feature = vectorFeature->getFeature();
 
-  auto result =
-      std::dynamic_pointer_cast<VectorMatchingResult>(matchingResult);
-  result->matches.resize(100);
-  std::cout << "Matches size: " << result->matches.size()<<std::endl;
+  matchingResult.reset(new VectorMatchingResult);
 
-  descriptor_matcher_->knnMatch(feature, result->matches,
+  std::shared_ptr<VectorMatchingResult>
+      vMatchingResult(new VectorMatchingResult);
+
+  descriptor_matcher_->knnMatch(feature, vMatchingResult->matches,
                                 num_retained_best_matches_);
 
+  matchingResult = vMatchingResult;
 }
 
 LandmarksMatcherPtr VectorFeaturesMatcher::create() {

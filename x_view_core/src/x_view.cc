@@ -87,24 +87,16 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
                            Eigen::MatrixXd& matches_mat) {
 
-  std::cout << "Arrived to line " << __LINE__ << std::endl;
-
   AbstractLandmarksMatcher::MatchingResultPtr matchingResult;
   descriptor_matcher_->match(semantics_a, matchingResult);
-
-  std::cout << "Arrived to line " << __LINE__ << std::endl;
 
   // FIXME: depending on the feature types, we extract the matches in a different way, how to encapsulate this in the Abstract interface?
   auto matching =
       std::dynamic_pointer_cast<VectorFeaturesMatcher::VectorMatchingResult>
           (matchingResult);
 
-  std::cout << "Arrived to line " << __LINE__ << std::endl;
-
   std::vector<std::vector<cv::DMatch>> matches;
   matches = matching->matches;
-
-  std::cout << "Arrived to line " << __LINE__ << std::endl;
 
   const unsigned long number_of_training_images = semantics_db_.size();
 
@@ -116,8 +108,6 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
         voting_per_image[preference]++;
       }
     }
-
-    std::cout << "Arrived to line " << __LINE__ << std::endl;
 
     auto max_vote = std::max_element(voting_per_image.begin(), voting_per_image
         .end());

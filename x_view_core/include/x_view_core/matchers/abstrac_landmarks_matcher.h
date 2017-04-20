@@ -25,7 +25,7 @@ class AbstractLandmarksMatcher {
     AbstractMatchingResult()
         : matching_found_(false),
           matching_landmark_index_(-1) {}
-    virtual ~AbstractMatchingResult() = 0;
+    virtual ~AbstractMatchingResult() {};
 
    protected:
     /**
