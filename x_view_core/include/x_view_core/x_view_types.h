@@ -14,7 +14,6 @@ class AbstractFeature;
 class AbstractSemanticLandmark;
 class AbstractLandmarksMatcher;
 
-
 /// Different types of feature representation used in XView
 enum FeatureType {
   UNDEFINED_FEATURE_TYPE = -1,
@@ -40,7 +39,6 @@ enum LandmarksMatcherType {
   NUM_LANDMARKS_MATCHER_TYPES
 };
 
-
 // typedefs
 /// factor graph used for graph optimization
 typedef gtsam::NonlinearFactorGraph FactorGraph;
@@ -50,19 +48,23 @@ typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 
 /// pointer to dataset object
 typedef std::shared_ptr<AbstractDataset> DatasetPtr;
+
 typedef std::shared_ptr<const AbstractDataset> ConstDatasetPrt;
 
 /// pointer to feature
 typedef std::shared_ptr<AbstractFeature> FeaturePtr;
+
 typedef std::shared_ptr<const AbstractFeature> ConstFeaturePtr;
 
 /// pointer to semantic landmark
 typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;
+
 typedef std::shared_ptr<const AbstractSemanticLandmark>
     ConstSemanticLandmarkPtr;
 
 /// pointer to landmark matchers
 typedef std::shared_ptr<AbstractLandmarksMatcher> LandmarksMatcherPtr;
+
 typedef std::shared_ptr<const AbstractLandmarksMatcher>
     ConstLandmarksMatcherPtr;
 

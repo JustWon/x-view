@@ -11,8 +11,22 @@ namespace x_view {
 class AbstractLandmarksMatcher {
 
  public:
-  AbstractLandmarksMatcher(){}
-  virtual ~AbstractLandmarksMatcher(){}
+  AbstractLandmarksMatcher() {}
+  virtual ~AbstractLandmarksMatcher() {}
+
+  /**
+   * \brief Each landmark matcher returns a different type of matching result.
+   * For this reason, each class implementing the AbstractLandmarksMatcher
+   * interface also has to define an ReturnType for the match() function
+   * which contains information on the matching result.
+   */
+  class AbstractMatchingResult {
+   public:
+    AbstractMatchingResult();
+    virtual ~AbstractMatchingResult() = 0;
+  };
+
+  typedef std::shared_ptr<AbstractMatchingResult> MatchingResultPtr;
 
   /**
    * \brief Add a landmark to the matcher, which will update its internal
@@ -24,23 +38,15 @@ class AbstractLandmarksMatcher {
    */
   virtual void addLandmark(const SemanticLandmarkPtr& landmark) = 0;
 
-
   /**
    * \brief Computes a match between the query landmark passed as parameter
    * and the features internally stored
    * \param queryLandmark const reference to semantic landmark pointer
+   * \param matchingResult reference to matching result pointer, filled by
+   * this function
    */
-  virtual void match(const SemanticLandmarkPtr& queryLandmark) = 0;
-
-
-  // FIXME: match function should fill up a pointer to a matching result,
-  // each subclass of abstractLandmarkMatcher has to inherit and define a new
-  // return type for itself
-  class AbstractMatchingReturnType {
-   public:
-    AbstractMatchingReturnType();
-    virtual ~AbstractMatchingReturnType() = 0;
-  };
+  virtual void match(const SemanticLandmarkPtr& queryLandmark,
+                     MatchingResultPtr& matchingResult) = 0;
 
 };
 

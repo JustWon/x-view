@@ -23,7 +23,7 @@ XView::~XView() {};
 
 void XView::parseParameters() {
   // define the dataset being used
-  if(params_.semantic_dataset_name_.compare("SYNTHIA") == 0) {
+  if (params_.semantic_dataset_name_.compare("SYNTHIA") == 0) {
     dataset_ = ConstDatasetPrt(new SynthiaDataset);
   } else if (params_.semantic_dataset_name_.compare("AIRSIM") == 0) {
     dataset_ = ConstDatasetPrt(new AirsimDataset);
@@ -87,12 +87,16 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
                            Eigen::MatrixXd& matches_mat) {
 
-  std::shared_ptr<const VisualFeatureLandmark> sem_a =
-      CAST(semantics_a, const VisualFeatureLandmark);
+  std::shared_ptr<AbstractLandmarksMatcher::AbstractMatchingResult>
+      matchingResult;
+  descriptor_matcher_->match(semantics_a, matchingResult);
+
+  auto matching =
+      std::dynamic_pointer_cast<VectorFeaturesMatcher::VectorMatchingResult>
+          (matchingResult);
 
   std::vector<std::vector<cv::DMatch>> matches;
-  CAST(descriptor_matcher_, VectorFeaturesMatcher)->match(
-      CAST(sem_a->getFeature (), const VisualFeature)->getFeature(), matches);
+  matches = matching->matches;
 
   const unsigned long number_of_training_images = semantics_db_.size();
 

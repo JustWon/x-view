@@ -8,7 +8,9 @@ namespace x_view {
 
 // FIXME: this is just a name placeholder for the way we are going to define
 // a graph
-class GraphRepresentationObject;
+class GraphRepresentationObject{
+
+};
 
 /**
  * \brief This class encapsulates all types of features that might be
