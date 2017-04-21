@@ -1,5 +1,5 @@
-#ifndef X_VIEW_ABSTRACT_LANDMARKS_MATCHER_H
-#define X_VIEW_ABSTRACT_LANDMARKS_MATCHER_H
+#ifndef X_VIEW_ABSTRACT_MATCHER_H
+#define X_VIEW_ABSTRACT_MATCHER_H
 
 #include <x_view_core/x_view_types.h>
 
@@ -8,15 +8,15 @@ namespace x_view {
 /**
  * \brief An interface each landmark-matcher must implement
  */
-class AbstractLandmarksMatcher {
+class AbstractMatcher {
 
  public:
-  AbstractLandmarksMatcher() {}
-  virtual ~AbstractLandmarksMatcher() {}
+  AbstractMatcher() {}
+  virtual ~AbstractMatcher() {}
 
   /**
    * \brief Each landmark matcher returns a different type of matching result.
-   * For this reason, each class implementing the AbstractLandmarksMatcher
+   * For this reason, each class implementing the AbstractMatcher
    * interface also has to define an ReturnType for the match() function
    * which contains information on the matching result.
    */
@@ -68,4 +68,4 @@ class AbstractLandmarksMatcher {
 
 }
 
-#endif //X_VIEW_ABSTRACT_LANDMARKS_MATCHER_H
+#endif //X_VIEW_ABSTRACT_MATCHER_H

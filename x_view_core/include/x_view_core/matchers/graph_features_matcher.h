@@ -1,7 +1,7 @@
-#ifndef X_VIEW_GRAPH_FEATURES_MATCHER_H
-#define X_VIEW_GRAPH_FEATURES_MATCHER_H
+#ifndef X_VIEW_GRAPH_MATCHER_H
+#define X_VIEW_GRAPH_MATCHER_H
 
-#include <x_view_core/matchers/abstrac_landmarks_matcher.h>
+#include <x_view_core/matchers/abstrac_matcher.h>
 
 namespace x_view {
 
@@ -9,12 +9,12 @@ namespace x_view {
  * \brief An interface each landmark-matcher based on graph-features
  * must implement
  */
-class GraphFeaturesMatcher : public AbstractLandmarksMatcher {
+class GraphMatcher : public AbstractMatcher {
 
  public:
 
-  GraphFeaturesMatcher() {}
-  virtual ~GraphFeaturesMatcher() {}
+  GraphMatcher() {}
+  virtual ~GraphMatcher() {}
 
   class GraphMatchingResult : public AbstractMatchingResult {
 
@@ -28,4 +28,4 @@ class GraphFeaturesMatcher : public AbstractLandmarksMatcher {
 
 }
 
-#endif //X_VIEW_GRAPH_FEATURES_MATCHER_H
+#endif //X_VIEW_GRAPH_MATCHER_H

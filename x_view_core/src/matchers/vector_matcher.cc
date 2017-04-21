@@ -1,30 +1,27 @@
-#include <x_view_core/matchers/vector_features_matcher.h>
-#include <x_view_core/landmarks/visual_feature_landmark.h>
+#include <x_view_core/landmarks/abstract_semantic_landmark.h>
+#include <x_view_core/matchers/vector_matcher.h>
 #include <x_view_core/features/vector_feature.h>
-#include <highgui.h>
 
 namespace x_view {
 
-VectorFeaturesMatcher::VectorFeaturesMatcher()
+VectorMatcher::VectorMatcher()
     : num_retained_best_matches_(1) {
   descriptor_matcher_ =
       std::shared_ptr<cv::DescriptorMatcher>(new cv::BFMatcher);
 }
 
-VectorFeaturesMatcher::~VectorFeaturesMatcher() {
+VectorMatcher::~VectorMatcher() {
 }
 
-void VectorFeaturesMatcher::addLandmark(const SemanticLandmarkPtr& landmark) {
+void VectorMatcher::addLandmark(const SemanticLandmarkPtr& landmark) {
 
   std::shared_ptr<const VectorFeature> vecFeature =
       std::dynamic_pointer_cast<const VectorFeature>(landmark->getFeature());
 
   descriptor_matcher_->add(std::vector<cv::Mat>{vecFeature->getFeature()});
-
-  std::cout << "Managed to add landmark" << std::endl;
 }
 
-void VectorFeaturesMatcher::match(const SemanticLandmarkPtr& queryLandmark,
+void VectorMatcher::match(const SemanticLandmarkPtr& queryLandmark,
                                   MatchingResultPtr& matchingResult) {
 
   auto vectorFeature =
@@ -41,8 +38,8 @@ void VectorFeaturesMatcher::match(const SemanticLandmarkPtr& queryLandmark,
 
 }
 
-LandmarksMatcherPtr VectorFeaturesMatcher::create() {
-  return LandmarksMatcherPtr(new VectorFeaturesMatcher());
+LandmarksMatcherPtr VectorMatcher::create() {
+  return std::make_shared<VectorMatcher>(VectorMatcher());
 }
 
 }

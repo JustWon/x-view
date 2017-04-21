@@ -33,7 +33,7 @@ class VisualFeatureLandmark : public AbstractSemanticLandmark {
 class dName##VisualFeatureLandmark : public VisualFeatureLandmark { \
  public: \
   static SemanticLandmarkPtr create(const cv::Mat& image, const SE3& pose) {  \
-    return SemanticLandmarkPtr(new dName##VisualFeatureLandmark(image, pose)); \
+    return std::make_shared<dName##VisualFeatureLandmark>(dName##VisualFeatureLandmark(image, pose)); \
   } \
   \
  protected:  \

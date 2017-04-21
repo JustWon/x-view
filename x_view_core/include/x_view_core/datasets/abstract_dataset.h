@@ -38,8 +38,9 @@ class AbstractDataset {
    */
   virtual const std::string datasetName() const = 0;
 
-  ///\brief Generates a human readable descripion of the database
-  virtual const std::string datasetInfo() const;
+  ///\brief Generates a human readable descripion of the database, t is the
+  /// standard indentation to be used between new lines of the generated string
+  virtual const std::string datasetInfo(const std::string& t = "") const;
 
   ///\brief returns the number of semantic classes contained in the dataset
   int numSemanticClasses() const { return num_semantic_classes_; }

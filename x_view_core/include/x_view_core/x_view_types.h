@@ -12,7 +12,7 @@ namespace x_view {
 class AbstractDataset;
 class AbstractFeature;
 class AbstractSemanticLandmark;
-class AbstractLandmarksMatcher;
+class AbstractMatcher;
 
 /// Different types of feature representation used in XView
 enum FeatureType {
@@ -35,7 +35,7 @@ enum SemanticLandmarkType {
 /// Different types of landmarks matchers to be used in XView
 enum LandmarksMatcherType {
   UNDEFINED_LANDMARKS_MATCHER_TYPE = -1,
-  VECTOR_FEATURES_MATCHER,
+  VECTOR_MATCHER,
   NUM_LANDMARKS_MATCHER_TYPES
 };
 
@@ -63,9 +63,9 @@ typedef std::shared_ptr<const AbstractSemanticLandmark>
     ConstSemanticLandmarkPtr;
 
 /// pointer to landmark matchers
-typedef std::shared_ptr<AbstractLandmarksMatcher> LandmarksMatcherPtr;
+typedef std::shared_ptr<AbstractMatcher> LandmarksMatcherPtr;
 
-typedef std::shared_ptr<const AbstractLandmarksMatcher>
+typedef std::shared_ptr<const AbstractMatcher>
     ConstLandmarksMatcherPtr;
 
 }

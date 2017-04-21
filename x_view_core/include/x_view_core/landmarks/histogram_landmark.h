@@ -14,7 +14,7 @@ class HistogramLandmark : public AbstractSemanticLandmark {
 
  public:
   static SemanticLandmarkPtr create(const cv::Mat& image, const SE3& pose) {
-    return SemanticLandmarkPtr(new HistogramLandmark(image, pose));
+    return std::make_shared<HistogramLandmark>(HistogramLandmark(image, pose));
   }
 
  protected:

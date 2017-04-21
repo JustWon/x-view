@@ -31,7 +31,7 @@ cs_add_library(${PROJECT_NAME}
 
 
         # Features matchers
-        src/matchers/vector_features_matcher.cc
+        src/matchers/vector_matcher.cc
         )
 
 # Link to opencv library (needed because of 'nonfree' module which is not

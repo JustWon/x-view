@@ -5,8 +5,6 @@ namespace x_view {
 VectorFeature::VectorFeature(const cv::Mat& feature)
     : AbstractFeature(),
       feature_(feature) {
-
-  std::cout << "Called vector feature constructor" << std::endl;
 }
 
 VectorFeature::~VectorFeature() {

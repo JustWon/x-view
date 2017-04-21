@@ -11,11 +11,10 @@ namespace x_view {
 AbstractDataset::AbstractDataset(const int num_semantic_classes)
     : num_semantic_classes_(num_semantic_classes) {}
 
-const std::string AbstractDataset::datasetInfo() const {
-  std::string description = datasetName() + ":\n";
+const std::string AbstractDataset::datasetInfo(const std::string& t) const {
+  std::string description = t + datasetName() + ":\n";
   for (auto elem : semantic_entities_) {
-    description += "\t";
-    description += std::to_string(elem.semantic_entity_id_) + ": ";
+    description += t + "\t" + std::to_string(elem.semantic_entity_id_) + ": ";
     description += elem.semantic_entity_name_;
     description += "\n";
   }

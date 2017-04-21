@@ -1,7 +1,7 @@
 #include <x_view_core/x_view.h>
 #include <x_view_core/features/visual_feature.h>
 #include <x_view_core/landmarks/visual_feature_landmark.h>
-#include <x_view_core/matchers/vector_features_matcher.h>
+#include <x_view_core/matchers/vector_matcher.h>
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/datasets/airsim_dataset.h>
 
@@ -16,21 +16,70 @@ XView::XView(XViewParams& params) : params_(params) {
   // parse the passed parameters and instantiate concrete classes for all
   // class members
   parseParameters();
+
+  // print XView parameters and infos
+  printInfo();
 }
 
 XView::~XView() {};
 
+void XView::processSemanticImage(const cv::Mat& image, const SE3& pose) {
+
+  // generate a new semantic landmark pointer
+  SemanticLandmarkPtr landmarkPtr;
+
+  // extract semantics associated to the image and pose
+  extractSemanticsFromImage(image, pose, landmarkPtr);
+
+  // compute the matches between the new feature and the ones
+  // stored in the database
+  AbstractMatcher::MatchingResultPtr matchingResult;
+  matchSemantics(landmarkPtr, matchingResult);
+
+  // add the newly computed descriptor to the descriptor matcher
+  descriptor_matcher_->addLandmark(landmarkPtr);
+
+  // TODO: call other functions to process semantic landmarks here
+}
+
+void XView::printInfo() const {
+  std::string info = "\n";
+  info += "==============================================================";
+  info += "\n                          XView";
+  info += "\n" + dataset_->datasetInfo("\t");
+  info += "\tLandmark type:\t<" + params_.semantic_landmark_type_ + ">";
+  info += "\n\tMatcher type: \t<" + params_.landmark_matching_type_ + ">";
+  info += "\n===============================================================";
+
+  std::cout << info << std::endl;
+}
+
 void XView::parseParameters() {
   // define the dataset being used
+  parseDatasetType();
+
+  // define landmark type
+  parseLandmarkType();
+
+  // defiene a landmark matcher
+  parseMatcherType();
+
+}
+
+void XView::parseDatasetType() {
+
   if (params_.semantic_dataset_name_.compare("SYNTHIA") == 0) {
     dataset_ = ConstDatasetPrt(new SynthiaDataset);
   } else if (params_.semantic_dataset_name_.compare("AIRSIM") == 0) {
     dataset_ = ConstDatasetPrt(new AirsimDataset);
+  } else {
+    CHECK(false) << "Unrecognized dataset type <" << params_
+        .semantic_dataset_name_ << ">" << std::endl;
   }
-  std::cout << dataset_->datasetInfo() << std::endl;
+}
 
-  // create a factory object which is responsible for generating
-  // new semantic landmarks
+void XView::parseLandmarkType() {
+
   if (params_.semantic_landmark_type_.compare("ORB") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::ORB_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction
@@ -52,31 +101,21 @@ void XView::parseParameters() {
         .semantic_landmark_type_ << ">" << std::endl;
   }
 
-  // set a landmark matcher
+}
+
+void XView::parseMatcherType() {
   if (params_.landmark_matching_type_.compare("VECTOR") == 0) {
-    landmarks_matcher_type_ = LandmarksMatcherType::VECTOR_FEATURES_MATCHER;
-    descriptor_matcher_ = VectorFeaturesMatcher::create();
+    landmarks_matcher_type_ = LandmarksMatcherType::VECTOR_MATCHER;
+    descriptor_matcher_ = VectorMatcher::create();
+  } else {
+    CHECK(false) << "Unrecognized matcher type <" << params_
+        .landmark_matching_type_ << ">" << std::endl;
   }
 }
 
-void XView::process(const cv::Mat& image, const SE3& pose) {
-
-  // generate a new semantic landmark pointer
-  SemanticLandmarkPtr landmarkPtr;
-
-  // extract semantics associated to the image and pose
-  extractSemanticsFromImage(image, pose, landmarkPtr);
-
-  // compute the matches between the new feature and the ones
-  // stored in the database
-  Eigen::MatrixXd matchingScores;
-  matchSemantics(landmarkPtr, matchingScores);
-
-  // add the newly computed descriptor to the descriptor matcher
-  descriptor_matcher_->addLandmark(landmarkPtr);
-
-  // TODO: call other functions to process semantic landmarks here
-}
+//==========================================================================//
+//         FUNCTIONS CALLED BY 'processSemanticImage' FUNCTION              //
+//==========================================================================//
 
 void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
                                       SemanticLandmarkPtr& semantics_out) {
@@ -92,59 +131,56 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
 }
 
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
-                           Eigen::MatrixXd& matches_mat) {
+                           AbstractMatcher::MatchingResultPtr& matchingResult) {
 
-  AbstractLandmarksMatcher::MatchingResultPtr matchingResult;
+  // compute a match between the current semantic landmark and the ones
+  // already visited
   descriptor_matcher_->match(semantics_a, matchingResult);
 
-  // FIXME: depending on the feature types, we extract the matches in a different way, how to encapsulate this in the Abstract interface?
-  auto matching =
-      std::dynamic_pointer_cast<VectorFeaturesMatcher::VectorMatchingResult>
-          (matchingResult);
+  // The code inside these brackets is here only for log purposes
+  {
 
-  std::vector<std::vector<cv::DMatch>> matches = matching->matches;
+    // FIXME: depending on the feature types, we extract the matches in a different way, how to encapsulate this in the Abstract interface?
+    auto matching =
+        std::dynamic_pointer_cast<VectorMatcher::VectorMatchingResult>
+            (matchingResult);
 
-  std::cout << "Number of matches: " << matches.size() << std::endl;
+    std::vector<std::vector<cv::DMatch>> matches = matching->matches;
 
-  const unsigned long number_of_training_images = semantics_db_.size();
+    const unsigned long number_of_training_images = semantics_db_.size();
 
-  std::cout << "Number of training images: " << number_of_training_images <<
-            std::endl;
-
-  if (number_of_training_images > 0) {
-    std::vector<int> voting_per_image(number_of_training_images, 0);
-    for (int feature = 0; feature < matches.size(); ++feature) {
-      for (int vote = 0; vote < matches[feature].size(); ++vote) {
-        int preference = matches[feature][vote].imgIdx;
-        voting_per_image[preference]++;
+    if (number_of_training_images > 0) {
+      std::vector<int> voting_per_image(number_of_training_images, 0);
+      for (int feature = 0; feature < matches.size(); ++feature) {
+        for (int vote = 0; vote < matches[feature].size(); ++vote) {
+          int preference = matches[feature][vote].imgIdx;
+          voting_per_image[preference]++;
+        }
       }
+
+      auto
+          max_vote = std::max_element(voting_per_image.begin(), voting_per_image
+          .end());
+
+      std::cout << "Current frame (" << number_of_training_images
+                << ") voted " << 100 * ((double) *max_vote) / (matches.size())
+                << "% for image "
+                << std::distance(voting_per_image.begin(), max_vote)
+                << std::endl;
     }
-
-    auto max_vote = std::max_element(voting_per_image.begin(), voting_per_image
-        .end());
-
-    std::cout << "Current frame (" << number_of_training_images
-              << ") voted " << 100 * ((double) *max_vote) / (matches.size())
-              << "% for image "
-              << std::distance(voting_per_image.begin(), max_vote)
-              << std::endl;
-
-    std::cout << std::endl;
   }
 
   semantics_db_.push_back(semantics_a);
-
-  std::cout << "Pushed back semantics_a" << std::endl;
 }
 
 void XView::filterMatches(const SemanticLandmarkPtr& semantics_a,
-                          Eigen::MatrixXd& matches) {
+                          AbstractMatcher::MatchingResultPtr& matchingResult) {
   // TODO: filter matches, e.g., with geometric verification.
   CHECK(false) << "Not implemented.";
 }
 
 void XView::mergeSemantics(const SemanticLandmarkPtr& semantics_a,
-                           const Eigen::MatrixXd& matches) {
+                           AbstractMatcher::MatchingResultPtr& matchingResult) {
   // TODO: Merge semantics with semantics_db_ if dominant matches,
   // otherwise add semantics as new instance to semantics_db_.
   // TODO: use filterMatches function before merging.

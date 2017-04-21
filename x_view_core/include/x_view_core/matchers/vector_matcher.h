@@ -1,8 +1,8 @@
-#ifndef X_VIEW_VECTOR_FEATURES_MATCHER_H
-#define X_VIEW_VECTOR_FEATURES_MATCHER_H
+#ifndef X_VIEW_VECTOR_MATCHER_H
+#define X_VIEW_VECTOR_MATCHER_H
 
 #include <x_view_core/x_view_types.h>
-#include <x_view_core/matchers/abstrac_landmarks_matcher.h>
+#include <x_view_core/matchers/abstrac_matcher.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -16,12 +16,12 @@ namespace x_view {
  * \brief An interface each landmark-matcher based on feature vectors
  * must implement
  */
-class VectorFeaturesMatcher : public AbstractLandmarksMatcher {
+class VectorMatcher : public AbstractMatcher {
 
  public:
 
-  VectorFeaturesMatcher();
-  virtual ~VectorFeaturesMatcher();
+  VectorMatcher();
+  virtual ~VectorMatcher();
 
   class VectorMatchingResult : public AbstractMatchingResult {
    public:
@@ -48,4 +48,4 @@ class VectorFeaturesMatcher : public AbstractLandmarksMatcher {
 
 }
 
-#endif //X_VIEW_VECTOR_FEATURES_MATCHER_H
+#endif //X_VIEW_VECTOR_MATCHER_H

@@ -10,6 +10,8 @@ HistogramLandmark::HistogramLandmark(const cv::Mat& image, const SE3& pose)
   const int dataset_size = 13;
   std::vector<int> histogram_count(dataset_size, 0);
 
+  // iterate through the semantic image and determine how many pixels vote
+  // for each semantic class by inspecting the first channel of each pixel
   for (int i = 0; i < image.rows; ++i) {
     for (int j = 0; j < image.cols; ++j) {
       // get the label associated to this pixel
@@ -19,14 +21,19 @@ HistogramLandmark::HistogramLandmark(const cv::Mat& image, const SE3& pose)
     }
   }
 
-  // copy the vector to a cv::Mat
+  // since the feature representation must be a cv::Mat (due to the
+  // vector-matcher which accepts only cv::Mats as features), convert the
+  // integer histogram into a normalized 1D cv::Mat containing the voting
+  // frequencies as percentages
+  const int votes = std::accumulate(histogram_count.begin(),
+                                    histogram_count.end(), int(0));
   cv::Mat descriptor(1, histogram_count.size(), CV_32FC1);
   for (int k = 0; k < histogram_count.size(); ++k) {
-    descriptor.at<float>(k) = float(histogram_count[k]);
+    descriptor.at<float>(k) = float(histogram_count[k]) / votes;
   }
 
-  std::cout << descriptor << std::endl;
-
+  // create the feature stored in this landmark by generating a VectorFeature
+  // containing the histogram data
   feature_ = std::make_shared<VectorFeature>(VectorFeature(descriptor));
 
 }
