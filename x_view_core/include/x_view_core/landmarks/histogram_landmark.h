@@ -13,16 +13,18 @@ namespace x_view {
 class HistogramLandmark : public AbstractSemanticLandmark {
 
  public:
-  // FIXME: the histogram representation must be stored in feature_
-  ///\brief histogram of size \f$N\f$ where \f$N\f$ is the number of possible
-  /// semantic classes contained/supported by the dataset
-  cv::Mat histogram_;
-
   static SemanticLandmarkPtr create(const cv::Mat& image, const SE3& pose) {
     return SemanticLandmarkPtr(new HistogramLandmark(image, pose));
   }
 
  protected:
+  /**
+   * \brief Computes a histogram of semantic label frequencies encoded in the
+   * first channel of the image passed as argument
+   * \param image Semantic image storing semantic class in the first channel
+   * of each pixel
+   * \param pose Robot's pose
+   */
   explicit HistogramLandmark(const cv::Mat& image, const SE3& pose);
 
 };

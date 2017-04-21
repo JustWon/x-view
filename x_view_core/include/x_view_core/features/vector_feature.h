@@ -12,24 +12,18 @@ namespace x_view {
 /**
  * \brief This class encapsulates all types of features that might be
  * represented as vector or as a matrix.
- * \tparam Container the way the feature is represented internally
  */
-template<typename Container>
 class VectorFeature : public AbstractFeature {
 
  public:
 
-  typedef Container FeatureRepr;
+  VectorFeature(const cv::Mat& feature);
 
-  VectorFeature(const FeatureRepr& feature)
-      : AbstractFeature(),
-        feature_repr_(feature) {}
-
-  virtual ~VectorFeature() {}
+  virtual ~VectorFeature();
 
   ///\brief returns a const reference of the feature representation
-  const FeatureRepr& getFeature() const {
-    return feature_repr_;
+  const cv::Mat& getFeature() const {
+    return feature_;
   }
 
   ///\brief returns the dimensionality of the feature(s) stored in this object
@@ -38,15 +32,8 @@ class VectorFeature : public AbstractFeature {
   int numFeatures() const;
 
  protected:
-  const FeatureRepr feature_repr_;
+  const cv::Mat feature_;
 };
-
-// Features extracted from images such as SIFT/SURF/ORB are internally
-// represented as a cv::Mat
-typedef VectorFeature<cv::Mat> CVMatFeature;
-
-// A histogram feature only needs a vector of integers (votes) as representation
-typedef VectorFeature<std::vector<int>> IntVecFeature;
 
 }
 

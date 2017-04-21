@@ -8,7 +8,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-
+#include <x_view_core/landmarks/histogram_landmark.h>
 
 namespace x_view {
 
@@ -43,6 +43,13 @@ void XView::parseParameters() {
     semantic_landmark_type_ = SemanticLandmarkType::SURF_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction
         (SURFVisualFeatureLandmark::create);
+  } else if (params_.semantic_landmark_type_.compare("HISTOGRAM") == 0) {
+    semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_HISTOGRAM;
+    semantic_landmark_factory_.setCreatorFunction
+        (HistogramLandmark::create);
+  } else {
+    CHECK(false) << "Unrecognized landmark type <" << params_
+        .semantic_landmark_type_ << ">" << std::endl;
   }
 
   // set a landmark matcher
@@ -95,10 +102,14 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
       std::dynamic_pointer_cast<VectorFeaturesMatcher::VectorMatchingResult>
           (matchingResult);
 
-  std::vector<std::vector<cv::DMatch>> matches;
-  matches = matching->matches;
+  std::vector<std::vector<cv::DMatch>> matches = matching->matches;
+
+  std::cout << "Number of matches: " << matches.size() << std::endl;
 
   const unsigned long number_of_training_images = semantics_db_.size();
+
+  std::cout << "Number of training images: " << number_of_training_images <<
+            std::endl;
 
   if (number_of_training_images > 0) {
     std::vector<int> voting_per_image(number_of_training_images, 0);
@@ -122,6 +133,8 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
   }
 
   semantics_db_.push_back(semantics_a);
+
+  std::cout << "Pushed back semantics_a" << std::endl;
 }
 
 void XView::filterMatches(const SemanticLandmarkPtr& semantics_a,

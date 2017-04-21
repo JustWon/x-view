@@ -70,8 +70,7 @@ cv::Mat SynthiaDataset::preprocessSemanticImage(
       // loop over the three channels
       cv::Vec3b values;
       for (int c = 0; c < 3; ++c) {
-        values[2 - c] = (uchar) std::max(0, std::min(255, (toInt(idx + 2 * c) *
-            255 / 15)));
+        values[2 - c] = (uchar) (toInt(idx + 2 * c));
       }
       labelImage.at<cv::Vec3b>(cv::Point(j, i)) = values;
     }

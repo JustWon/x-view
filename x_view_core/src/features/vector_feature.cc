@@ -2,28 +2,22 @@
 
 namespace x_view {
 
-/////////////////////////////// CV::MAT-based //////////////////////////////////
+VectorFeature::VectorFeature(const cv::Mat& feature)
+    : AbstractFeature(),
+      feature_(feature) {
 
-template<>
-int CVMatFeature::featureDimension() const {
-  return feature_repr_.cols;
-}
-template<>
-int CVMatFeature::numFeatures() const {
-  return feature_repr_.rows;
+  std::cout << "Called vector feature constructor" << std::endl;
 }
 
-
-
-///////////////////////////// std::vec-based  //////////////////////////////////
-
-template<>
-int IntVecFeature::featureDimension() const {
-  return (int) feature_repr_.size();
+VectorFeature::~VectorFeature() {
 }
-template<>
-int IntVecFeature::numFeatures() const {
-  return 1;
+
+int VectorFeature::featureDimension() const {
+  return feature_.cols;
+}
+
+int VectorFeature::numFeatures() const {
+  return feature_.rows;
 }
 
 }

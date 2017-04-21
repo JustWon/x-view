@@ -2,7 +2,7 @@
 
 namespace x_view {
 
-VisualFeature::VisualFeature(const FeatureRepr& feature,
+VisualFeature::VisualFeature(const cv::Mat& feature,
                              const KeyPointsVector& keypoints)
     : VectorFeature(feature),
       key_points_vector_(keypoints) {

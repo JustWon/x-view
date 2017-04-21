@@ -34,7 +34,7 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
   cv::Mat image = dataset_->preprocessSemanticImage(msg);
 
   x_view_.process(image, x_view::SE3());
-  
+
 
 // TODO: Process image using x-view functions.
 

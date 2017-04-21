@@ -16,29 +16,29 @@ VectorFeaturesMatcher::~VectorFeaturesMatcher() {
 
 void VectorFeaturesMatcher::addLandmark(const SemanticLandmarkPtr& landmark) {
 
-  std::shared_ptr<const CVMatFeature> vecFeature =
-      std::dynamic_pointer_cast<const CVMatFeature>(landmark->getFeature());
+  std::shared_ptr<const VectorFeature> vecFeature =
+      std::dynamic_pointer_cast<const VectorFeature>(landmark->getFeature());
 
   descriptor_matcher_->add(std::vector<cv::Mat>{vecFeature->getFeature()});
+
+  std::cout << "Managed to add landmark" << std::endl;
 }
 
 void VectorFeaturesMatcher::match(const SemanticLandmarkPtr& queryLandmark,
                                   MatchingResultPtr& matchingResult) {
 
   auto vectorFeature =
-      std::dynamic_pointer_cast<const CVMatFeature>(queryLandmark->getFeature());
-
-  const cv::Mat& feature = vectorFeature->getFeature();
-
-  matchingResult.reset(new VectorMatchingResult);
+      std::dynamic_pointer_cast<const VectorFeature>(queryLandmark->getFeature());
 
   std::shared_ptr<VectorMatchingResult>
       vMatchingResult(new VectorMatchingResult);
 
-  descriptor_matcher_->knnMatch(feature, vMatchingResult->matches,
+  descriptor_matcher_->knnMatch(vectorFeature->getFeature(),
+                                vMatchingResult->matches,
                                 num_retained_best_matches_);
 
   matchingResult = vMatchingResult;
+
 }
 
 LandmarksMatcherPtr VectorFeaturesMatcher::create() {

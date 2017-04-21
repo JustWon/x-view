@@ -10,13 +10,13 @@
 namespace x_view {
 
 
-class VisualFeature : public CVMatFeature {
+class VisualFeature : public VectorFeature {
 
  public:
 
   typedef std::vector<cv::KeyPoint> KeyPointsVector;
 
-  VisualFeature(const FeatureRepr& feature, const KeyPointsVector& keypoints);
+  VisualFeature(const cv::Mat& feature, const KeyPointsVector& keypoints);
   virtual ~VisualFeature();
 
   ///\brief returns a const reference to the keypoints

@@ -39,7 +39,8 @@ ORBVisualFeatureLandmark::ORBVisualFeatureLandmark(const cv::Mat& image,
   cv::Mat descriptors;
   features_extractor_->compute(gray, keypoints, descriptors);
 
-  feature_.reset(new VisualFeature(descriptors, keypoints));
+  feature_ =
+      std::make_shared<VisualFeature>(VisualFeature(descriptors, keypoints));
 }
 
 //**************************** SIFT visual feature ***************************//
@@ -66,7 +67,8 @@ SIFTVisualFeatureLandmark::SIFTVisualFeatureLandmark(const cv::Mat& image,
   cv::Mat descriptors;
   features_extractor_->compute(gray, keypoints, descriptors);
 
-  feature_.reset(new VisualFeature(descriptors, keypoints));
+  feature_ =
+      std::make_shared<VisualFeature>(VisualFeature(descriptors, keypoints));
 }
 
 //**************************** SURF visual feature ***************************//
@@ -94,7 +96,8 @@ SURFVisualFeatureLandmark::SURFVisualFeatureLandmark(const cv::Mat& image,
   cv::Mat descriptors;
   features_extractor_->compute(gray, keypoints, descriptors);
 
-  feature_.reset(new VisualFeature(descriptors, keypoints));
+  feature_ =
+      std::make_shared<VisualFeature>(VisualFeature(descriptors, keypoints));
 }
 
 }
