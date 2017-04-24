@@ -34,8 +34,6 @@ class XViewWorker {
   /// \brief Get ROS parameters.
   void getParameters();
 
-  // TODO: Add further setters / getters where necessary.
-
   // Node handle.
   ros::NodeHandle& nh_;
 

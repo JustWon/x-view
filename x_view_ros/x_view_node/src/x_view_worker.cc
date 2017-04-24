@@ -35,9 +35,6 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
 
   x_view_.processSemanticImage(image, x_view::SE3());
 
-
-// TODO: Process image using x-view functions.
-
 }
 
 void XViewWorker::getParameters() {
