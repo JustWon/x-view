@@ -44,6 +44,7 @@ target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES})
 catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_main.cc
         test/test_empty.cc
+        test/test_histogram_landmark.cc
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )
 

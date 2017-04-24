@@ -16,7 +16,7 @@ HistogramLandmark::HistogramLandmark(const cv::Mat& image, const SE3& pose)
     for (int j = 0; j < image.cols; ++j) {
       // get the label associated to this pixel
       int label = image.at<cv::Vec3b>(cv::Point(j, i)).val[0];
-      if (label < 13 && label > 0)
+      if (label < 13 && label >= 0)
         ++histogram_count[label];
     }
   }

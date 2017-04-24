@@ -4,8 +4,8 @@ This repository contains the core implementation of the X-View library
 ### Tests
 All test are implemented as _gtest_ in the [test](./test) folder. The tests can be launched as follows:
 ```lang=bash
-catkin build --force-cmake
-./devel/libs/x_view_core/x_view_core_tests
+catkin build --force-cmake --catkin-make-args run_tests
+./devel/lib/x_view_core/x_view_core_tests
 ```
 
 ### Notes
