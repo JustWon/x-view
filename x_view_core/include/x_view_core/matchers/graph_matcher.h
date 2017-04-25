@@ -1,7 +1,7 @@
 #ifndef X_VIEW_GRAPH_MATCHER_H
 #define X_VIEW_GRAPH_MATCHER_H
 
-#include <x_view_core/matchers/abstrac_matcher.h>
+#include <x_view_core/matchers/abstract_matcher.h>
 
 namespace x_view {
 
@@ -20,10 +20,9 @@ class GraphMatcher : public AbstractMatcher {
 
   };
 
-  virtual void addLandmark(const SemanticLandmarkPtr& landmark) {}
-
-  virtual void match(const SemanticLandmarkPtr& queryLandmark,
-                     MatchingResultPtr& matchingResult) {}
+  virtual MatchingResultPtr match(const SemanticLandmarkPtr& queryLandmark) override {
+    return std::make_shared<GraphMatchingResult>();
+  }
 };
 
 }

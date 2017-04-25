@@ -19,11 +19,8 @@ class SynthiaDataset : public AbstractDataset {
     return std::string("Synthia Dataset");
   }
 
-  virtual cv::Mat preprocessSemanticImage(const sensor_msgs::ImageConstPtr&
-  msg) const;
-
- private:
-  static const int SYNTHIA_NUM_SEMANTIC_CLASSES;
+  virtual cv::Mat convertSemanticImage(const sensor_msgs::ImageConstPtr&
+  msg) const override;
 
 };
 

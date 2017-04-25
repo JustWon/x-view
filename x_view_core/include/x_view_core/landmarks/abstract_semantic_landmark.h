@@ -28,24 +28,24 @@ class AbstractSemanticLandmark {
 
   /// \brief Returns a const reference to the image associated with this
   /// landmark
-  const cv::Mat& getImage() const;
+  const cv::Mat& getSemanticImage() const;
 
   /// \brief Returns a const reference to the robot's pose associated with
   /// this landmark
   const SE3& getPose() const;
 
-  /// \brief Returns a const reference to the stored feature representation
-  const ConstFeaturePtr& getFeature() const;
+  /// \brief Returns a const reference to the stored descriptor representation
+  const ConstDescriptorPtr& getDescriptor() const;
 
  protected:
-  /// \brief Image given as input for the landmark
-  const cv::Mat image_;
+  /// \brief Semantic image given as input for the landmark
+  const cv::Mat semantic_image_;
 
   /// \brief Robot's pose associated to this semantic landmark
   const SE3 pose_;
 
-  /// \brief internal representation of features extracted in this landmark
-  ConstFeaturePtr feature_;
+  /// \brief internal representation of descriptor extracted in this landmark
+  ConstDescriptorPtr descriptor_;
 
 }; // AbstractSemanticLandmark
 

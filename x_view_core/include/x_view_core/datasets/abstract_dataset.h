@@ -1,6 +1,8 @@
 #ifndef X_VIEW_ABSTRACT_DATASET_H
 #define X_VIEW_ABSTRACT_DATASET_H
 
+#include <x_view_core/x_view_types.h>
+
 #include <opencv2/core/core.hpp>
 
 #include <sensor_msgs/Image.h>
@@ -61,13 +63,17 @@ class AbstractDataset {
    * \details This function is called by the x_view worker before passing the
    * image to the x_view
    */
-  virtual cv::Mat preprocessSemanticImage(const sensor_msgs::ImageConstPtr&
+  virtual cv::Mat convertSemanticImage(const sensor_msgs::ImageConstPtr&
   msg) const;
 
  protected:
   const int num_semantic_classes_;
   std::vector<SemanticEntity> semantic_entities_;
 };
+
+
+/// \brief dataset accessible from everywhere in the x_view project
+extern ConstDatasetPrt globalDatasetPtr;
 
 }
 

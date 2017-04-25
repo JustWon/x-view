@@ -4,20 +4,20 @@ namespace x_view {
 
 AbstractSemanticLandmark::AbstractSemanticLandmark(const cv::Mat& image,
                                                    const SE3& pose)
-    : image_(image), pose_(pose) {}
+    : semantic_image_(image), pose_(pose) {}
 
 AbstractSemanticLandmark::~AbstractSemanticLandmark() {}
 
-const cv::Mat& AbstractSemanticLandmark::getImage() const {
-  return image_;
+const cv::Mat& AbstractSemanticLandmark::getSemanticImage() const {
+  return semantic_image_;
 }
 
 const SE3& AbstractSemanticLandmark::getPose() const {
   return pose_;
 }
 
-const ConstFeaturePtr& AbstractSemanticLandmark::getFeature() const {
-  return feature_;
+const ConstDescriptorPtr& AbstractSemanticLandmark::getDescriptor() const {
+  return descriptor_;
 }
 
 }

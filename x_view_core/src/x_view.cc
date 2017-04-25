@@ -1,16 +1,21 @@
 #include <x_view_core/x_view.h>
-#include <x_view_core/features/visual_feature.h>
-#include <x_view_core/landmarks/visual_feature_landmark.h>
+#include <x_view_core/features/visual_descriptor.h>
+#include <x_view_core/landmarks/visual_descriptor_landmark.h>
 #include <x_view_core/matchers/vector_matcher.h>
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/datasets/airsim_dataset.h>
+#include <x_view_core/landmarks/histogram_landmark.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <x_view_core/landmarks/histogram_landmark.h>
+
+#include <memory>
 
 namespace x_view {
+
+// declaration of global dataset pointer
+ConstDatasetPrt globalDatasetPtr;
 
 XView::XView(XViewParams& params) : params_(params) {
   // parse the passed parameters and instantiate concrete classes for all
@@ -35,11 +40,6 @@ void XView::processSemanticImage(const cv::Mat& image, const SE3& pose) {
   // stored in the database
   AbstractMatcher::MatchingResultPtr matchingResult;
   matchSemantics(landmarkPtr, matchingResult);
-
-  // add the newly computed descriptor to the descriptor matcher
-  descriptor_matcher_->addLandmark(landmarkPtr);
-
-  // TODO: call other functions to process semantic landmarks here
 }
 
 void XView::printInfo() const {
@@ -61,7 +61,7 @@ void XView::parseParameters() {
   // define landmark type
   parseLandmarkType();
 
-  // defiene a landmark matcher
+  // define a landmark matcher
   parseMatcherType();
 
 }
@@ -69,13 +69,14 @@ void XView::parseParameters() {
 void XView::parseDatasetType() {
 
   if (params_.semantic_dataset_name_.compare("SYNTHIA") == 0) {
-    dataset_ = ConstDatasetPrt(new SynthiaDataset);
+    dataset_ = std::make_shared<const SynthiaDataset>();
   } else if (params_.semantic_dataset_name_.compare("AIRSIM") == 0) {
-    dataset_ = ConstDatasetPrt(new AirsimDataset);
+    dataset_ = std::make_shared<const AirsimDataset>();
   } else {
     CHECK(false) << "Unrecognized dataset type <" << params_
         .semantic_dataset_name_ << ">" << std::endl;
   }
+  globalDatasetPtr = dataset_;
 }
 
 void XView::parseLandmarkType() {
@@ -83,15 +84,15 @@ void XView::parseLandmarkType() {
   if (params_.semantic_landmark_type_.compare("ORB") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::ORB_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction
-        (ORBVisualFeatureLandmark::create);
+        (ORBVisualDescriptorLandmark::create);
   } else if (params_.semantic_landmark_type_.compare("SIFT") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::SIFT_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction
-        (SIFTVisualFeatureLandmark::create);
+        (SIFTVisualDescriptorLandmark::create);
   } else if (params_.semantic_landmark_type_.compare("SURF") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::SURF_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction
-        (SURFVisualFeatureLandmark::create);
+        (SURFVisualDescriptorLandmark::create);
   } else if (params_.semantic_landmark_type_.compare("HISTOGRAM") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_HISTOGRAM;
     semantic_landmark_factory_.setCreatorFunction
@@ -127,7 +128,7 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
   semantics_out =
       semantic_landmark_factory_.createSemanticLandmark(image, pose);
 
-  // TODO: post process the semantic landmark representation given its neighbors stored in the semantic database
+  // TODO: postprocess the semantic landmark representation given its neighbors stored in the semantic database
 }
 
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
@@ -135,7 +136,7 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
 
   // compute a match between the current semantic landmark and the ones
   // already visited
-  descriptor_matcher_->match(semantics_a, matchingResult);
+  matchingResult = descriptor_matcher_->match(semantics_a);
 
   // The code inside these brackets is here only for log purposes
   {
@@ -158,14 +159,14 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
         }
       }
 
-      auto
-          max_vote = std::max_element(voting_per_image.begin(), voting_per_image
-          .end());
+      auto max_vote =
+          std::max_element(voting_per_image.begin(), voting_per_image.end());
 
       std::cout << "Current frame (" << number_of_training_images
                 << ") voted " << 100 * ((double) *max_vote) / (matches.size())
-                << "% for image "
+                << "% for image ("
                 << std::distance(voting_per_image.begin(), max_vote)
+                << ")!"
                 << std::endl;
     }
   }

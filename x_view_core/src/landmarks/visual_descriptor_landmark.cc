@@ -1,5 +1,5 @@
-#include <x_view_core/landmarks/visual_feature_landmark.h>
-#include <x_view_core/features/visual_feature.h>
+#include <x_view_core/landmarks/visual_descriptor_landmark.h>
+#include <x_view_core/features/visual_descriptor.h>
 
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -7,19 +7,19 @@
 namespace x_view {
 
 // TODO: read number of desired features from config file
-int VisualFeatureLandmark::NUM_VISUAL_FEATURES = 1000;
+int VisualDescriptorLandmark::NUM_VISUAL_FEATURES = 1000;
 
-VisualFeatureLandmark::VisualFeatureLandmark(const cv::Mat& image,
+VisualDescriptorLandmark::VisualDescriptorLandmark(const cv::Mat& image,
                                              const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
 }
 
 
-//**************************** ORB visual feature ****************************//
+//*************************** ORB visual descriptor **************************//
 
-ORBVisualFeatureLandmark::ORBVisualFeatureLandmark(const cv::Mat& image,
+ORBVisualDescriptorLandmark::ORBVisualDescriptorLandmark(const cv::Mat& image,
                                                    const SE3& pose)
-    : VisualFeatureLandmark(image, pose) {
+    : VisualDescriptorLandmark(image, pose) {
 
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
@@ -39,15 +39,15 @@ ORBVisualFeatureLandmark::ORBVisualFeatureLandmark(const cv::Mat& image,
   cv::Mat descriptors;
   features_extractor_->compute(gray, keypoints, descriptors);
 
-  feature_ =
-      std::make_shared<VisualFeature>(VisualFeature(descriptors, keypoints));
+  descriptor_ =
+      std::make_shared<VisualDescriptor>(VisualDescriptor(descriptors, keypoints));
 }
 
-//**************************** SIFT visual feature ***************************//
+//*************************** SIFT visual descriptor *************************//
 
-SIFTVisualFeatureLandmark::SIFTVisualFeatureLandmark(const cv::Mat& image,
+SIFTVisualDescriptorLandmark::SIFTVisualDescriptorLandmark(const cv::Mat& image,
                                                      const SE3& pose)
-    : VisualFeatureLandmark(image, pose) {
+    : VisualDescriptorLandmark(image, pose) {
 
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
@@ -67,15 +67,15 @@ SIFTVisualFeatureLandmark::SIFTVisualFeatureLandmark(const cv::Mat& image,
   cv::Mat descriptors;
   features_extractor_->compute(gray, keypoints, descriptors);
 
-  feature_ =
-      std::make_shared<VisualFeature>(VisualFeature(descriptors, keypoints));
+  descriptor_ =
+      std::make_shared<VisualDescriptor>(VisualDescriptor(descriptors, keypoints));
 }
 
-//**************************** SURF visual feature ***************************//
+//************************** SURF visual descriptor **************************//
 
-SURFVisualFeatureLandmark::SURFVisualFeatureLandmark(const cv::Mat& image,
+SURFVisualDescriptorLandmark::SURFVisualDescriptorLandmark(const cv::Mat& image,
                                                      const SE3& pose)
-    : VisualFeatureLandmark(image, pose) {
+    : VisualDescriptorLandmark(image, pose) {
 
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
@@ -96,8 +96,8 @@ SURFVisualFeatureLandmark::SURFVisualFeatureLandmark(const cv::Mat& image,
   cv::Mat descriptors;
   features_extractor_->compute(gray, keypoints, descriptors);
 
-  feature_ =
-      std::make_shared<VisualFeature>(VisualFeature(descriptors, keypoints));
+  descriptor_ =
+      std::make_shared<VisualDescriptor>(VisualDescriptor(descriptors, keypoints));
 }
 
 }

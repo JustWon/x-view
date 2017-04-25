@@ -1,40 +1,45 @@
-#include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/matchers/vector_matcher.h>
-#include <x_view_core/features/vector_feature.h>
+#include <x_view_core/landmarks/abstract_semantic_landmark.h>
+#include <x_view_core/features/vector_descriptor.h>
 
 namespace x_view {
 
 VectorMatcher::VectorMatcher()
     : num_retained_best_matches_(1) {
-  descriptor_matcher_ =
-      std::shared_ptr<cv::DescriptorMatcher>(new cv::BFMatcher);
+  descriptor_matcher_ = std::make_shared<cv::BFMatcher>();
 }
 
 VectorMatcher::~VectorMatcher() {
 }
 
-void VectorMatcher::addLandmark(const SemanticLandmarkPtr& landmark) {
+AbstractMatcher::MatchingResultPtr
+VectorMatcher::match(const SemanticLandmarkPtr& queryLandmark) {
 
-  std::shared_ptr<const VectorFeature> vecFeature =
-      std::dynamic_pointer_cast<const VectorFeature>(landmark->getFeature());
+  // Extract and cast the descriptor associated to the queryLandmark
+  auto vectorDescriptor =
+      std::dynamic_pointer_cast<const VectorDescriptor>(queryLandmark->getDescriptor());
 
-  descriptor_matcher_->add(std::vector<cv::Mat>{vecFeature->getFeature()});
-}
+  // Perform checks related to the cast
+  CHECK(vectorDescriptor != nullptr) << "Impossible to cast descriptor "
+      "associated to queryLandmark to a 'const VectorDescriptor'";
 
-void VectorMatcher::match(const SemanticLandmarkPtr& queryLandmark,
-                                  MatchingResultPtr& matchingResult) {
 
-  auto vectorFeature =
-      std::dynamic_pointer_cast<const VectorFeature>(queryLandmark->getFeature());
+  // create a matching result pointer which will be returned by this function
+  auto matchingResult = std::make_shared<VectorMatchingResult>();
 
-  std::shared_ptr<VectorMatchingResult>
-      vMatchingResult(new VectorMatchingResult);
-
-  descriptor_matcher_->knnMatch(vectorFeature->getFeature(),
-                                vMatchingResult->matches,
+  // match the vector descriptor to the descriptors previously visited
+  // and store the results (matches) inside the matchingResult object
+  descriptor_matcher_->knnMatch(vectorDescriptor->getDescriptor(),
+                                matchingResult->matches,
                                 num_retained_best_matches_);
 
-  matchingResult = vMatchingResult;
+  // add the descriptor of the queryLandmark to the set of features stored
+  // inside the matcher
+  descriptor_matcher_->add(std::vector<cv::Mat>{
+      vectorDescriptor->getDescriptor()});
+
+  // return the matching result filled with the matches
+  return matchingResult;
 
 }
 

@@ -45,24 +45,13 @@ class AbstractMatcher {
   typedef std::shared_ptr<AbstractMatchingResult> MatchingResultPtr;
 
   /**
-   * \brief Add a landmark to the matcher, which will update its internal
-   * representation of the previously observed landmarks
-   * \param landmark const reference to semantic landmark pointer
-   * \note landmark is a pointer to the AbstractSemanticLandmark class; each
-   * class implementing this interface is responsible for casting that
-   * parameter to the one expected by the concrete class.
-   */
-  virtual void addLandmark(const SemanticLandmarkPtr& landmark) = 0;
-
-  /**
    * \brief Computes a match between the query landmark passed as parameter
-   * and the features internally stored
+   * and the features internally stored. The descriptor associated to the
+   * query landmark is added to the internal matcher representation of landmarks
    * \param queryLandmark const reference to semantic landmark pointer
-   * \param matchingResult reference to matching result pointer, filled by
-   * this function
+   * \return reference to matching result pointer containing matching results
    */
-  virtual void match(const SemanticLandmarkPtr& queryLandmark,
-                     MatchingResultPtr& matchingResult) = 0;
+  virtual MatchingResultPtr match(const SemanticLandmarkPtr& queryLandmark) = 0;
 
 };
 

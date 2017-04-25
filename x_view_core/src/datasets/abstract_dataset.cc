@@ -21,7 +21,7 @@ const std::string AbstractDataset::datasetInfo(const std::string& t) const {
   return description;
 }
 
-cv::Mat AbstractDataset::preprocessSemanticImage(
+cv::Mat AbstractDataset::convertSemanticImage(
     const sensor_msgs::ImageConstPtr& msg) const {
   try {
     cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, enc::BGR8);

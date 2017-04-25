@@ -21,8 +21,8 @@ XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n) {
   if (params_.dataset_name.compare("SYNTHIA") == 0)
     dataset_.reset(new x_view::SynthiaDataset);
   else
-    CHECK(false) << "Dataset '" << params_.dataset_name << "' is not supported"
-                 << std::endl;
+    CHECK(false) << "Dataset '" << params_.dataset_name
+                 << "' is not supported" << std::endl;
 }
 
 XViewWorker::~XViewWorker() {
@@ -31,7 +31,7 @@ XViewWorker::~XViewWorker() {
 void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) {
 
   // preprocess the ros message
-  cv::Mat image = dataset_->preprocessSemanticImage(msg);
+  cv::Mat image = dataset_->convertSemanticImage(msg);
 
   x_view_.processSemanticImage(image, x_view::SE3());
 
@@ -42,7 +42,7 @@ void XViewWorker::getParameters() {
   // XView parameters.
   if (!nh_.getParam("/XView/landmarks/type", params_
       .x_view_params.semantic_landmark_type_)) {
-     ROS_ERROR_STREAM("Failed to get param '/XView/landmarks/type'\nUsing "
+    ROS_ERROR_STREAM("Failed to get param '/XView/landmarks/type'\nUsing "
                          "default <SURF> landmark type.");
     params_.x_view_params.semantic_landmark_type_ = "SURF";
   }
@@ -64,7 +64,7 @@ void XViewWorker::getParameters() {
   params_.x_view_params.semantic_dataset_name_ = params_.dataset_name;
 
   if (!nh_.getParam("/XViewWorker/semantics_image_topic",
-                   params_.semantics_image_topic)) {
+                    params_.semantics_image_topic)) {
     ROS_ERROR_STREAM("Failed to get param "
                          "'/XViewWorker/semantics_image_topic'");
   }

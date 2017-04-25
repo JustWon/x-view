@@ -5,7 +5,7 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/semantic_landmark_factory.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
-#include <x_view_core/matchers/abstrac_matcher.h>
+#include <x_view_core/matchers/abstract_matcher.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>

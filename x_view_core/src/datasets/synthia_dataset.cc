@@ -4,7 +4,7 @@
 
 namespace x_view {
 
-const int SynthiaDataset::SYNTHIA_NUM_SEMANTIC_CLASSES = 13;
+#define SYNTHIA_NUM_SEMANTIC_CLASSES 13
 
 SynthiaDataset::SynthiaDataset()
     : AbstractDataset(SYNTHIA_NUM_SEMANTIC_CLASSES) {
@@ -32,8 +32,8 @@ SynthiaDataset::SynthiaDataset()
   << semantic_entities_.size();
 }
 
-cv::Mat SynthiaDataset::preprocessSemanticImage(
-    const sensor_msgs::ImageConstPtr& msg) const {
+cv::Mat SynthiaDataset::convertSemanticImage(
+    const sensor_msgs::ImageConstPtr& msg) const{
 
   const int msg_size = msg->data.size();
   const int step_size = msg->step;
@@ -80,5 +80,7 @@ cv::Mat SynthiaDataset::preprocessSemanticImage(
   return labelImage;
 
 }
+
+#undef SYNTHIA_NUM_SEMANTIC_CLASSES
 
 }

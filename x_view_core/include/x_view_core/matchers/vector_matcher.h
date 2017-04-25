@@ -2,7 +2,7 @@
 #define X_VIEW_VECTOR_MATCHER_H
 
 #include <x_view_core/x_view_types.h>
-#include <x_view_core/matchers/abstrac_matcher.h>
+#include <x_view_core/matchers/abstract_matcher.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -33,10 +33,8 @@ class VectorMatcher : public AbstractMatcher {
 
   };
 
-  virtual void addLandmark(const SemanticLandmarkPtr& landmark);
-
-  virtual void match(const SemanticLandmarkPtr& queryLandmark,
-                     MatchingResultPtr& matchingResult);
+  virtual MatchingResultPtr match(const SemanticLandmarkPtr& queryLandmark)
+  override;
 
   static LandmarksMatcherPtr create();
 
