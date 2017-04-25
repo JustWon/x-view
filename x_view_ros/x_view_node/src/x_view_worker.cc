@@ -106,6 +106,6 @@ void XViewWorker::tfTransformToSE3(const tf::StampedTransform& tf_transform,
       tf_transform.getRotation().getX(),
       tf_transform.getRotation().getY(),
       tf_transform.getRotation().getZ());
-  *pose = x_view::SE3(pos, rot);
+  *pose = x_view::SE3(pos, rot.normalized());
 }
 }
