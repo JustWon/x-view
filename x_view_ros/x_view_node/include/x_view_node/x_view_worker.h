@@ -1,6 +1,8 @@
 #ifndef X_VIEW_WORKER_H_
 #define X_VIEW_WORKER_H_
 
+#include <tf/transform_listener.h>
+
 #include <x_view_core/x_view.h>
 #include <x_view_core/datasets/abstract_dataset.h>
 
@@ -17,6 +19,9 @@ class XViewWorker {
   struct XViewWorkerParams {
     std::string dataset_name;
     std::string semantics_image_topic;
+
+    std::string world_frame;
+    std::string sensor_frame;
     x_view::XViewParams x_view_params;
   }; // struct XViewWorkerParams
 
@@ -34,11 +39,16 @@ class XViewWorker {
   /// \brief Get ROS parameters.
   void getParameters();
 
+  void tfTransformToSE3(const tf::StampedTransform& tf_transform, x_view::SE3* pose);
+
   // Node handle.
   ros::NodeHandle& nh_;
 
   // Subscribers.
   ros::Subscriber semantics_image_sub_;
+
+  // Transform communication.
+  tf::TransformListener tf_listener_;
 
   // Parameters.
   XViewWorkerParams params_;

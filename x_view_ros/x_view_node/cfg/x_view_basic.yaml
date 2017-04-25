@@ -9,5 +9,7 @@ XView: {
 
 XViewWorker: {
   dataset: "SYNTHIA",
-  semantics_image_topic: "/Stereo_Left/Omni_B/labels"
+  semantics_image_topic: "/Stereo_Left/Omni_B/labels",
+  sensor_frame: "cam02",
+  world_frame: "world"
 }
