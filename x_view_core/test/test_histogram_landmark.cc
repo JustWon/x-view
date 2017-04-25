@@ -9,6 +9,7 @@
 #include <gtest/gtest.h>
 
 #include <x_view_core/x_view_types.h>
+#include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/features/vector_descriptor.h>
 #include <x_view_core/landmarks/histogram_landmark.h>
 
@@ -47,6 +48,13 @@ std::vector<std::pair<int, double>>& expected) {
 }
 
 TEST(XViewSlamTestSuite, histogramLandmark) {
+
+  // Initialize a fake dataset having num_semantic_classes classes
+  const int num_semantic_classes = 2;
+  globalDatasetPtr =
+      std::make_shared<const AbstractDataset>
+          (AbstractDataset(num_semantic_classes));
+
   // create various images
   const int ROWS = 50;
   const int COLS = 30;

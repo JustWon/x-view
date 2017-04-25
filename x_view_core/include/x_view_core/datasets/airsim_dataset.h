@@ -18,7 +18,7 @@ class AirsimDataset : public AbstractDataset {
 
   virtual ~AirsimDataset() {}
 
-  virtual const std::string datasetName() const {
+  virtual const std::string datasetName() const override {
     return std::string("Airsim Dataset");
   }
 };

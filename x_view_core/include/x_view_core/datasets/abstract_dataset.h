@@ -35,10 +35,12 @@ class AbstractDataset {
   virtual ~AbstractDataset() {}
 
   /**
-   * \brief Pure virtual function used to avoid an instantiation of this class
+   * \brief Dataset name
    * \return Human readable name description of dataset
    */
-  virtual const std::string datasetName() const = 0;
+  virtual const std::string datasetName() const {
+    return std::string("Abstract Dataset");
+  };
 
   ///\brief Generates a human readable descripion of the database, t is the
   /// standard indentation to be used between new lines of the generated string
