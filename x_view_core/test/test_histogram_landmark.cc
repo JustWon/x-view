@@ -40,7 +40,7 @@ std::vector<std::pair<int, double>>& expected) {
 
   auto vec = toVec(hist);
 
-  for(int condition = 0; condition < expected.size(); ++condition) {
+  for (int condition = 0; condition < expected.size(); ++condition) {
     const int binIndex = expected[condition].first;
     const double expectedPercentage = expected[condition].second;
     CHECK_DOUBLE_EQ(vec[binIndex], expectedPercentage);
@@ -97,4 +97,3 @@ TEST(XViewSlamTestSuite, histogramLandmark) {
   performLabelTest(hLandmark, hExpected);
 
 }
-

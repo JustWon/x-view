@@ -72,7 +72,7 @@ void GraphLandmark::findBlobs(
         cv::Mat localImage = label_image;
         cv::floodFill(localImage, cv::Point(x, y), currentLabelId,
                       &rect, 0, 0, 4);
-        
+
         // blob built around the pixel
         std::vector<cv::Point> blob;
 
