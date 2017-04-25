@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(x_view_core)
 
-add_definitions(-std=c++11)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 find_package(catkin_simple 0.1.0 REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
@@ -10,19 +10,29 @@ catkin_simple(ALL_DEPS_REQUIRED)
 cs_add_library(${PROJECT_NAME}
         src/x_view.cc
 
+        # Datasets
+        src/datasets/abstract_dataset.cc
+        src/datasets/synthia_dataset.cc
+        src/datasets/airsim_dataset.cc
+
+        # Descriptors
+        src/features/abstract_descriptor.cc
+        src/features/vector_descriptor.cc
+        src/features/visual_descriptor.cc
+
         # Landmarks
         src/landmarks/abstract_semantic_landmark.cc
         src/landmarks/semantic_landmark_factory.cc
 
         # Landmarks defined thorugh classical visual features
-        src/landmarks/visual_feature_landmark.cc
+        src/landmarks/visual_descriptor_landmark.cc
 
         # Landmarks defined with use of histograms
         src/landmarks/histogram_landmark.cc
 
 
         # Features matchers
-        src/matchers/vector_features_matcher.cc
+        src/matchers/vector_matcher.cc
         )
 
 # Link to opencv library (needed because of 'nonfree' module which is not
@@ -35,6 +45,8 @@ target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES})
 catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_main.cc
         test/test_empty.cc
+        test/test_histogram_landmark.cc
+        test/test_graph.cc
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )
 

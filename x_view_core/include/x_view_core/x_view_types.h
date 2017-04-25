@@ -10,8 +10,17 @@ namespace x_view {
 
 // forward declaration
 class AbstractDataset;
+class AbstractDescriptor;
 class AbstractSemanticLandmark;
-class AbstractLandmarksMatcher;
+class AbstractMatcher;
+
+/// Different types of feature representation used in XView
+enum FeatureType {
+  UNDEFINED_FEATURE_TYPE = -1,
+  VECTOR_FEATURE,
+  GRAPH_FEATURE,
+  NUM_FEATURE_TYPES
+};
 
 /// Different types of semantic landmarks to be used in XView
 enum SemanticLandmarkType {
@@ -26,10 +35,9 @@ enum SemanticLandmarkType {
 /// Different types of landmarks matchers to be used in XView
 enum LandmarksMatcherType {
   UNDEFINED_LANDMARKS_MATCHER_TYPE = -1,
-  VECTOR_FEATURES_MATCHER,
+  VECTOR_MATCHER,
   NUM_LANDMARKS_MATCHER_TYPES
 };
-
 
 // typedefs
 /// factor graph used for graph optimization
@@ -40,16 +48,24 @@ typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 
 /// pointer to dataset object
 typedef std::shared_ptr<AbstractDataset> DatasetPtr;
+
 typedef std::shared_ptr<const AbstractDataset> ConstDatasetPrt;
+
+/// pointer to feature
+typedef std::shared_ptr<AbstractDescriptor> DescriptorPtr;
+
+typedef std::shared_ptr<const AbstractDescriptor> ConstDescriptorPtr;
 
 /// pointer to semantic landmark
 typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;
+
 typedef std::shared_ptr<const AbstractSemanticLandmark>
     ConstSemanticLandmarkPtr;
 
 /// pointer to landmark matchers
-typedef std::shared_ptr<AbstractLandmarksMatcher> LandmarksMatcherPtr;
-typedef std::shared_ptr<const AbstractLandmarksMatcher>
+typedef std::shared_ptr<AbstractMatcher> LandmarksMatcherPtr;
+
+typedef std::shared_ptr<const AbstractMatcher>
     ConstLandmarksMatcherPtr;
 
 }

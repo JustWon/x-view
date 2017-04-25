@@ -5,8 +5,6 @@
 
 #include <glog/logging.h>
 
-#define AIRSIM_NUM_SEMANTIC_CLASSES 0
-
 namespace x_view {
 
 /**
@@ -16,16 +14,13 @@ namespace x_view {
 class AirsimDataset : public AbstractDataset {
 
  public:
-  AirsimDataset() : AbstractDataset(AIRSIM_NUM_SEMANTIC_CLASSES) {
-    CHECK(false) << "AirsimDataset not implemented yet";
-  }
+  AirsimDataset();
 
-  virtual ~AirsimDataset(){}
+  virtual ~AirsimDataset() {}
 
   virtual const std::string datasetName() const {
     return std::string("Airsim Dataset");
   }
-
 };
 
 }

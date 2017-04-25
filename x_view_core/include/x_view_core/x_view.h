@@ -5,7 +5,7 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/semantic_landmark_factory.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
-#include <x_view_core/matchers/abstrac_landmarks_matcher.h>
+#include <x_view_core/matchers/abstract_matcher.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -30,6 +30,12 @@ struct XViewParams {
   std::string landmark_matching_type_;
 };
 
+/**
+ * \brief The XView class is responsible for performing semantic SLAM
+ * \details The class operates on abstract types through pointers. This
+ * allows XView to be functional with different types of features/landmarks
+ * with no need to change the existing code
+ */
 class XView {
 
  public:
@@ -45,67 +51,93 @@ class XView {
   ~XView();
 
   /**
-   * \brief Parses the elements contained into the parameters and initializes
-   * all class members accordingly
-   */
-  void parseParameters();
-
-  /**
-   * \brief x_view processes new landmark associated to image and pose
+   * \brief x_view processes new landmark associated to a semantic image and
+   * a robot's pose
    * \param image semantic image representing landmark
    * \param pose robot's pose
    */
-  void process(const cv::Mat& image, const SE3& pose);
+  void processSemanticImage(const cv::Mat& image, const SE3& pose);
+
+ private:
+  // Prints XView info
+  void printInfo() const;
+
+  // Set the parameters.
+  void setParameters(const XViewParams& params) { params_ = params; }
+
+  /**
+   * \brief Parses the elements contained into the parameters and initializes
+   * all members with a specific instance of the corresponding abstract
+   * classes based on the parameters
+   */
+  void parseParameters();
+
+  /// \brief parses the XViewParams and sets the dataset being used
+  void parseDatasetType();
+  /// \brief parses the XViewParams and sets the landmark type being used
+  void parseLandmarkType();
+  /// \brief parses the XViewParams and sets the matcher type being used
+  void parseMatcherType();
+
+
+  //=======================================================================//
+  //        FUNCTIONS CALLED BY 'processSemanticImage' FUNCTION            //
+  //=======================================================================//
 
   /**
    * \brief Extract semantic descriptor from semantics image.
    * \param image image containing semantic segmentation
    * \param pose current pose of the robot
-   * \param semantics_out representation of semantic entities, either a BoS, or a more complex representation
+   * \param semantics_out generated landmark
+   * \details depending on the XView parameters passed to the class
+   * constructor, the dynamic type of the object pointed by semantics_out
+   * will be different.
    */
   void extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
                                  SemanticLandmarkPtr& semantics_out);
 
   /// \brief Match semantics instance to database and return score.
   void matchSemantics(const SemanticLandmarkPtr& semantics_a,
-                      Eigen::MatrixXd& matches);
+                      AbstractMatcher::MatchingResultPtr& matchingResult);
 
   /// \brief Filter matches, e.g., geometric verification etc.
   void filterMatches(const SemanticLandmarkPtr& semantics_a,
-                     Eigen::MatrixXd& matches);
+                     AbstractMatcher::MatchingResultPtr& matchingResult);
 
   /// \brief Merge semantics instance into database according to matches.
   void mergeSemantics(const SemanticLandmarkPtr& semantics_a,
-                      const Eigen::MatrixXd& matches);
+                      AbstractMatcher::MatchingResultPtr& matchingResult);
 
   /// \brief Clean database by doing full semantics matching.
   void cleanDatabase();
 
-  // TODO: Add further functions.
 
- private:
-  // Set the parameters.
-  void setParameters(const XViewParams& params) { params_ = params; }
+  //=======================================================================//
+  //                        CLASS MEMBER VARIABLES                         //
+  //=======================================================================//
 
-  // TODO: Add further setters / getters where necessary.
-
-  // dataset information
+  /// \brief dataset information
   ConstDatasetPrt dataset_;
 
-  // semantic landmark properties and factory
+  /// \brief semantic landmark type being used by XView
   SemanticLandmarkType semantic_landmark_type_;
+  /// \brief semantic landmark factory which generates instances of semantic
+  /// landmarks
   SemanticLandmarkFactory semantic_landmark_factory_;
 
-  // semantic landmark matcher
+  /// \brief semantic matcher type used by XView
   LandmarksMatcherType landmarks_matcher_type_;
+  /// \brief semantic landmark matcher computes a matching between a new
+  /// semantic landmark and the ones previously added to it
   LandmarksMatcherPtr descriptor_matcher_;
 
-  // Parameters.
+  /// \brief XView parameters passed to the constructor
   XViewParams params_;
 
-  // Semantics database.
+  /// \brief vector of semantic landmarks pointers visited by XView
   std::vector<SemanticLandmarkPtr> semantics_db_;
+
 }; // XView
 
 }
-#endif /* X_VIEW_X_VIEW_H_ */
+#endif //X_VIEW_X_VIEW_H_

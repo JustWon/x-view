@@ -1,9 +1,6 @@
 XView: {
-  semantics: {
-   dataset: "SYNTHIA"
-  },
   landmarks: {
-    type: "SURF"
+    type: "HISTOGRAM"
   },
   matcher: {
     type: "VECTOR"
@@ -11,5 +8,6 @@ XView: {
 }
 
 XViewWorker: {
-  semantics_image_topic: "/Stereo_Left/Omni_B/labels_image"
+  dataset: "SYNTHIA",
+  semantics_image_topic: "/Stereo_Left/Omni_B/labels"
 }
