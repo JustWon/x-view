@@ -67,10 +67,11 @@ cv::Mat SynthiaDataset::convertSemanticImage(
       CHECK(idx < msg_size) << "Computed index is larger or equal to message "
           "size";
 
-      // loop over the three channels
+      // loop over the three channels and extract the semantic classes
       cv::Vec3b values;
       for (int c = 0; c < 3; ++c) {
-        values[2 - c] = (uchar) (toInt(idx + 2 * c));
+        values[2 - c] = (uchar) std::max(0, std::min((uchar) (toInt(idx + 2 * c)),
+                                                     (uchar) numSemanticClasses())-1);
       }
       labelImage.at<cv::Vec3b>(cv::Point(j, i)) = values;
     }

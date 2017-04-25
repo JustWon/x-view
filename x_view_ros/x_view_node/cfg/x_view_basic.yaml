@@ -1,6 +1,6 @@
 XView: {
   landmarks: {
-    type: "HISTOGRAM"
+    type: "GRAPH"
   },
   matcher: {
     type: "VECTOR"
