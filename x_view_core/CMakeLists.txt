@@ -35,11 +35,6 @@ cs_add_library(${PROJECT_NAME}
         src/matchers/vector_matcher.cc
         )
 
-# Link to opencv library (needed because of 'nonfree' module which is not
-# contained in the standard ros-libraries)
-find_package( OpenCV REQUIRED )
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES})
-
 
 # X-View tests
 catkin_add_gtest(${PROJECT_NAME}_tests
