@@ -49,36 +49,33 @@ class Graph {
   typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
                                 VertexProperty, EdgeProperty> GraphType;
 
+  /// \brief Access to vertices stored in the graph
   typedef boost::graph_traits<GraphType>::vertex_descriptor VertexDescriptor;
+  /// \brief Access to edges stored in the graph
   typedef boost::graph_traits<GraphType>::edge_descriptor EdgeDescriptor;
 
-  Graph() {}
+  /// \brief returns the number of vertices stored in the graph.
+  int numVertices() const;
 
-  int numVertices() const {
-    return int(boost::num_vertices(graph_));
-  }
+  /**
+   * \brief prints the vertices (with vertex parameters) in a human readable
+   * way to the stream passed as argument
+   * \param out stream to be used to print the vertices
+   */
+  void printVertices(std::ostream& out = std::cout) const;
 
-  void printVertices() const {
-    auto iterators = boost::vertices(graph_);
-    for (auto it = iterators.first; it != iterators.second; ++it) {
-      auto vertex = graph_[*it];
-      std::cout << vertex.vertexInfo() << std::endl;
-    }
-  }
+  /**
+   * \brief prints the edges (with edge parameters) in a human readable way
+   * to the stream passed as argument.
+   * \param out stream to be used to print the vertices
+   */
+  void printEdges(std::ostream& out = std::cout) const;
 
-  void printEdges() const {
-    auto iterators = boost::edges(graph_);
-    for (auto it = iterators.first; it != iterators.second; ++it) {
-      auto edge = graph_[*it];
-      std::cout << edge.edgeInfo() << std::endl;
-    }
-  }
-
-  void print(std::ostream& out = std::cout) const {
-    out << "\n-- graphviz output START --" << std::endl;
-    boost::write_graphviz(out, graph_);
-    out << "\n-- graphviz output END --" << std::endl;
-  }
+  /**
+   * \brief prints the graph structure/topology to the stream passed as argument
+   * \param out stream to be used to print the vertices
+   */
+  void print(std::ostream& out = std::cout) const;
 
   const GraphType& graph() const {
     return graph_;

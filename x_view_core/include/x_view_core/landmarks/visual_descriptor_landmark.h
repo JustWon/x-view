@@ -13,7 +13,7 @@ namespace x_view {
  * \brief A VisualDescriptorLandmark is a landmark containing descriptors
  * typically extracted in classic computer vision algorithms such as SIFT, ORB etc.
  * This is an abstract class (interface) implemented by all landmarks based
- * on classical visual descriptors
+ * on classical visual descriptors.
  */
 class VisualDescriptorLandmark : public AbstractSemanticLandmark {
 

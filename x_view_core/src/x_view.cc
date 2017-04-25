@@ -1,10 +1,11 @@
 #include <x_view_core/x_view.h>
 #include <x_view_core/features/visual_descriptor.h>
 #include <x_view_core/landmarks/visual_descriptor_landmark.h>
+#include <x_view_core/landmarks/histogram_landmark.h>
+#include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/matchers/vector_matcher.h>
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/datasets/airsim_dataset.h>
-#include <x_view_core/landmarks/histogram_landmark.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -97,6 +98,10 @@ void XView::parseLandmarkType() {
     semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_HISTOGRAM;
     semantic_landmark_factory_.setCreatorFunction
         (HistogramLandmark::create);
+  } else if(params_.semantic_landmark_type_.compare("GRAPH") == 0) {
+    semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_GRAPH;
+    semantic_landmark_factory_.setCreatorFunction
+        (GraphLandmark::create);
   } else {
     CHECK(false) << "Unrecognized landmark type <" << params_
         .semantic_landmark_type_ << ">" << std::endl;

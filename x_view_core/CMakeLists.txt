@@ -19,16 +19,17 @@ cs_add_library(${PROJECT_NAME}
         src/features/abstract_descriptor.cc
         src/features/vector_descriptor.cc
         src/features/visual_descriptor.cc
+        src/features/graph_descriptor.cc
+        src/features/graph.cc
 
         # Landmarks
         src/landmarks/abstract_semantic_landmark.cc
         src/landmarks/semantic_landmark_factory.cc
-
-        # Landmarks defined thorugh classical visual features
         src/landmarks/visual_descriptor_landmark.cc
-
-        # Landmarks defined with use of histograms
         src/landmarks/histogram_landmark.cc
+        src/landmarks/graph_landmark.cc
+
+
 
 
         # Features matchers
