@@ -25,13 +25,13 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   // third dimension: 'blobs[i][j].size()' = number of pixels of 'j'-th
   // instance of class 'i'
   std::vector<std::vector<std::vector<cv::Point>>> blobs;
-  std::cout << "Ready to call blobs" << std::endl;
+  std::cout << "Ready to find blopbs" << std::endl;
   findBlobs(blobs);
-  std::cout << "Blobs computed" << std::endl;
+  std::cout << "Exited from finding blobs" << std::endl;
 
   for (int c = 0; c < blobs.size(); ++c) {
-    std::cout << "Class " << globalDatasetPtr->label(c) << " has "
-              << blobs[c].size() << " instances " << std::endl;
+    std::cout << "Class " << c << " has "  << blobs[c].size() << " instances " << std::endl;
+
     for (int i = 0; i < blobs[c].size(); ++i) {
       std::cout << "Instance " << i << " has " << blobs[c][i].size()
                 << " pixels" << std::endl;
@@ -65,32 +65,27 @@ void GraphLandmark::findBlobs(
   for (int y = 0; y < label_image.rows; y++) {
     for (int x = 0; x < label_image.cols; x++) {
       if (alreadyTaken.find(cv::Point(x, y)) == alreadyTaken.end()) {
-        std::cout << "Traversing pixel " << cv::Point(x, y) << std::endl;
         // current ID of pixel
-        const int currentLabelId = label_image.at<int>(cv::Point(x, y));
+        const int currentLabelId =
+            static_cast<int>(label_image.at<uchar>(cv::Point(x, y)));
         cv::Rect rect;
-        cv::Mat localImage = label_image;
-        cv::floodFill(localImage, cv::Point(x, y), currentLabelId,
+        cv::Mat localImage = label_image.clone();
+        cv::floodFill(localImage, cv::Point(x, y), 255,
                       &rect, 0, 0, 4);
 
         // blob built around the pixel
         std::vector<cv::Point> blob;
 
-        std::cout << "Rect: " << rect.x << ", " << rect.y
-                  << "; " << rect.width << ", "
-                      "" << rect.height << std::endl;
-
-        for (int i = rect.y; i < (rect.y + rect.height); i++) {
-          int* row2 = (int*) label_image.ptr(i);
-          for (int j = rect.x; j < (rect.x + rect.width); j++) {
-            if (row2[j] == currentLabelId) {
-              cv::Point pixel(j, i);
+        for (int i = rect.y; i < (rect.y + rect.height); ++i) {
+          for (int j = rect.x; j < (rect.x + rect.width); ++j) {
+            cv::Point pixel(j, i);
+            if (static_cast<int>(label_image.at<uchar>(pixel)) == currentLabelId) {
               blob.push_back(pixel);
               alreadyTaken.insert(pixel);
+            } else {
             }
           }
         }
-        std::cout << "Found a blob of size " << blob.size() << std::endl;
         blobs[currentLabelId].push_back(blob);
       }
     }
