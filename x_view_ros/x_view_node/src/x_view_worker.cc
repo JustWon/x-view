@@ -47,6 +47,7 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
         << " and " << params_.sensor_frame);
   }
   x_view::SE3 pose;
+  tf_transform.getRotation().normalize();
   tfTransformToSE3(tf_transform, &pose);
   x_view_.processSemanticImage(image, pose);
 }
