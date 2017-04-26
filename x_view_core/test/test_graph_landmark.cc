@@ -8,6 +8,8 @@
 #include <opencv2/core/core.hpp>
 #include <highgui.h>
 
+#include <chrono>
+
 using namespace x_view;
 
 typedef std::shared_ptr<GraphLandmark> GraphLandmarkPtr;
@@ -35,29 +37,56 @@ void countPixelLabelsInImage(const cv::Mat& image,
 void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
                     const std::string& imageName);
 
+/**
+ * \brief Checks if the number of instances per class found by the
+ * graphLandmarkPrt object is the same as the expected one
+ * \param graphLandmarkPtr pointer to the graphLandmark
+ * \param expectedInstanceCount expected number of instances per class, such
+ * that 'expectedInstanceCount[i]' contains the number of expected instances
+ * for class 'i'
+ * \param imageName logging image name
+ */
 void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
-                       const std::vector<int>& instanceCount,
+                       const std::vector<int>& expectedInstanceCount,
                        const std::string& imageName);
 
+/**
+ * \brief Creates a custom image of size 'desiredRows' x 'desiredCols'
+ * \param desiredRows desired number of rows
+ * \param desiredCols desired number of cols
+ * \param image generated image
+ */
 void createCustomImage(const int desiredRows, const int desiredCols,
                        cv::Mat& image);
 
+/**
+ * \brief Creates a chessboard-like image of approximate size 'desiredRows' x
+ * 'desiredCols' with a block size of 'block_size'. The generated image
+ * represents a sets of blocks in the following order:
+ * 0, 1, 2, 3, ... , N-1, 0, 1, 2, 3, ..., N-1, ...., N-1
+ * 1, 2, 3, 4, ... , 0, 1, 2, 3, 4, ...
+ * ...
+ * where 'N' is equal to 'globalDatasetPtr->numSemanticClasses()'.
+ * For this reason the final image size might not be exactly the same as the
+ * one passed as parameter
+ * \param desiredRows desired number of rows
+ * \param desiredCols desired number of cols
+ * \param block_size size of the chessboard block
+ * \param image generated image
+ */
 void createChessBoardImage(const int desiredRows, const int desiredCols,
                            const int block_size, cv::Mat& image);
 
+/// \brief test the custom image
 void testCustomImage();
+/// \brief test the chessboard image
 void testChessboardImage();
-
-#define PRINT_LINE std::cout << "at line: " << __LINE__ << std::endl;
 
 TEST(XViewSlamTestSuite, test_graphLandmark) {
 
   // test different images
-  PRINT_LINE
   testCustomImage();
-  PRINT_LINE
   testChessboardImage();
-  PRINT_LINE
 }
 
 void testCustomImage() {
@@ -67,81 +96,100 @@ void testCustomImage() {
       std::make_shared<const AbstractDataset>
           (AbstractDataset(num_semantic_classes));
 
-  const int rows = 500;
-  const int cols = 700;
+  std::vector<int> sizes = {100, 200, 333, 800, 1500};
+  for (auto size : sizes) {
+    std::cout << "Testing customImage for size " << size << " ... ";
+    const int rows = size;
+    const int cols = static_cast<int>(size * 1.5);
 
-  cv::Mat customImage;
-  PRINT_LINE
-  createCustomImage(rows, cols, customImage);
-  PRINT_LINE
-  GraphLandmarkPtr customImageLandmarkPtr =
-      CAST(GraphLandmark::create(customImage, SE3()), GraphLandmark);
-  PRINT_LINE
-  testPixelCount(customImageLandmarkPtr, "customImage");
-  PRINT_LINE
-  testInstanceCount(customImageLandmarkPtr, {1, 1, 1, 1}, "customImage");
-  PRINT_LINE
+    cv::Mat customImage;
+    createCustomImage(rows, cols, customImage);
+    auto t1 = std::chrono::high_resolution_clock::now();
+    GraphLandmarkPtr customImageLandmarkPtr =
+        CAST(GraphLandmark::create(customImage, SE3()), GraphLandmark);
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto timespan =
+        std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+
+    testPixelCount(customImageLandmarkPtr, "customImage");
+    testInstanceCount(customImageLandmarkPtr, {1, 1, 1, 1}, "customImage");
+    std::cout << " completed in " << timespan.count() << " s. !" << std::endl;
+  }
 }
 void testChessboardImage() {
   // Initialize a fake dataset having num_semantic_classes classes
-  int num_semantic_classes = 3;
-  globalDatasetPtr =
-      std::make_shared<const AbstractDataset>
-          (AbstractDataset(num_semantic_classes));
+  std::vector<int> classes = {2, 3, 5, 15};
+  for (auto numClasses : classes) {
+    int num_semantic_classes = numClasses;
+    globalDatasetPtr =
+        std::make_shared<const AbstractDataset>
+            (AbstractDataset(num_semantic_classes));
 
-  const int rows = 600;
-  const int cols = 1200;
-  const int block_size = 40;
+    std::vector<int> sizes = {100, 200, 333, 800};
+    for (auto size : sizes) {
+      const int rows = size;
+      const int cols = static_cast<int>(size * 1.5);
 
-  cv::Mat chessboard;
-  PRINT_LINE
-  createChessBoardImage(rows, cols, block_size, chessboard);
-  PRINT_LINE
+      std::vector<int> block_sizes = {20, 21, 40};
+      for (auto block_size : block_sizes) {
 
-  GraphLandmarkPtr chessImageLandmarkPtr =
-      CAST(GraphLandmark::create(chessboard, SE3()), GraphLandmark);
-  PRINT_LINE
-  testPixelCount(chessImageLandmarkPtr, "chessboardImage");
-  PRINT_LINE
+        std::cout << "Testing chessboardImage for " << num_semantic_classes
+                  << " semantic classes, size " << size << " and block size "
+                  << block_size << " ... ";
 
-  auto computeInstanceCount = [&](std::vector<int>& instanceCount) -> void {
+        cv::Mat chessboard;
+        createChessBoardImage(rows, cols, block_size, chessboard);
 
-    // compute the new number of cols and rows
-    auto nearestMultipleOf = [](const int multiple, const int val) -> int {
-      return multiple * ((int) ((float) val / multiple));
-    };
+        auto t1 = std::chrono::high_resolution_clock::now();
+        GraphLandmarkPtr chessImageLandmarkPtr =
+            CAST(GraphLandmark::create(chessboard, SE3()), GraphLandmark);
+        auto t2 = std::chrono::high_resolution_clock::now();
+        auto timespan =
+            std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+        testPixelCount(chessImageLandmarkPtr, "chessboardImage");
 
-    const int newRows = rows / block_size * block_size;
-    const int newCols =
-        nearestMultipleOf(globalDatasetPtr->numSemanticClasses(),
-                          cols / block_size) * block_size;
+        auto computeInstanceCount =
+            [&](std::vector<int>& instanceCount) -> void {
 
-    // compute number of 'chess' blocks
-    const int nBlocksRows = newRows / block_size;
-    const int nBlocksCols = newCols / block_size;
-    const int nBlocks = nBlocksRows * nBlocksCols;
+              // compute the new number of cols and rows
+              auto nearestMultipleOf =
+                  [](const int multiple, const int val) -> int {
+                    return multiple * ((int) ((float) val / multiple));
+                  };
 
-    // assign the instance count by looping through the blocks
-    instanceCount.resize(globalDatasetPtr->numSemanticClasses());
-    int currentLabelIndex = 0;
-    for (int block = 0; block < nBlocks; ++block) {
-      instanceCount[currentLabelIndex]++;
-      currentLabelIndex = (currentLabelIndex + 1)
-          % globalDatasetPtr->numSemanticClasses();
+              const int newRows = rows / block_size * block_size;
+              const int newCols =
+                  nearestMultipleOf(globalDatasetPtr->numSemanticClasses(),
+                                    cols / block_size) * block_size;
+
+              // compute number of 'chess' blocks
+              const int nBlocksRows = newRows / block_size;
+              const int nBlocksCols = newCols / block_size;
+              const int nBlocks = nBlocksRows * nBlocksCols;
+
+              // assign the instance count by looping through the blocks
+              instanceCount.resize(globalDatasetPtr->numSemanticClasses());
+              int currentLabelIndex = 0;
+              for (int block = 0; block < nBlocks; ++block) {
+                instanceCount[currentLabelIndex]++;
+                currentLabelIndex = (currentLabelIndex + 1)
+                    % globalDatasetPtr->numSemanticClasses();
+              }
+            };
+
+        std::vector<int> instanceCount;
+        computeInstanceCount(instanceCount);
+
+        testInstanceCount(chessImageLandmarkPtr,
+                          instanceCount,
+                          "chessBoardImage");
+
+        std::cout << " completed in " << timespan.count()
+                  << " s. !" << std::endl;
+
+      }
     }
-
-    for(int i = 0; i < instanceCount.size(); ++i) {
-      std::cout << "Number of instances for class " << i << " is: " <<
-                                                                    instanceCount[i] << std::endl;
-    }
-  };
-
-  PRINT_LINE
-  std::vector<int> instanceCount;
-  computeInstanceCount(instanceCount);
-  PRINT_LINE
-  testInstanceCount(chessImageLandmarkPtr, instanceCount, "chessBoardImage");
-  PRINT_LINE
+  }
 }
 
 void countPixelLabelsInImage(const cv::Mat& image,
