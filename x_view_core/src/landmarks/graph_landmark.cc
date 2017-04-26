@@ -9,35 +9,12 @@ namespace x_view {
 GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
 
-  std::cout << "Called GraphLandmark constructor " << std::endl;
-
   // Graph descriptor filled up by this function
   Graph descriptor;
   auto& graph = descriptor.graph();
 
-  std::cout << "Here" << std::endl;
-
   // perform the image segmentation on the first channel of the image
-
-  // outer dimension: 'blobs.size()' = dataset size
-  // second dimension: 'blobs[i].size()' = number of disconnected instances of
-  // class 'i'
-  // third dimension: 'blobs[i][j].size()' = number of pixels of 'j'-th
-  // instance of class 'i'
-  std::vector<std::vector<std::vector<cv::Point>>> blobs;
-  std::cout << "Ready to find blopbs" << std::endl;
-  findBlobs(blobs);
-  std::cout << "Exited from finding blobs" << std::endl;
-
-  for (int c = 0; c < blobs.size(); ++c) {
-    std::cout << "Class " << c << " has "  << blobs[c].size() << " instances " << std::endl;
-
-    for (int i = 0; i < blobs[c].size(); ++i) {
-      std::cout << "Instance " << i << " has " << blobs[c][i].size()
-                << " pixels" << std::endl;
-    }
-  }
-
+  findBlobs();
 
   // create the descriptor stored in this landmark by generating a
   // VectorDescriptor containing the histogram data
@@ -45,11 +22,10 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
 
 }
 
-void GraphLandmark::findBlobs(
-    std::vector<std::vector<std::vector<cv::Point>>>& blobs) const {
+void GraphLandmark::findBlobs() {
 
   const int dataset_size = globalDatasetPtr->numSemanticClasses();
-  blobs.resize(dataset_size);
+  image_blobs_.resize(dataset_size);
 
   // "channels" is a vector of 3 Mat arrays:
   std::vector<cv::Mat> channels(3);
@@ -69,9 +45,10 @@ void GraphLandmark::findBlobs(
         const int currentLabelId =
             static_cast<int>(label_image.at<uchar>(cv::Point(x, y)));
         cv::Rect rect;
-        cv::Mat localImage = label_image.clone();
-        cv::floodFill(localImage, cv::Point(x, y), 255,
-                      &rect, 0, 0, 4);
+        cv::Mat mask =
+            cv::Mat::zeros(label_image.rows + 2, label_image.cols + 2, CV_8U);
+        cv::floodFill(label_image, mask, cv::Point(x, y), 255,
+                      &rect, 0, 0, 4 + (255 << 8) + cv::FLOODFILL_MASK_ONLY);
 
         // blob built around the pixel
         std::vector<cv::Point> blob;
@@ -79,16 +56,29 @@ void GraphLandmark::findBlobs(
         for (int i = rect.y; i < (rect.y + rect.height); ++i) {
           for (int j = rect.x; j < (rect.x + rect.width); ++j) {
             cv::Point pixel(j, i);
-            if (static_cast<int>(label_image.at<uchar>(pixel)) == currentLabelId) {
+            if (static_cast<int>(label_image.at<uchar>(pixel))
+                == currentLabelId) {
               blob.push_back(pixel);
               alreadyTaken.insert(pixel);
             } else {
             }
           }
         }
-        blobs[currentLabelId].push_back(blob);
+        image_blobs_[currentLabelId].push_back(blob);
       }
     }
+  }
+}
+
+void GraphLandmark::printBlobs(std::ostream& out) const {
+  for (int c = 0; c < image_blobs_.size(); ++c) {
+    out << "Found " << image_blobs_[c].size()
+        << " instances of class " << c << ":" << std::endl;
+    for (int i = 0; i < image_blobs_[c].size(); ++i) {
+      out << "\tInstance " << i << " composed by " << image_blobs_[c][i].size()
+          << " pixels." << std::endl;
+    }
+    out << std::endl;
   }
 }
 }
