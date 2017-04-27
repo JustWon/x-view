@@ -139,13 +139,6 @@ void testDiscImage() {
     GraphLandmarkPtr discImageLandmarkPtr =
         CAST(GraphLandmark::create(discImage, SE3()), GraphLandmark);
 
-    // show the generated blobs
-    cv::Mat showImage = discImageLandmarkPtr->getImageFromBlobs();
-
-    discImageLandmarkPtr->printBlobs();
-    cv::imshow("Disc image with centers", showImage);
-    cv::waitKey();
-
     testDuplicatePixels(discImageLandmarkPtr, image_name);
     testPixelCount(discImageLandmarkPtr, image_name);
 

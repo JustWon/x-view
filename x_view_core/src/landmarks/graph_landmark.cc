@@ -1,5 +1,4 @@
 #include <x_view_core/landmarks/graph_landmark.h>
-#include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/features/graph_descriptor.h>
 
 #include <opencv2/imgproc/imgproc.hpp>
@@ -8,6 +7,10 @@
 #include <bitset>
 
 namespace x_view {
+
+// FIXME: should this parameter be read by the config file?
+int GraphLandmark::MINIMUM_BLOB_SIZE = 40;
+
 GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
 
@@ -17,10 +20,6 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
 
   // perform image segmentation on the first channel of the image
   findBlobs();
-  printBlobs();
-
-  cv::imshow("Semantic labels", getImageFromBlobs());
-  cv::waitKey();
 
   // create the descriptor stored in this landmark by generating a
   // VectorDescriptor containing the histogram data
@@ -36,7 +35,7 @@ void GraphLandmark::findBlobs() {
   // "channels" is a vector of 3 Mat arrays:
   std::vector<cv::Mat> channels(3);
   cv::split(semantic_image_, channels);
-  const cv::Mat label_image = channels[0];
+  cv::Mat label_image = channels[0];
 
   auto PointComp = [](const cv::Point& p1, const cv::Point& p2) -> bool {
     return std::tie(p1.x, p1.y) < std::tie(p2.x, p2.y);
@@ -81,8 +80,10 @@ void GraphLandmark::findBlobs() {
             }
           }
         }
-        image_blobs_[seed_pixel_label].push_back(
-            Blob(seed_pixel_label, blob_around_seed_pixel));
+        // we are only interested in large blobs!
+        if (blob_around_seed_pixel.size() > MINIMUM_BLOB_SIZE)
+          image_blobs_[seed_pixel_label].push_back(
+              Blob(seed_pixel_label, blob_around_seed_pixel));
       }
     }
   }
@@ -101,36 +102,50 @@ void GraphLandmark::printBlobs(std::ostream& out) const {
   }
 }
 
-const cv::Mat GraphLandmark::getImageFromBlobs() const {
+const cv::Mat GraphLandmark::getImageFromBlobs(
+    const std::vector<int>& labels_to_render) const {
   cv::Mat resImage(semantic_image_.rows, semantic_image_.cols,
                    CV_8UC3, cv::Scalar::all(0));
 
   // Draw the blobs onto the image
   for (int l = 0; l < image_blobs_.size(); ++l) {
-    for (int i = 0; i < image_blobs_[l].size(); ++i) {
-      for (auto p : image_blobs_[l][i].pixels_) {
-        const int semantic_label = image_blobs_[l][i].semantic_label_;
-        const uchar intensity =
-            static_cast<uchar>(255 / (semantic_label / 8 + 1));
+    // only add the blob if the label has not to be ignored, thus if it can
+    // not be found in the passed parameter
+    if (std::find(labels_to_render.begin(), labels_to_render.end(), l) !=
+        std::end(labels_to_render))
+      for (int i = 0; i < image_blobs_[l].size(); ++i) {
+        for (auto p : image_blobs_[l][i].pixels_) {
+          const int semantic_label = l;
+          const uchar intensity =
+              static_cast<uchar>(255 / (semantic_label / 8 + 1));
 
-        std::bitset<3> bits(semantic_label);
-        resImage.at<cv::Vec3b>(p)[0] = bits[0] ? intensity : (uchar) 0;
-        resImage.at<cv::Vec3b>(p)[1] = bits[1] ? intensity : (uchar) 0;
-        resImage.at<cv::Vec3b>(p)[2] = bits[2] ? intensity : (uchar) 0;
+          std::bitset<3> bits(semantic_label);
+          resImage.at<cv::Vec3b>(p)[0] = bits[0] ? intensity : (uchar) 0;
+          resImage.at<cv::Vec3b>(p)[1] = bits[1] ? intensity : (uchar) 0;
+          resImage.at<cv::Vec3b>(p)[2] = bits[2] ? intensity : (uchar) 0;
+        }
+
       }
-
-    }
   }
 
   // Draw the labels and the blobs centers
-  const cv::Scalar centerColor = cv::Scalar(255, 130, 100);
-  const cv::Scalar fontColor = cv::Scalar(40, 255, 155);
-  for (int c = 0; c < image_blobs_.size(); ++c)
-    for (auto const& b : image_blobs_[c]) {
-      cv::circle(resImage, b.center_, 5, centerColor, -1, 8, 0);
-      cv::putText(resImage, std::to_string(b.semantic_label_), b.center_,
-                  cv::FONT_HERSHEY_SIMPLEX, 0.8, fontColor, 3, CV_AA);
-    }
+  const int circle_radius = 5;
+  const int line_thickness = -1;
+  const cv::Scalar center_color = cv::Scalar(255, 130, 100);
+  const cv::Scalar font_color = cv::Scalar(255, 255, 255);
+  for (int l = 0; l < image_blobs_.size(); ++l) {
+    // only add the blob if the label has not to be ignored, thus if it can
+    // not be found in the passed parameter
+    if (std::find(labels_to_render.begin(), labels_to_render.end(), l) !=
+        std::end(labels_to_render))
+      for (auto const& b : image_blobs_[l]) {
+        cv::circle(resImage, b.center_, circle_radius,
+                   center_color, line_thickness);
+        cv::putText(resImage, globalDatasetPtr->label(b.semantic_label_),
+                    b.center_, cv::FONT_HERSHEY_DUPLEX, 0.85, font_color,
+                    1, CV_AA);
+      }
+  }
 
   return resImage;
 }

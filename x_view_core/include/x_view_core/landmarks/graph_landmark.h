@@ -3,6 +3,7 @@
 
 #include <x_view_core/x_view_types.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
+#include <x_view_core/datasets/abstract_dataset.h>
 
 #include <vector>
 
@@ -15,8 +16,12 @@ class GraphLandmark : public AbstractSemanticLandmark {
 
  public:
   static SemanticLandmarkPtr create(const cv::Mat& image, const SE3& pose) {
-    return std::make_shared<GraphLandmark>(GraphLandmark(image, pose));
+    return std::make_shared<GraphLandmark>(
+        GraphLandmark(image, pose));
   }
+
+  /// \brief a blob containign less pixel than 'MINIMUM_BLOB_SIZE' is ignored
+  static int MINIMUM_BLOB_SIZE;
 
   /**
    * \brief A Blob contains all pixels belonging to a connected component
@@ -61,7 +66,15 @@ class GraphLandmark : public AbstractSemanticLandmark {
     return image_blobs_;
   }
 
-  const cv::Mat getImageFromBlobs() const;
+  /**
+   * \brief Generates a color image of the landmark representation
+   * \param ignoreLabels vector containing index of labels to be ignored
+   * during image generation
+   * \return generated image
+   */
+  const cv::Mat getImageFromBlobs(
+      const std::vector<int>& ignoreLabels =
+      globalDatasetPtr->getLabelsToRender()) const;
 
   /**
    * \brief Prints the blob structure to the stream passed as argument

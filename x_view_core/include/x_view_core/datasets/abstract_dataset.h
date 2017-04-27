@@ -23,12 +23,20 @@ class AbstractDataset {
    * an ID ranging from 0 to num_semantic_classes_-1
    */
   struct SemanticEntity {
-    SemanticEntity() : semantic_entity_name_(""), semantic_entity_id_(-1) {}
-    SemanticEntity(const std::string& name, const int id) :
-        semantic_entity_name_(name), semantic_entity_id_(id) {}
+    SemanticEntity() {}
+    SemanticEntity(const std::string& name, const int id,
+                   const bool is_static = true,
+                   const bool is_to_render = true)
+        : semantic_entity_name_(name),
+          semantic_entity_id_(id),
+          is_static_(is_static),
+          is_to_render_(is_to_render) {}
 
     std::string semantic_entity_name_;
     int semantic_entity_id_;
+    bool is_static_;
+    bool is_to_render_;
+
   };
 
   AbstractDataset(const int num_semantic_classes);
@@ -68,11 +76,15 @@ class AbstractDataset {
   virtual cv::Mat convertSemanticImage(const sensor_msgs::ImageConstPtr&
   msg) const;
 
+  /// \brief Since some class labels are too general (e.g. SYNTHIA::MISC),
+  /// this function returns a vector of labels that are not, thus labels that
+  /// one might want to render
+  virtual const std::vector<int> getLabelsToRender() const;
+
  protected:
   const int num_semantic_classes_;
   std::vector<SemanticEntity> semantic_entities_;
 };
-
 
 /// \brief dataset accessible from everywhere in the x_view project
 extern ConstDatasetPrt globalDatasetPtr;

@@ -12,6 +12,9 @@
 #include "test_graph_landmark_impl.h"
 
 TEST(XViewSlamTestSuite, test_graphLandmark) {
+  // set the minimum blob size to zero because for testing we don't want to
+  // ignore any generated blob
+  GraphLandmark::MINIMUM_BLOB_SIZE = 0;
 
   // test different images
   testCustomImage();

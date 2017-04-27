@@ -9,7 +9,13 @@ namespace enc = sensor_msgs::image_encodings;
 namespace x_view {
 
 AbstractDataset::AbstractDataset(const int num_semantic_classes)
-    : num_semantic_classes_(num_semantic_classes) {}
+    : num_semantic_classes_(num_semantic_classes) {
+  // create simple semantic entities
+  for(int i = 0; i< num_semantic_classes_; ++i) {
+    // Default semantic entities, all static and all to render
+    semantic_entities_.push_back(SemanticEntity(std::to_string(i), i));
+  }
+}
 
 const std::string AbstractDataset::datasetInfo(const std::string& t) const {
   std::string description = t + datasetName() + ":\n";
@@ -36,6 +42,16 @@ cv::Mat AbstractDataset::convertSemanticImage(
                          << "' to '" << enc::BGR8 << "'"
                          << "\nError: " << e.what());
   }
+}
+
+const std::vector<int> AbstractDataset::getLabelsToRender() const {
+  std::vector<int> labels_to_render;
+  labels_to_render.reserve(num_semantic_classes_);
+  for(auto const& c : semantic_entities_)
+    if(c.is_to_render_)
+      labels_to_render.push_back(c.semantic_entity_id_);
+
+  return labels_to_render;
 }
 
 }
