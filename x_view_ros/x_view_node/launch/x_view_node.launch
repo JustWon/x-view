@@ -8,7 +8,6 @@
   <rosparam command="load" file="$(arg x_view_configuration_file)"/>
   	
   <!-- X_View node -->
-  <node name="x_view" pkg="x_view_node" type="x_view" output="screen"
-  respawn="false"/>
+  <node name="x_view" pkg="x_view_node" type="x_view" output="screen" respawn="true"/>
 
 </launch>

@@ -44,7 +44,7 @@ VectorMatcher::match(const SemanticLandmarkPtr& queryLandmark) {
 }
 
 LandmarksMatcherPtr VectorMatcher::create() {
-  return std::make_shared<VectorMatcher>(VectorMatcher());
+  return std::make_shared<VectorMatcher>();
 }
 
 }

@@ -3,6 +3,9 @@
 #include <x_view_core/features/graph_descriptor.h>
 
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
+#include <bitset>
 
 namespace x_view {
 GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
@@ -12,8 +15,12 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   Graph descriptor;
   auto& graph = descriptor.graph();
 
-  // perform the image segmentation on the first channel of the image
+  // perform image segmentation on the first channel of the image
   findBlobs();
+  printBlobs();
+
+  cv::imshow("Semantic labels", getImageFromBlobs());
+  cv::waitKey();
 
   // create the descriptor stored in this landmark by generating a
   // VectorDescriptor containing the histogram data
@@ -74,7 +81,8 @@ void GraphLandmark::findBlobs() {
             }
           }
         }
-        image_blobs_[seed_pixel_label].push_back(blob_around_seed_pixel);
+        image_blobs_[seed_pixel_label].push_back(
+            Blob(seed_pixel_label, blob_around_seed_pixel));
       }
     }
   }
@@ -85,8 +93,9 @@ void GraphLandmark::printBlobs(std::ostream& out) const {
     out << "Found " << image_blobs_[c].size()
         << " instances of class " << c << ":" << std::endl;
     for (int i = 0; i < image_blobs_[c].size(); ++i) {
-      out << "\tInstance " << i << " composed by " << image_blobs_[c][i].size()
-          << " pixels." << std::endl;
+      out << "\tInstance " << i << " composed by "
+          << image_blobs_[c][i].pixels_.size() << " pixels with mean pixel "
+          << image_blobs_[c][i].center_ << std::endl;
     }
     out << std::endl;
   }
@@ -94,16 +103,37 @@ void GraphLandmark::printBlobs(std::ostream& out) const {
 
 const cv::Mat GraphLandmark::getImageFromBlobs() const {
   cv::Mat resImage(semantic_image_.rows, semantic_image_.cols,
-                   CV_8UC1, cv::Scalar::all(0));
+                   CV_8UC3, cv::Scalar::all(0));
+
+  // Draw the blobs onto the image
   for (int l = 0; l < image_blobs_.size(); ++l) {
     for (int i = 0; i < image_blobs_[l].size(); ++i) {
-      for (auto p : image_blobs_[l][i])
-        resImage.at<uchar>(p) =
-            static_cast<uchar>( l *
-                (255. / (globalDatasetPtr->numSemanticClasses() - 1)));
+      for (auto p : image_blobs_[l][i].pixels_) {
+        const int semantic_label = image_blobs_[l][i].semantic_label_;
+        const uchar intensity =
+            static_cast<uchar>(255 / (semantic_label / 8 + 1));
+
+        std::bitset<3> bits(semantic_label);
+        resImage.at<cv::Vec3b>(p)[0] = bits[0] ? intensity : (uchar) 0;
+        resImage.at<cv::Vec3b>(p)[1] = bits[1] ? intensity : (uchar) 0;
+        resImage.at<cv::Vec3b>(p)[2] = bits[2] ? intensity : (uchar) 0;
+      }
+
     }
   }
+
+  // Draw the labels and the blobs centers
+  const cv::Scalar centerColor = cv::Scalar(255, 130, 100);
+  const cv::Scalar fontColor = cv::Scalar(40, 255, 155);
+  for (int c = 0; c < image_blobs_.size(); ++c)
+    for (auto const& b : image_blobs_[c]) {
+      cv::circle(resImage, b.center_, 5, centerColor, -1, 8, 0);
+      cv::putText(resImage, std::to_string(b.semantic_label_), b.center_,
+                  cv::FONT_HERSHEY_SIMPLEX, 0.8, fontColor, 3, CV_AA);
+    }
+
   return resImage;
 }
+
 }
 

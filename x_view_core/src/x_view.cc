@@ -4,6 +4,7 @@
 #include <x_view_core/landmarks/histogram_landmark.h>
 #include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/matchers/vector_matcher.h>
+#include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/datasets/airsim_dataset.h>
 
@@ -98,13 +99,13 @@ void XView::parseLandmarkType() {
     semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_HISTOGRAM;
     semantic_landmark_factory_.setCreatorFunction
         (HistogramLandmark::create);
-  } else if(params_.semantic_landmark_type_.compare("GRAPH") == 0) {
+  } else if (params_.semantic_landmark_type_.compare("GRAPH") == 0) {
     semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_GRAPH;
     semantic_landmark_factory_.setCreatorFunction
         (GraphLandmark::create);
   } else {
-    CHECK(false) << "Unrecognized landmark type <" << params_
-        .semantic_landmark_type_ << ">" << std::endl;
+    CHECK(false) << "Unrecognized landmark type <"
+                 << params_.semantic_landmark_type_ << ">" << std::endl;
   }
 
 }
@@ -113,9 +114,12 @@ void XView::parseMatcherType() {
   if (params_.landmark_matching_type_.compare("VECTOR") == 0) {
     landmarks_matcher_type_ = LandmarksMatcherType::VECTOR_MATCHER;
     descriptor_matcher_ = VectorMatcher::create();
+  } else if (params_.landmark_matching_type_.compare("GRAPH") == 0) {
+    landmarks_matcher_type_ = LandmarksMatcherType::GRAPH_MATCHER;
+    descriptor_matcher_ = GraphMatcher::create();
   } else {
-    CHECK(false) << "Unrecognized matcher type <" << params_
-        .landmark_matching_type_ << ">" << std::endl;
+    CHECK(false) << "Unrecognized matcher type <"
+                 << params_.landmark_matching_type_ << ">" << std::endl;
   }
 }
 

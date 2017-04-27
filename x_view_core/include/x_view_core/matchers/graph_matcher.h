@@ -13,16 +13,17 @@ class GraphMatcher : public AbstractMatcher {
 
  public:
 
-  GraphMatcher() {}
-  virtual ~GraphMatcher() {}
+  GraphMatcher();
+  virtual ~GraphMatcher();
 
   class GraphMatchingResult : public AbstractMatchingResult {
 
   };
 
-  virtual MatchingResultPtr match(const SemanticLandmarkPtr& queryLandmark) override {
-    return std::make_shared<GraphMatchingResult>();
-  }
+  virtual MatchingResultPtr match(const SemanticLandmarkPtr& queryLandmark)
+  override;
+
+  static LandmarksMatcherPtr create();
 };
 
 }

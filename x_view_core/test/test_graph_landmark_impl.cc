@@ -1,3 +1,4 @@
+#include <highgui.h>
 #include "test_graph_landmark_impl.h"
 
 #define CV_IMAGE_TYPE  CV_8UC3
@@ -108,16 +109,15 @@ void testChessboardImage() {
 void testDiscImage() {
 
   const std::string image_name = "disc image\n";
+  // random number generator to generate discs
+  cv::RNG rng(2);
 
   std::vector<int> classes = {2, 3, 5, 15};
-
   boost::progress_display show_progress(classes.size(), std::cout, image_name);
   for (auto numClasses : classes) {
     globalDatasetPtr =
         std::make_shared<const AbstractDataset>
             (AbstractDataset(numClasses));
-
-    cv::RNG rng;
 
     const int rows = 500;
     const int cols = static_cast<int>(500 * 1.5);
@@ -125,20 +125,26 @@ void testDiscImage() {
     const int num_circles = 15;
 
     cv::Mat discImage;
-    std::vector<cv::Point> centers;
+    std::vector <cv::Point> centers;
     std::vector<int> radii, labels;
 
     for (int i = 0; i < num_circles; ++i) {
       centers.push_back(cv::Point(rng.uniform(0, cols), rng.uniform(0, rows)));
-      radii.push_back(std::max(5, rng.uniform(diag / 40, diag / 10)));
+      radii.push_back(std::max(15, rng.uniform(diag / 40, diag / 10)));
       labels.push_back(rng.uniform(1, numClasses));
     }
 
     createDiscImage(rows, cols, centers, radii, labels, discImage);
-    cv::Mat showImage = discImage * 255. / (numClasses - 1);
 
     GraphLandmarkPtr discImageLandmarkPtr =
         CAST(GraphLandmark::create(discImage, SE3()), GraphLandmark);
+
+    // show the generated blobs
+    cv::Mat showImage = discImageLandmarkPtr->getImageFromBlobs();
+
+    discImageLandmarkPtr->printBlobs();
+    cv::imshow("Disc image with centers", showImage);
+    cv::waitKey();
 
     testDuplicatePixels(discImageLandmarkPtr, image_name);
     testPixelCount(discImageLandmarkPtr, image_name);
@@ -173,7 +179,7 @@ void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
     int instancePixelCount = 0;
     auto const& instanceBlobs = graphLandmarkPtr->getBlobs()[i];
     for (int j = 0; j < instanceBlobs.size(); ++j)
-      instancePixelCount += instanceBlobs[j].size();
+      instancePixelCount += instanceBlobs[j].pixels_.size();
     CHECK_EQ(expectedPixelCount[i], instancePixelCount)
         << "In image " << imageName << ", class instance " << i
         << " should have " << expectedPixelCount[i] << " pixels, but has "
@@ -188,7 +194,8 @@ void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
   for (int i = 0; i < expectedInstanceCount.size(); ++i) {
     CHECK_EQ(expectedInstanceCount[i], blobs[i].size())
         << "In image " << imageName << ", class " << i << " should have "
-        << expectedInstanceCount[i] << " instances, but has " << blobs[i].size();
+        << expectedInstanceCount[i] << " instances, but has "
+        << blobs[i].size();
   }
 }
 
@@ -204,7 +211,7 @@ void testDuplicatePixels(const GraphLandmarkPtr& graphLadmarkPtr,
   auto const& blobs = graphLadmarkPtr->getBlobs();
   for (int c = 0; c < blobs.size(); ++c) {
     for (int i = 0; i < blobs[c].size(); ++i) {
-      for (auto p : blobs[c][i]) {
+      for (auto p : blobs[c][i].pixels_) {
         const int linearIndex = toLinearIndex(p);
         if (pixelIndexSet.find(linearIndex) == pixelIndexSet.end())
           pixelIndexSet.insert(linearIndex);
@@ -255,18 +262,18 @@ void createChessBoardImage(const int desiredRows, const int desiredCols,
 
   unsigned char color = 0;
   for (int i = 0; i < newRows; i = i + block_size) {
-    color = (uchar) ((color + 1) % globalDatasetPtr->numSemanticClasses());
+    color = (uchar)((color + 1) % globalDatasetPtr->numSemanticClasses());
     for (int j = 0; j < newCols; j = j + block_size) {
       cv::Mat ROI = image(cv::Rect(j, i, block_size, block_size));
       ROI.setTo(cv::Scalar(color, 0, 0));
       color =
-          (uchar) (((int) color + 1) % globalDatasetPtr->numSemanticClasses());
+          (uchar)(((int) color + 1) % globalDatasetPtr->numSemanticClasses());
     }
   }
 }
 
 void createDiscImage(const int desiredRows, const int desiredCols,
-                     const std::vector<cv::Point>& centers,
+                     const std::vector <cv::Point>& centers,
                      const std::vector<int> radii,
                      const std::vector<int> labels, cv::Mat& image) {
 

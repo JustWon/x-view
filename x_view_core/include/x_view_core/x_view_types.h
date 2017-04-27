@@ -37,6 +37,7 @@ enum SemanticLandmarkType {
 enum LandmarksMatcherType {
   UNDEFINED_LANDMARKS_MATCHER_TYPE = -1,
   VECTOR_MATCHER,
+  GRAPH_MATCHER,
   NUM_LANDMARKS_MATCHER_TYPES
 };
 

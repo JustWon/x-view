@@ -33,21 +33,21 @@ SynthiaDataset::SynthiaDataset()
 }
 
 cv::Mat SynthiaDataset::convertSemanticImage(
-    const sensor_msgs::ImageConstPtr& msg) const{
+    const sensor_msgs::ImageConstPtr& msg) const {
 
   const int msg_size = msg->data.size();
   const int step_size = msg->step;
 
-  CHECK(!bool(msg->is_bigendian)) << "Message must be little endian";
+  CHECK(!bool(msg->is_bigendian)) << "Message passed to SynthiaDataset must be "
+      "little endian";
 
   const int cols = msg->width;
   const int rows = msg->height;
 
   // Utility function to convert two consecutive bytes into a 16bits unsigned
   // int value. This function assumes little endiannes of the system
-  auto toInt = [&](int index) -> unsigned char {
-    unsigned char s = ((msg->data[index + 1] << 8) | msg->data[index]);
-    return s;
+  auto toInt = [&](int index) -> int {
+    return static_cast<int>((msg->data[index + 1] << 8) | msg->data[index]);
   };
 
   // new image used as container for semantic labels and instances.
@@ -70,8 +70,9 @@ cv::Mat SynthiaDataset::convertSemanticImage(
       // loop over the three channels and extract the semantic classes
       cv::Vec3b values;
       for (int c = 0; c < 3; ++c) {
-        values[2 - c] = (uchar) std::max(0, std::min((uchar) (toInt(idx + 2 * c)),
-                                                     (uchar) numSemanticClasses())-1);
+        values[2 - c] = (uchar) (
+            std::max(0, std::min(
+                toInt(idx + 2 * c), numSemanticClasses() - 1)));
       }
       labelImage.at<cv::Vec3b>(cv::Point(j, i)) = values;
     }

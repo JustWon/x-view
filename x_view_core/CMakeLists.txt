@@ -29,11 +29,9 @@ cs_add_library(${PROJECT_NAME}
         src/landmarks/histogram_landmark.cc
         src/landmarks/graph_landmark.cc
 
-
-
-
         # Features matchers
         src/matchers/vector_matcher.cc
+        src/matchers/graph_matcher.cc
         )
 
 

@@ -3,7 +3,7 @@ XView: {
     type: "GRAPH"
   },
   matcher: {
-    type: "VECTOR"
+    type: "GRAPH"
   }
 }
 
