@@ -9,12 +9,17 @@ HistogramLandmark::HistogramLandmark(const cv::Mat& image, const SE3& pose)
   const int dataset_size = globalDatasetPtr->numSemanticClasses();
   std::vector<int> histogram_count(dataset_size, 0);
 
+  // "channels" is a vector of 3 Mat arrays:
+  std::vector<cv::Mat> channels(3);
+  cv::split(semantic_image_, channels);
+  const cv::Mat label_image = channels[0];
+
   // iterate through the semantic image and determine how many pixels vote
   // for each semantic class by inspecting the first channel of each pixel
-  for (int i = 0; i < image.rows; ++i) {
-    for (int j = 0; j < image.cols; ++j) {
+  for (int i = 0; i < semantic_image_.rows; ++i) {
+    for (int j = 0; j < semantic_image_.cols; ++j) {
       // get the label associated to this pixel
-      int label = image.at<cv::Vec3b>(cv::Point(j, i)).val[0];
+      int label = static_cast<int>(label_image.at<uchar>(cv::Point(j, i)));
       if (label < dataset_size && label >= 0)
         ++histogram_count[label];
     }
@@ -33,7 +38,8 @@ HistogramLandmark::HistogramLandmark(const cv::Mat& image, const SE3& pose)
 
   // create the descriptor stored in this landmark by generating a
   // VectorDescriptor containing the histogram data
-  descriptor_ = std::make_shared<VectorDescriptor>(VectorDescriptor(descriptor));
+  descriptor_ =
+      std::make_shared<VectorDescriptor>(VectorDescriptor(descriptor));
 
 }
 }

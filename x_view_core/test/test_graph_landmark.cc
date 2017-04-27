@@ -6,9 +6,8 @@
 #include <x_view_core/landmarks/graph_landmark.h>
 
 #include <opencv2/core/core.hpp>
-#include <highgui.h>
 
-#include <chrono>
+#include <boost/progress.hpp>
 
 using namespace x_view;
 
@@ -50,6 +49,9 @@ void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
                        const std::vector<int>& expectedInstanceCount,
                        const std::string& imageName);
 
+void testDuplicatePixels(const GraphLandmarkPtr& graphLadmarkPtr,
+                         const std::string& imageName);
+
 /**
  * \brief Creates a custom image of size 'desiredRows' x 'desiredCols'
  * \param desiredRows desired number of rows
@@ -77,19 +79,30 @@ void createCustomImage(const int desiredRows, const int desiredCols,
 void createChessBoardImage(const int desiredRows, const int desiredCols,
                            const int block_size, cv::Mat& image);
 
+void createDiscImage(const int desiredRows, const int desiredCols,
+                     const std::vector<cv::Point>& centers,
+                     const std::vector<int> radii,
+                     const std::vector<int> labels, cv::Mat& image);
+
 /// \brief test the custom image
 void testCustomImage();
 /// \brief test the chessboard image
 void testChessboardImage();
+/// \brief test the disc image
+void testDiscImage();
 
 TEST(XViewSlamTestSuite, test_graphLandmark) {
 
   // test different images
   testCustomImage();
   testChessboardImage();
+  testDiscImage();
 }
 
 void testCustomImage() {
+
+  const std::string image_name = "custom image\n";
+
   // Initialize a fake dataset having num_semantic_classes classes
   int num_semantic_classes = 4;
   globalDatasetPtr =
@@ -97,56 +110,53 @@ void testCustomImage() {
           (AbstractDataset(num_semantic_classes));
 
   std::vector<int> sizes = {100, 200, 333, 800, 1500};
+  boost::progress_display show_progress(sizes.size(), std::cout, image_name);
   for (auto size : sizes) {
-    std::cout << "Testing customImage for size " << size << " ... ";
     const int rows = size;
     const int cols = static_cast<int>(size * 1.5);
 
     cv::Mat customImage;
     createCustomImage(rows, cols, customImage);
-    auto t1 = std::chrono::high_resolution_clock::now();
     GraphLandmarkPtr customImageLandmarkPtr =
         CAST(GraphLandmark::create(customImage, SE3()), GraphLandmark);
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto timespan =
-        std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 
-    testPixelCount(customImageLandmarkPtr, "customImage");
-    testInstanceCount(customImageLandmarkPtr, {1, 1, 1, 1}, "customImage");
-    std::cout << " completed in " << timespan.count() << " s. !" << std::endl;
+    testDuplicatePixels(customImageLandmarkPtr, image_name);
+    testPixelCount(customImageLandmarkPtr, image_name);
+    testInstanceCount(customImageLandmarkPtr, {1, 1, 1, 1}, image_name);
+
+    ++show_progress;
   }
 }
 void testChessboardImage() {
-  // Initialize a fake dataset having num_semantic_classes classes
+
+  const std::string image_name = "chessboard image\n";
+
   std::vector<int> classes = {2, 3, 5, 15};
+  std::vector<int> sizes = {100, 200, 333, 800};
+  std::vector<int> block_sizes = {20, 21, 40};
+
+  boost::progress_display show_progress(classes.size() * sizes.size() *
+      block_sizes.size(), std::cout, image_name);
   for (auto numClasses : classes) {
     int num_semantic_classes = numClasses;
     globalDatasetPtr =
         std::make_shared<const AbstractDataset>
             (AbstractDataset(num_semantic_classes));
 
-    std::vector<int> sizes = {100, 200, 333, 800};
     for (auto size : sizes) {
       const int rows = size;
       const int cols = static_cast<int>(size * 1.5);
 
-      std::vector<int> block_sizes = {20, 21, 40};
       for (auto block_size : block_sizes) {
-
-        std::cout << "Testing chessboardImage for " << num_semantic_classes
-                  << " semantic classes, size " << size << " and block size "
-                  << block_size << " ... ";
 
         cv::Mat chessboard;
         createChessBoardImage(rows, cols, block_size, chessboard);
 
-        auto t1 = std::chrono::high_resolution_clock::now();
         GraphLandmarkPtr chessImageLandmarkPtr =
             CAST(GraphLandmark::create(chessboard, SE3()), GraphLandmark);
-        auto t2 = std::chrono::high_resolution_clock::now();
-        auto timespan =
-            std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-        testPixelCount(chessImageLandmarkPtr, "chessboardImage");
+
+        testDuplicatePixels(chessImageLandmarkPtr, image_name);
+        testPixelCount(chessImageLandmarkPtr, image_name);
 
         auto computeInstanceCount =
             [&](std::vector<int>& instanceCount) -> void {
@@ -182,14 +192,56 @@ void testChessboardImage() {
 
         testInstanceCount(chessImageLandmarkPtr,
                           instanceCount,
-                          "chessBoardImage");
+                          image_name);
 
-        std::cout << " completed in " << timespan.count()
-                  << " s. !" << std::endl;
-
+        ++show_progress;
       }
     }
   }
+}
+
+void testDiscImage() {
+
+  const std::string image_name = "disc image\n";
+
+  std::vector<int> classes = {2, 3, 5, 15};
+
+  boost::progress_display show_progress(classes.size(), std::cout, image_name);
+  for (auto numClasses : classes) {
+    globalDatasetPtr =
+        std::make_shared<const AbstractDataset>
+            (AbstractDataset(numClasses));
+
+    cv::RNG rng;
+
+    const int rows = 500;
+    const int cols = static_cast<int>(500 * 1.5);
+    const int diag = static_cast<int>(std::sqrt(rows * rows + cols * cols));
+    const int num_circles = 15;
+
+    cv::Mat discImage;
+    std::vector<cv::Point> centers;
+    std::vector<int> radii, labels;
+
+    for (int i = 0; i < num_circles; ++i) {
+      centers.push_back(cv::Point(rng.uniform(0, cols), rng.uniform(0, rows)));
+      radii.push_back(std::max(5, rng.uniform(diag / 40, diag / 10)));
+      labels.push_back(rng.uniform(1, numClasses));
+    }
+
+    createDiscImage(rows, cols, centers, radii, labels, discImage);
+    cv::Mat showImage = discImage * 255. / (numClasses - 1);
+
+    GraphLandmarkPtr discImageLandmarkPtr =
+        CAST(GraphLandmark::create(discImage, SE3()), GraphLandmark);
+
+    testDuplicatePixels(discImageLandmarkPtr, image_name);
+    testPixelCount(discImageLandmarkPtr, image_name);
+
+    ++show_progress;
+
+  }
+
 }
 
 void countPixelLabelsInImage(const cv::Mat& image,
@@ -232,6 +284,30 @@ void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
     CHECK_EQ(expectedInstanceCount[i], blobs[i].size())
       << "In image " << imageName << ", class " << i << " should have "
       << expectedInstanceCount[i] << " instances, but has " << blobs[i].size();
+  }
+}
+
+void testDuplicatePixels(const GraphLandmarkPtr& graphLadmarkPtr,
+                         const std::string& imageName) {
+  std::set<int> pixelIndexSet;
+  const cv::Mat& semantic_image = graphLadmarkPtr->getSemanticImage();
+
+  auto toLinearIndex = [&](const cv::Point& point) -> int {
+    return point.x + semantic_image.cols * point.y;
+  };
+
+  auto const& blobs = graphLadmarkPtr->getBlobs();
+  for (int c = 0; c < blobs.size(); ++c) {
+    for (int i = 0; i < blobs[c].size(); ++i) {
+      for (auto p : blobs[c][i]) {
+        const int linearIndex = toLinearIndex(p);
+        if (pixelIndexSet.find(linearIndex) == pixelIndexSet.end())
+          pixelIndexSet.insert(linearIndex);
+        else
+          CHECK(false) << "Pixel " << p << " in image " << imageName
+                       << " found twice in blobs";
+      }
+    }
   }
 }
 
@@ -282,5 +358,23 @@ void createChessBoardImage(const int desiredRows, const int desiredCols,
           (uchar) (((int) color + 1) % globalDatasetPtr->numSemanticClasses());
     }
   }
+}
+
+void createDiscImage(const int desiredRows, const int desiredCols,
+                     const std::vector<cv::Point>& centers,
+                     const std::vector<int> radii,
+                     const std::vector<int> labels, cv::Mat& image) {
+
+  image.create(desiredRows, desiredCols, CV_IMAGE_TYPE);
+  for (int i = 0; i < desiredRows; ++i) {
+    for (int j = 0; j < desiredCols; ++j) {
+      image.at<cv::Vec3b>(i, j)[0] = (uchar) 0;
+    }
+  }
+
+  for (int c = 0; c < centers.size(); ++c)
+    cv::circle(image, centers[c], radii[c], cv::Scalar(labels[c], 0, 0),
+               -1, 8, 0);
+
 }
 

@@ -3,7 +3,6 @@
 #include <x_view_core/features/graph_descriptor.h>
 
 #include <opencv2/imgproc/imgproc.hpp>
-#include <highgui.h>
 
 namespace x_view {
 GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
@@ -36,35 +35,46 @@ void GraphLandmark::findBlobs() {
     return std::tie(p1.x, p1.y) < std::tie(p2.x, p2.y);
   };
 
-  std::set<cv::Point, decltype(PointComp)> alreadyTaken(PointComp);
+  // this container contains all pixels that have already been inserted into a
+  // blob, it is used to avoid counting the same pixel multiple times
+  std::set<cv::Point, decltype(PointComp)> pixels_in_blob(PointComp);
+
+  // variable used for the flood algorithm
+  cv::Mat flood_mask =
+      cv::Mat::zeros(label_image.rows + 2, label_image.cols + 2, CV_8U);
+
+  // helper function to get the label associated to a pixel
+  auto getPixelLabel = [&](const cv::Point& pixel) -> int {
+    return static_cast<int>(label_image.at<uchar>(pixel));
+  };
 
   for (int y = 0; y < label_image.rows; y++) {
     for (int x = 0; x < label_image.cols; x++) {
-      if (alreadyTaken.find(cv::Point(x, y)) == alreadyTaken.end()) {
-        // current ID of pixel
-        const int currentLabelId =
-            static_cast<int>(label_image.at<uchar>(cv::Point(x, y)));
+      if (pixels_in_blob.find(cv::Point(x, y)) == pixels_in_blob.end()) {
+        const cv::Point seed_pixel(x, y);
+
+        const int seed_pixel_label = getPixelLabel(seed_pixel);
+
         cv::Rect rect;
-        cv::Mat mask =
-            cv::Mat::zeros(label_image.rows + 2, label_image.cols + 2, CV_8U);
-        cv::floodFill(label_image, mask, cv::Point(x, y), 255,
+        cv::floodFill(label_image, flood_mask, seed_pixel, 255,
                       &rect, 0, 0, 4 + (255 << 8) + cv::FLOODFILL_MASK_ONLY);
 
-        // blob built around the pixel
-        std::vector<cv::Point> blob;
+        // build a blob around the seed pixel
+        std::vector<cv::Point> blob_around_seed_pixel;
 
         for (int i = rect.y; i < (rect.y + rect.height); ++i) {
           for (int j = rect.x; j < (rect.x + rect.width); ++j) {
-            cv::Point pixel(j, i);
-            if (static_cast<int>(label_image.at<uchar>(pixel))
-                == currentLabelId) {
-              blob.push_back(pixel);
-              alreadyTaken.insert(pixel);
+            const cv::Point query_pixel(j, i);
+            if (getPixelLabel(query_pixel) == seed_pixel_label) {
+              bool has_query_pixel_been_inserted_now =
+                  pixels_in_blob.insert(query_pixel).second;
+              if (has_query_pixel_been_inserted_now)
+                blob_around_seed_pixel.push_back(query_pixel);
             } else {
             }
           }
         }
-        image_blobs_[currentLabelId].push_back(blob);
+        image_blobs_[seed_pixel_label].push_back(blob_around_seed_pixel);
       }
     }
   }
@@ -80,6 +90,20 @@ void GraphLandmark::printBlobs(std::ostream& out) const {
     }
     out << std::endl;
   }
+}
+
+const cv::Mat GraphLandmark::getImageFromBlobs() const {
+  cv::Mat resImage(semantic_image_.rows, semantic_image_.cols,
+                   CV_8UC1, cv::Scalar::all(0));
+  for (int l = 0; l < image_blobs_.size(); ++l) {
+    for (int i = 0; i < image_blobs_[l].size(); ++i) {
+      for (auto p : image_blobs_[l][i])
+        resImage.at<uchar>(p) =
+            static_cast<uchar>( l *
+                (255. / (globalDatasetPtr->numSemanticClasses() - 1)));
+    }
+  }
+  return resImage;
 }
 }
 

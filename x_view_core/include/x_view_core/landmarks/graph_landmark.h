@@ -27,6 +27,8 @@ class GraphLandmark : public AbstractSemanticLandmark {
     return image_blobs_;
   }
 
+  const cv::Mat getImageFromBlobs() const;
+
   /**
    * \brief Prints the blob structure to the stream passed as argument
    * \param out stream used to print the blob structure
