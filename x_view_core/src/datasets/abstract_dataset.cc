@@ -11,18 +11,17 @@ namespace x_view {
 AbstractDataset::AbstractDataset(const int num_semantic_classes)
     : num_semantic_classes_(num_semantic_classes) {
   // create simple semantic entities
-  for(int i = 0; i< num_semantic_classes_; ++i) {
+  for (int i = 0; i < num_semantic_classes_; ++i) {
     // Default semantic entities, all static and all to render
     semantic_entities_.push_back(SemanticEntity(std::to_string(i), i));
   }
 }
 
 const std::string AbstractDataset::datasetInfo(const std::string& t) const {
-  std::string description = t + datasetName() + ":\n";
+  std::string description = t + datasetName() + ":";
   for (auto elem : semantic_entities_) {
-    description += t + "\t" + std::to_string(elem.semantic_entity_id_) + ": ";
+    description += t + "\n\t" + std::to_string(elem.semantic_entity_id_) + ": ";
     description += elem.semantic_entity_name_;
-    description += "\n";
   }
   return description;
 }
@@ -47,11 +46,31 @@ cv::Mat AbstractDataset::convertSemanticImage(
 const std::vector<int> AbstractDataset::getLabelsToRender() const {
   std::vector<int> labels_to_render;
   labels_to_render.reserve(num_semantic_classes_);
-  for(auto const& c : semantic_entities_)
-    if(c.is_to_render_)
+  for (auto const& c : semantic_entities_)
+    if (c.is_to_render_)
       labels_to_render.push_back(c.semantic_entity_id_);
 
   return labels_to_render;
+}
+
+const std::vector<int> AbstractDataset::getStaticLabels() const {
+  std::vector<int> static_labels;
+  static_labels.reserve(num_semantic_classes_);
+  for (auto const& c : semantic_entities_)
+    if (c.is_static_)
+      static_labels.push_back(c.semantic_entity_id_);
+
+  return static_labels;
+}
+
+const std::vector<int> AbstractDataset::getDynamicLabels() const {
+  std::vector<int> dynamic_labels;
+  dynamic_labels.reserve(num_semantic_classes_);
+  for (auto const& c : semantic_entities_)
+    if (!c.is_static_)
+      dynamic_labels.push_back(c.semantic_entity_id_);
+
+  return dynamic_labels;
 }
 
 }

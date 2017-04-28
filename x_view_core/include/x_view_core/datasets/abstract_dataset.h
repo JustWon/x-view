@@ -81,6 +81,14 @@ class AbstractDataset {
   /// one might want to render.
   virtual const std::vector<int> getLabelsToRender() const;
 
+  /// \brief returns a vector containing the index of the semantic entities
+  /// being static.
+  virtual const std::vector<int> getStaticLabels() const;
+
+  /// \brief returns a vector containing the index of the semantic entities
+  /// being dynamic.
+  virtual const std::vector<int> getDynamicLabels() const;
+
  protected:
   const int num_semantic_classes_;
   std::vector<SemanticEntity> semantic_entities_;

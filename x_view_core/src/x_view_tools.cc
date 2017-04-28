@@ -1,8 +1,8 @@
-#include <x_view_core/x_view_tools.h>
+#include <vector>
 
 #include <glog/logging.h>
 
-#include <vector>
+#include <x_view_core/x_view_tools.h>
 
 namespace x_view {
 
@@ -15,7 +15,7 @@ int twoBytesToInt(const unsigned char* b) {
 }
 
 cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel) {
-  if(image.channels() == 1)
+  if (image.channels() == 1)
     return image;
 
   CHECK_LT(channel, image.channels()) << "Image has less channels than the "

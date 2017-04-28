@@ -5,7 +5,7 @@
 #include <opencv2/nonfree/features2d.hpp>
 
 #include <x_view_core/x_view_types.h>
-#include <x_view_core/landmarks/abstract_semantic_landmark.h
+#include <x_view_core/landmarks/abstract_semantic_landmark.h>
 
 namespace x_view {
 
@@ -45,6 +45,8 @@ class dName##VisualDescriptorLandmark : public VisualDescriptorLandmark { \
 DECLARE_VISUAL_FEATURE_CLASS(SIFT);
 DECLARE_VISUAL_FEATURE_CLASS(ORB);
 DECLARE_VISUAL_FEATURE_CLASS(SURF);
+
+#undef DECLARE_VISUAL_FEATURE_CLASS
 
 }
 
