@@ -1,20 +1,20 @@
 #ifndef X_VIEW_VECTOR_MATCHER_H
 #define X_VIEW_VECTOR_MATCHER_H
 
-#include <x_view_core/x_view_types.h>
-#include <x_view_core/matchers/abstract_matcher.h>
+#include <vector>
+#include <memory>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
 
-#include <vector>
-#include <memory>
+#include <x_view_core/x_view_types.h>
+#include <x_view_core/matchers/abstract_matcher.h>
 
 namespace x_view {
 
 /**
  * \brief An interface each landmark-matcher based on feature vectors
- * must implement
+ * must implement.
  */
 class VectorMatcher : public AbstractMatcher {
 
@@ -33,7 +33,7 @@ class VectorMatcher : public AbstractMatcher {
 
   };
 
-  virtual MatchingResultPtr match(const SemanticLandmarkPtr& queryLandmark)
+  virtual MatchingResultPtr match(const SemanticLandmarkPtr& query_landmark)
   override;
 
   static LandmarksMatcherPtr create();

@@ -1,8 +1,9 @@
+#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include <x_view_core/landmarks/visual_descriptor_landmark.h>
 #include <x_view_core/features/visual_descriptor.h>
 
-#include <opencv2/features2d/features2d.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
 namespace x_view {
 

@@ -51,7 +51,7 @@ TEST(XViewSlamTestSuite, histogramLandmark) {
 
   // Initialize a fake dataset having num_semantic_classes classes
   const int num_semantic_classes = 2;
-  globalDatasetPtr =
+  global_dataset_ptr =
       std::make_shared<const AbstractDataset>
           (AbstractDataset(num_semantic_classes));
 

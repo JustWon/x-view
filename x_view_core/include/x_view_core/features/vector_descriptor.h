@@ -1,11 +1,11 @@
 #ifndef X_VIEW_VECTOR_DESCRIPTOR_H
 #define X_VIEW_VECTOR_DESCRIPTOR_H
 
-#include <x_view_core/features/abstract_descriptor.h>
+#include <vector>
 
 #include <opencv2/core/core.hpp>
 
-#include <vector>
+#include <x_view_core/features/abstract_descriptor.h>
 
 namespace x_view {
 
@@ -21,14 +21,14 @@ class VectorDescriptor : public AbstractDescriptor {
 
   virtual ~VectorDescriptor();
 
-  ///\brief returns a const reference of the descriptor representation
+  /// \brief Returns a const reference of the descriptor representation.
   const cv::Mat& getDescriptor() const {
     return descriptor_;
   }
 
-  ///\brief returns the dimensionality of the descriptor stored in this object
+  /// \brief Returns the dimensionality of the descriptor stored in this object.
   int descriptorDimension() const;
-  ///\brief returns the number of independent features stored in this object
+  /// \brief Returns the number of independent features stored in this object.
   int numFeatures() const;
 
  protected:

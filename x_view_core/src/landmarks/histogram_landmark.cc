@@ -8,7 +8,7 @@ namespace x_view {
 HistogramLandmark::HistogramLandmark(const cv::Mat& image, const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
 
-  const int dataset_size = globalDatasetPtr->numSemanticClasses();
+  const int dataset_size = global_dataset_ptr->numSemanticClasses();
   std::vector<int> histogram_count(dataset_size, 0);
 
   // we are only interested in the labels of the image, contained in the

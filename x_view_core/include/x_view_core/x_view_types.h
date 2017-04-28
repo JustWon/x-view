@@ -1,10 +1,10 @@
 #ifndef X_VIEW_X_VIEW_TYPES_H
 #define X_VIEW_X_VIEW_TYPES_H
 
+#include <memory>
+
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <kindr/minimal/quat-transformation.h>
-
-#include <memory>
 
 namespace x_view {
 

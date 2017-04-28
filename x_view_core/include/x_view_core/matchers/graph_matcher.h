@@ -7,7 +7,7 @@ namespace x_view {
 
 /**
  * \brief An interface each landmark-matcher based on graph-features
- * must implement
+ * must implement.
  */
 class GraphMatcher : public AbstractMatcher {
 
@@ -20,7 +20,7 @@ class GraphMatcher : public AbstractMatcher {
 
   };
 
-  virtual MatchingResultPtr match(const SemanticLandmarkPtr& queryLandmark)
+  virtual MatchingResultPtr match(const SemanticLandmarkPtr& query_landmark)
   override;
 
   static LandmarksMatcherPtr create();

@@ -1,12 +1,12 @@
-#include <x_view_core/landmarks/graph_landmark.h>
-#include <x_view_core/features/graph_descriptor.h>
-
-#include <x_view_core/x_view_tools.h>
+#include <bitset>
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include <bitset>
+#include <x_view_core/landmarks/graph_landmark.h>
+#include <x_view_core/features/graph_descriptor.h>
+
+#include <x_view_core/x_view_tools.h>
 
 namespace x_view {
 
@@ -92,7 +92,7 @@ const cv::Mat GraphLandmark::getImageFromBlobs(
                    center_color, line_thickness);
 
         std::string label = std::to_string(b.semantic_label_) + ") " +
-            globalDatasetPtr->label(b.semantic_label_);
+            global_dataset_ptr->label(b.semantic_label_);
         cv::putText(resImage, label, b.center_, cv::FONT_HERSHEY_DUPLEX, 0.85,
                     font_color, 1, CV_AA);
       }
@@ -102,10 +102,11 @@ const cv::Mat GraphLandmark::getImageFromBlobs(
 }
 
 const cv::Mat GraphLandmark::getImageFromGraph(
-    const Graph::GraphType& graph, const std::vector<int>& ignoreLabels) const {
+    const Graph::GraphType& graph,
+    const std::vector<int>& labels_to_render) const {
 
   // first get the base image composed by the blobs
-  auto blobImage = getImageFromBlobs(ignoreLabels);
+  auto blobImage = getImageFromBlobs(labels_to_render);
 
   // second, add the edges between the nodes of the graph
   auto edge_iter = boost::edges(graph);
@@ -120,12 +121,13 @@ const cv::Mat GraphLandmark::getImageFromGraph(
     const int from_label = v_from.semantic_label_;
     const int to_label = v_to.semantic_label_;
 
-    // if one of the two nodes belongs to the labels to be ignored, then
-    // don't draw the edge connecting them
-    if (std::find(ignoreLabels.begin(), ignoreLabels.end(), from_label) ==
-        std::end(ignoreLabels) ||
-        std::find(ignoreLabels.begin(), ignoreLabels.end(), to_label) ==
-            std::end(ignoreLabels))
+    // if one of the two nodes does not belong to the labels to be rendered,
+    // then don't draw the edge connecting them
+    if (std::find(labels_to_render.begin(), labels_to_render.end(), from_label)
+        ==
+            std::end(labels_to_render) ||
+        std::find(labels_to_render.begin(), labels_to_render.end(), to_label) ==
+            std::end(labels_to_render))
       continue;
     else {
       const cv::Point& from_center = v_from.center_;
@@ -144,12 +146,9 @@ const cv::Mat GraphLandmark::getImageFromGraph(
 
 void GraphLandmark::findBlobs() {
 
-  const int dataset_size = globalDatasetPtr->numSemanticClasses();
+  const int dataset_size = global_dataset_ptr->numSemanticClasses();
   image_blobs_.resize(dataset_size);
 
-  // "channels" is a vector of 3 Mat arrays:
-  std::vector<cv::Mat> channels(3);
-  cv::split(semantic_image_, channels);
   const cv::Mat label_image = extractChannelFromImage(semantic_image_, 0);
 
   auto PointComp = [](const cv::Point& p1, const cv::Point& p2) -> bool {
@@ -213,7 +212,7 @@ void GraphLandmark::createCompleteGraph(Graph::GraphType& graph) const {
   for (int c = 0; c < image_blobs_.size(); ++c) {
     for (auto const& b : image_blobs_[c]) {
       const int semantic_label = b.semantic_label_;
-      const std::string label = globalDatasetPtr->label(semantic_label);
+      const std::string label = global_dataset_ptr->label(semantic_label);
       const int size = static_cast<int>(b.pixels_.size());
       const cv::Point center = b.center_;
       vertices.push_back({semantic_label, label, size, center});

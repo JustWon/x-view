@@ -11,15 +11,15 @@ GraphMatcher::~GraphMatcher() {
 }
 
 AbstractMatcher::MatchingResultPtr
-GraphMatcher::match(const SemanticLandmarkPtr& queryLandmark) {
+GraphMatcher::match(const SemanticLandmarkPtr& query_landmark) {
 
-  // Extract and cast the descriptor associated to the queryLandmark
-  auto graphDescriptor =
+  // Extract and cast the descriptor associated to the query_landmark
+  auto graph_descriptor =
       std::dynamic_pointer_cast<const GraphDescriptor>
-          (queryLandmark->getDescriptor());
+          (query_landmark->getDescriptor());
 
   // Perform checks related to the cast
-  CHECK(graphDescriptor != nullptr) << "Impossible to cast descriptor "
+  CHECK(graph_descriptor != nullptr) << "Impossible to cast descriptor "
       "associated to queryLandmark to a 'const GraphDescriptor'";
 
 

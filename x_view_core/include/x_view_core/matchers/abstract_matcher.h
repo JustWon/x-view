@@ -6,7 +6,7 @@
 namespace x_view {
 
 /**
- * \brief An interface each landmark-matcher must implement
+ * \brief An interface each landmark-matcher must implement.
  */
 class AbstractMatcher {
 
@@ -29,15 +29,15 @@ class AbstractMatcher {
 
    protected:
     /**
-     * \brief indicates if the passed landmark has been matched or not to an
-     * other previously inserted in the database
+     * \brief Indicates if the passed landmark has been matched or not to an
+     * other previously inserted in the database.
      */
     bool matching_found_;
 
     /**
-     * \brief if matching_found_ is true, then matching_landmark_index_
+     * \brief If matching_found_ is true, then matching_landmark_index_
      * indicates which previously visited landmark is the closest match to
-     * the queried one
+     * the queried one.
      */
     int matching_landmark_index_;
   };
@@ -47,11 +47,13 @@ class AbstractMatcher {
   /**
    * \brief Computes a match between the query landmark passed as parameter
    * and the features internally stored. The descriptor associated to the
-   * query landmark is added to the internal matcher representation of landmarks
-   * \param queryLandmark const reference to semantic landmark pointer
-   * \return reference to matching result pointer containing matching results
+   * query landmark is added to the internal matcher representation of
+   * landmarks.
+   * \param query_landmark Const reference to semantic landmark pointer.
+   * \return Reference to matching result pointer containing matching results.
    */
-  virtual MatchingResultPtr match(const SemanticLandmarkPtr& queryLandmark) = 0;
+  virtual MatchingResultPtr match(const SemanticLandmarkPtr& query_landmark)
+  = 0;
 
 };
 

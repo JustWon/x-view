@@ -1,18 +1,18 @@
 #ifndef X_VIEW_GRAPH_LANDMARK_H_
 #define  X_VIEW_GRAPH_LANDMARK_H_
 
+#include <vector>
+
 #include <x_view_core/x_view_types.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/features/graph_descriptor.h>
 #include <x_view_core/features/graph.h>
 
-#include <vector>
-
 namespace x_view {
 
 /**
- * \brief A GraphLandmark represents a landmark by though a graph
+ * \brief A GraphLandmark represents a landmark by though a graph.
  */
 class GraphLandmark : public AbstractSemanticLandmark {
 
@@ -22,12 +22,12 @@ class GraphLandmark : public AbstractSemanticLandmark {
         GraphLandmark(image, pose));
   }
 
-  /// \brief a blob containign less pixel than 'MINIMUM_BLOB_SIZE' is ignored
+  /// \brief A blob containing less pixel than 'MINIMUM_BLOB_SIZE' is ignored.
   static int MINIMUM_BLOB_SIZE;
 
   /**
    * \brief A Blob contains all pixels belonging to a connected component
-   * determined by their class labels
+   * determined by their class labels.
    */
   struct Blob {
 
@@ -38,14 +38,14 @@ class GraphLandmark : public AbstractSemanticLandmark {
       computePixelsCenter();
     }
 
-    /// \brief semantic label associated to all pixels contained in this blob
+    /// \brief Semantic label associated to all pixels contained in this blob.
     int semantic_label_;
-    /// \brief vector of pixels belonging to this blob
+    /// \brief Vector of pixels belonging to this blob.
     std::vector<cv::Point> pixels_;
-    /// \brief mean pixel of the blob
+    /// \brief Mean pixel of the blob.
     cv::Point center_;
 
-    /// \brief computes the mean pixel from the vector of pixels
+    /// \brief Computes the mean pixel from the vector of pixels.
     void computePixelsCenter() {
       int mean_x = 0;
       int mean_y = 0;
@@ -58,10 +58,11 @@ class GraphLandmark : public AbstractSemanticLandmark {
     }
   };
 
-  ///  \brief each semantic class might have multiple instances, all
-  /// contained inside a vector of Blobs
+  /// \brief Each semantic class might have multiple instances, all
+  /// contained inside a vector of Blobs.
   typedef std::vector<Blob> ClassBlobs;
-  /// \brief vector containing a list of ClassBlobs, one for each semantic class
+  /// \brief Vector containing a list of ClassBlobs, one for each semantic
+  /// class.
   typedef std::vector<ClassBlobs> ImageBlobs;
 
   const ImageBlobs& getBlobs() const {
@@ -70,32 +71,30 @@ class GraphLandmark : public AbstractSemanticLandmark {
 
 #ifdef X_VIEW_DEBUG
   /**
-   * \brief Prints the blob structure to the stream passed as argument
-   * \param out stream used to print the blob structure
+   * \brief Prints the blob structure to the stream passed as argument.
+   * \param out Stream used to print the blob structure.
    */
   void printBlobs(std::ostream& out = std::cout) const;
 
   /**
    * \brief Generates a color image of the landmark representation based on
-   * the computed blobs
-   * \param ignoreLabels vector containing index of labels to be ignored
-   * during image generation
-   * \return generated image
+   * the computed blobs.
+   * \param labels_to_render Vector containing index of labels to be rendered.
+   * \return Generated image.
    */
-  const cv::Mat getImageFromBlobs(const std::vector<int>& ignoreLabels =
-  globalDatasetPtr->getLabelsToRender()) const;
+  const cv::Mat getImageFromBlobs(const std::vector<int>& labels_to_render =
+  global_dataset_ptr->getLabelsToRender()) const;
 
   /**
    * \brief Generates a color image of the landmark representation based on
-   * the graph nodes/edges
-   * \param graph structure containing the graph data
-   * \param ignoreLabels vector containing index of labels to be ignored
-   * during image generation
-   * \return generated image
+   * the graph nodes/edges.
+   * \param graph Structure containing the graph data.
+   * \param labels_to_render Vector containing index of labels to be rendered.
+   * \return generated image.
    */
   const cv::Mat getImageFromGraph(const Graph::GraphType& graph,
-                                  const std::vector<int>& ignoreLabels =
-                                  globalDatasetPtr->getLabelsToRender()) const;
+                                  const std::vector<int>& labels_to_render =
+                                  global_dataset_ptr->getLabelsToRender()) const;
 #endif // X_VIEW_DEBUG
 
  protected:
@@ -103,30 +102,30 @@ class GraphLandmark : public AbstractSemanticLandmark {
    * \brief Performs a segmentation on the first channel the image passed as
    * argument to determine how semantic entities are represented in the scene.
    * A graph is built upon this segmentation defining its vertices as the
-   * 'center of mass' of each segment of the image
+   * 'center of mass' of each segment of the image.
    * \param image Semantic image storing semantic class in the first channel
-   * of each pixel
-   * \param pose Robot's pose
+   * of each pixel.
+   * \param pose Robot's pose.
    */
   explicit GraphLandmark(const cv::Mat& image, const SE3& pose);
 
  private:
   /**
    * \brief Structure containing the semantic segmentation of the
-   * semantic_image_
+   * semantic_image_.
    * \details The dimensions of the structure are the following:
-   * 'image_blobs_.size()' = dataset size (num semantic classes
+   * 'image_blobs_.size()' = dataset size (num semantic classes)
    * 'image_blobs_[i].size()' = number of disconnected instances of class 'i'
    * 'image_blobs_[i][j].pixels_.size()' = number of pixels of 'j'-th instance
-   * of class 'i'
+   * of class 'i'.
    */
   ImageBlobs image_blobs_;
 
-  /// \brief computes the blobs in the semantic image and fills up image_blobs_
+  /// \brief Computes the blobs in the semantic image and fills up image_blobs_.
   void findBlobs();
 
-  /// \brief given the blobs extracted from the image, this function creates
-  /// a complete graph (all-to-all) where the nodes correspond to the blobs
+  /// \brief Given the blobs extracted from the image, this function creates
+  /// a complete graph (all-to-all) where the nodes correspond to the blobs.
   void createCompleteGraph(Graph::GraphType& graph) const;
 
 };

@@ -11,7 +11,7 @@ void testCustomImage() {
 
   // Initialize a fake dataset having num_semantic_classes classes
   int num_semantic_classes = 4;
-  globalDatasetPtr =
+  global_dataset_ptr =
       std::make_shared<const AbstractDataset>
           (AbstractDataset(num_semantic_classes));
 
@@ -56,7 +56,7 @@ void testChessboardImage() {
       block_sizes.size(), std::cout, image_name);
   for (auto numClasses : classes) {
     int num_semantic_classes = numClasses;
-    globalDatasetPtr =
+    global_dataset_ptr =
         std::make_shared<const AbstractDataset>
             (AbstractDataset(num_semantic_classes));
 
@@ -86,7 +86,7 @@ void testChessboardImage() {
 
               const int newRows = rows / block_size * block_size;
               const int newCols =
-                  nearestMultipleOf(globalDatasetPtr->numSemanticClasses(),
+                  nearestMultipleOf(global_dataset_ptr->numSemanticClasses(),
                                     cols / block_size) * block_size;
 
               // compute number of 'chess' blocks
@@ -95,12 +95,12 @@ void testChessboardImage() {
               const int nBlocks = nBlocksRows * nBlocksCols;
 
               // assign the instance count by looping through the blocks
-              instanceCount.resize(globalDatasetPtr->numSemanticClasses());
+              instanceCount.resize(global_dataset_ptr->numSemanticClasses());
               int currentLabelIndex = 0;
               for (int block = 0; block < nBlocks; ++block) {
                 instanceCount[currentLabelIndex]++;
                 currentLabelIndex = (currentLabelIndex + 1)
-                    % globalDatasetPtr->numSemanticClasses();
+                    % global_dataset_ptr->numSemanticClasses();
               }
             };
 
@@ -126,7 +126,7 @@ void testDiscImage() {
   std::vector<int> classes = {2, 3, 5, 15};
   boost::progress_display show_progress(classes.size(), std::cout, image_name);
   for (auto numClasses : classes) {
-    globalDatasetPtr =
+    global_dataset_ptr =
         std::make_shared<const AbstractDataset>
             (AbstractDataset(numClasses));
 
@@ -162,7 +162,7 @@ void testDiscImage() {
 void countPixelLabelsInImage(const cv::Mat& image,
                              std::vector<int>& pixelCount) {
   pixelCount.clear();
-  pixelCount.resize(globalDatasetPtr->numSemanticClasses());
+  pixelCount.resize(global_dataset_ptr->numSemanticClasses());
   for (int i = 0; i < image.rows; ++i) {
     for (int j = 0; j < image.cols; ++j) {
       int label = static_cast<int>(image.at<cv::Vec3b>(i, j)[0]);
@@ -259,19 +259,19 @@ void createChessBoardImage(const int desiredRows, const int desiredCols,
 
   const int newRows = desiredRows / block_size * block_size;
   const int newCols =
-      nearestMultipleOf(globalDatasetPtr->numSemanticClasses(),
+      nearestMultipleOf(global_dataset_ptr->numSemanticClasses(),
                         desiredCols / block_size) * block_size;
 
   image.create(newRows, newCols, CV_IMAGE_TYPE);
 
   unsigned char color = 0;
   for (int i = 0; i < newRows; i = i + block_size) {
-    color = (uchar)((color + 1) % globalDatasetPtr->numSemanticClasses());
+    color = (uchar)((color + 1) % global_dataset_ptr->numSemanticClasses());
     for (int j = 0; j < newCols; j = j + block_size) {
       cv::Mat ROI = image(cv::Rect(j, i, block_size, block_size));
       ROI.setTo(cv::Scalar(color, 0, 0));
       color =
-          (uchar)(((int) color + 1) % globalDatasetPtr->numSemanticClasses());
+          (uchar)(((int) color + 1) % global_dataset_ptr->numSemanticClasses());
     }
   }
 }

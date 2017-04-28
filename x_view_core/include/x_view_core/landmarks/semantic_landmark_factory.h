@@ -1,40 +1,42 @@
 #ifndef X_VIEW_SEMANTIC_LANDMARK_FACTORY_H
 #define X_VIEW_SEMANTIC_LANDMARK_FACTORY_H
 
-#include <x_view_core/x_view_types.h>
-
 #include <opencv2/core/core.hpp>
+
+#include <x_view_core/x_view_types.h>
 
 namespace x_view {
 
 /**
- * \brief Class responsible for creating new landmarks
+ * \brief Class responsible for creating new landmarks.
  */
 class SemanticLandmarkFactory {
 
  public:
 
-  /// function pointer passed to the factory to create new landmarks
-  typedef SemanticLandmarkPtr (*CreateCallBack)(const cv::Mat&, const SE3&);
+  /// \brief Function pointer passed to the factory to create new landmarks.
+  typedef SemanticLandmarkPtr (* CreateCallBack)(const cv::Mat&, const SE3&);
 
   /**
-   * \brief Sets the landmark type the factory is going to generate
-   * \param cb function pointer called to create a new landmark
+   * \brief Sets the landmark type the factory is going to generate.
+   * \param cb Function pointer called to create a new landmark.
    */
   static void setCreatorFunction(CreateCallBack cb);
 
   /**
-   * \brief Function exposed to the user to create new semantic landmark objects
-   * \param image Image containing semantic segmentation
-   * \param pose  3D pose of the robot associated to the image
-   * \return landmark pointer to abstract base landmark class which is filled
-   * up with a concrete landmark type
+   * \brief Function exposed to the user to create new semantic landmark
+   * objects.
+   * \param image Image containing semantic information on the first channel.
+   * \param pose  3D pose of the robot associated to the image.
+   * \return landmark Pointer to abstract base landmark class which is filled
+   * up with a concrete landmark instance.
    */
-  static SemanticLandmarkPtr createSemanticLandmark(const cv::Mat& image, const SE3& pose);
+  static SemanticLandmarkPtr createSemanticLandmark(const cv::Mat& image,
+                                                    const SE3& pose);
 
  private:
   ///\brief A function pointer to the static function responsible for
-  /// creating new semantic landmarks given an image and a pose
+  /// creating new semantic landmarks given an image and a pose.
   static CreateCallBack cb_;
 
 };

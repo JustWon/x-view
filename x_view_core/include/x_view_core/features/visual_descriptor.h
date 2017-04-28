@@ -1,14 +1,13 @@
 #ifndef X_VIEW_VISUAL_DESCRIPTOR_H
 #define X_VIEW_VISUAL_DESCRIPTOR_H
 
-#include <x_view_core/features/vector_descriptor.h>
+#include <vector>
 
 #include <opencv2/features2d/features2d.hpp>
 
-#include <vector>
+#include <x_view_core/features/vector_descriptor.h>
 
 namespace x_view {
-
 
 class VisualDescriptor : public VectorDescriptor {
 
@@ -19,7 +18,7 @@ class VisualDescriptor : public VectorDescriptor {
   VisualDescriptor(const cv::Mat& descriptor, const KeyPointsVector& keypoints);
   virtual ~VisualDescriptor();
 
-  ///\brief returns a const reference to the keypoints
+  /// \brief Returns a const reference to the keypoints.
   const KeyPointsVector& getKeyPoints() const;
 
  protected:

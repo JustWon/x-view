@@ -1,7 +1,8 @@
 #ifndef X_VIEW_ABSTRACT_DATASET_H
 #define X_VIEW_ABSTRACT_DATASET_H
 
-#include <x_view_core/x_view_types.h>
+#include <vector>
+#include <string>
 
 #include <opencv2/core/core.hpp>
 
@@ -10,8 +11,7 @@
 
 #include <glog/logging.h>
 
-#include <vector>
-#include <string>
+#include <x_view_core/x_view_types.h>
 
 namespace x_view {
 
@@ -20,7 +20,7 @@ class AbstractDataset {
 
   /**
    * \brief A semantic entity is represented by a human readable name and by
-   * an ID ranging from 0 to num_semantic_classes_-1
+   * an ID ranging from 0 to num_semantic_classes_-1.
    */
   struct SemanticEntity {
     SemanticEntity() {}
@@ -43,42 +43,42 @@ class AbstractDataset {
   virtual ~AbstractDataset() {}
 
   /**
-   * \brief Dataset name
-   * \return Human readable name description of dataset
+   * \brief Dataset name.
+   * \return Human readable name description of dataset.
    */
   virtual const std::string datasetName() const {
     return std::string("Abstract Dataset");
   };
 
-  ///\brief Generates a human readable descripion of the database, t is the
-  /// standard indentation to be used between new lines of the generated string
+  ///\brief Generates a human readable description of the database, t is the
+  /// standard indentation to be used between new lines of the generated string.
   virtual const std::string datasetInfo(const std::string& t = "") const;
 
-  ///\brief returns the number of semantic classes contained in the dataset
+  ///\brief Returns the number of semantic classes contained in the dataset.
   int numSemanticClasses() const { return num_semantic_classes_; }
 
-  ///\brief returns the semantic entities associated to this dataset
+  ///\brief Returns the semantic entities associated to this dataset.
   const std::vector<SemanticEntity>& semanticEntities() const {
     return semantic_entities_;
   }
 
-  ///\brief returns the label (string) associated to a given index
+  ///\brief Returns the label (string) associated to a given index.
   const std::string& label(const int index) const {
     CHECK(index >= 0 && index < num_semantic_classes_);
     return semantic_entities_[index].semantic_entity_name_;
   }
 
   /**
-   * \brief Function called by ROS each time a new semantic image is available
+   * \brief Function called by ROS each time a new semantic image is available.
    * \details This function is called by the x_view worker before passing the
-   * image to the x_view
+   * image to the x_view.
    */
   virtual cv::Mat convertSemanticImage(const sensor_msgs::ImageConstPtr&
   msg) const;
 
   /// \brief Since some class labels are too general (e.g. SYNTHIA::MISC),
   /// this function returns a vector of labels that are not, thus labels that
-  /// one might want to render
+  /// one might want to render.
   virtual const std::vector<int> getLabelsToRender() const;
 
  protected:
@@ -86,8 +86,8 @@ class AbstractDataset {
   std::vector<SemanticEntity> semantic_entities_;
 };
 
-/// \brief dataset accessible from everywhere in the x_view project
-extern ConstDatasetPrt globalDatasetPtr;
+/// \brief Dataset accessible from everywhere in the x_view project.
+extern ConstDatasetPrt global_dataset_ptr;
 
 }
 

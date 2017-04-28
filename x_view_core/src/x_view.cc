@@ -1,3 +1,9 @@
+#include <memory>
+
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include <x_view_core/x_view.h>
 #include <x_view_core/features/visual_descriptor.h>
 #include <x_view_core/landmarks/visual_descriptor_landmark.h>
@@ -8,16 +14,10 @@
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/datasets/airsim_dataset.h>
 
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/features2d/features2d.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
-#include <memory>
-
 namespace x_view {
 
 // declaration of global dataset pointer
-ConstDatasetPrt globalDatasetPtr;
+ConstDatasetPrt global_dataset_ptr;
 
 XView::XView(XViewParams& params) : params_(params) {
   // parse the passed parameters and instantiate concrete classes for all
@@ -33,15 +33,15 @@ XView::~XView() {};
 void XView::processSemanticImage(const cv::Mat& image, const SE3& pose) {
 
   // generate a new semantic landmark pointer
-  SemanticLandmarkPtr landmarkPtr;
+  SemanticLandmarkPtr landmark_ptr;
 
   // extract semantics associated to the image and pose
-  extractSemanticsFromImage(image, pose, landmarkPtr);
+  extractSemanticsFromImage(image, pose, landmark_ptr);
 
   // compute the matches between the new feature and the ones
   // stored in the database
-  AbstractMatcher::MatchingResultPtr matchingResult;
-  matchSemantics(landmarkPtr, matchingResult);
+  AbstractMatcher::MatchingResultPtr matching_result_ptr;
+  matchSemantics(landmark_ptr, matching_result_ptr);
 }
 
 void XView::printInfo() const {
@@ -78,7 +78,7 @@ void XView::parseDatasetType() {
     CHECK(false) << "Unrecognized dataset type <" << params_
         .semantic_dataset_name_ << ">" << std::endl;
   }
-  globalDatasetPtr = dataset_;
+  global_dataset_ptr = dataset_;
 }
 
 void XView::parseLandmarkType() {

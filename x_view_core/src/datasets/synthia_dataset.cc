@@ -39,7 +39,7 @@ SynthiaDataset::SynthiaDataset()
 cv::Mat SynthiaDataset::convertSemanticImage(
     const sensor_msgs::ImageConstPtr& msg) const {
 
-  const int msg_size = msg->data.size();
+  const int msg_size = static_cast<int>(msg->data.size());
   const int step_size = msg->step;
 
   CHECK(!bool(msg->is_bigendian)) << "Message passed to SynthiaDataset must be "

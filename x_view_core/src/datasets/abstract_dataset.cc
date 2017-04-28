@@ -1,8 +1,8 @@
-#include <x_view_core/datasets/abstract_dataset.h>
+#include <cv_bridge/cv_bridge.h>
 
 #include <opencv2/core/core.hpp>
 
-#include <cv_bridge/cv_bridge.h>
+#include <x_view_core/datasets/abstract_dataset.h>
 
 namespace enc = sensor_msgs::image_encodings;
 

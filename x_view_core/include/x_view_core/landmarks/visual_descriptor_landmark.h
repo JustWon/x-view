@@ -1,11 +1,11 @@
 #ifndef X_VIEW_VISUAL_DESCRIPTOR_LANDMARK_H_
 #define  X_VIEW_VISUAL_DESCRIPTOR_LANDMARK_H_
 
-#include <x_view_core/x_view_types.h>
-#include <x_view_core/landmarks/abstract_semantic_landmark.h>
-
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/nonfree/features2d.hpp>
+
+#include <x_view_core/x_view_types.h>
+#include <x_view_core/landmarks/abstract_semantic_landmark.h
 
 namespace x_view {
 
@@ -20,10 +20,10 @@ class VisualDescriptorLandmark : public AbstractSemanticLandmark {
  public:
   explicit VisualDescriptorLandmark(const cv::Mat& image, const SE3& pose);
 
-  ///\brief number of features to be extracted by the detector
+  /// \brief Number of features to be extracted by the detector.
   static int NUM_VISUAL_FEATURES;
 
-  ///\brief class responsible for extracting visual features
+  /// \brief Vlass responsible for extracting visual features.
   std::unique_ptr<cv::Feature2D> features_extractor_;
 };
 

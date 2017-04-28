@@ -1,15 +1,15 @@
 #ifndef X_VIEW_AIRSIM_DATASET_H
 #define X_VIEW_AIRSIM_DATASET_H
 
-#include <x_view_core/datasets/abstract_dataset.h>
-
 #include <glog/logging.h>
+
+#include <x_view_core/datasets/abstract_dataset.h>
 
 namespace x_view {
 
 /**
- * \brief This class carries information about the Airsim dataset
- * \note Airsim dataset available at https://github.com/Microsoft/AirSim
+ * \brief This class carries information about the Airsim dataset.
+ * \note Airsim dataset available at https://github.com/Microsoft/AirSim.
  */
 class AirsimDataset : public AbstractDataset {
 
@@ -24,7 +24,5 @@ class AirsimDataset : public AbstractDataset {
 };
 
 }
-
-#undef AIRSIM_NUM_SEMANTIC_CLASSES
 
 #endif //X_VIEW_AIRSIM_DATASET_H

@@ -9,23 +9,24 @@
 
 namespace x_view {
 /**
- * \brief namespace containing graph structure and functions related to graphs
- * \note for an explanation see http://blog.hostilefork.com/boost-graph-templates-not-crazy/
+ * \brief Class containing graph structure and functions related to graphs.
+ * \note For an explanation see http://blog.hostilefork
+ * .com/boost-graph-templates-not-crazy/.
  */
 class Graph {
 
  public:
 
-  /// \brief Property associated to a graph vertex
+  /// \brief Property associated to a graph vertex.
   struct VertexProperty {
-    /// \brief semantic label associated to this graph vertex. This label
-    /// corresponds to the same specified in the dataset description
+    /// \brief Semantic label associated to this graph vertex. This label
+    /// corresponds to the same specified in the dataset description.
     int semantic_label_;
-    /// \brief name of semantic entity associated to this vertex
+    /// \brief Name of semantic entity associated to this vertex.
     std::string semantic_entity_name_;
-    /// \brief number of pixels contained in this vertex/blob
+    /// \brief Number of pixels contained in this vertex/blob.
     int size_;
-    /// \brief blob center
+    /// \brief Blob center.
     cv::Point center_;
 
     const std::string vertexInfo() const {
@@ -36,7 +37,7 @@ class Graph {
     }
   };
 
-  /// \brief Property associated to a graph edge
+  /// \brief Property associated to a graph edge.
   struct EdgeProperty {
     int from_;
     int to_;
@@ -48,41 +49,41 @@ class Graph {
   };
 
   /**
-  * \brief A graph object represented as an adjacency list
-  * \details first parameter: what stl container is used to store the edges
-  * second parameter: what stl container is used to store the graph vertices
-  * third parameter: directed or undirected graph type
-  * fourth parameter: node representation
-  * fifth parameter: edge representation
+  * \brief A graph object represented as an adjacency list.
+  * \details First parameter: what stl container is used to store the edges.
+  * Second parameter: what stl container is used to store the graph vertices.
+  * Third parameter: directed or undirected graph type.
+  * Fourth parameter: node representation.
+  * Fifth parameter: edge representation.
   */
   typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
                                 VertexProperty, EdgeProperty> GraphType;
 
-  /// \brief Access to vertices stored in the graph
+  /// \brief Access to vertices stored in the graph.
   typedef boost::graph_traits<GraphType>::vertex_descriptor VertexDescriptor;
-  /// \brief Access to edges stored in the graph
+  /// \brief Access to edges stored in the graph.
   typedef boost::graph_traits<GraphType>::edge_descriptor EdgeDescriptor;
 
-  /// \brief returns the number of vertices stored in the graph.
+  /// \brief Returns the number of vertices stored in the graph.
   int numVertices() const;
 
   /**
-   * \brief prints the vertices (with vertex parameters) in a human readable
-   * way to the stream passed as argument
-   * \param out stream to be used to print the vertices
+   * \brief Prints the vertices (with vertex parameters) in a human readable
+   * way to the stream passed as argument.
+   * \param out Stream to be used to print the vertices.
    */
   void printVertices(std::ostream& out = std::cout) const;
 
   /**
-   * \brief prints the edges (with edge parameters) in a human readable way
+   * \brief Prints the edges (with edge parameters) in a human readable way
    * to the stream passed as argument.
-   * \param out stream to be used to print the vertices
+   * \param out Stream to be used to print the vertices
    */
   void printEdges(std::ostream& out = std::cout) const;
 
   /**
-   * \brief prints the graph structure/topology to the stream passed as argument
-   * \param out stream to be used to print the vertices
+   * \brief Prints the graph structure/topology to the stream passed as argument
+   * \param out Stream to be used to print the vertices
    */
   void print(std::ostream& out = std::cout) const;
 

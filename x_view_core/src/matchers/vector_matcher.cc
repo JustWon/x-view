@@ -13,33 +13,33 @@ VectorMatcher::~VectorMatcher() {
 }
 
 AbstractMatcher::MatchingResultPtr
-VectorMatcher::match(const SemanticLandmarkPtr& queryLandmark) {
+VectorMatcher::match(const SemanticLandmarkPtr& query_landmark) {
 
   // Extract and cast the descriptor associated to the queryLandmark
-  auto vectorDescriptor =
-      std::dynamic_pointer_cast<const VectorDescriptor>(queryLandmark->getDescriptor());
+  auto vector_descriptor =
+      std::dynamic_pointer_cast<const VectorDescriptor>(query_landmark->getDescriptor());
 
   // Perform checks related to the cast
-  CHECK(vectorDescriptor != nullptr) << "Impossible to cast descriptor "
+  CHECK(vector_descriptor != nullptr) << "Impossible to cast descriptor "
       "associated to queryLandmark to a 'const VectorDescriptor'";
 
 
   // create a matching result pointer which will be returned by this function
-  auto matchingResult = std::make_shared<VectorMatchingResult>();
+  auto matching_result = std::make_shared<VectorMatchingResult>();
 
   // match the vector descriptor to the descriptors previously visited
   // and store the results (matches) inside the matchingResult object
-  descriptor_matcher_->knnMatch(vectorDescriptor->getDescriptor(),
-                                matchingResult->matches,
+  descriptor_matcher_->knnMatch(vector_descriptor->getDescriptor(),
+                                matching_result->matches,
                                 num_retained_best_matches_);
 
   // add the descriptor of the queryLandmark to the set of features stored
   // inside the matcher
   descriptor_matcher_->add(std::vector<cv::Mat>{
-      vectorDescriptor->getDescriptor()});
+      vector_descriptor->getDescriptor()});
 
   // return the matching result filled with the matches
-  return matchingResult;
+  return matching_result;
 
 }
 

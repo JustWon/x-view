@@ -20,7 +20,7 @@ class AbstractDescriptor {
 
   // trick to make AbstractDescriptor a pure virtual class with no need to
   // introduce useless abstract methods which must be implemented in the
-  // subclass
+  // subclass.
   virtual ~AbstractDescriptor() = 0;
 
 }; // AbstractDescriptor
