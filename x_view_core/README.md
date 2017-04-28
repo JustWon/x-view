@@ -18,25 +18,25 @@ XView is structured as a _catkin_ package, and has the following dependencies (a
 
 ### Building
 The following steps build XView using _catkin_ assuming all the _dependencies_ listed above and _XView_ are already downloaded in the _~/git_ folder of your machine
-```lang=bash
+```sh
 # create a new catkin workspace
-mkdir -p ~/x_view_ws/src && cd x_view_ws
+$ mkdir -p ~/x_view_ws/src && cd x_view_ws
 # initialize the workspace (either in 'Release' or 'Debug' mode)
-catkin init && catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+$ catkin init && catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
 # create symbolic link to the source
-for dir in ~/git/*/; do ln -s ${dir} src/; done
+$ for dir in ~/git/*/; do ln -s ${dir} src/; done
 # build all packages
-catkin build --force-cmake -j8 
+$ catkin build --force-cmake -j8 
 ```
 **Note**: building the entire project takes around 30 minutes.
 
 ### Tests
 All test are implemented as _gtest_ in the [test](./test) folder. The tests can be launched as follows:
-```lang=bash
+```sh
 # build the tests
-catkin build --force-cmake --catkin-make-args tests
+$ catkin build --force-cmake --catkin-make-args tests
 # run the tests through catkin
-catkin build --catkin-make-args run_tests
+$ catkin build --catkin-make-args run_tests
 # or by running the executable
-./devel/lib/x_view_core/x_view_core_tests 
+$ ./devel/lib/x_view_core/x_view_core_tests 
 ```
