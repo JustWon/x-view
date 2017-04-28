@@ -15,7 +15,12 @@ void testCustomImage() {
       std::make_shared<const AbstractDataset>
           (AbstractDataset(num_semantic_classes));
 
+#ifdef X_VIEW_DEBUG
+  std::vector<int> sizes = {100, 200, 333};
+#else
   std::vector<int> sizes = {100, 200, 333, 800, 1500};
+#endif // X_VIEW_DEBUG
+
   boost::progress_display show_progress(sizes.size(), std::cout, image_name);
   for (auto size : sizes) {
     const int rows = size;
@@ -37,9 +42,15 @@ void testChessboardImage() {
 
   const std::string image_name = "chessboard image\n";
 
+#ifdef X_VIEW_DEBUG
+  std::vector<int> classes = {2, 3, 5};
+  std::vector<int> sizes = {40, 70, 95};
+  std::vector<int> block_sizes = {15, 17};
+#else
   std::vector<int> classes = {2, 3, 5, 15};
   std::vector<int> sizes = {100, 200, 333, 800};
   std::vector<int> block_sizes = {20, 21, 40};
+#endif // X_VIEW_DEBUG
 
   boost::progress_display show_progress(classes.size() * sizes.size() *
       block_sizes.size(), std::cout, image_name);

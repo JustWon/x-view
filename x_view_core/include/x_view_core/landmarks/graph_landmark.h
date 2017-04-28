@@ -4,6 +4,8 @@
 #include <x_view_core/x_view_types.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/features/graph_descriptor.h>
+#include <x_view_core/features/graph.h>
 
 #include <vector>
 
@@ -66,21 +68,35 @@ class GraphLandmark : public AbstractSemanticLandmark {
     return image_blobs_;
   }
 
-  /**
-   * \brief Generates a color image of the landmark representation
-   * \param ignoreLabels vector containing index of labels to be ignored
-   * during image generation
-   * \return generated image
-   */
-  const cv::Mat getImageFromBlobs(
-      const std::vector<int>& ignoreLabels =
-      globalDatasetPtr->getLabelsToRender()) const;
-
+#ifdef X_VIEW_DEBUG
   /**
    * \brief Prints the blob structure to the stream passed as argument
    * \param out stream used to print the blob structure
    */
   void printBlobs(std::ostream& out = std::cout) const;
+
+  /**
+   * \brief Generates a color image of the landmark representation based on
+   * the computed blobs
+   * \param ignoreLabels vector containing index of labels to be ignored
+   * during image generation
+   * \return generated image
+   */
+  const cv::Mat getImageFromBlobs(const std::vector<int>& ignoreLabels =
+  globalDatasetPtr->getLabelsToRender()) const;
+
+  /**
+   * \brief Generates a color image of the landmark representation based on
+   * the graph nodes/edges
+   * \param graph structure containing the graph data
+   * \param ignoreLabels vector containing index of labels to be ignored
+   * during image generation
+   * \return generated image
+   */
+  const cv::Mat getImageFromGraph(const Graph::GraphType& graph,
+                                  const std::vector<int>& ignoreLabels =
+                                  globalDatasetPtr->getLabelsToRender()) const;
+#endif // X_VIEW_DEBUG
 
  protected:
   /**
@@ -108,6 +124,10 @@ class GraphLandmark : public AbstractSemanticLandmark {
 
   /// \brief computes the blobs in the semantic image and fills up image_blobs_
   void findBlobs();
+
+  /// \brief given the blobs extracted from the image, this function creates
+  /// a complete graph (all-to-all) where the nodes correspond to the blobs
+  void createCompleteGraph(Graph::GraphType& graph) const;
 
 };
 

@@ -23,7 +23,7 @@ TEST(XViewSlamTestSuite, test_graph) {
   std::vector<VertexDescriptor> vertex_descriptors;
 
   for (int i = 0; i < num_desired_vertices; ++i) {
-    vertices.push_back(Vertex{i, globalDatasetPtr->label(i)});
+    vertices.push_back({i, globalDatasetPtr->label(i), 0, cv::Point(1, 2)});
     vertex_descriptors.push_back(boost::add_vertex(vertices.back(), graph));
   }
 
@@ -42,13 +42,14 @@ TEST(XViewSlamTestSuite, test_graph) {
   int edgeIndex = 10;
   for (auto edge : edgeList) {
     boost::add_edge(vertex_descriptors[edge.first],
-                    vertex_descriptors[edge.second], {edgeIndex++}, graph);
+                    vertex_descriptors[edge.second],
+                    {edge.first, edge.second},
+                    graph);
   }
 
   g.printEdges();
 
   g.print(std::cout);
-
 
 }
 

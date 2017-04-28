@@ -2,6 +2,8 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/features/vector_descriptor.h>
 
+#include <x_view_core/x_view_tools.h>
+
 namespace x_view {
 HistogramLandmark::HistogramLandmark(const cv::Mat& image, const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
@@ -9,10 +11,9 @@ HistogramLandmark::HistogramLandmark(const cv::Mat& image, const SE3& pose)
   const int dataset_size = globalDatasetPtr->numSemanticClasses();
   std::vector<int> histogram_count(dataset_size, 0);
 
-  // "channels" is a vector of 3 Mat arrays:
-  std::vector<cv::Mat> channels(3);
-  cv::split(semantic_image_, channels);
-  const cv::Mat label_image = channels[0];
+  // we are only interested in the labels of the image, contained in the
+  // first channel of the semantic_image_ object
+  const cv::Mat label_image = extractChannelFromImage(semantic_image_, 0);
 
   // iterate through the semantic image and determine how many pixels vote
   // for each semantic class by inspecting the first channel of each pixel

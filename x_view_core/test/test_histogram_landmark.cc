@@ -64,8 +64,7 @@ TEST(XViewSlamTestSuite, histogramLandmark) {
   SemanticLandmarkPtr bLandmark = HistogramLandmark::create(black, SE3());
   // expect to have 100% votes for label 0
   std::vector<std::pair<int, double>> bExpected = {
-      std::make_pair(0, 1.0),
-      std::make_pair(1, 0.0)
+      {0, 1}, {1, 0}
   };
   performLabelTest(bLandmark, bExpected);
 
@@ -74,8 +73,7 @@ TEST(XViewSlamTestSuite, histogramLandmark) {
   SemanticLandmarkPtr wLandmark = HistogramLandmark::create(white, SE3());
   // expect to have 100% votes in label 1
   std::vector<std::pair<int, double>> wExpected = {
-      std::make_pair(0, 0.0),
-      std::make_pair(1, 1.0)
+      {0, 0}, {1, 1}
   };
   performLabelTest(wLandmark, wExpected);
 
@@ -90,9 +88,7 @@ TEST(XViewSlamTestSuite, histogramLandmark) {
   SemanticLandmarkPtr hLandmark = HistogramLandmark::create(half, SE3());
   // expect to have 50% votes for label 0 and 50% for label 1
   std::vector<std::pair<int, double>> hExpected = {
-      std::make_pair(0, 0.5),
-      std::make_pair(1, 0.5),
-      std::make_pair(2, 0.0)
+      {0, 0.5}, {1, 0.5}, {2, 0}
   };
   performLabelTest(hLandmark, hExpected);
 

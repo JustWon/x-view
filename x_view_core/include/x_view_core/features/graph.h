@@ -5,6 +5,8 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
 
+#include <opencv2/core/core.hpp>
+
 namespace x_view {
 /**
  * \brief namespace containing graph structure and functions related to graphs
@@ -21,20 +23,27 @@ class Graph {
     int semantic_label_;
     /// \brief name of semantic entity associated to this vertex
     std::string semantic_entity_name_;
+    /// \brief number of pixels contained in this vertex/blob
+    int size_;
+    /// \brief blob center
+    cv::Point center_;
 
     const std::string vertexInfo() const {
       return std::string("(v) " + std::to_string(semantic_label_) + ": " +
-          semantic_entity_name_);
+          semantic_entity_name_ + ", size: " + std::to_string(size_) + ", "
+          "center: [" + std::to_string(center_.x) + ", " + std::to_string
+          (center_.y) + "]");
     }
   };
 
   /// \brief Property associated to a graph edge
   struct EdgeProperty {
-    // FIXME: this variable is unused, has to be removed
-    int edge_index_;
+    int from_;
+    int to_;
 
     const std::string edgeInfo() const {
-      return std::string("(e) " + std::to_string(edge_index_));
+      return std::string("(e) " + std::to_string(from_) + "->" +
+          std::to_string(to_));
     }
   };
 

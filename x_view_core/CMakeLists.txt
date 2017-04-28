@@ -3,12 +3,25 @@ project(x_view_core)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+# if no build type given, than set the build type to debug
+IF (NOT CMAKE_BUILD_TYPE)
+    SET(CMAKE_BUILD_TYPE "Debug")
+ENDIF (NOT CMAKE_BUILD_TYPE)
+
+
+message("Building XView in ${CMAKE_BUILD_TYPE} mode")
+
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+    add_definitions(-DX_VIEW_DEBUG)
+ENDIF()
+
 find_package(catkin_simple 0.1.0 REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
 # X-View core library
 cs_add_library(${PROJECT_NAME}
         src/x_view.cc
+        src/x_view_tools.cc
 
         # Datasets
         src/datasets/abstract_dataset.cc

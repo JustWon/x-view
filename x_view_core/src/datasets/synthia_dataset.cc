@@ -1,5 +1,7 @@
 #include <x_view_core/datasets/synthia_dataset.h>
 
+#include <x_view_core/x_view_tools.h>
+
 #include <opencv2/core/core.hpp>
 
 namespace x_view {
@@ -46,12 +48,6 @@ cv::Mat SynthiaDataset::convertSemanticImage(
   const int cols = msg->width;
   const int rows = msg->height;
 
-  // Utility function to convert two consecutive bytes into a 16bits unsigned
-  // int value. This function assumes little endiannes of the system
-  auto toInt = [&](int index) -> int {
-    return static_cast<int>((msg->data[index + 1] << 8) | msg->data[index]);
-  };
-
   // new image used as container for semantic labels and instances.
   // the first channel of this new image contains the semantic label
   // associated to each pixel
@@ -73,8 +69,8 @@ cv::Mat SynthiaDataset::convertSemanticImage(
       cv::Vec3b values;
       for (int c = 0; c < 3; ++c) {
         values[2 - c] = (uchar) (
-            std::max(0, std::min(
-                toInt(idx + 2 * c), numSemanticClasses() - 1)));
+            std::max(0, std::min(twoBytesToInt(&(msg->data[idx + 2 * c])),
+                                 numSemanticClasses() - 1)));
       }
       labelImage.at<cv::Vec3b>(cv::Point(j, i)) = values;
     }
