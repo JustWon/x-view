@@ -18,7 +18,7 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
 
   // Graph descriptor filled up by this function
   Graph descriptor;
-  auto& graph = descriptor.graph();
+  Graph::GraphType& graph = descriptor.graph();
 
   // perform image segmentation on the first channel of the image
   findBlobs();
@@ -186,9 +186,9 @@ void GraphLandmark::findBlobs() {
         const int y_blob_min = blob_bounding_box.y;
         const int y_blob_max = y_blob_min + blob_bounding_box.height;
         const int x_blob_min = blob_bounding_box.x;
-        const int x_blob_max = y_blob_min + blob_bounding_box.width;
+        const int x_blob_max = x_blob_min + blob_bounding_box.width;
 
-        for (int i = y_blob_min; i < y_blob_min; ++i) {
+        for (int i = y_blob_min; i < y_blob_max; ++i) {
           for (int j = x_blob_min; j < x_blob_max; ++j) {
             const cv::Point query_pixel(j, i);
             if (getPixelLabel(query_pixel) == seed_pixel_label) {
