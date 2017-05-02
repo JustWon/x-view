@@ -175,15 +175,21 @@ void GraphLandmark::findBlobs() {
 
         const int seed_pixel_label = getPixelLabel(seed_pixel);
 
-        cv::Rect rect;
+        cv::Rect blob_bounding_box;
         cv::floodFill(label_image, flood_mask, seed_pixel, 255,
-                      &rect, 0, 0, 4 + (255 << 8) + cv::FLOODFILL_MASK_ONLY);
+                      &blob_bounding_box, 0, 0,
+                      4 + (255 << 8) + cv::FLOODFILL_MASK_ONLY);
 
         // build a blob around the seed pixel
         std::vector<cv::Point> blob_around_seed_pixel;
 
-        for (int i = rect.y; i < (rect.y + rect.height); ++i) {
-          for (int j = rect.x; j < (rect.x + rect.width); ++j) {
+        const int y_blob_min = blob_bounding_box.y;
+        const int y_blob_max = y_blob_min + blob_bounding_box.height;
+        const int x_blob_min = blob_bounding_box.x;
+        const int x_blob_max = y_blob_min + blob_bounding_box.width;
+
+        for (int i = y_blob_min; i < y_blob_min; ++i) {
+          for (int j = x_blob_min; j < x_blob_max; ++j) {
             const cv::Point query_pixel(j, i);
             if (getPixelLabel(query_pixel) == seed_pixel_label) {
               bool has_query_pixel_been_inserted_now =
