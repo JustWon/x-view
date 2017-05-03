@@ -17,9 +17,8 @@ TEST(XViewSlamTestSuite, test_graphLandmark) {
   GraphLandmark::MINIMUM_BLOB_SIZE = 0;
 
   // test different images
-  //testCustomImage();
-  //testChessboardImage();
-  //testDiscImage();
+  testCustomImage();
+  testChessboardImage();
+  testDiscImage();
 }
-
 

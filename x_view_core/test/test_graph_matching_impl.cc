@@ -2,63 +2,119 @@
 
 #include <chrono>
 
-void AbstractMaximalSubgraphTest::test() const {
+void AbstractMaximalSubgraphTest::run() const {
+  std::cout << "Testing " << graph_name_ << std::endl;
+
   for (int i = 0; i < graph_database_.size(); ++i) {
     const int expected_distance = expected_distances_[i];
     auto start = std::chrono::high_resolution_clock::now();
     const int computed_distance = computeMCSDistance(i);
-    CHECK_EQ(expected_distance, computed_distance);
+    CHECK_EQ(expected_distance, computed_distance)
+      << "Failed test for graph <" << graph_name_
+      << "> for database graph number " << i;
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Elapsed time: "
+    if (computed_distance ==
+        boost::num_edges(query_graph_) + boost::num_edges(graph_database_[i]))
+      std::cout << "\tNo correspondences found" << std::endl;
+    std::cout << "Elapsed time for graph " << i << ": "
               << std::chrono::duration_cast<std::chrono::milliseconds>(
-                  end - start).count() << " milliseconds" << std::endl;
+                  end - start).count() << " milliseconds"
+              << std::endl << std::endl;
   }
 }
 
 int AbstractMaximalSubgraphTest::computeMCSDistance(int graph_index) const {
-  if(graph_index < 0 || graph_index >= graph_database_.size())
+  // input sanity check
+  if (graph_index < 0 || graph_index >= graph_database_.size())
     return 0;
 
   const GraphType& g = graph_database_[graph_index];
-  // define property maps to determine if two edges are the same or not
+
+  // Since we don't want only to consider graph topology but also consider
+  // node and edge properties when deciding if two graphs are similar or not,
+  // we need to specify what is called 'equivalence predicate', which can be
+  // thought as a function which, given two arguments, returns true if they
+  // are equal, false otherwise.
+
+  // Edges are equivalent only if their label is the same.
   auto e_property_map_a = boost::get(&EdgeData::label_, query_graph_);
   auto e_property_map_b = boost::get(&EdgeData::label_, g);
 
-  // define property maps to determine if two nodes are the same or not
+  // Vertices are equivalent only it their label is the same.
   auto v_property_map_a = boost::get(&VertexData::label_, query_graph_);
   auto v_property_map_b = boost::get(&VertexData::label_, g);
 
-  // predicates called by mcgregor function to check if two
-  // vertices/edges are the same or not
+  // Predicate type required by mcgregor function
   auto equivalence_predicates =
       boost::vertices_equivalent(boost::make_property_map_equivalent
                                      (v_property_map_a, v_property_map_b))
           .edges_equivalent(boost::make_property_map_equivalent
                                 (e_property_map_a, e_property_map_b));
 
-  SubgraphCallback my_callback(query_graph_, g);
+  // Object called by mcgregor function when the MCS is found
+  SubgraphCallback subgraph_callback(query_graph_, g);
+
+  // Are we only interested in connected subgraphs or not?
   bool only_connected_subgraphs = false;
+
+  // reset global edge counter, is filled up by the subgraph_callback object
   mc_gregor_maximal_num_edges = 0;
 
+  // compute maximal common subgraph between the two graphs
   boost::mcgregor_common_subgraphs_maximum_unique(
-      query_graph_, g, only_connected_subgraphs, my_callback,
+      query_graph_, g, only_connected_subgraphs, subgraph_callback,
       equivalence_predicates);
 
   const int num_edges_in_subgraph = mc_gregor_maximal_num_edges;
 
-  const int num_edges_a = boost::num_edges(query_graph_);
-  const int num_edges_b = boost::num_edges(g);
+  const int num_edges_a = static_cast<int>(boost::num_edges(query_graph_));
+  const int num_edges_b = static_cast<int>(boost::num_edges(g));
 
+  // Compute distance score given the number of edges in the MCS
   const int distance = num_edges_a + num_edges_b - 2 * num_edges_in_subgraph;
 
   return distance;
 }
 
 void SimpleGraphsTest::buildGraphDatabase() {
-  // Build the query graph
+  // Build the query graph of the form   A - B - C
   query_graph_.clear();
-}
+  auto v0_0 = boost::add_vertex({VertexData::VertexLabelName::A}, query_graph_);
+  auto v0_1 = boost::add_vertex({VertexData::VertexLabelName::B}, query_graph_);
+  auto v0_2 = boost::add_vertex({VertexData::VertexLabelName::C}, query_graph_);
 
+  boost::add_edge(v0_0, v0_1, {EdgeData::EdgeLabelName::CLOSE}, query_graph_);
+  boost::add_edge(v0_1, v0_2, {EdgeData::EdgeLabelName::DISTANT}, query_graph_);
+
+  // Build the graph database
+  graph_database_.resize(2);
+  expected_distances_.resize(2);
+
+  // Build second graph of the form    A - C
+  GraphType& g1 = graph_database_[0];
+  expected_distances_[0] = 3;
+  auto v1_0 = boost::add_vertex({VertexData::VertexLabelName::A}, g1);
+  auto v1_1 = boost::add_vertex({VertexData::VertexLabelName::C}, g1);
+
+  boost::add_edge(v1_0, v1_1, {EdgeData::EdgeLabelName::CLOSE}, g1);
+
+  // Build third graph of the form    B - C - C - B - A - B
+  // (matching of query graph here            <------->      )
+  GraphType& g2 = graph_database_[1];
+  expected_distances_[1] = 3;
+  auto v2_0 = boost::add_vertex({VertexData::VertexLabelName::B}, g2);
+  auto v2_1 = boost::add_vertex({VertexData::VertexLabelName::C}, g2);
+  auto v2_2 = boost::add_vertex({VertexData::VertexLabelName::C}, g2);
+  auto v2_3 = boost::add_vertex({VertexData::VertexLabelName::B}, g2);
+  auto v2_4 = boost::add_vertex({VertexData::VertexLabelName::A}, g2);
+  auto v2_5 = boost::add_vertex({VertexData::VertexLabelName::B}, g2);
+
+  boost::add_edge(v2_0, v2_1, {EdgeData::EdgeLabelName::CLOSE}, g2);
+  boost::add_edge(v2_1, v2_2, {EdgeData::EdgeLabelName::VISIBLE}, g2);
+  boost::add_edge(v2_2, v2_3, {EdgeData::EdgeLabelName::DISTANT}, g2);
+  boost::add_edge(v2_3, v2_4, {EdgeData::EdgeLabelName::CLOSE}, g2);
+  boost::add_edge(v2_4, v2_5, {EdgeData::EdgeLabelName::VISIBLE}, g2);
+}
 
 void PaperGraphsTest::buildGraphDatabase() {
   // Build up graphs as defined in Fig 3 of

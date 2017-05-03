@@ -9,6 +9,8 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/mcgregor_common_subgraphs.hpp>
 
+//*************************** Graph specifications ***************************//
+
 /// \brief Object representing a vertex of the graph.
 struct VertexData {
   enum VertexLabelName {
@@ -20,7 +22,7 @@ struct VertexData {
       : label_(label) {}
   VertexLabelName label_;
 
-  friend std::ostream& operator<< (std::ostream& out, const VertexData& v) {
+  friend std::ostream& operator<<(std::ostream& out, const VertexData& v) {
     return out << v.label_;
   }
 };
@@ -38,47 +40,78 @@ struct EdgeData {
 };
 
 /// \brief a Graph is represented as a boost adjacency list.
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
                               VertexData, EdgeData> GraphType;
 
+//**************************** Test specifications ***************************//
+
+/// \brief Interface for graph test objects
 class AbstractMaximalSubgraphTest {
  public:
-  virtual void test() const;
+  /// \brief The query_graph_ stored in this object is compared against all
+  /// other graphs in the database, a distance measure is computed using the
+  /// mcgregor algorithm and this distance is compared against an expected
+  /// distance specified by the user.
+  virtual void run() const;
 
  protected:
-  AbstractMaximalSubgraphTest() {} ;
+  /**
+   * \brief Base class constructor for graph tests.
+   * \param graph_name String describing the concrete implementation of the
+   * graph test, it is used for logging purposes only.
+   */
+  AbstractMaximalSubgraphTest(const std::string& graph_name)
+      : graph_name_(graph_name) {};
 
+  /**
+   * \brief The graph database is built and the query graph is specified
+   */
   virtual void buildGraphDatabase() = 0;
+
+  /**
+   * \brief Computes the MCS distance as:|E(q)| +
+   * \f$\text{dist}(a,b) = |E(a)| + |E(b)| - 2\times |E(\text{mcs}(a,b))|\f$
+   * \param graph_index Index of the database graph to compare against the
+   * query graph.
+   * \return The MCS distance between the query graph and the database graph
+   * associated to the index passed as argument
+   */
   int computeMCSDistance(int graph_index) const;
 
   GraphType query_graph_;
   std::vector<GraphType> graph_database_;
   std::vector<int> expected_distances_;
+
+ private:
+  std::string graph_name_;
 };
 
 /// \brief test for very basic graphs defined manually
 class SimpleGraphsTest : public AbstractMaximalSubgraphTest {
  public:
-  SimpleGraphsTest() {
+  SimpleGraphsTest()
+      : AbstractMaximalSubgraphTest("SimpleGraph") {
     buildGraphDatabase();
   };
 
  protected:
   virtual void buildGraphDatabase() override;
 };
-
 
 /// \brief test for the graphs reported in the paper
 /// https://openproceedings.org/2012/conf/edbt/ZhuQYC12.pdf
 class PaperGraphsTest : public AbstractMaximalSubgraphTest {
  public:
-  PaperGraphsTest() {
+  PaperGraphsTest()
+      : AbstractMaximalSubgraphTest("PaperGraph") {
     buildGraphDatabase();
   };
 
  protected:
   virtual void buildGraphDatabase() override;
 };
+
+//************************** Callback specifications *************************//
 
 /// \brief Global variable that counts edges in maximal common subgraph.
 /// \details It is ugly to have it global, but it is not possible to store as
@@ -104,6 +137,9 @@ struct SubgraphCallback {
                   typename boost::graph_traits<GraphType>::vertices_size_type
                   subgraph_size) {
 
+    std::cout << "Correspondences found by mcgregor:" << std::endl;
+
+    // print out the vertex correspondences found by the mcgregor algorithm
     auto v_begin = boost::vertices(graph1_).first;
     auto v_end = boost::vertices(graph1_).second;
     for (; v_begin != v_end; ++v_begin) {
@@ -111,7 +147,7 @@ struct SubgraphCallback {
       // Skip unmapped vertices
       auto correspondence = boost::get(correspondence_map_1_to_2, v);
       if (correspondence != boost::graph_traits<GraphType>::null_vertex()) {
-        std::cout << "vertex: \t" << v << ", " << graph1_[v]
+        std::cout << "\tvertex: \t" << v << ", " << graph1_[v]
                   << " \t <-> \t "
                   << "vertex: \t" << correspondence << ", "
                   << graph2_[correspondence]
@@ -120,8 +156,10 @@ struct SubgraphCallback {
 
     }
 
-    std::cout << "-------" << std::endl;
+    std::cout  << std::endl;
 
+    // count the number of edges in the found subgraph used as a distance
+    // measure
     int current_subgraph_edges = 0;
     for (auto v1_begin = boost::vertices(graph1_).first; v1_begin != v_end;
          ++v1_begin) {
@@ -149,6 +187,5 @@ struct SubgraphCallback {
   const GraphType& graph2_;
 
 };
-
 
 #endif //X_VIEW_TEST_GRAPH_MATCHING_IMPL_H
