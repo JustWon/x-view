@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include <gtest/gtest.h>
 
 #include <boost/graph/adjacency_list.hpp>
@@ -200,14 +202,30 @@ TEST(XViewSlamTestSuite, graphMatching) {
     return distance;
   };
 
+  auto start = std::chrono::high_resolution_clock::now();
   std::cout << "Measuring common subgraph between q and g1" << std::endl;
   std::cout << "--> distance: " << mcs_distance(q, g1) << std::endl;
+  auto end = std::chrono::high_resolution_clock::now();
+  std::cout << "Elapsed time: "
+            <<  std::chrono::duration_cast<std::chrono::milliseconds>(end-start)
+                .count()
+            << " milliseconds" << std::endl;
 
+  start = std::chrono::high_resolution_clock::now();
   std::cout << "Measuring common subgraph between q and g2" << std::endl;
   std::cout << "--> distance: " << mcs_distance(q, g2) << std::endl;
+  end = std::chrono::high_resolution_clock::now();
+  std::cout << "Elapsed time: "
+            <<  std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()
+            << " milliseconds" << std::endl;
 
+  start = std::chrono::high_resolution_clock::now();
   std::cout << "Measuring common subgraph between q and q" << std::endl;
   std::cout << "--> distance: " << mcs_distance(q, q) << std::endl;
+  end = std::chrono::high_resolution_clock::now();
+  std::cout << "Elapsed time: "
+            <<  std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()
+            << " milliseconds" << std::endl;
 
 }
 
