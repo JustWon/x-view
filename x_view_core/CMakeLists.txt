@@ -57,6 +57,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_graph_landmark_impl.cc
         test/test_graph.cc
         test/test_graph_matching.cc
+        test/test_graph_matching_impl.cc
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )
 
