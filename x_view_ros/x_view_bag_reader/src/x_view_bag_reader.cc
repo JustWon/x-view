@@ -2,8 +2,6 @@
 
 #include <x_view_core/datasets/synthia_dataset.h>
 
-#include <highgui.h>
-
 namespace x_view_ros {
 
 XViewBagReader::RosbagTopicView::RosbagTopicView(const rosbag::Bag& bag,
@@ -56,13 +54,29 @@ void XViewBagReader::loadBagFile() {
     // create a view on the topic contained in the bag file
     topic_views_[s] = RosbagTopicView(bag_, s);
   }
+}
 
-
-  // count the number of loaded images in the views
-  int num_images = std::numeric_limits<int>::max();
-  for (const auto& topic_view : topic_views_)
-    num_images = std::min(num_images, topic_view.second.size_);
-
+void XViewBagReader::iterateBagForwards(const std::string& image_topic) {
+  auto const& view = topic_views_[image_topic];
+  for (int i = 0; i < view.size_; ++i) {
+    x_view_.processSemanticImage(view.getImageAtFrame(i), x_view::SE3());
+  }
+}
+void XViewBagReader::iterateBagBackwards(const std::string& image_topic) {
+  auto const& view = topic_views_[image_topic];
+  for (int i = view.size_ - 1; i >= 0; --i) {
+    x_view_.processSemanticImage(view.getImageAtFrame(i), x_view::SE3());
+  }
+}
+void XViewBagReader::iterateBagFromTo(const std::string& image_topic,
+                                      const int from, const int to) {
+  auto const& view = topic_views_[image_topic];
+  if (from >= 0 && from < view.size_ && to >= 0 && to < view.size_) {
+    int step = (from <= to ? +1 : -1);
+    for (int i = std::min(from, to); i < std::max(from, to); i += step) {
+      x_view_.processSemanticImage(view.getImageAtFrame(i), x_view::SE3());
+    }
+  }
 }
 
 void XViewBagReader::getParameters() {

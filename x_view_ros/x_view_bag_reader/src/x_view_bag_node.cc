@@ -10,17 +10,7 @@ int main(int argc, char** argv) {
 
   x_view_ros::XViewBagReader bag_reader(node_handle);
 
-  try {
-    ros::spin();
-  }
-  catch (const std::exception& e) {
-    ROS_ERROR_STREAM("Exception: " << e.what());
-    return 1;
-  }
-  catch (...) {
-    ROS_ERROR_STREAM("Unknown Exception");
-    return 1;
-  }
+  bag_reader.iterateBagForwards("Stereo_Left/Omni_R/labels");
 
   return 0;
 }

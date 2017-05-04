@@ -52,12 +52,25 @@ class XViewBagReader {
 
   void loadBagFile();
 
+  void iterateBagForwards(const std::string& image_topic);
+  void iterateBagBackwards(const std::string& image_topic);
+  void iterateBagFromTo(const std::string& image_topic,
+                        const int from, const int to);
+
   // 3D pose (position + orientation)
   typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 
  private:
 
   void getParameters();
+
+  int getNumFramesInViews() const {
+    // count the number of loaded images in the views
+    int num_frames = std::numeric_limits<int>::max();
+    for (const auto& topic_view : topic_views_)
+      num_frames = std::min(num_frames, topic_view.second.size_);
+    return num_frames;
+  }
 
   x_view::XView x_view_;
 
@@ -71,7 +84,7 @@ class XViewBagReader {
   rosbag::Bag bag_;
 
   // images extracted from the bag file keyed by the string of the topic
-  std::map<std::string, RosBagTopicView> topic_views_;
+  std::map<std::string, RosbagTopicView> topic_views_;
 };
 
 }
