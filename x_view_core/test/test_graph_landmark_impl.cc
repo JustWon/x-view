@@ -47,8 +47,8 @@ void testChessboardImage() {
   std::vector<int> sizes = {100, 200};
   std::vector<int> block_sizes = {20, 21};
 #else
-  std::vector<int> classes = {2, 3, 5, 15};
-  std::vector<int> sizes = {100, 200, 333, 800};
+  std::vector<int> classes = {2, 3, 15};
+  std::vector<int> sizes = {100, 333, 800};
   std::vector<int> block_sizes = {20, 21, 40};
 #endif // X_VIEW_DEBUG
 

@@ -16,10 +16,12 @@ void AbstractMaximalSubgraphTest::run() const {
     if (computed_distance ==
         boost::num_edges(query_graph_) + boost::num_edges(graph_database_[i]))
       std::cout << "\tNo correspondences found" << std::endl;
-    std::cout << "Elapsed time for graph " << i << ": "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(
-                  end - start).count() << " milliseconds"
-              << std::endl << std::endl;
+    else {
+      std::cout << "Elapsed time for graph " << i << ": "
+                << std::chrono::duration_cast<std::chrono::milliseconds>(
+                    end - start).count() << " milliseconds"
+                << std::endl << std::endl;
+    }
   }
 }
 
