@@ -92,7 +92,7 @@ void SimpleGraphsTest::buildGraphDatabase() {
 
   // Build second graph of the form    A - C
   GraphType& g1 = graph_database_[0];
-  expected_distances_[0] = 3;
+  expected_distances_[0] = 3;  // dist(q, g1) = 2 + 1 - (2 * 0)
   auto v1_0 = boost::add_vertex({VertexData::VertexLabelName::A}, g1);
   auto v1_1 = boost::add_vertex({VertexData::VertexLabelName::C}, g1);
 
@@ -101,7 +101,7 @@ void SimpleGraphsTest::buildGraphDatabase() {
   // Build third graph of the form    B - C - C - B - A - B
   // (matching of query graph here            <------->      )
   GraphType& g2 = graph_database_[1];
-  expected_distances_[1] = 3;
+  expected_distances_[1] = 3; // dist(q, g2) = 2 + 5 - (2 * 2)
   auto v2_0 = boost::add_vertex({VertexData::VertexLabelName::B}, g2);
   auto v2_1 = boost::add_vertex({VertexData::VertexLabelName::C}, g2);
   auto v2_2 = boost::add_vertex({VertexData::VertexLabelName::C}, g2);
@@ -122,6 +122,14 @@ void PaperGraphsTest::buildGraphDatabase() {
   // adding some edge constraints
 
   // build the query graph
+  //
+  //                              C
+  //                            /   \
+  //     C         B           B     C
+  //    /  \       |           |     |
+  //   /    \      |           |     |
+  //  C ---- B --- A --- A --- C --- B
+
   query_graph_.clear();
   auto v0_0 = boost::add_vertex({VertexData::VertexLabelName::A}, query_graph_);
   auto v0_1 = boost::add_vertex({VertexData::VertexLabelName::C}, query_graph_);
@@ -156,8 +164,13 @@ void PaperGraphsTest::buildGraphDatabase() {
   expected_distances_.resize(2);
 
   // Build second graph (g1) which is a subgraph of q --> distance should be 6
+  //
+  //     C         B
+  //    /  \       |
+  //   /    \      |
+  //  C ---- B --- A --- A
   GraphType& g1 = graph_database_[0];
-  expected_distances_[0] = 6;
+  expected_distances_[0] = 6;   // dist(q, g1) = 12 + 6 - (2 * 6)
   auto v1_0 = boost::add_vertex({VertexData::VertexLabelName::A}, g1);
   auto v1_1 = boost::add_vertex({VertexData::VertexLabelName::C}, g1);
   auto v1_2 = boost::add_vertex({VertexData::VertexLabelName::B}, g1);
@@ -174,8 +187,15 @@ void PaperGraphsTest::buildGraphDatabase() {
 
   // Build third graph (g2) which has same structure as q, but a node label
   // is different --> distance should be 4
+  //
+  //                              C
+  //                            /   \
+  //     C         B           B     C
+  //    /  \       |           |     |
+  //   /    \      |           |     |
+  //  C ---- B --- A --- C --- C --- B
   GraphType& g2 = graph_database_[1];
-  expected_distances_[1] = 4;
+  expected_distances_[1] = 4; // dist(q, g2) = 12 + 12 - (2 * 10)
   auto v2_0 = boost::add_vertex({VertexData::VertexLabelName::A}, g2);
   auto v2_1 = boost::add_vertex({VertexData::VertexLabelName::C}, g2);
   auto v2_2 = boost::add_vertex({VertexData::VertexLabelName::B}, g2);
