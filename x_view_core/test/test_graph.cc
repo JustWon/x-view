@@ -1,11 +1,11 @@
+#include <vector>
+
 #include <gtest/gtest.h>
 
 #include <glog/logging.h>
 
 #include <x_view_core/features/graph.h>
 #include <x_view_core/datasets/synthia_dataset.h>
-
-#include <vector>
 
 using namespace x_view;
 
