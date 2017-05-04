@@ -1,7 +1,5 @@
 #include <thread>
 
-#include <ros/ros.h>
-
 #include <x_view_bag_reader/x_view_bag_reader.h>
 
 int main(int argc, char** argv) {
@@ -10,7 +8,7 @@ int main(int argc, char** argv) {
 
   x_view_ros::XViewBagReader bag_reader(node_handle);
 
-  bag_reader.iterateBagForwards("Stereo_Left/Omni_R/labels");
+  bag_reader.iterateBagForwards("Stereo_Left/Omni_F/labels");
 
   return 0;
 }

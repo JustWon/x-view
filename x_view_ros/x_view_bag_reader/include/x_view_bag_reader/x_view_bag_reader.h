@@ -17,13 +17,26 @@
 
 namespace x_view_ros {
 
+/**
+ * \brief The XViewBagReader class is an interface to any rosbag file. This
+ * class can be used to access data contained in a rosbag file and can be
+ * used to test the implementation of XView by accessing the images in the
+ * bag file in any order one wants.
+ */
 class XViewBagReader {
 
+  /// \brief Parameters needed by XViewBagReader.
   struct XViewBagReaderParams {
+    /// \brief Bag filename of the rosbag file to be read.
     std::string bag_file_name;
+    /// \brief Dataset name of the dataset contained in the rosbagfile.
     std::string dataset_name;
+
+    /// \brief Topic containing semantic images of the 'back' camera.
     std::string semantics_image_topic_back;
+    /// \brief Topic containing semantic images of the 'front' camera.
     std::string semantics_image_topic_front;
+    /// \brief Topic containing semantic images of the 'right' camera.
     std::string semantics_image_topic_right;
 
     std::string world_frame;
@@ -32,17 +45,45 @@ class XViewBagReader {
   }; // struct XViewBagReaderParams
 
 
-  // each topic to be followed can be stored into a RosBagTopicView
+  /**
+   * \brief Each topic contained in the rosbag file read by the
+   * XViewBagReader class can be accessd through a rosbag::View object. This
+   * struct is a small wrapper around the rosbag::View object which provides
+   * some functionalities to acces the desired data.
+   */
   struct RosbagTopicView {
     RosbagTopicView() : topic_name_(""), view_(nullptr), size_(-1) {}
+
+    /**
+     * \brief Constructor which initializes the internal structure used to
+     * access the data related to the topic as if it was in a random access
+     * container.
+     * \param bag Rosbag object.
+     * \param topic String specifying the topic this objects is viewing at.
+     */
     RosbagTopicView(const rosbag::Bag& bag, const std::string& topic);
 
     std::string topic_name_;
+    // needed to use a pointer because rosbag::View has a private
+    // copyconstructor, so using a pointer was an easy way to avoid problems
     rosbag::View* view_;
-    std::vector<rosbag::View::iterator> iterators_;
+
+    /// \brief number of messages contained in the bag file associated with
+    /// the topic.
     int size_;
 
-    cv::Mat getImageAtFrame(const int frame_index) const;
+    /// \brief internal structure which allows to access any message observed
+    /// by the view as if it where a random access.
+    std::vector<rosbag::View::iterator> iterators_;
+
+    /**
+     * \brief Builds the semantic image associated to a frame for the current
+     * topic.
+     * \param frame_index Integer indicating the desired frame to be queried.
+     * \return Semantic image corresponding to the frame passed as argument
+     * for the topic observed by this object.
+     */
+    cv::Mat getSemanticImageAtFrame(const int frame_index) const;
   };
 
  public:
@@ -50,8 +91,10 @@ class XViewBagReader {
 
   ~XViewBagReader() {};
 
+  /// \brief Loads a bag file by creating views for selected topics.
   void loadBagFile();
 
+  /// \brief predefined functions to iterate over the data related to a topic.
   void iterateBagForwards(const std::string& image_topic);
   void iterateBagBackwards(const std::string& image_topic);
   void iterateBagFromTo(const std::string& image_topic,
@@ -64,26 +107,18 @@ class XViewBagReader {
 
   void getParameters();
 
-  int getNumFramesInViews() const {
-    // count the number of loaded images in the views
-    int num_frames = std::numeric_limits<int>::max();
-    for (const auto& topic_view : topic_views_)
-      num_frames = std::min(num_frames, topic_view.second.size_);
-    return num_frames;
-  }
-
   x_view::XView x_view_;
 
-  // Parameters.
+  /// \brief Parameters used by XViewBagReader.
   XViewBagReaderParams params_;
 
-  // node handle used to access parameters
+  /// \brief Node handle used to access parameters.
   ros::NodeHandle nh_;
 
-  // bag file being read by this class
+  /// \brief Rosbag file being read by this class.
   rosbag::Bag bag_;
 
-  // images extracted from the bag file keyed by the string of the topic
+  /// \brief Object mapping topic strings to the corresponding view objects.
   std::map<std::string, RosbagTopicView> topic_views_;
 };
 

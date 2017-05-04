@@ -9,7 +9,9 @@ XViewBagReader::RosbagTopicView::RosbagTopicView(const rosbag::Bag& bag,
     : topic_name_(topic),
       view_(new rosbag::View(bag, rosbag::TopicQuery(topic))),
       size_(0) {
-  // create a copy of the iterators locally
+
+  // create a copy of the iterators locally which allows random access to the
+  // data instead of looping through the view each time an object is queried.
   for (rosbag::View::iterator iter = view_->begin(); iter != view_->end();
        ++iter) {
     iterators_.push_back(rosbag::View::iterator(iter));
@@ -18,8 +20,10 @@ XViewBagReader::RosbagTopicView::RosbagTopicView(const rosbag::Bag& bag,
 
 }
 
-cv::Mat XViewBagReader::RosbagTopicView::getImageAtFrame(const int frame_index) const {
+cv::Mat XViewBagReader::RosbagTopicView::getSemanticImageAtFrame(const int frame_index) const {
   x_view::SynthiaDataset dataset;
+
+  // retrieve the iterator which is indicating to the frame of interest.
   auto iter = iterators_[frame_index];
 
   sensor_msgs::ImageConstPtr msg = iter->instantiate<sensor_msgs::Image>();
@@ -41,13 +45,16 @@ void XViewBagReader::loadBagFile() {
   // dataset used to parse the images
   x_view::SynthiaDataset synthiaDataset;
 
+  // list of topics which the XViewBagReades observes throught its views.
   std::vector<std::string> topic_names = {params_.semantics_image_topic_back,
                                           params_.semantics_image_topic_front,
                                           params_.semantics_image_topic_right};
 
 
   // remove the '/' char at the beginning of the topic names and create
-  // corresponding topic views
+  // corresponding topic views (this might be a bug in ros, as for creating
+  // listeners and publishers the '/' char is needed, while to access the
+  // data in a bag file one needs to remove it)
   for (auto& s : topic_names) {
     if (s.front() == '/')
       s.erase(s.begin());
@@ -59,13 +66,13 @@ void XViewBagReader::loadBagFile() {
 void XViewBagReader::iterateBagForwards(const std::string& image_topic) {
   auto const& view = topic_views_[image_topic];
   for (int i = 0; i < view.size_; ++i) {
-    x_view_.processSemanticImage(view.getImageAtFrame(i), x_view::SE3());
+    x_view_.processSemanticImage(view.getSemanticImageAtFrame(i), x_view::SE3());
   }
 }
 void XViewBagReader::iterateBagBackwards(const std::string& image_topic) {
   auto const& view = topic_views_[image_topic];
   for (int i = view.size_ - 1; i >= 0; --i) {
-    x_view_.processSemanticImage(view.getImageAtFrame(i), x_view::SE3());
+    x_view_.processSemanticImage(view.getSemanticImageAtFrame(i), x_view::SE3());
   }
 }
 void XViewBagReader::iterateBagFromTo(const std::string& image_topic,
@@ -74,7 +81,7 @@ void XViewBagReader::iterateBagFromTo(const std::string& image_topic,
   if (from >= 0 && from < view.size_ && to >= 0 && to < view.size_) {
     int step = (from <= to ? +1 : -1);
     for (int i = std::min(from, to); i < std::max(from, to); i += step) {
-      x_view_.processSemanticImage(view.getImageAtFrame(i), x_view::SE3());
+      x_view_.processSemanticImage(view.getSemanticImageAtFrame(i), x_view::SE3());
     }
   }
 }
