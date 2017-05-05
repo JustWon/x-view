@@ -17,7 +17,7 @@ TEST(XViewSlamTestSuite, test_graph) {
   typedef Graph::VertexDescriptor VertexDescriptor;
 
   Graph g;
-  auto& graph = g.graph();
+  Graph::GraphType& graph = g.graph();
   const int num_desired_vertices = 5;
   std::vector<Vertex> vertices;
   std::vector<VertexDescriptor> vertex_descriptors;
@@ -27,8 +27,6 @@ TEST(XViewSlamTestSuite, test_graph) {
     vertex_descriptors.push_back(boost::add_vertex(vertices.back(), graph));
   }
 
-  // print the vertices
-  g.printVertices();
 
   std::vector<std::pair<int, int> > edgeList = {
       {0, 1},
@@ -39,15 +37,12 @@ TEST(XViewSlamTestSuite, test_graph) {
       {4, 0}
   };
 
-  int edgeIndex = 10;
   for (auto edge : edgeList) {
     boost::add_edge(vertex_descriptors[edge.first],
                     vertex_descriptors[edge.second],
                     {edge.first, edge.second},
                     graph);
   }
-
-  g.printEdges();
 
   g.print(std::cout);
 
