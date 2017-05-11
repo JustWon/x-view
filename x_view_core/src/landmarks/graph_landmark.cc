@@ -28,7 +28,7 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
 
 #ifdef X_VIEW_DEBUG
   cv::imshow("Semantic entities", getImageFromGraph(graph));
-  cv::waitKey(200);
+  cv::waitKey(2000);
 #endif // X_VIEW_DEBUG
 
   // create the descriptor stored in this landmark by generating a

@@ -1,6 +1,8 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
 
 #include <x_view_core/datasets/synthia_dataset.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <highgui.h>
 
 namespace x_view_ros {
 
@@ -24,6 +26,8 @@ cv::Mat XViewBagReader::RosbagTopicView::getSemanticImageAtFrame(const int frame
   x_view::SynthiaDataset dataset;
 
   // retrieve the iterator which is indicating to the frame of interest.
+  CHECK(frame_index >= 0 && frame_index < size_) << "Index passed to "
+      "'RosbagTopicView::getSemanticImageAtFrame' is not valid";
   auto iter = iterators_[frame_index];
 
   sensor_msgs::ImageConstPtr msg = iter->instantiate<sensor_msgs::Image>();
@@ -66,23 +70,24 @@ void XViewBagReader::loadBagFile() {
 void XViewBagReader::iterateBagForwards(const std::string& image_topic) {
   auto const& view = topic_views_[image_topic];
   for (int i = 0; i < view.size_; ++i) {
-    x_view_.processSemanticImage(view.getSemanticImageAtFrame(i), x_view::SE3());
+    x_view_.processSemanticImage(view.getSemanticImageAtFrame(i),
+                                 x_view::SE3());
   }
 }
 void XViewBagReader::iterateBagBackwards(const std::string& image_topic) {
   auto const& view = topic_views_[image_topic];
   for (int i = view.size_ - 1; i >= 0; --i) {
-    x_view_.processSemanticImage(view.getSemanticImageAtFrame(i), x_view::SE3());
+    x_view_.processSemanticImage(view.getSemanticImageAtFrame(i),
+                                 x_view::SE3());
   }
 }
 void XViewBagReader::iterateBagFromTo(const std::string& image_topic,
                                       const int from, const int to) {
   auto const& view = topic_views_[image_topic];
-  if (from >= 0 && from < view.size_ && to >= 0 && to < view.size_) {
-    int step = (from <= to ? +1 : -1);
-    for (int i = std::min(from, to); i < std::max(from, to); i += step) {
-      x_view_.processSemanticImage(view.getSemanticImageAtFrame(i), x_view::SE3());
-    }
+  const int step = (from <= to ? +1 : -1);
+  for (int i = from; step * i < step * to; i += step) {
+    x_view_.processSemanticImage(view.getSemanticImageAtFrame(i),
+                                 x_view::SE3());
   }
 }
 

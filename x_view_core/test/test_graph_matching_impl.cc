@@ -2,6 +2,7 @@
 
 #include <chrono>
 
+
 void AbstractMaximalSubgraphTest::run() const {
   std::cout << "Testing " << graph_name_ << std::endl;
 
@@ -46,12 +47,14 @@ int AbstractMaximalSubgraphTest::computeMCSDistance(int graph_index) const {
   auto v_property_map_a = boost::get(&VertexData::label_, query_graph_);
   auto v_property_map_b = boost::get(&VertexData::label_, g);
 
+
   // Predicate type required by mcgregor function
   auto equivalence_predicates =
       boost::vertices_equivalent(boost::make_property_map_equivalent
                                      (v_property_map_a, v_property_map_b))
           .edges_equivalent(boost::make_property_map_equivalent
                                 (e_property_map_a, e_property_map_b));
+
 
   // Object called by mcgregor function when the MCS is found
   SubgraphCallback subgraph_callback(query_graph_, g);

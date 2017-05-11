@@ -1,8 +1,8 @@
-#include <x_view_node/x_view_worker.h>
+#include <thread>
 
 #include <ros/ros.h>
 
-#include <thread>
+#include <x_view_node/x_view_worker.h>
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "X_View");
