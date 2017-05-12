@@ -14,6 +14,7 @@ class SubgraphGenerator:
         """
         self.base_graph = base_graph
         self.subgraphs = []
+        self.center_node_ids = []
 
     def generate_n_subgraphs_centered_around_nodes(self, num_subgraphs, min_radius=1, max_radius=3,
                                                    remove_edge_fraction=0.2, add_edge_fraction=0.2):
@@ -31,6 +32,7 @@ class SubgraphGenerator:
         for fraction in [remove_edge_fraction, add_edge_fraction]:
             assert 0 <= fraction < 1
         self.subgraphs = []
+        self.center_node_ids = []
         for n in range(num_subgraphs):
             # generate a new subgraph
             radius = random.randint(min_radius, max_radius)
@@ -46,7 +48,37 @@ class SubgraphGenerator:
             GraphModifier.add_n_edges_to_graph(subgraph, num_edges_to_add)
 
             self.subgraphs.append(subgraph)
+            self.center_node_ids.append(center_node_id)
 
+    def generate_subgraph_centered_at_with_radius(self, center_node_id, radius):
+        # type (int, int) -> nx.Graph
+        """Generates a subgraph of the base_graph stored in the calling object starting at the node indicated by the
+        center_node_id and defined by the neighborhood specified by the radius parameter.
+        :param center_node_id: Index referring to the node used to define the subgraph.
+        :param radius: Maximal edge-distance between extracted nodes and central node.
+        :return: Subgraph of base_graph centered ate center_node_id with nodes being at maximal distance of radius to the center node.
+        """
+        assert 0 <= center_node_id < self.base_graph.number_of_nodes()
+        center_node = self.base_graph.nodes()[center_node_id]
+        subgraph = nx.ego_graph(self.base_graph, n=center_node, radius=radius)
+
+        return subgraph
+
+    @staticmethod
+    def connect_disconnected_graph(disconnected_graph):
+        # type (nx.Graph)
+        """Given a disconnected graph, this function connects all disconnected component in a naive way,
+        i.e. by adding an edge between the first node of the i-th component to the first node of the (i+1)-th component.
+        :param disconnected_graph: Graph presenting disconnected components.
+        """
+        disconnected_components = list(nx.connected_component_subgraphs(disconnected_graph))
+
+        # connect the components
+        for i in range(0, len(disconnected_components) - 1):
+            disconnected_graph.add_edge(disconnected_components[i].nodes()[0],
+                                        disconnected_components[i + 1].nodes()[0])
+
+''' Unused code
     def generate_random_subgraph_from_node_indices(self, node_indices):
         # type: (list) -> nx.Graph
         """A subgraph is extracted by the base_graph stored in the calling object such that the extracted nodes
@@ -75,29 +107,4 @@ class SubgraphGenerator:
         # generate random indices to keep
         node_indices = random.sample(range(0, self.base_graph.number_of_nodes()), num_nodes)
         return self.generate_random_subgraph_from_node_indices(node_indices)
-
-    def generate_subgraph_centered_at_with_radius(self, center_node_id, radius):
-        # type (int, int) -> nx.Graph
-        """Generates a subgraph of the base_graph stored in the calling object starting at the node indicated by the
-        center_node_id and defined by the neighborhood specified by the radius parameter.
-        :param center_node_id: Index referring to the node used to define the subgraph.
-        :param radius: Maximal edge-distance between extracted nodes and central node.
-        :return: Subgraph of base_graph centered ate center_node_id with nodes being at maximal distance of radius to the center node.
-        """
-        assert 0 <= center_node_id < self.base_graph.number_of_nodes()
-        center_node = self.base_graph.nodes()[center_node_id]
-        return nx.ego_graph(self.base_graph, n=center_node, radius=radius)
-
-    @staticmethod
-    def connect_disconnected_graph(disconnected_graph):
-        # type (nx.Graph)
-        """Given a disconnected graph, this function connects all disconnected component in a naive way,
-        i.e. by adding an edge between the first node of the i-th component to the first node of the (i+1)-th component.
-        :param disconnected_graph: Graph presenting disconnected components.
-        """
-        disconnected_components = list(nx.connected_component_subgraphs(disconnected_graph))
-
-        # connect the components
-        for i in range(0, len(disconnected_components) - 1):
-            disconnected_graph.add_edge(disconnected_components[i].nodes()[0],
-                                        disconnected_components[i + 1].nodes()[0])
+'''

@@ -13,7 +13,6 @@ def parse_args():
 
 
 def main(arguments, base_graph):
-    # type (argparse.ArgumentParsere, nx.Graph)
     """Runs the main process
     """
     subgraph_generator = SubgraphGenerator(base_graph)
