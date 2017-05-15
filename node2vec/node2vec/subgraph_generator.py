@@ -1,6 +1,6 @@
 import networkx as nx
 import random
-from . import GraphModifier
+from . import GraphModifier, GraphLabeler
 
 
 class SubgraphGenerator:
@@ -33,7 +33,9 @@ class SubgraphGenerator:
             assert 0 <= fraction < 1
         self.subgraphs = []
         self.center_node_ids = []
+
         for n in range(num_subgraphs):
+            subgraph_id = n + 1
             # generate a new subgraph
             radius = random.randint(min_radius, max_radius)
             center_node_id = random.randint(0, self.base_graph.number_of_nodes() - 1)
@@ -47,6 +49,11 @@ class SubgraphGenerator:
             GraphModifier.remove_n_edges_from_graph(subgraph, num_edges_to_remove)
             GraphModifier.add_n_edges_to_graph(subgraph, num_edges_to_add)
 
+            # add a membership tag to the graphs in order to avoid node aliasing (i.e. two identical nodes belonging
+            # to different subgraphs should be treated as different)
+            GraphLabeler.add_graph_membership(subgraph, subgraph_id)
+
+            # store the resulting structures
             self.subgraphs.append(subgraph)
             self.center_node_ids.append(center_node_id)
 
@@ -77,6 +84,7 @@ class SubgraphGenerator:
         for i in range(0, len(disconnected_components) - 1):
             disconnected_graph.add_edge(disconnected_components[i].nodes()[0],
                                         disconnected_components[i + 1].nodes()[0])
+
 
 ''' Unused code
     def generate_random_subgraph_from_node_indices(self, node_indices):

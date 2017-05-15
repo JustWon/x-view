@@ -17,11 +17,22 @@ class GraphDrawer:
 
     @staticmethod
     def draw_graph_node_labels(graph):
-        # type (ny.Graph) -> None
+        # type (nx.Graph) -> None
         """Renders labels into the current matplotlib figure. The label rendered for each node is the one associated
         to the 'GraphProperties.node_semantic_label_key' key.
         """
         nodes = graph.nodes(data=True)
         positions = dict((n[0], n[1][GraphProperties.node_drawing_position_key]) for n in nodes)
         labels = dict((n[0], n[1][GraphProperties.node_semantic_label_key]) for n in nodes)
+        nx.draw_networkx_labels(graph, pos=positions, labels=labels)
+
+    @staticmethod
+    def draw_graph_unique_identifier(graph):
+        # type (nx.Graph) -> None
+        """Renders node unique identifiers into the current matplotlib figure. The indentifier rendered for each node
+        is the one associated to the 'GraphProperties.node_unique_identifier_key' key.
+        """
+        nodes = graph.nodes(data=True)
+        positions = dict((n[0], n[1][GraphProperties.node_drawing_position_key]) for n in nodes)
+        labels = dict((n[0], n[1][GraphProperties.node_unique_identifier_key]) for n in nodes)
         nx.draw_networkx_labels(graph, pos=positions, labels=labels)

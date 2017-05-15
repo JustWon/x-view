@@ -9,6 +9,7 @@ def parse_args():
     """
     parser = argparse.ArgumentParser(description="Run node2vec.")
 
+
     return parser.parse_args()
 
 

@@ -18,6 +18,16 @@ class GraphLabeler:
             node[1][GraphProperties.node_unique_identifier_key] = i
 
     @staticmethod
+    def add_graph_membership(graph, graph_id):
+        # type (nx.Graph, int) -> None
+        """Adds a graph membership id to each node, such that each node belonging to the same graph is tagged with
+        the same id. This allows to distinguish nodes in a subgrpah from nodes belonging to an other subgraph.
+        """
+        graph_nodes = graph.nodes(data=True)
+        for node in graph_nodes:
+            node[1][GraphProperties.graph_membership_key] = graph_id
+
+    @staticmethod
     def add_random_semantic_labels(graph, semantic_label_list):
         # type (nx.Graph) -> None
         """Adds a semantic label and a semantic label index to each node of the graph. This property is keyed in the
@@ -32,7 +42,6 @@ class GraphLabeler:
             label = semantic_label_list[label_index]
             node[1][GraphProperties.node_semantic_label_key] = label
             node[1][GraphProperties.node_semantic_label_id_key] = label_index
-
 
     @staticmethod
     def add_drawing_position(graph):
