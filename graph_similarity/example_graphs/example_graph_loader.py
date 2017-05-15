@@ -1,8 +1,8 @@
 import os
-from ..gml_loader import GmlLoader
+from graph_similarity.gml_loader import GmlLoader
 
 
-class ExampleGraphs:
+class ExampleGraphLoader:
     graph_names = ["adjnoun.gml",
                    "as-22july06.gml",
                    "astro-ph.gml",
@@ -20,6 +20,6 @@ class ExampleGraphs:
 
     @staticmethod
     def load_example_graph(graph_name):
-        if graph_name not in ExampleGraphs.graph_names:
+        if graph_name not in ExampleGraphLoader.graph_names:
             raise Exception("Example graph '{}' does not exist".format(graph_name))
-        return GmlLoader.load_named_graph_in_directory(ExampleGraphs.current_directory_path, graph_name)
+        return GmlLoader.load_named_graph_in_directory(ExampleGraphLoader.current_directory_path, graph_name)

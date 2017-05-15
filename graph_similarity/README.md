@@ -5,7 +5,7 @@ __Note:__ the scripts contained in this repository are based on the [node2vec](h
 
 ## Structure
 The structure of the repository is here described:
-  * The [node2vec](./node2vec) folder contains the framework being developed for testing the _word2vec_ approach for graph vertices.
+  * The [node2vec](graph_similarity) folder contains the framework being developed for testing the _word2vec_ approach for graph vertices.
   * The scripts present in the root folder (the same folder containing this README file) show some exaples on how to use the developed framework.
 
   * The [src](./src) folder contains the _node2vec_ implementation of the [repository](https://github.com/aditya-grover/node2vec) mentioned above, and is to be used as reference for further developement.

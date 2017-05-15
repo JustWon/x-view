@@ -1,6 +1,7 @@
 import argparse
 import networkx as nx
-from node2vec import ExampleGraphs, SubgraphGenerator, GraphModifier
+from graph_similarity import SubgraphGenerator, GraphModifier
+from example_graphs import ExampleGraphLoader
 import matplotlib.pylab as plt
 
 
@@ -52,7 +53,7 @@ def main(arguments, base_graph):
 
 if __name__ == '__main__':
     args = parse_args()
-    current_base_graph_name = ExampleGraphs.graph_names[5]
-    graph, graph_path = ExampleGraphs.load_example_graph(current_base_graph_name)
+    current_base_graph_name = ExampleGraphLoader.graph_names[5]
+    graph, graph_path = ExampleGraphLoader.load_example_graph(current_base_graph_name)
     print("Working with '{}' graph".format(graph_path))
     main(args, graph)

@@ -1,5 +1,6 @@
 import argparse
-from node2vec import ExampleGraphs, SubgraphGenerator, GraphLabeler, GraphDrawer, Node2VecGraph, GraphProperties
+from graph_similarity import SubgraphGenerator, GraphLabeler, GraphDrawer, Node2VecGraph, GraphProperties
+from example_graphs import ExampleGraphLoader
 import matplotlib.pylab as plt
 from gensim.models import Word2Vec
 
@@ -53,11 +54,8 @@ def predict_embeddings(model, walks):
     # convert the walks into strings ([1,2,3] --> ['1', '2', '3'])
     string_walks = [map(str, walk) for walk in walks]
 
-    old_strings = model.
-
-
-    predictions = model.similar_by_vector()
-
+    # how to make predictions?
+    predictions = []
     return predictions
 
 
@@ -122,8 +120,8 @@ if __name__ == '__main__':
     args = parse_args()
 
     # load the base graph
-    current_base_graph_name = ExampleGraphs.graph_names[args.input]
-    graph, graph_path = ExampleGraphs.load_example_graph(current_base_graph_name)
+    current_base_graph_name = ExampleGraphLoader.graph_names[args.input]
+    graph, graph_path = ExampleGraphLoader.load_example_graph(current_base_graph_name)
 
     print("Working with '{}' graph".format(graph_path))
 
