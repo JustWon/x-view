@@ -17,7 +17,8 @@ class SubgraphGenerator:
         self.center_node_ids = []
 
     def generate_n_subgraphs_centered_around_nodes(self, num_subgraphs, min_radius=1, max_radius=3,
-                                                   remove_edge_fraction=0.2, add_edge_fraction=0.2):
+                                                   remove_edge_fraction=0.2, add_edge_fraction=0.2,
+                                                   node_indices=None):
         # type: (int, int, int, float, float) -> None
         """Generates num_subgraphs subgraphs of the base_graph contained by the calling object using the
         'generate_subgraph_centered_at_with_radius' function.
@@ -26,11 +27,18 @@ class SubgraphGenerator:
         :param max_radius: maximal radius used to generate subgraph.
         :param remove_edge_fraction: fraction of edges to remove from each generated subgraph.
         :param add_edge_fraction: fraction of edges to add to each generated subgraph.
+        :param node_indices: if given, the subgraphs will be generated around the node indices passed as argument
         """
 
         assert max_radius >= min_radius >= 1
         for fraction in [remove_edge_fraction, add_edge_fraction]:
             assert 0 <= fraction < 1
+
+        if node_indices is not None:
+            assert len(node_indices) is num_subgraphs
+        else:
+            node_indices = random.sample(range(0, self.base_graph.number_of_nodes()), num_subgraphs)
+
         self.subgraphs = []
         self.center_node_ids = []
 
@@ -38,7 +46,7 @@ class SubgraphGenerator:
             subgraph_id = n + 1
             # generate a new subgraph
             radius = random.randint(min_radius, max_radius)
-            center_node_id = random.randint(0, self.base_graph.number_of_nodes() - 1)
+            center_node_id = node_indices[n]
             subgraph = self.generate_subgraph_centered_at_with_radius(center_node_id=center_node_id,
                                                                       radius=radius)
             # modify the newly generated subgraph
