@@ -14,7 +14,7 @@ def parse_args():
     """
     parser = argparse.ArgumentParser(description="Run node2vec.")
 
-    parser.add_argument('--input', type=int, default=5, help='Base graph index')
+    parser.add_argument('--input', type=int, default=8, help='Base graph index')
 
     parser.add_argument('--walk-length', type=int, default=3, help='Length of walk per source. Default is 3.')
 
@@ -45,6 +45,7 @@ def run_node_features(base_graph):
     index2 = base_graph.nodes().index(random_edge[0][1])
 
     center_node_indices = [index1, index2]
+    center_node_indices = [index1]
 
     print("Generating {} random subgraphs".format(len(center_node_indices)))
     subgraph_generator = SubgraphGenerator(base_graph=base_graph)
@@ -163,7 +164,9 @@ if __name__ == '__main__':
     current_base_graph_name = ExampleGraphLoader.graph_names[args.input]
     graph, graph_path = ExampleGraphLoader.load_example_graph(current_base_graph_name)
 
-    GraphModifier.remove_n_edges_from_graph(graph, graph.number_of_edges() // 2)
+    # remove some edges from the graph, as a the more edges there are, the more random paths we should use to have a
+    # good descriptor for each node.
+    GraphModifier.remove_n_edges_from_graph(graph, round(graph.number_of_edges() * 0.7))
 
     print("Working with '{}' graph".format(graph_path))
 
