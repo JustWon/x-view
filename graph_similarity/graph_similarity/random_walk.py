@@ -7,12 +7,12 @@ class RandomWalk:
     """Class providing methods to compute random walks starting from a node in the graph
     """
 
-    def __init__(self, G):
+    def __init__(self, graph):
         # type (nx.Graph) -> None
         """Initializes a RandomWalk class for the graph passed as argument
         """
-        self.G = G
-        adj_matrix = nx.adjacency_matrix(G).todense()
+        self.graph = graph
+        adj_matrix = nx.adjacency_matrix(graph).todense()
         trans_prob = adj_matrix.astype(float)
 
         for i in range(trans_prob.shape[1]):
@@ -34,11 +34,12 @@ class RandomWalk:
 
     def generate_random_walks(self, num_walks, walk_length):
         # type (int, int) -> None
-        """Generate num_walks random walks of length walk_length for each node of the graph passed to the constructor of the calling object.
+        """Generate num_walks random walks of length walk_length for each node of the graph passed to the constructor
+        of the calling object.
         :param num_walks: number of random walks to generate for each node of the graph.
         :param walk_length: length of the random walk.
         """
-        graph_nodes = self.G.nodes(data=False)
+        graph_nodes = self.graph.nodes(data=False)
         for i, node in enumerate(graph_nodes):
             node_unique_id_walks, node_semantic_id_walks \
                 = self.generate_random_walk_starting_at(num_walks=num_walks, walk_length=walk_length,
@@ -61,7 +62,7 @@ class RandomWalk:
         unique_id_walks = np.empty([num_walks, walk_length + 1], dtype=int)
         semantic_label_id_walks = np.empty(unique_id_walks.shape, dtype=int)
 
-        graph_nodes = self.G.nodes(data=True)
+        graph_nodes = self.graph.nodes(data=True)
         for i in range(num_walks):
             walk = [start_node_index]
             for j in range(walk_length):
