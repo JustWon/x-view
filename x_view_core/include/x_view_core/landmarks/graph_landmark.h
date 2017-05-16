@@ -86,15 +86,15 @@ class GraphLandmark : public AbstractSemanticLandmark {
   global_dataset_ptr->getLabelsToRender()) const;
 
   /**
-   * \brief Generates a color image of the landmark representation based on
-   * the graph nodes/edges.
+   * \brief Generates a color image of the landmark representation and adds
+   * the graph ontop of it.
    * \param graph Structure containing the graph data.
    * \param labels_to_render Vector containing index of labels to be rendered.
    * \return generated image.
    */
-  const cv::Mat getImageFromGraph(const Graph::GraphType& graph,
-                                  const std::vector<int>& labels_to_render =
-                                  global_dataset_ptr->getLabelsToRender()) const;
+  const cv::Mat createImageWithGraphOntop(const Graph::GraphType& graph,
+                                          const std::vector<int>& labels_to_render =
+                                          global_dataset_ptr->getLabelsToRender()) const;
 #endif // X_VIEW_DEBUG
 
  protected:
@@ -123,6 +123,13 @@ class GraphLandmark : public AbstractSemanticLandmark {
 
   /// \brief Computes the blobs in the semantic image and fills up image_blobs_.
   void findBlobs();
+
+  void customFloodFill(const cv::Mat& image);
+
+  /// \brief Given the blons extracted from the image, this function creates
+  /// a graph whose nodes are associated to the blobs centroids, and an edge
+  /// only exists between two nodes if the associated blobs touch each other.
+  void createGraph(Graph::GraphType& graph) const;
 
   /// \brief Given the blobs extracted from the image, this function creates
   /// a complete graph (all-to-all) where the nodes correspond to the blobs.
