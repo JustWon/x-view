@@ -1,12 +1,12 @@
 from __future__ import print_function
 import argparse
-from graph_similarity import GraphProperties, SubgraphGenerator, GraphLabeler, GraphDrawer, RandomWalk
-from example_graphs import ExampleGraphLoader
 from matplotlib import pylab as plt
 import random
 import numpy as np
 import itertools
 from scipy.spatial.distance import cdist
+from graph_similarity import GraphProperties, SubgraphGenerator, GraphLabeler, GraphDrawer, RandomWalk
+from example_graphs import ExampleGraphLoader
 
 
 def parse_args():
@@ -16,11 +16,9 @@ def parse_args():
 
     parser.add_argument('--input', type=int, default=5, help='Base graph index')
 
-    parser.add_argument('--output', type=str, default='emb/embeddings.emb', help='Embeddings path')
+    parser.add_argument('--walk-length', type=int, default=3, help='Length of walk per source. Default is 3.')
 
-    parser.add_argument('--walk-length', type=int, default=5, help='Length of walk per source. Default is 80.')
-
-    parser.add_argument('--num-walks', type=int, default=10, help='Number of walks per source. Default is 10.')
+    parser.add_argument('--num-walks', type=int, default=100, help='Number of walks per source. Default is 100.')
 
     return parser.parse_args()
 
@@ -36,7 +34,7 @@ def draw_all_subgraphs(graph_list):
         GraphDrawer.draw_graph_unique_identifier(g)
 
 
-def run_node_features(arguments, base_graph):
+def run_node_features(base_graph):
     """Runs the main process
     """
 
@@ -55,14 +53,22 @@ def run_node_features(arguments, base_graph):
                                                                   add_edge_fraction=0.2,
                                                                   node_indices=center_node_indices)
 
-    num_walks = 100
-    walk_length = 3
+    num_walks = args.num_walks
+    walk_length = args.walk_length
     unique_id_random_walks = []
     semantic_id_random_walks = []
+    print("Generating {} random walks of length {} for each node in each graph.".format(num_walks, walk_length))
     for i, subgraph in enumerate(subgraph_generator.subgraphs):
-        plt.figure()
-        GraphDrawer.draw_graph(subgraph)
-        GraphDrawer.draw_graph_labels(subgraph, GraphProperties.node_unique_identifier_key)
+        f, axarr = plt.subplots(2)
+
+        axarr[0].set_title("Unique node identifiers")
+        GraphDrawer.draw_graph(subgraph, ax=axarr[0])
+        GraphDrawer.draw_graph_labels(subgraph, GraphProperties.node_unique_identifier_key, ax=axarr[0])
+
+        axarr[1].set_title("Semantic label")
+        GraphDrawer.draw_graph(subgraph, ax=axarr[1])
+        GraphDrawer.draw_graph_labels(subgraph, GraphProperties.node_semantic_label_id_key, ax=axarr[1])
+
 
         r = RandomWalk(subgraph)
         r.generate_random_walks(num_walks=num_walks, walk_length=walk_length)
@@ -75,15 +81,24 @@ def run_node_features(arguments, base_graph):
         distances = np.zeros([subgraph1.number_of_nodes(), subgraph2.number_of_nodes()])
         for (n1, node1) in enumerate(subgraph1.nodes()):
             for (n2, node2) in enumerate(subgraph2.nodes()):
-                # Comparing node1 of graph i1 with node2 of graph i2
-                descriptors1 = semantic_id_random_walks[i1][node1]
-                descriptors2 = semantic_id_random_walks[i2][node2]
+                # if the two semantic labels are different, then set the relative distance to infinity,
+                # otherwise compute the similarity according to the random paths
+                if(subgraph1.node[node1][GraphProperties.node_semantic_label_id_key] ==
+                   subgraph2.node[node2][GraphProperties.node_semantic_label_id_key]):
+                    # Comparing node1 of graph i1 with node2 of graph i2
+                    descriptors1 = semantic_id_random_walks[i1][node1]
+                    descriptors2 = semantic_id_random_walks[i2][node2]
 
-                pairwise_distance = cdist(descriptors1, descriptors2)
+                    pairwise_distance = cdist(descriptors1, descriptors2)
 
-                mean_distance = np.mean(np.mean(pairwise_distance, axis=1), axis=0)
+                    sort_dist = np.sort(pairwise_distance.flatten())
+                    weights = -np.log(np.linspace(1.0e-5, 1, num=len(sort_dist)))
 
-                distances[n1, n2] = mean_distance
+                    weight_dist = sort_dist.dot(weights)
+
+                    distances[n1, n2] = weight_dist
+                else:
+                    distances[n1, n2] = np.finfo(float).max
 
         min_dist_for_i1 = np.argsort(distances, axis=1)
         min_dist_for_i2 = np.argsort(distances, axis=0).T
@@ -109,8 +124,8 @@ def run_node_features(arguments, base_graph):
 
     plt.show()
 
-
 if __name__ == '__main__':
+
     random.seed(0)
     np.random.seed(0)
 
@@ -136,4 +151,4 @@ if __name__ == '__main__':
 
     # run the node_features program, which generates random subgraphs of the base graph and computes
     # and embedding in which similar nodes are close to each other
-    run_node_features(args, graph)
+    run_node_features(graph)
