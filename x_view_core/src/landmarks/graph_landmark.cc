@@ -3,6 +3,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+#include <opencvblobslib/BlobResult.h>
+
 #include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/features/graph_descriptor.h>
 
@@ -76,12 +78,9 @@ const cv::Mat GraphLandmark::getImageFromBlobs(
         color[2] = bits[2] ? intensity : (uchar) 0;
 
         std::vector<std::vector<cv::Point>> v_contours;
-        v_contours.push_back(blob.contour_pixels_);
+        v_contours.push_back(blob.external_contour_pixels_);
 
-        cv::drawContours(resImage,
-                         std::vector<std::vector<cv::Point>>{
-                             blob.contour_pixels_},
-                         0, color, CV_FILLED);
+        cv::drawContours(resImage, v_contours, 0, color, CV_FILLED);
 
       }
 
@@ -154,6 +153,7 @@ const cv::Mat GraphLandmark::createImageWithGraphOntop(
 
 #endif // X_VIEW_DEBUG
 
+/*
 void GraphLandmark::findBlobs() {
 
   const int dataset_size = global_dataset_ptr->numSemanticClasses();
@@ -218,6 +218,7 @@ void GraphLandmark::findBlobs() {
     }
   }
 }
+ */
 
 void GraphLandmark::findBlobsWithContour() {
 
@@ -230,29 +231,11 @@ void GraphLandmark::findBlobsWithContour() {
     cv::Mat current_class_layer;
     cv::inRange(all_labels_image, cv::Scalar(c), cv::Scalar(c),
                 current_class_layer);
-    std::vector<std::vector<cv::Point> > contours;
-    std::vector<cv::Vec4i> hierarchy;
 
-    cv::imshow("Binary for class " + global_dataset_ptr->label(c),
-               current_class_layer);
-    cv::waitKey();
-
-    cv::findContours(current_class_layer, contours, hierarchy,
-                     CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
-    for (int i = 0; i < contours.size(); ++i) {
-      if (hierarchy[i][3] == -1) { // not hole boundary
-        const int contour_area = cv::contourArea(contours[i]);
-        if (contour_area >= MINIMUM_BLOB_SIZE && contour_area > 5) {
-          Blob blob(c, contours[i]);
-          image_blobs_[c].push_back(blob);
-
-          cv::drawContours(current_class_layer, contours, i, cv::Scalar::all
-              (125));
-          cv::imshow("Contours for " + global_dataset_ptr->label(c),
-                     current_class_layer);
-          cv::waitKey();
-        }
-      }
+    const int num_threads = 4;
+    CBlobResult res(current_class_layer, cv::Mat(), num_threads);
+    for (int b = 0; b < res.GetNumBlobs(); ++b) {
+      image_blobs_[c].push_back(Blob(c, *(res.GetBlob(b))));
     }
   }
 }

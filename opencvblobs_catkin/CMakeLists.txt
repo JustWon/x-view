@@ -4,6 +4,16 @@ project(opencvblobs_catkin)
 find_package(catkin_simple REQUIRED)
 catkin_simple()
 
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+# if no build type given, than set the build type to "Release"
+IF (NOT CMAKE_BUILD_TYPE)
+    SET(CMAKE_BUILD_TYPE "Release")
+ENDIF (NOT CMAKE_BUILD_TYPE)
+
+
+message("Building OpencvBlobs in ${CMAKE_BUILD_TYPE} mode")
+
 include(ExternalProject)
 
 file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
@@ -15,7 +25,7 @@ ExternalProject_Add(
 
         CONFIGURE_COMMAND cd ../opencvblobs_src && cmake .
         -DCMAKE_INSTALL_PREFIX:PATH=${CATKIN_DEVEL_PREFIX}
-        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DBUILD_SHARED_LIBS:BOOL=true
 
         BUILD_COMMAND cd ../opencvblobs_src && make -j 8
