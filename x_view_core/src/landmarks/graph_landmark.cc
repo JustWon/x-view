@@ -15,6 +15,30 @@ namespace x_view {
 // FIXME: should this parameter be read by the config file?
 int GraphLandmark::MINIMUM_BLOB_SIZE = 40;
 
+// **************************** BLOB CLASS **********************************//
+
+GraphLandmark::Blob::Blob() : semantic_label_(-1), c_blob_() {
+}
+
+GraphLandmark::Blob::Blob(const int semantic_label, const CBlob& c_blob)
+    : semantic_label_(semantic_label),
+      c_blob_(c_blob) {
+  computeContours();
+  computeArea();
+  computeCenter();
+}
+
+void GraphLandmark::Blob::computeContours() {
+  external_contour_pixels_ =
+      c_blob_.GetExternalContour()->GetContourPoints();
+  internal_contour_pixels_.clear();
+  for (auto& internal_contour : c_blob_.GetInternalContours()) {
+    internal_contour_pixels_.push_back(internal_contour->GetContourPoints());
+  }
+}
+
+// ********************** GRAPH LANDMARK CLASS *******************************//
+
 GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
   // Graph descriptor filled up by this function
@@ -37,6 +61,56 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   // VectorDescriptor containing the histogram data
   descriptor_ = std::make_shared<GraphDescriptor>(GraphDescriptor(descriptor));
 
+}
+
+void GraphLandmark::findBlobsWithContour() {
+
+  const cv::Mat all_labels_image = extractChannelFromImage(semantic_image_, 0);
+  image_blobs_.resize(global_dataset_ptr->numSemanticClasses());
+
+  // extract only the pixels associated with each class, and compute their
+  // corresponding contours
+  for (int c = 0; c < global_dataset_ptr->numSemanticClasses(); ++c) {
+    cv::Mat current_class_layer;
+    cv::inRange(all_labels_image, cv::Scalar(c), cv::Scalar(c),
+                current_class_layer);
+
+    const int num_threads = 4;
+    CBlobResult res(current_class_layer, cv::Mat(), num_threads);
+    for (int b = 0; b < res.GetNumBlobs(); ++b) {
+      image_blobs_[c].push_back(Blob(c, *(res.GetBlob(b))));
+    }
+  }
+}
+
+void GraphLandmark::createGraph(Graph::GraphType& graph) const {
+
+}
+
+void GraphLandmark::createCompleteGraph(Graph::GraphType& graph) const {
+
+  std::vector<Graph::VertexProperty> vertices;
+  std::vector<Graph::VertexDescriptor> vertex_descriptors;
+
+  // push the blobs into the graph
+  for (int c = 0; c < image_blobs_.size(); ++c) {
+    for (const Blob& blob : image_blobs_[c]) {
+      const int semantic_label = blob.semantic_label_;
+      const std::string label = global_dataset_ptr->label(semantic_label);
+      const int size = blob.size_;
+      const cv::Point center = blob.center_;
+      vertices.push_back({semantic_label, label, size, center});
+      vertex_descriptors.push_back(boost::add_vertex(vertices.back(), graph));
+    }
+  }
+
+  // create the edges between the nodes
+  for (int i = 0; i < vertices.size(); ++i) {
+    for (int j = i + 1; j < vertices.size(); ++j) {
+      boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
+                      {i, j}, graph);
+    }
+  }
 }
 
 #ifdef X_VIEW_DEBUG
@@ -152,123 +226,6 @@ const cv::Mat GraphLandmark::createImageWithGraphOntop(
 }
 
 #endif // X_VIEW_DEBUG
-
-/*
-void GraphLandmark::findBlobs() {
-
-  const int dataset_size = global_dataset_ptr->numSemanticClasses();
-  image_blobs_.resize(dataset_size);
-
-  const cv::Mat label_image = extractChannelFromImage(semantic_image_, 0);
-
-  auto PointComp = [](const cv::Point& p1, const cv::Point& p2) -> bool {
-    return std::tie(p1.x, p1.y) < std::tie(p2.x, p2.y);
-  };
-
-  // this container contains all pixels that have already been inserted into a
-  // blob, it is used to avoid counting the same pixel multiple times
-  std::set<cv::Point, decltype(PointComp)> pixels_in_blob(PointComp);
-
-  // variable used for the flood algorithm
-  cv::Mat flood_mask =
-      cv::Mat::zeros(label_image.rows + 2, label_image.cols + 2, CV_8U);
-
-  // helper function to get the label associated to a pixel
-  auto getPixelLabel = [&](const cv::Point& pixel) -> int {
-    return static_cast<int>(label_image.at<uchar>(pixel));
-  };
-
-  for (int y = 0; y < label_image.rows; y++) {
-    for (int x = 0; x < label_image.cols; x++) {
-      if (pixels_in_blob.find(cv::Point(x, y)) == pixels_in_blob.end()) {
-        const cv::Point seed_pixel(x, y);
-
-        const int seed_pixel_label = getPixelLabel(seed_pixel);
-
-        cv::Rect blob_bounding_box;
-        cv::floodFill(label_image, flood_mask, seed_pixel, 255,
-                      &blob_bounding_box, 0, 0,
-                      4 + (255 << 8) + cv::FLOODFILL_MASK_ONLY);
-
-        // build a blob around the seed pixel
-        std::vector<cv::Point> blob_around_seed_pixel;
-
-        const int y_blob_min = blob_bounding_box.y;
-        const int y_blob_max = y_blob_min + blob_bounding_box.height;
-        const int x_blob_min = blob_bounding_box.x;
-        const int x_blob_max = x_blob_min + blob_bounding_box.width;
-
-        for (int i = y_blob_min; i < y_blob_max; ++i) {
-          for (int j = x_blob_min; j < x_blob_max; ++j) {
-            const cv::Point query_pixel(j, i);
-            if (getPixelLabel(query_pixel) == seed_pixel_label) {
-              bool has_query_pixel_been_inserted_now =
-                  pixels_in_blob.insert(query_pixel).second;
-              if (has_query_pixel_been_inserted_now)
-                blob_around_seed_pixel.push_back(query_pixel);
-            } else {
-            }
-          }
-        }
-        // we are only interested in large blobs!
-        if (blob_around_seed_pixel.size() > MINIMUM_BLOB_SIZE)
-          image_blobs_[seed_pixel_label].push_back(
-              Blob(seed_pixel_label, blob_around_seed_pixel));
-      }
-    }
-  }
-}
- */
-
-void GraphLandmark::findBlobsWithContour() {
-
-  const cv::Mat all_labels_image = extractChannelFromImage(semantic_image_, 0);
-  image_blobs_.resize(global_dataset_ptr->numSemanticClasses());
-
-  // extract only the pixels associated with each class, and compute their
-  // corresponding contours
-  for (int c = 0; c < global_dataset_ptr->numSemanticClasses(); ++c) {
-    cv::Mat current_class_layer;
-    cv::inRange(all_labels_image, cv::Scalar(c), cv::Scalar(c),
-                current_class_layer);
-
-    const int num_threads = 4;
-    CBlobResult res(current_class_layer, cv::Mat(), num_threads);
-    for (int b = 0; b < res.GetNumBlobs(); ++b) {
-      image_blobs_[c].push_back(Blob(c, *(res.GetBlob(b))));
-    }
-  }
-}
-
-void GraphLandmark::createGraph(Graph::GraphType& graph) const {
-
-}
-
-void GraphLandmark::createCompleteGraph(Graph::GraphType& graph) const {
-
-  std::vector<Graph::VertexProperty> vertices;
-  std::vector<Graph::VertexDescriptor> vertex_descriptors;
-
-  // push the blobs into the graph
-  for (int c = 0; c < image_blobs_.size(); ++c) {
-    for (const Blob& blob : image_blobs_[c]) {
-      const int semantic_label = blob.semantic_label_;
-      const std::string label = global_dataset_ptr->label(semantic_label);
-      const int size = blob.size_;
-      const cv::Point center = blob.center_;
-      vertices.push_back({semantic_label, label, size, center});
-      vertex_descriptors.push_back(boost::add_vertex(vertices.back(), graph));
-    }
-  }
-
-  // create the edges between the nodes
-  for (int i = 0; i < vertices.size(); ++i) {
-    for (int j = i + 1; j < vertices.size(); ++j) {
-      boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
-                      {i, j}, graph);
-    }
-  }
-}
 
 }
 
