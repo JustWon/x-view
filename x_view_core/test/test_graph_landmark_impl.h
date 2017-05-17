@@ -1,3 +1,4 @@
+
 #ifndef X_VIEW_TEST_GRAPH_LANDMARK_IMPL_H
 #define X_VIEW_TEST_GRAPH_LANDMARK_IMPL_H
 
@@ -22,6 +23,25 @@ void testCustomImage();
 void testDiscImage();
 
 /**
+ * \brief Counts how many pixels with each label are present in the image
+ * \param image cv::Mat to be analyzed
+ * \param pixelCount vector filled up with the pixel count such that
+ * 'pixelCount[i]' contains the number of pixels in 'image' having label 'i'
+ */
+void countPixelLabelsInImage(const cv::Mat& image,
+                             std::vector<int>& pixelCount);
+
+/**
+ * \brief Checks if the number of pixels for each class 'i' in 'image' is the
+ * same between counting them explicitly and the one contained in the
+ * graphLandmarkPointer
+ * \param graphLandmarkPtr pointer to the graphLandmark
+ * \param imageName logging image name
+ */
+void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
+                    const std::string& imageName);
+
+/**
  * \brief Checks if the number of instances per class found by the
  * graphLandmarkPrt object is the same as the expected one
  * \param graphLandmarkPtr pointer to the graphLandmark
@@ -33,6 +53,7 @@ void testDiscImage();
 void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
                        const std::vector<int>& expectedInstanceCount,
                        const std::string& imageName);
+
 
 /**
  * \brief Creates a custom image of size 'desiredRows' x 'desiredCols'
