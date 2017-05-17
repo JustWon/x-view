@@ -12,13 +12,14 @@
     <buildtool_depend>catkin</buildtool_depend>
     <buildtool_depend>catkin_simple</buildtool_depend>
 
-	  <depend>cv_bridge</depend>
+    <depend>cv_bridge</depend>
     <depend>doxygen_catkin</depend>
     <depend>gflags_catkin</depend>
     <depend>glog_catkin</depend>
     <depend>gtsam_catkin</depend>
     <depend>minkindr</depend>
     <depend>opencv2_catkin</depend>
+    <depend>opencvblobs_catkin</depend>
     
 </package>
 

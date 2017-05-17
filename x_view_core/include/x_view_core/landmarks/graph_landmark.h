@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include <x_view_core/x_view_types.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/datasets/abstract_dataset.h>
@@ -31,31 +33,31 @@ class GraphLandmark : public AbstractSemanticLandmark {
    */
   struct Blob {
 
-    Blob() : semantic_label_(-1), center_(-1, -1), pixels_(0) {
+    Blob() : semantic_label_(-1), center_(-1, -1), contour_pixels_(0) {
     }
-    Blob(const int semantic_label, const std::vector<cv::Point>& pixels)
+    Blob(const int semantic_label, const std::vector<cv::Point>& contour_pixels)
         : semantic_label_(semantic_label),
-          pixels_(pixels) {
-      computePixelsCenter();
+          contour_pixels_(contour_pixels) {
+      fitContourData();
     }
 
     /// \brief Semantic label associated to all pixels contained in this blob.
     int semantic_label_;
-    /// \brief Vector of pixels belonging to this blob.
-    std::vector<cv::Point> pixels_;
-    /// \brief Mean pixel of the blob.
+    /// \brief Vector of pixels representing the contour of this blob.
+    std::vector<cv::Point> contour_pixels_;
+    /// \brief Ellipse fitted to the contour points.
+    cv::RotatedRect ellipse_;
+    /// \brief Ellipse center.
     cv::Point center_;
+    /// \brief Number of pixels contained in the contour.
+    int size_;
 
-    /// \brief Computes the mean pixel from the vector of pixels.
-    void computePixelsCenter() {
-      int mean_x = 0;
-      int mean_y = 0;
-      for (auto const& p : pixels_) {
-        mean_x += p.x;
-        mean_y += p.y;
-      }
-      center_.x = std::round(((float) mean_x) / pixels_.size());
-      center_.y = std::round(((float) mean_y) / pixels_.size());
+    /// \brief Fits the contour pixels and extracts geometrical properties.
+    void fitContourData() {
+      ellipse_ = cv::fitEllipse(contour_pixels_);
+      center_ = cv::Point((int) ellipse_.center.x,
+                          (int) ellipse_.center.y);
+      size_ = cv::contourArea(contour_pixels_);
     }
   };
 
@@ -117,13 +119,16 @@ class GraphLandmark : public AbstractSemanticLandmark {
    * \details The dimensions of the structure are the following:
    * 'image_blobs_.size()' = dataset size (num semantic classes)
    * 'image_blobs_[i].size()' = number of disconnected instances of class 'i'
-   * 'image_blobs_[i][j].pixels_.size()' = number of pixels of 'j'-th instance
+   * 'image_blobs_[i][j].contour_pixels_.size()' = number of pixels in
+   * contour of 'j'-th instance
    * of class 'i'.
    */
   ImageBlobs image_blobs_;
 
   /// \brief Computes the blobs in the semantic image and fills up image_blobs_.
   void findBlobs();
+
+  void findBlobsWithContour();
 
   /// \brief Given the blons extracted from the image, this function creates
   /// a graph whose nodes are associated to the blobs centroids, and an edge

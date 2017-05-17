@@ -18,7 +18,6 @@ TEST(XViewSlamTestSuite, test_graphLandmark) {
 
   // test different images
   testCustomImage();
-  testChessboardImage();
   testDiscImage();
 }
 

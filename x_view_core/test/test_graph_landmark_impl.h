@@ -18,29 +18,8 @@ typedef std::shared_ptr<GraphLandmark> GraphLandmarkPtr;
 
 /// \brief test the custom image
 void testCustomImage();
-/// \brief test the chessboard image
-void testChessboardImage();
 /// \brief test the disc image
 void testDiscImage();
-
-/**
- * \brief Counts how many pixels with each label are present in the image
- * \param image cv::Mat to be analyzed
- * \param pixelCount vector filled up with the pixel count such that
- * 'pixelCount[i]' contains the number of pixels in 'image' having label 'i'
- */
-void countPixelLabelsInImage(const cv::Mat& image,
-                             std::vector<int>& pixelCount);
-
-/**
- * \brief Checks if the number of pixels for each class 'i' in 'image' is the
- * same between counting them explicitly and the one contained in the
- * graphLandmarkPointer
- * \param graphLandmarkPtr pointer to the graphLandmark
- * \param imageName logging image name
- */
-void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
-                    const std::string& imageName);
 
 /**
  * \brief Checks if the number of instances per class found by the
@@ -54,15 +33,6 @@ void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
 void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
                        const std::vector<int>& expectedInstanceCount,
                        const std::string& imageName);
-
-/**
- * \brief Checks that no pixel appears twice in the blob structure generated
- * by the graphLandmark pointed by the passed parameter
- * \param graphLadmarkPtr pointer to the graphLandmark
- * \param imageName logging image name
- */
-void testDuplicatePixels(const GraphLandmarkPtr& graphLadmarkPtr,
-                         const std::string& imageName);
 
 /**
  * \brief Creates a custom image of size 'desiredRows' x 'desiredCols'
