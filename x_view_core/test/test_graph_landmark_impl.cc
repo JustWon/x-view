@@ -194,7 +194,7 @@ void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
 void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
                        const std::vector<int>& expectedInstanceCount,
                        const std::string& imageName) {
-  auto const& blobs = graphLandmarkPtr->getBlobs();
+  const auto& blobs = graphLandmarkPtr->getBlobs();
   for (int i = 0; i < expectedInstanceCount.size(); ++i) {
     CHECK_EQ(expectedInstanceCount[i], blobs[i].size())
         << "In image " << imageName << ", class " << i << " should have "

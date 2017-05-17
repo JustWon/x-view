@@ -23,7 +23,7 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   // perform image segmentation on the first channel of the image
   findBlobs();
 
-  createGraph(graph);
+  createCompleteGraph(graph);
 
   // generate a complete graph out of the computed blobs
   //createCompleteGraph(graph);
@@ -152,16 +152,6 @@ void GraphLandmark::findBlobs() {
 
   const cv::Mat label_image = extractChannelFromImage(semantic_image_, 0);
 
-  customFloodFill(label_image);
-
-
-  //cv::Mat gen_image = getImageFromBlobs(global_dataset_ptr->getLabelsToRender
-  //    ());
-  //cv::imshow("Generated image", gen_image);
-  //cv::waitKey();
-
-  //image_blobs_.clear();
-
   auto PointComp = [](const cv::Point& p1, const cv::Point& p2) -> bool {
     return std::tie(p1.x, p1.y) < std::tie(p2.x, p2.y);
   };
@@ -220,73 +210,6 @@ void GraphLandmark::findBlobs() {
   }
 }
 
-void GraphLandmark::customFloodFill(const cv::Mat& image) {
-  image_blobs_.clear();
-  image_blobs_.resize((unsigned long) global_dataset_ptr->numSemanticClasses());
-
-  const int max_i = image.rows - 1;
-  const int max_j = image.cols - 1;
-  const int min_i = 0;
-  const int min_j = 0;
-
-  std::function<void(const int, const int, Blob&, std::vector<bool>&)>
-      add_neighbor_pixels = [&](const int i, const int j, Blob& blob,
-                                std::vector<bool>& already_visited_pixel) {
-
-    const int linear_index = i * image.cols + j;
-    const int pixel_label = static_cast<int>(image.at<uchar>(i, j));
-    if (pixel_label == blob.semantic_label_
-        && already_visited_pixel[linear_index] == false) {
-      blob.pixels_.push_back(cv::Point(j, i));
-      already_visited_pixel[linear_index] = true;
-
-      std::vector<cv::Point> neighbors;
-      if (i > min_i) {
-        if (j > min_j)
-          neighbors.push_back(cv::Point(j - 1, i - 1));
-        if (j < max_j)
-          neighbors.push_back(cv::Point(j + 1, i - 1));
-      }
-      if (i < max_i) {
-        if (j > min_j)
-          neighbors.push_back(cv::Point(j - 1, i + 1));
-        if (j < max_j)
-          neighbors.push_back(cv::Point(j + 1, i + 1));
-      }
-
-      for (const cv::Point& neighbor: neighbors) {
-        add_neighbor_pixels(neighbor.y, neighbor.x, blob,
-                            already_visited_pixel);
-      }
-    }
-  };
-
-  const int num_pixels = image.rows * image.cols;
-  std::vector<bool> already_visited_pixels((unsigned long) num_pixels, false);
-  for (int i = 0; i < image.rows; ++i)
-    for (int j = 0; j < image.cols; ++j) {
-      const int linear_index = i * image.cols + j;
-      if (already_visited_pixels[linear_index] == false) {
-        // process the pixel
-        const int pixel_label = static_cast<int>(image.at<uchar>(i, j));
-
-        // create a new blob starting from this pixel
-        image_blobs_[pixel_label].push_back(Blob());
-
-        Blob& current_blob = image_blobs_[pixel_label].back();
-        current_blob.semantic_label_ = pixel_label;
-        add_neighbor_pixels(i, j, current_blob,
-                            already_visited_pixels);
-
-      }
-    }
-
-  for (int c = 0; c < image_blobs_.size(); ++c) {
-    for (auto& blob : image_blobs_[c]) {
-      blob.computePixelsCenter();
-    }
-  }
-}
 
 void GraphLandmark::createGraph(Graph::GraphType& graph) const {
 
@@ -294,8 +217,8 @@ void GraphLandmark::createGraph(Graph::GraphType& graph) const {
 
 void GraphLandmark::createCompleteGraph(Graph::GraphType& graph) const {
 
-  std::vector<Graph::VertexProperty> vertices;
-  std::vector<Graph::VertexDescriptor> vertex_descriptors;
+  std::vector <Graph::VertexProperty> vertices;
+  std::vector <Graph::VertexDescriptor> vertex_descriptors;
 
   // push the blobs into the graph
   for (int c = 0; c < image_blobs_.size(); ++c) {

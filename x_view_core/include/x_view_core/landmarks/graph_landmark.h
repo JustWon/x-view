@@ -31,7 +31,8 @@ class GraphLandmark : public AbstractSemanticLandmark {
    */
   struct Blob {
 
-    Blob() : semantic_label_(-1), center_(-1, -1), pixels_(0) {}
+    Blob() : semantic_label_(-1), center_(-1, -1), pixels_(0) {
+    }
     Blob(const int semantic_label, const std::vector<cv::Point>& pixels)
         : semantic_label_(semantic_label),
           pixels_(pixels) {
@@ -123,8 +124,6 @@ class GraphLandmark : public AbstractSemanticLandmark {
 
   /// \brief Computes the blobs in the semantic image and fills up image_blobs_.
   void findBlobs();
-
-  void customFloodFill(const cv::Mat& image);
 
   /// \brief Given the blons extracted from the image, this function creates
   /// a graph whose nodes are associated to the blobs centroids, and an edge
