@@ -9,37 +9,15 @@
 #include <x_view_core/features/graph_descriptor.h>
 
 #include <x_view_core/x_view_tools.h>
+#include <x_view_core/landmarks/graph_landmark/blob_extractor.h>
 
 namespace x_view {
 
 // FIXME: should this parameter be read by the config file?
-int GraphLandmark::MINIMUM_BLOB_SIZE = 200;
+int GraphLandmark::MINIMUM_BLOB_SIZE = 500;
 
 bool GraphLandmark::DILATE_AND_ERODE = true;
 
-// **************************** BLOB CLASS **********************************//
-
-GraphLandmark::Blob::Blob() : semantic_label_(-1), c_blob_() {
-}
-
-GraphLandmark::Blob::Blob(const int semantic_label, const CBlob& c_blob)
-    : semantic_label_(semantic_label),
-      c_blob_(c_blob) {
-  computeContours();
-  computeArea();
-  computeCenter();
-}
-
-void GraphLandmark::Blob::computeContours() {
-  external_contour_pixels_ =
-      c_blob_.GetExternalContour()->GetContourPoints();
-  internal_contour_pixels_.clear();
-  for (auto& internal_contour : c_blob_.GetInternalContours()) {
-    internal_contour_pixels_.push_back(internal_contour->GetContourPoints());
-  }
-}
-
-// ********************** GRAPH LANDMARK CLASS *******************************//
 
 GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
@@ -48,7 +26,10 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   Graph::GraphType& graph = descriptor.graph();
 
   // perform image segmentation on the first channel of the image
-  findBlobsWithContour();
+  image_blobs_ =
+      BlobExtractor::findBlobsWithContour(image,
+                                          GraphLandmark::DILATE_AND_ERODE,
+                                          GraphLandmark::MINIMUM_BLOB_SIZE);
 
   // generate a complete graph out of the computed blobs
   createGraph(graph);
@@ -63,38 +44,6 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   // VectorDescriptor containing the histogram data
   descriptor_ = std::make_shared<GraphDescriptor>(GraphDescriptor(descriptor));
 
-}
-
-void GraphLandmark::findBlobsWithContour() {
-
-  const cv::Mat all_labels_image = extractChannelFromImage(semantic_image_, 0);
-  image_blobs_.resize(global_dataset_ptr->numSemanticClasses());
-
-  // extract only the pixels associated with each class, and compute their
-  // corresponding contours
-  for (int c = 0; c < global_dataset_ptr->numSemanticClasses(); ++c) {
-    cv::Mat current_class_layer;
-    cv::inRange(all_labels_image, cv::Scalar(c), cv::Scalar(c),
-                current_class_layer);
-
-    // compute a smoother version of the image by performing dilation
-    // followed by erosion
-    cv::Mat dilated, eroded;
-    if (GraphLandmark::DILATE_AND_ERODE) {
-
-      cv::dilate(current_class_layer, dilated, cv::Mat(), cv::Point(-1, -1), 3);
-      cv::erode(dilated, eroded, cv::Mat(), cv::Point(-1, -1), 3);
-    } else
-      eroded = current_class_layer;
-
-    const int num_threads = 4;
-    CBlobResult res(eroded, cv::Mat(), num_threads);
-    for (int b = 0; b < res.GetNumBlobs(); ++b) {
-      if (res.GetBlob(b)->Area(AreaMode::PIXELWISE)
-          >= GraphLandmark::MINIMUM_BLOB_SIZE)
-        image_blobs_[c].push_back(Blob(c, *(res.GetBlob(b))));
-    }
-  }
 }
 
 void GraphLandmark::createGraph(Graph::GraphType& graph) const {

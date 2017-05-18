@@ -40,7 +40,9 @@ cs_add_library(${PROJECT_NAME}
         src/landmarks/semantic_landmark_factory.cc
         src/landmarks/visual_descriptor_landmark.cc
         src/landmarks/histogram_landmark.cc
-        src/landmarks/graph_landmark.cc
+        src/landmarks/graph_landmark/graph_landmark.cc
+        src/landmarks/graph_landmark/blob.cc
+        src/landmarks/graph_landmark/blob_extractor.cc
 
         # Features matchers
         src/matchers/vector_matcher.cc
