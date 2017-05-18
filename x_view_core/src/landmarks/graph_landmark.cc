@@ -15,7 +15,7 @@ namespace x_view {
 // FIXME: should this parameter be read by the config file?
 int GraphLandmark::MINIMUM_BLOB_SIZE = 200;
 
-bool GraphLandmark::DILATE_AND_ERODE = false;
+bool GraphLandmark::DILATE_AND_ERODE = true;
 
 // **************************** BLOB CLASS **********************************//
 
@@ -82,8 +82,8 @@ void GraphLandmark::findBlobsWithContour() {
     cv::Mat dilated, eroded;
     if (GraphLandmark::DILATE_AND_ERODE) {
 
-      cv::dilate(current_class_layer, dilated, cv::Mat(), cv::Point(-1, -1), 4);
-      cv::erode(dilated, eroded, cv::Mat(), cv::Point(-1, -1), 4);
+      cv::dilate(current_class_layer, dilated, cv::Mat(), cv::Point(-1, -1), 3);
+      cv::erode(dilated, eroded, cv::Mat(), cv::Point(-1, -1), 3);
     } else
       eroded = current_class_layer;
 
@@ -139,16 +139,16 @@ void GraphLandmark::createGraph(Graph::GraphType& graph) const {
     const std::vector<std::vector<cv::Point>>& internal_contours_j =
         bj.internal_contour_pixels_;
 
-    for(const auto& internal_contour_i : internal_contours_i)
-        for (const cv::Point& pi : internal_contour_i)
-          for (const cv::Point& pj : external_contour_j) {
-            // compute pixel distance
-            cv::Point dist = pi - pj;
-            if (std::abs(dist.x) <= 1 and std::abs(dist.y) <= 1)
-              return true;
-      }
+    for (const auto& internal_contour_i : internal_contours_i)
+      for (const cv::Point& pi : internal_contour_i)
+        for (const cv::Point& pj : external_contour_j) {
+          // compute pixel distance
+          cv::Point dist = pi - pj;
+          if (std::abs(dist.x) <= 1 and std::abs(dist.y) <= 1)
+            return true;
+        }
 
-    for(const auto& internal_contour_j : internal_contours_j)
+    for (const auto& internal_contour_j : internal_contours_j)
       for (const cv::Point& pj : internal_contour_j)
         for (const cv::Point& pi : external_contour_i) {
           // compute pixel distance
@@ -156,7 +156,6 @@ void GraphLandmark::createGraph(Graph::GraphType& graph) const {
           if (std::abs(dist.x) <= 1 and std::abs(dist.y) <= 1)
             return true;
         }
-
 
     return false;
   };
@@ -278,10 +277,15 @@ std::vector<int>& labels_to_render) {
     if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
         std::end(labels_to_render))
       for (Blob& blob : image_blobs_[c]) {
-        const cv::Scalar ellipse_color(220, 120, 80);
-        const cv::Scalar center_color(10, 220, 220);
-        const int ellipse_thickness = 2;
-        const int center_radius = 2;
+        cv::Scalar ellipse_color;
+        if (global_dataset_ptr->semanticEntities()[c].is_static_)
+          ellipse_color = cv::Scalar(255, 40, 0);
+        else
+          ellipse_color = cv::Scalar(10, 60, 255);
+
+        cv::Scalar center_color(10, 220, 220);
+        int ellipse_thickness = 2;
+        int center_radius = 2;
         cv::ellipse(image, blob.ellipse(), ellipse_color, ellipse_thickness);
         cv::circle(image, blob.center_, center_radius, center_color, CV_FILLED);
       }

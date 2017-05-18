@@ -2,8 +2,6 @@
 
 #include <x_view_core/x_view_tools.h>
 
-#include <opencv2/core/core.hpp>
-
 namespace x_view {
 
 #define SYNTHIA_NUM_SEMANTIC_CLASSES 13
