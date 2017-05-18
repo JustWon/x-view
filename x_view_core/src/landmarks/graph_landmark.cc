@@ -13,7 +13,9 @@
 namespace x_view {
 
 // FIXME: should this parameter be read by the config file?
-int GraphLandmark::MINIMUM_BLOB_SIZE = 40;
+int GraphLandmark::MINIMUM_BLOB_SIZE = 200;
+
+bool GraphLandmark::DILATE_AND_ERODE = false;
 
 // **************************** BLOB CLASS **********************************//
 
@@ -48,11 +50,11 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   // perform image segmentation on the first channel of the image
   findBlobsWithContour();
 
-  createCompleteGraph(graph);
   // generate a complete graph out of the computed blobs
-  //createCompleteGraph(graph);
+  createGraph(graph);
 
 #ifdef X_VIEW_DEBUG
+
   cv::imshow("Semantic entities", createImageWithGraphOntop(graph));
   cv::waitKey();
 #endif // X_VIEW_DEBUG
@@ -75,15 +77,102 @@ void GraphLandmark::findBlobsWithContour() {
     cv::inRange(all_labels_image, cv::Scalar(c), cv::Scalar(c),
                 current_class_layer);
 
+    // compute a smoother version of the image by performing dilation
+    // followed by erosion
+    cv::Mat dilated, eroded;
+    if (GraphLandmark::DILATE_AND_ERODE) {
+
+      cv::dilate(current_class_layer, dilated, cv::Mat(), cv::Point(-1, -1), 4);
+      cv::erode(dilated, eroded, cv::Mat(), cv::Point(-1, -1), 4);
+    } else
+      eroded = current_class_layer;
+
     const int num_threads = 4;
-    CBlobResult res(current_class_layer, cv::Mat(), num_threads);
+    CBlobResult res(eroded, cv::Mat(), num_threads);
     for (int b = 0; b < res.GetNumBlobs(); ++b) {
-      image_blobs_[c].push_back(Blob(c, *(res.GetBlob(b))));
+      if (res.GetBlob(b)->Area(AreaMode::PIXELWISE)
+          >= GraphLandmark::MINIMUM_BLOB_SIZE)
+        image_blobs_[c].push_back(Blob(c, *(res.GetBlob(b))));
     }
   }
 }
 
 void GraphLandmark::createGraph(Graph::GraphType& graph) const {
+
+  std::vector<Graph::VertexDescriptor> vertex_descriptors;
+  std::vector<const Blob*> blob_vector;
+
+  // push the blobs into the graph
+  for (int c = 0; c < image_blobs_.size(); ++c) {
+    for (const Blob& blob : image_blobs_[c]) {
+      blob_vector.push_back(&blob);
+      const int semantic_label = blob.semantic_label_;
+      const std::string label = global_dataset_ptr->label(semantic_label);
+      const int size = blob.size_;
+      const cv::Point center = blob.center_;
+      Graph::VertexProperty vertex{semantic_label, label, size, center};
+      vertex_descriptors.push_back(boost::add_vertex(vertex, graph));
+    }
+  }
+
+  auto blobsAreNeighbors = [](const Blob& bi, const Blob& bj) -> bool {
+
+    // TODO: early termination through bounding box
+
+    // external contour
+    const std::vector<cv::Point>& external_contour_i = bi
+        .external_contour_pixels_;
+    const std::vector<cv::Point>& external_contour_j = bj
+        .external_contour_pixels_;
+
+    for (const cv::Point& pi : external_contour_i)
+      for (const cv::Point& pj : external_contour_j) {
+        // compute pixel distance
+        cv::Point dist = pi - pj;
+        if (std::abs(dist.x) <= 1 and std::abs(dist.y) <= 1)
+          return true;
+      }
+
+    // internal contours
+    const std::vector<std::vector<cv::Point>>& internal_contours_i =
+        bi.internal_contour_pixels_;
+    const std::vector<std::vector<cv::Point>>& internal_contours_j =
+        bj.internal_contour_pixels_;
+
+    for(const auto& internal_contour_i : internal_contours_i)
+        for (const cv::Point& pi : internal_contour_i)
+          for (const cv::Point& pj : external_contour_j) {
+            // compute pixel distance
+            cv::Point dist = pi - pj;
+            if (std::abs(dist.x) <= 1 and std::abs(dist.y) <= 1)
+              return true;
+      }
+
+    for(const auto& internal_contour_j : internal_contours_j)
+      for (const cv::Point& pj : internal_contour_j)
+        for (const cv::Point& pi : external_contour_i) {
+          // compute pixel distance
+          cv::Point dist = pi - pj;
+          if (std::abs(dist.x) <= 1 and std::abs(dist.y) <= 1)
+            return true;
+        }
+
+
+    return false;
+  };
+
+  // create the edges between nodes sharing an edge
+  for (int i = 0; i < blob_vector.size(); ++i) {
+    for (int j = i + 1; j < blob_vector.size(); ++j) {
+
+      const Blob* bi = blob_vector[i];
+      const Blob* bj = blob_vector[j];
+
+      if (blobsAreNeighbors(*bi, *bj))
+        boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
+                        {i, j}, graph);
+    }
+  }
 
 }
 
@@ -128,8 +217,7 @@ void GraphLandmark::printBlobs(std::ostream& out) const {
   }
 }
 
-const cv::Mat GraphLandmark::getImageFromBlobs(
-    const std::vector<int>& labels_to_render) const {
+cv::Mat GraphLandmark::getImageFromBlobs(const std::vector<int>& labels_to_render) {
   cv::Mat resImage(semantic_image_.rows, semantic_image_.cols,
                    CV_8UC3, cv::Scalar::all(0));
 
@@ -161,9 +249,7 @@ const cv::Mat GraphLandmark::getImageFromBlobs(
   }
 
 
-  // Draw the labels and the blobs centers
-  const int circle_radius = 5;
-  const int line_thickness = -1;
+  // Draw the labels
   const cv::Scalar center_color = cv::Scalar(255, 130, 100);
   const cv::Scalar font_color = cv::Scalar(255, 255, 255);
   for (int l = 0; l < image_blobs_.size(); ++l) {
@@ -172,8 +258,6 @@ const cv::Mat GraphLandmark::getImageFromBlobs(
     if (std::find(labels_to_render.begin(), labels_to_render.end(), l) !=
         std::end(labels_to_render))
       for (const Blob& blob : image_blobs_[l]) {
-        cv::circle(resImage, blob.center_, circle_radius,
-                   center_color, line_thickness);
 
         std::string label = std::to_string(blob.semantic_label_) + ") " +
             global_dataset_ptr->label(blob.semantic_label_);
@@ -185,12 +269,35 @@ const cv::Mat GraphLandmark::getImageFromBlobs(
   return resImage;
 }
 
+void GraphLandmark::addEllipsesOnSemanticImage(cv::Mat& image, const
+std::vector<int>& labels_to_render) {
+  // Draw the blobs onto the image
+  for (int c = 0; c < image_blobs_.size(); ++c) {
+    // only add the blob if the label has not to be ignored, thus if it can
+    // not be found in the passed parameter
+    if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
+        std::end(labels_to_render))
+      for (Blob& blob : image_blobs_[c]) {
+        const cv::Scalar ellipse_color(220, 120, 80);
+        const cv::Scalar center_color(10, 220, 220);
+        const int ellipse_thickness = 2;
+        const int center_radius = 2;
+        cv::ellipse(image, blob.ellipse(), ellipse_color, ellipse_thickness);
+        cv::circle(image, blob.center_, center_radius, center_color, CV_FILLED);
+      }
+
+  }
+}
+
 const cv::Mat GraphLandmark::createImageWithGraphOntop(
     const Graph::GraphType& graph,
-    const std::vector<int>& labels_to_render) const {
+    const std::vector<int>& labels_to_render) {
 
   // first get the base image composed by the blobs
   cv::Mat blobImage = getImageFromBlobs(labels_to_render);
+
+  // add ellipses on corresponding blobs.
+  addEllipsesOnSemanticImage(blobImage, labels_to_render);
 
   // second, add the edges between the nodes of the graph
   auto edge_iter = boost::edges(graph);
