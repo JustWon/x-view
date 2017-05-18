@@ -20,7 +20,8 @@ file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
 
 ExternalProject_Add(
         opencvblobs_src
-        URL https://github.com/OpenCVBlobsLib/opencvblobslib/archive/master.zip
+        GIT_REPOSITORY https://github.com/OpenCVBlobsLib/opencvblobslib.git
+        GIT_TAG 354592d422f74cc5dba0450401fc831d607aab64
         UPDATE_COMMAND ""
 
         CONFIGURE_COMMAND cd ../opencvblobs_src && cmake .
