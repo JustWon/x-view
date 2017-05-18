@@ -328,7 +328,8 @@ const cv::Mat GraphLandmark::createImageWithGraphOntop(
       const cv::Point& to_center = v_to.center_;
 
       const cv::Scalar line_color(58, 189, 255);
-      cv::line(blobImage, from_center, to_center, line_color);
+      int thickness = 2;
+      cv::line(blobImage, from_center, to_center, line_color, thickness);
     }
   }
 
