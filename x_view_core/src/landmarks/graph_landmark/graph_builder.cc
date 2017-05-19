@@ -7,7 +7,7 @@ namespace x_view {
 std::vector<const Blob*> GraphBuilder::DEFAULT_BLOB_VECTOR;
 
 Graph::GraphType GraphBuilder::createGraphFromNeighborBlobs(const ImageBlobs&
-blobs) {
+blobs, const GraphBuilderParams& params) {
 
   Graph::GraphType graph;
 
@@ -27,7 +27,8 @@ blobs) {
       const Blob* bi = blob_vector[i];
       const Blob* bj = blob_vector[j];
 
-      if (Blob::areNeighbors(*bi, *bj, 4))
+      // only create an edge between the two blobs if they are neighbors
+      if (Blob::areNeighbors(*bi, *bj, params.max_distance_for_neighborhood_))
         boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
                         {i, j}, graph);
     }

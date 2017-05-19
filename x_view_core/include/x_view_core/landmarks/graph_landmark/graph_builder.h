@@ -6,10 +6,39 @@
 
 namespace x_view {
 
+/**
+ * \brief Parameters used by the graph builder to build a graph from the blobs.
+ */
+struct GraphBuilderParams {
+  GraphBuilderParams()
+      : max_distance_for_neighborhood_(2) {}
+
+  /// \brief Threshold for determining if two blobs are neighbors or not.
+  int max_distance_for_neighborhood_;
+};
+
 class GraphBuilder {
  public:
-  static Graph::GraphType createGraphFromNeighborBlobs(const ImageBlobs& blobs);
+  /**
+   * \brief Creates a graph whose nodes correspond to the blobs contained in
+   * the ImageBlobs datastructure passed as argument, and whose edges exist
+   * between nodes corresponding to neighbor blobs.
+   * \param blobs ImageBlobs datastructure containing all blobs.
+   * \param params Parameters used by the grpah builder during graph
+   * construction.
+   * \return A graph object containing nodes and edges based on the
+   * ImageBlobs datastructure passed as argument.
+   */
+  static Graph::GraphType createGraphFromNeighborBlobs(const ImageBlobs&
+  blobs, const GraphBuilderParams& params = GraphBuilderParams());
 
+  /**
+   * \brief Creates a complete graph whose nodes correspond to the blobs
+   * contained in the ImageBlobs datastructure passed as argument.
+   * \param blobs ImageBlobs datastructure containing all blobs.
+   * \return A complete graph object containing nodes based on the ImageBlobs
+   * datastructure passed as argument.
+   */
   static Graph::GraphType createCompleteGraph(const ImageBlobs& blobs);
 
  private:

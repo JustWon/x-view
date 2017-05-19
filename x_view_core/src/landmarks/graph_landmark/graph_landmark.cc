@@ -10,7 +10,6 @@
 
 #include <bitset>
 
-
 namespace x_view {
 
 // FIXME: should this parameter be read by the config file?
@@ -24,7 +23,7 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   Graph descriptor;
   Graph::GraphType& graph = descriptor.graph();
 
-  // perform blob extraction on the first channel of the image
+  // *********** Blobs extraction ********** //
   BlobExtractorParams blob_extractor_params;
   blob_extractor_params.dilate_and_erode_ = GraphLandmark::DILATE_AND_ERODE;
   blob_extractor_params.blob_size_filtering_.type_ =
@@ -34,8 +33,11 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   image_blobs_ =
       BlobExtractor::findBlobsWithContour(image, blob_extractor_params);
 
-  // generate a graph out of the computed blobs
-  graph = GraphBuilder::createGraphFromNeighborBlobs(image_blobs_);
+  // *********** Graph generation ********** //
+  GraphBuilderParams graph_builder_params;
+  graph_builder_params.max_distance_for_neighborhood_ = 4;
+  graph = GraphBuilder::createGraphFromNeighborBlobs(image_blobs_,
+                                                     graph_builder_params);
 
 #ifdef X_VIEW_DEBUG
   cv::imshow("Semantic entities and graph structure",
@@ -134,7 +136,7 @@ std::vector<int>& labels_to_render) {
         cv::Scalar center_color(10, 220, 220);
         int ellipse_thickness = 2;
         int center_radius = 2;
-        cv::ellipse(image, blob.ellipse(), ellipse_color, ellipse_thickness);
+        cv::ellipse(image, blob.ellipse_, ellipse_color, ellipse_thickness);
         cv::circle(image, blob.center_, center_radius, center_color, CV_FILLED);
       }
 

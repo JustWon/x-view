@@ -10,16 +10,23 @@ Blob::Blob(const int semantic_label, const CBlob& c_blob)
       c_blob_(c_blob) {
   computeContours();
   computeArea();
-  computeCenter();
   computeBoundingBox();
+  computeFittingEllipse();
 }
 
 bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
 
   const int distance_squared = distance * distance;
 
-  const cv::Rect& bounding_box_i = bi.bounding_box_;
-  const cv::Rect& bounding_box_j = bj.bounding_box_;
+  // increase the box dimension to avoid rejecting matches between blobs in
+  // case they are close but their original bounding_box's don't touch.
+  const cv::Point box_shift(distance, distance);
+  const cv::Size box_expansion(2 * distance, 2 * distance);
+
+  const cv::Rect& bounding_box_i =
+      (bi.bounding_box_ - box_shift) + box_expansion;
+  const cv::Rect& bounding_box_j =
+      (bj.bounding_box_ - box_shift) + box_expansion;
 
   if ((bounding_box_i & bounding_box_j).area() == 0)
     return false;
@@ -95,17 +102,19 @@ void Blob::computeBoundingBox() {
     max_y = std::max(max_y, p.y);
   }
 
-  // grow the bb in order to have intersections also for bounding boxes that
-  // are aligned with the axes.
-  min_x -= 1;
-  min_y -= 1;
-  max_x += 1;
-  max_y += 1;
-
   bounding_box_.x = min_x;
   bounding_box_.y = min_y;
   bounding_box_.width = max_x - min_x;
   bounding_box_.height = max_y - min_y;
+}
+
+void Blob::computeFittingEllipse() {
+  ellipse_ = cv::fitEllipse(external_contour_pixels_);
+  // scale down the ellipse by a factor of two
+  ellipse_.size.height *= 0.5;
+  ellipse_.size.width *= 0.5;
+
+  center_ = ellipse_.center;
 }
 
 }
