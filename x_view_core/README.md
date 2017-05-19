@@ -7,7 +7,7 @@ This repository contains the core implementation of the X-View library
 
 First install the required system packages:
 ```sh
-$ sudo apt-get install libopencv-dev python-wstool doxygen
+$ sudo apt-get install python-wstool doxygen
 ```
 
 ### Dependencies
