@@ -18,7 +18,7 @@ TEST(XViewSlamTestSuite, test_graphLandmark) {
   GraphLandmark::DILATE_AND_ERODE = false;
 
   // test different images
-  testCustomImage();;
+  testCustomImage();
   testDiscImage();
 }
 

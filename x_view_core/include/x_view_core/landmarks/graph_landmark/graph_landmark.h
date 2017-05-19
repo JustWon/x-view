@@ -42,7 +42,7 @@ class GraphLandmark : public AbstractSemanticLandmark {
    * \brief Performs a segmentation on the first channel the image passed as
    * argument to determine how semantic entities are represented in the scene.
    * A graph is built upon this segmentation defining its vertices as the
-   * 'center of mass' of each segment of the image.
+   * 'center of mass' of each blob of the image.
    * \param image Semantic image storing semantic class in the first channel
    * of each pixel.
    * \param pose Robot's pose.
@@ -60,50 +60,6 @@ class GraphLandmark : public AbstractSemanticLandmark {
    * contour of 'j'-th instance of class 'i'.
    */
   ImageBlobs image_blobs_;
-
-  /// \brief Given the blons extracted from the image, this function creates
-  /// a graph whose nodes are associated to the blobs centroids, and an edge
-  /// only exists between two nodes if the associated blobs touch each other.
-  void createGraph(Graph::GraphType& graph) const;
-
-  /// \brief Given the blobs extracted from the image, this function creates
-  /// a complete graph (all-to-all) where the nodes correspond to the blobs.
-  void createCompleteGraph(Graph::GraphType& graph) const;
-
-#ifdef X_VIEW_DEBUG
- public:
-  /**
-   * \brief Prints the blob structure to the stream passed as argument.
-   * \param out Stream used to print the blob structure.
-   */
-  void printBlobs(std::ostream& out = std::cout) const;
-
-  /**
-   * \brief Generates a color image of the landmark representation based on
-   * the computed blobs.
-   * \param labels_to_render Vector containing index of labels to be rendered.
-   * \return Generated image.
-   */
-  cv::Mat getImageFromBlobs(const std::vector<int>& labels_to_render =
-  global_dataset_ptr->getLabelsToRender());
-
-  /**
-   * \brief
-   */
-  void addEllipsesOnSemanticImage(cv::Mat& image, const std::vector<int>&
-  labels_to_render = global_dataset_ptr->getLabelsToRender());
-
-  /**
-   * \brief Generates a color image of the landmark representation and adds
-   * the graph ontop of it.
-   * \param graph Structure containing the graph data.
-   * \param labels_to_render Vector containing index of labels to be rendered.
-   * \return generated image.
-   */
-  const cv::Mat createImageWithGraphOntop(const Graph::GraphType& graph,
-                                          const std::vector<int>& labels_to_render =
-                                          global_dataset_ptr->getLabelsToRender());
-#endif // X_VIEW_DEBUG
 
 };
 

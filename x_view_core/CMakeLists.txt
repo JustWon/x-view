@@ -44,6 +44,7 @@ cs_add_library(${PROJECT_NAME}
         src/landmarks/graph_landmark/blob.cc
         src/landmarks/graph_landmark/blob_extractor.cc
         src/landmarks/graph_landmark/graph_builder.cc
+        src/landmarks/graph_landmark/graph_drawer.cc
 
         # Features matchers
         src/matchers/vector_matcher.cc
