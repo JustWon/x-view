@@ -16,7 +16,7 @@ namespace x_view {
 // FIXME: should this parameter be read by the config file?
 int GraphLandmark::MINIMUM_BLOB_SIZE = 500;
 
-bool GraphLandmark::DILATE_AND_ERODE = true;
+bool GraphLandmark::DILATE_AND_ERODE = false;
 
 
 GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
@@ -25,11 +25,15 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   Graph descriptor;
   Graph::GraphType& graph = descriptor.graph();
 
-  // perform image segmentation on the first channel of the image
+  // perform blob extraction on the first channel of the image
+  BlobExtractorParams blob_extractor_params;
+  blob_extractor_params.dilate_and_erode_ = GraphLandmark::DILATE_AND_ERODE;
+  blob_extractor_params.blob_size_filtering_.type_ =
+      BlobExtractorParams::MIN_BLOB_SIZE_TYPE::ABSOLUTE;
+  blob_extractor_params.blob_size_filtering_.value_ =
+      GraphLandmark::MINIMUM_BLOB_SIZE;
   image_blobs_ =
-      BlobExtractor::findBlobsWithContour(image,
-                                          GraphLandmark::DILATE_AND_ERODE,
-                                          GraphLandmark::MINIMUM_BLOB_SIZE);
+      BlobExtractor::findBlobsWithContour(image, blob_extractor_params);
 
   // generate a complete graph out of the computed blobs
   createGraph(graph);
