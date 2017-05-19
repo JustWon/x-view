@@ -3,18 +3,21 @@ This repository contains the core implementation of the X-View library
 
 ## Setting up XView
 
+### Prerequisites
+
+First install the required system packages:
+```sh
+$ sudo apt-get install python-wstool doxygen
+```
+
 ### Dependencies
-XView is structured as a _catkin_ package, and has the following dependencies (available on [github](https://github.com/)):
-* [catkin_simple](https://github.com/catkin/catkin_simple)
-* [doxygen_catkin](https://github.com/ethz-asl/doxygen_catkin)
-* [eigen_catkin](https://github.com/ethz-asl/eigen_catkin)
-* [eigen_checks](https://github.com/ethz-asl/eigen_checks)
-* [gflags_catkin](https://github.com/ethz-asl/gflags_catkin)
-* [glog_catkin](https://github.com/ethz-asl/glog_catkin)
-* [gtsam_catkin](https://github.com/ethz-asl/gtsam_catkin)
-* [minkindr](https://github.com/ethz-asl/minkindr)
-* [minkindr_ros](https://github.com/ethz-asl/minkindr_ros) 
-* [opencv2_catkin](https://github.com/ethz-asl/opencv2_catkin)
+We use wstool for installing the catkin dependencies, i.e.,
+```sh
+$ cd ~/catkin_ws/src
+$ wstool init
+$ wstool merge x-view/x_view_core/dependencies.rosinstall
+$ wstool update
+```
 
 ### Building
 The following steps build XView using _catkin_ assuming all the _dependencies_ listed above and _XView_ are already downloaded in the _~/git_ folder of your machine
