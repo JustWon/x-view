@@ -32,8 +32,7 @@ class GraphLandmark : public AbstractSemanticLandmark {
   /// procedure or not?
   static bool DILATE_AND_ERODE;
 
-  // ******************************* ACCESS **********************************//
-
+  /// \brief Returns a const reference to the blob datastructure.
   const ImageBlobs& getBlobs() const {
     return image_blobs_;
   }

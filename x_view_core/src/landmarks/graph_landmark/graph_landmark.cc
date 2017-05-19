@@ -1,15 +1,15 @@
-#include <bitset>
+#include <x_view_core/landmarks/graph_landmark/graph_landmark.h>
+
+#include <x_view_core/landmarks/graph_landmark/blob_extractor.h>
+#include <x_view_core/landmarks/graph_landmark/graph_builder.h>
+
+#include <opencvblobslib/BlobResult.h>
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include <opencvblobslib/BlobResult.h>
+#include <bitset>
 
-#include <x_view_core/landmarks/graph_landmark.h>
-#include <x_view_core/features/graph_descriptor.h>
-
-#include <x_view_core/x_view_tools.h>
-#include <x_view_core/landmarks/graph_landmark/blob_extractor.h>
 
 namespace x_view {
 
@@ -17,7 +17,6 @@ namespace x_view {
 int GraphLandmark::MINIMUM_BLOB_SIZE = 500;
 
 bool GraphLandmark::DILATE_AND_ERODE = false;
-
 
 GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
@@ -35,12 +34,12 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   image_blobs_ =
       BlobExtractor::findBlobsWithContour(image, blob_extractor_params);
 
-  // generate a complete graph out of the computed blobs
-  createGraph(graph);
+  // generate a graph out of the computed blobs
+  graph = GraphBuilder::createGraphFromNeighborBlobs(image_blobs_);
 
 #ifdef X_VIEW_DEBUG
-
-  cv::imshow("Semantic entities", createImageWithGraphOntop(graph));
+  cv::imshow("Semantic entities and graph structure",
+             createImageWithGraphOntop(graph));
   cv::waitKey();
 #endif // X_VIEW_DEBUG
 
@@ -48,110 +47,6 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   // VectorDescriptor containing the histogram data
   descriptor_ = std::make_shared<GraphDescriptor>(GraphDescriptor(descriptor));
 
-}
-
-void GraphLandmark::createGraph(Graph::GraphType& graph) const {
-
-  std::vector<Graph::VertexDescriptor> vertex_descriptors;
-  std::vector<const Blob*> blob_vector;
-
-  // push the blobs into the graph
-  for (int c = 0; c < image_blobs_.size(); ++c) {
-    for (const Blob& blob : image_blobs_[c]) {
-      blob_vector.push_back(&blob);
-      const int semantic_label = blob.semantic_label_;
-      const std::string label = global_dataset_ptr->label(semantic_label);
-      const int size = blob.size_;
-      const cv::Point center = blob.center_;
-      Graph::VertexProperty vertex{semantic_label, label, size, center};
-      vertex_descriptors.push_back(boost::add_vertex(vertex, graph));
-    }
-  }
-
-  auto blobsAreNeighbors = [](const Blob& bi, const Blob& bj) -> bool {
-
-    // TODO: early termination through bounding box
-
-    // external contour
-    const std::vector<cv::Point>& external_contour_i = bi
-        .external_contour_pixels_;
-    const std::vector<cv::Point>& external_contour_j = bj
-        .external_contour_pixels_;
-
-    for (const cv::Point& pi : external_contour_i)
-      for (const cv::Point& pj : external_contour_j) {
-        // compute pixel distance
-        cv::Point dist = pi - pj;
-        if (std::abs(dist.x) <= 1 and std::abs(dist.y) <= 1)
-          return true;
-      }
-
-    // internal contours
-    const std::vector<std::vector<cv::Point>>& internal_contours_i =
-        bi.internal_contour_pixels_;
-    const std::vector<std::vector<cv::Point>>& internal_contours_j =
-        bj.internal_contour_pixels_;
-
-    for (const auto& internal_contour_i : internal_contours_i)
-      for (const cv::Point& pi : internal_contour_i)
-        for (const cv::Point& pj : external_contour_j) {
-          // compute pixel distance
-          cv::Point dist = pi - pj;
-          if (std::abs(dist.x) <= 1 and std::abs(dist.y) <= 1)
-            return true;
-        }
-
-    for (const auto& internal_contour_j : internal_contours_j)
-      for (const cv::Point& pj : internal_contour_j)
-        for (const cv::Point& pi : external_contour_i) {
-          // compute pixel distance
-          cv::Point dist = pi - pj;
-          if (std::abs(dist.x) <= 1 and std::abs(dist.y) <= 1)
-            return true;
-        }
-
-    return false;
-  };
-
-  // create the edges between nodes sharing an edge
-  for (int i = 0; i < blob_vector.size(); ++i) {
-    for (int j = i + 1; j < blob_vector.size(); ++j) {
-
-      const Blob* bi = blob_vector[i];
-      const Blob* bj = blob_vector[j];
-
-      if (blobsAreNeighbors(*bi, *bj))
-        boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
-                        {i, j}, graph);
-    }
-  }
-
-}
-
-void GraphLandmark::createCompleteGraph(Graph::GraphType& graph) const {
-
-  std::vector<Graph::VertexProperty> vertices;
-  std::vector<Graph::VertexDescriptor> vertex_descriptors;
-
-  // push the blobs into the graph
-  for (int c = 0; c < image_blobs_.size(); ++c) {
-    for (const Blob& blob : image_blobs_[c]) {
-      const int semantic_label = blob.semantic_label_;
-      const std::string label = global_dataset_ptr->label(semantic_label);
-      const int size = blob.size_;
-      const cv::Point center = blob.center_;
-      vertices.push_back({semantic_label, label, size, center});
-      vertex_descriptors.push_back(boost::add_vertex(vertices.back(), graph));
-    }
-  }
-
-  // create the edges between the nodes
-  for (int i = 0; i < vertices.size(); ++i) {
-    for (int j = i + 1; j < vertices.size(); ++j) {
-      boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
-                      {i, j}, graph);
-    }
-  }
 }
 
 #ifdef X_VIEW_DEBUG

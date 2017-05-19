@@ -137,7 +137,7 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
   semantics_out =
       semantic_landmark_factory_.createSemanticLandmark(image, pose);
 
-  // TODO: postprocess the semantic landmark representation given its neighbors stored in the semantic database
+  // TODO: postprocess the semantic landmark representation given its areNeighbors stored in the semantic database
 }
 
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
