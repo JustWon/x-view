@@ -14,7 +14,7 @@ void GraphDrawer::printBlobs(const ImageBlobs& blobs, std::ostream& out) {
         << " instances of class " << c << ":" << std::endl;
     for (int i = 0; i < blobs[c].size(); ++i) {
       out << "\tInstance " << i << " composed by "
-          << blobs[c][i].size_ << " pixels with mean "
+          << blobs[c][i].num_pixels_ << " pixels with mean "
               "pixel "
           << blobs[c][i].center_ << std::endl;
     }

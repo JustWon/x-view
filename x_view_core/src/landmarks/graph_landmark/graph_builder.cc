@@ -18,7 +18,8 @@ blobs, const GraphBuilderParams& params) {
   std::vector<const Blob*> blob_vector;
 
   // add all blobs to the graph
-  GraphBuilder::addBlobsToGraph(blobs, graph, vertex_descriptors, blob_vector);
+  GraphBuilder::addBlobsToGraph(blobs, &graph, &vertex_descriptors,
+                                &blob_vector);
 
 
   // create the edges between nodes sharing an edge
@@ -45,7 +46,7 @@ Graph::GraphType GraphBuilder::createCompleteGraph(const ImageBlobs& blobs) {
 
   std::vector<Graph::VertexDescriptor> vertex_descriptors;
 
-  GraphBuilder::addBlobsToGraph(blobs, graph, vertex_descriptors);
+  GraphBuilder::addBlobsToGraph(blobs, &graph, &vertex_descriptors);
 
 
   // create the edges between the nodes
@@ -60,20 +61,25 @@ Graph::GraphType GraphBuilder::createCompleteGraph(const ImageBlobs& blobs) {
 }
 
 void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
-                                   Graph::GraphType& graph,
-                                   std::vector<Graph::VertexDescriptor>& vertex_descriptors,
-                                   std::vector<const Blob*>& blob_vector) {
+                                   Graph::GraphType* graph,
+                                   std::vector<Graph::VertexDescriptor>* vertex_descriptors,
+                                   std::vector<const Blob*>* blob_vector) {
 
-  vertex_descriptors.clear();
-  blob_vector.clear();
+  if (graph != nullptr) {
+    vertex_descriptors->clear();
+    blob_vector->clear();
 
-  // Each blob is a graph node
-  for (int c = 0; c < blobs.size(); ++c) {
-    for (const Blob& blob : blobs[c]) {
-      blob_vector.push_back(&blob);
-      Graph::VertexProperty vertex = GraphBuilder::blobToGraphVertex(blob);
-      vertex_descriptors.push_back(boost::add_vertex(vertex, graph));
+    // Each blob is a graph node
+    for (int c = 0; c < blobs.size(); ++c) {
+      for (const Blob& blob : blobs[c]) {
+        blob_vector->push_back(&blob);
+        Graph::VertexProperty vertex = GraphBuilder::blobToGraphVertex(blob);
+        vertex_descriptors->push_back(boost::add_vertex(vertex, *graph));
+      }
     }
+  } else {
+    CHECK(false) << "Graph pointer passed to " << __FUNCTION__
+                 << " is a nullptr";
   }
 
 }
@@ -81,7 +87,7 @@ void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
 Graph::VertexProperty GraphBuilder::blobToGraphVertex(const Blob& blob) {
   const int semantic_label = blob.semantic_label_;
   const std::string label = global_dataset_ptr->label(semantic_label);
-  const int size = blob.size_;
+  const int size = blob.num_pixels_;
   const cv::Point center = blob.center_;
   return Graph::VertexProperty{semantic_label, label, size, center};
 }
