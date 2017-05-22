@@ -64,6 +64,17 @@ catkin_add_gtest(${PROJECT_NAME}_tests
 
 target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
 
+# Building from the CLION IDE does not include correctly the directories
+# organized by catkin, so we manually include them assuming the worspace has
+# been previously build with the 'catkin build' command
+# Note, this trick only includes the relevant header files but does not link
+# the sources against the generated libraries, so it is only a hack useful for
+# the IDE static analyzer to give hints about types.
+if($ENV{CLION_IDE})
+    set(OPENCVBLOBS_CLION_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/devel/.private/opencv_blobs_catkin/include)
+    message("Opencvblobs include directories: " ${OPENCVBLOBS_CLION_INCLUDE_DIR})
+    include_directories(${OPENCVBLOBS_CLION_INCLUDE_DIR})
+endif()
 # Documentation
 add_doxygen(REQUIRED)
 
