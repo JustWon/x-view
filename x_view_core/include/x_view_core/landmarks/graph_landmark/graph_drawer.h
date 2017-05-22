@@ -13,6 +13,7 @@ class GraphDrawer {
  public:
   /**
    * \brief Prints the blob structure to the stream passed as argument.
+   * \param blobs Blob datastructure to be printed.
    * \param out Stream used to print the blob structure.
    */
   static void printBlobs(const ImageBlobs& blobs,
@@ -22,7 +23,7 @@ class GraphDrawer {
    * \brief Generates a new image os size image_size representing the blobs
    * contained in the ImageBlobs datastructure passed as argument.
    * \param blobs ImageBlobs datastructure containing the blobs to be drawn.
-   * \param image_size Size og the image to be generated.
+   * \param size Size og the image to be generated.
    * \return Image representing the blobs contained in the ImageBlobs
    * datastructure passed as argument.
    */
