@@ -1,18 +1,19 @@
-#include <memory>
-
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/features2d/features2d.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
 #include <x_view_core/x_view.h>
-#include <x_view_core/features/visual_descriptor.h>
-#include <x_view_core/landmarks/visual_descriptor_landmark.h>
-#include <x_view_core/landmarks/histogram_landmark.h>
-#include <x_view_core/landmarks/graph_landmark.h>
-#include <x_view_core/matchers/vector_matcher.h>
-#include <x_view_core/matchers/graph_matcher.h>
+
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/datasets/airsim_dataset.h>
+#include <x_view_core/features/visual_descriptor.h>
+#include <x_view_core/landmarks/graph_landmark.h>
+#include <x_view_core/landmarks/histogram_landmark.h>
+#include <x_view_core/landmarks/visual_descriptor_landmark.h>
+#include <x_view_core/matchers/graph_matcher.h>
+#include <x_view_core/matchers/vector_matcher.h>
+
+#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <memory>
 
 namespace x_view {
 
@@ -137,7 +138,7 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
   semantics_out =
       semantic_landmark_factory_.createSemanticLandmark(image, pose);
 
-  // TODO: postprocess the semantic landmark representation given its neighbors stored in the semantic database
+  // TODO: postprocess the semantic landmark representation given its areNeighbors stored in the semantic database
 }
 
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,

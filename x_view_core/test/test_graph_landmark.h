@@ -1,16 +1,13 @@
-#ifndef X_VIEW_TEST_GRAPH_LANDMARK_IMPL_H
-#define X_VIEW_TEST_GRAPH_LANDMARK_IMPL_H
+#ifndef X_VIEW_TEST_GRAPH_LANDMARK_H
+#define X_VIEW_TEST_GRAPH_LANDMARK_H
 
-#include <gtest/gtest.h>
-
-#include <x_view_core/x_view_types.h>
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/features/graph_descriptor.h>
 #include <x_view_core/landmarks/graph_landmark.h>
-
-#include <opencv2/core/core.hpp>
+#include <x_view_core/x_view_types.h>
 
 #include <boost/progress.hpp>
+#include <opencv2/core/core.hpp>
 
 using namespace x_view;
 
@@ -18,8 +15,6 @@ typedef std::shared_ptr<GraphLandmark> GraphLandmarkPtr;
 
 /// \brief test the custom image
 void testCustomImage();
-/// \brief test the chessboard image
-void testChessboardImage();
 /// \brief test the disc image
 void testDiscImage();
 
@@ -56,15 +51,6 @@ void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
                        const std::string& imageName);
 
 /**
- * \brief Checks that no pixel appears twice in the blob structure generated
- * by the graphLandmark pointed by the passed parameter
- * \param graphLadmarkPtr pointer to the graphLandmark
- * \param imageName logging image name
- */
-void testDuplicatePixels(const GraphLandmarkPtr& graphLadmarkPtr,
-                         const std::string& imageName);
-
-/**
  * \brief Creates a custom image of size 'desiredRows' x 'desiredCols'
  * \param desiredRows desired number of rows
  * \param desiredCols desired number of cols
@@ -72,24 +58,6 @@ void testDuplicatePixels(const GraphLandmarkPtr& graphLadmarkPtr,
  */
 void createCustomImage(const int desiredRows, const int desiredCols,
                        cv::Mat& image);
-
-/**
- * \brief Creates a chessboard-like image of approximate size 'desiredRows' x
- * 'desiredCols' with a block size of 'block_size'. The generated image
- * represents a sets of blocks in the following order:
- * 0, 1, 2, 3, ... , N-1, 0, 1, 2, 3, ..., N-1, ...., N-1
- * 1, 2, 3, 4, ... , 0, 1, 2, 3, 4, ...
- * ...
- * where 'N' is equal to 'globalDatasetPtr->numSemanticClasses()'.
- * For this reason the final image size might not be exactly the same as the
- * one passed as parameter
- * \param desiredRows desired number of rows
- * \param desiredCols desired number of cols
- * \param block_size size of the chessboard block
- * \param image generated image
- */
-void createChessBoardImage(const int desiredRows, const int desiredCols,
-                           const int block_size, cv::Mat& image);
 
 /**
  * \brief Creates an image containing a set of discs
@@ -105,4 +73,4 @@ void createDiscImage(const int desiredRows, const int desiredCols,
                      const std::vector<int> radii,
                      const std::vector<int> labels, cv::Mat& image);
 
-#endif //X_VIEW_TEST_GRAPH_LANDMARK_IMPL_H
+#endif //X_VIEW_TEST_GRAPH_LANDMARK_H

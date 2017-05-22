@@ -1,8 +1,8 @@
-#include <vector>
+#include <x_view_core/x_view_tools.h>
 
 #include <glog/logging.h>
 
-#include <x_view_core/x_view_tools.h>
+#include <vector>
 
 namespace x_view {
 

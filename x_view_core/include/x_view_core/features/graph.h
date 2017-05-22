@@ -1,9 +1,9 @@
 #ifndef X_VIEW_GRAPH_H
 #define X_VIEW_GRAPH_H
 
-#include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <boost/graph/graph_traits.hpp>
 
 #include <opencv2/core/core.hpp>
 

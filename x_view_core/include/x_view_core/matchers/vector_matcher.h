@@ -1,14 +1,14 @@
 #ifndef X_VIEW_VECTOR_MATCHER_H
 #define X_VIEW_VECTOR_MATCHER_H
 
-#include <vector>
-#include <memory>
+#include <x_view_core/matchers/abstract_matcher.h>
+#include <x_view_core/x_view_types.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
 
-#include <x_view_core/x_view_types.h>
-#include <x_view_core/matchers/abstract_matcher.h>
+#include <vector>
+#include <memory>
 
 namespace x_view {
 

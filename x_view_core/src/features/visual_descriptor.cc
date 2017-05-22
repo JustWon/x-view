@@ -3,7 +3,7 @@
 namespace x_view {
 
 VisualDescriptor::VisualDescriptor(const cv::Mat& descriptor,
-                             const KeyPointsVector& keypoints)
+                                   const KeyPointsVector& keypoints)
     : VectorDescriptor(descriptor),
       key_points_vector_(keypoints) {
 }
