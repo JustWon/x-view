@@ -3,8 +3,7 @@
   <name>x_view_bag_reader</name>
   <version>0.0.1</version>
   <description>x_view_bag_reader</description>
-  
-  <maintainer email="gawela@ethz.ch">Abel Gawel</maintainer>
+
   <maintainer email="deldonc@student.ethz.ch">Carlo Del Don</maintainer>
   
   <license>BSD</license>

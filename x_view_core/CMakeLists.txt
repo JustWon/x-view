@@ -52,11 +52,11 @@ cs_add_library(${PROJECT_NAME}
 catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_main.cc
         test/test_histogram_landmark.cc
+        test/test_graph_landmark_main.cc
         test/test_graph_landmark.cc
-        test/test_graph_landmark_impl.cc
         test/test_graph.cc
+        test/test_graph_matching_main.cc
         test/test_graph_matching.cc
-        test/test_graph_matching_impl.cc
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )
 
