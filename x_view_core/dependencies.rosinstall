@@ -30,5 +30,5 @@
    uri: https://github.com/ethz-asl/opencv2_catkin.git
 - git:
    local-name: opencv_blobs_catkin
-   uri: https://github.com/cdeldon/opencv_blobs_catkin.git
+   uri: https://github.com/ethz-asl/opencv_blobs_catkin.git
 

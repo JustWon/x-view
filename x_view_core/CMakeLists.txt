@@ -72,7 +72,8 @@ target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
 # the IDE static analyzer to give hints about types.
 if($ENV{CLION_IDE})
     set(OPENCVBLOBS_CLION_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/devel/.private/opencv_blobs_catkin/include)
-    message("Opencvblobs include directories: " ${OPENCVBLOBS_CLION_INCLUDE_DIR})
+    message("Manually include project directories: "
+            ${OPENCVBLOBS_CLION_INCLUDE_DIR})
     include_directories(${OPENCVBLOBS_CLION_INCLUDE_DIR})
 endif()
 # Documentation
