@@ -24,7 +24,7 @@ class GraphBuilder {
    * the ImageBlobs datastructure passed as argument, and whose edges exist
    * between nodes corresponding to neighbor blobs.
    * \param blobs ImageBlobs datastructure containing all blobs.
-   * \param params Parameters used by the grpah builder during graph
+   * \param params Parameters used by the graph builder during graph
    * construction.
    * \return A graph object containing nodes and edges based on the
    * ImageBlobs datastructure passed as argument.
