@@ -62,12 +62,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )
 
-target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME}
-        ${opencvblobs_catkin_LIBRARIES})
-
-# include header files of opencvblobs catkin package
-message("Opencvblobs include directories: " ${opencvblobs_catkin_INCLUDE_DIR})
-include_directories({opencvblobs_catkin_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
 
 # Documentation
 add_doxygen(REQUIRED)
