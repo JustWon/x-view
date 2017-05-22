@@ -57,11 +57,9 @@ class GraphBuilder {
    * the inserted nodes.
    */
   static void addBlobsToGraph(const ImageBlobs& blobs,
-                              Graph::GraphType& graph,
-                              std::vector<Graph::VertexDescriptor>&
-                              vertex_descriptors,
-                              std::vector<const Blob*>& blob_vector =
-                              DEFAULT_BLOB_VECTOR);
+                              Graph::GraphType* graph,
+                              std::vector<Graph::VertexDescriptor>* vertex_descriptors,
+                              std::vector<const Blob*>* blob_vector = &DEFAULT_BLOB_VECTOR);
   /**
    * \brief Generates a graph vertex containing the relevant information
    * extracted from the blob object passed as argument.

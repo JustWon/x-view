@@ -10,10 +10,10 @@ namespace x_view {
 int BlobExtractorParams::BlobSizeFiltering::minimumBlobSize(const cv::Size&
 image_size) const {
   if (type_ == MIN_BLOB_SIZE_TYPE::ABSOLUTE) {
-    return static_cast<int>(value_);
+    return static_cast<int>(n_min_pixels_);
   } else if (type_ == MIN_BLOB_SIZE_TYPE::RELATIVE_TO_IMAGE_SIZE) {
     const int num_total_pixels = image_size.width * image_size.height;
-    const int min_blob_size = static_cast<int>(num_total_pixels * value_);
+    const int min_blob_size = static_cast<int>(num_total_pixels * n_min_pixels_);
     return min_blob_size;
   }
 }

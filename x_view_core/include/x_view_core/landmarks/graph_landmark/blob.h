@@ -23,7 +23,7 @@ class Blob {
   std::vector<std::vector<cv::Point>> internal_contour_pixels_;
 
   /// \brief Number of pixels in this blob.
-  int size_;
+  int num_pixels_;
 
   /// \brief Pixel representing the center of the blob.
   cv::Point center_;
@@ -57,7 +57,7 @@ class Blob {
   void computeContours();
 
   /// \brief Computes the number of pixels belonging to the blob.
-  void computeArea() { size_ = c_blob_.Area(AreaMode::PIXELWISE); }
+  void computeArea() { num_pixels_ = c_blob_.Area(AreaMode::PIXELWISE); }
 
   /// \brief Computes the external bounding boxes of the blob. The bounding
   /// boxes are used for early termination during neighbor check.
