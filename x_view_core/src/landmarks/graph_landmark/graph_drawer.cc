@@ -60,110 +60,131 @@ cv::Mat GraphDrawer::createImageFromBlobs(const ImageBlobs& blobs,
 
 }
 
-void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat& image) {
+void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
 
-  const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+  if (image != nullptr) {
+    const std::vector<int>& labels_to_render =
+        global_dataset_ptr->getLabelsToRender();
 
-  const cv::Scalar font_color = cv::Scalar(255, 255, 255);
-  for (int c = 0; c < blobs.size(); ++c) {
-    // only add the blob if the label has not to be ignored, thus if it can
-    // not be found in the passed parameter
-    if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
-        std::end(labels_to_render))
-      for (const Blob& blob : blobs[c]) {
+    const cv::Scalar font_color = cv::Scalar(255, 255, 255);
+    for (int c = 0; c < blobs.size(); ++c) {
+      // only add the blob if the label has not to be ignored, thus if it can
+      // not be found in the passed parameter
+      if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
+          std::end(labels_to_render))
+        for (const Blob& blob : blobs[c]) {
 
-        std::string label = std::to_string(blob.semantic_label_) + ") " +
-            global_dataset_ptr->label(blob.semantic_label_);
-        cv::putText(image, label, blob.center_, cv::FONT_HERSHEY_DUPLEX,
-                    0.85, font_color, 1, CV_AA);
-      }
+          std::string label = std::to_string(blob.semantic_label_) + ") " +
+              global_dataset_ptr->label(blob.semantic_label_);
+          cv::putText(*image, label, blob.center_, cv::FONT_HERSHEY_DUPLEX,
+                      0.85, font_color, 1, CV_AA);
+        }
+    }
+  } else {
+    CHECK(false) << "Image parameter passed to " << __FUNCTION__
+                 << " is nullptr";
   }
 }
 
-void GraphDrawer::addEllipsesToImage(const ImageBlobs& blobs, cv::Mat& image) {
+void GraphDrawer::addEllipsesToImage(const ImageBlobs& blobs, cv::Mat* image) {
 
-  const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+  if (image != nullptr) {
+    const std::vector<int>& labels_to_render =
+        global_dataset_ptr->getLabelsToRender();
 
-  // Draw the blobs onto the image
-  for (int c = 0; c < blobs.size(); ++c) {
-    // only add the blob if the label has not to be ignored, thus if it can
-    // not be found in the passed parameter
-    if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
-        std::end(labels_to_render))
-      for (const Blob& blob : blobs[c]) {
-        cv::Scalar ellipse_color;
-        if (global_dataset_ptr->semanticEntities()[c].is_static_)
-          ellipse_color = cv::Scalar(255, 40, 0); // bluish
-        else
-          ellipse_color = cv::Scalar(10, 60, 255); // reddish
+    // Draw the blobs onto the image
+    for (int c = 0; c < blobs.size(); ++c) {
+      // only add the blob if the label has not to be ignored, thus if it can
+      // not be found in the passed parameter
+      if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
+          std::end(labels_to_render))
+        for (const Blob& blob : blobs[c]) {
+          cv::Scalar ellipse_color;
+          if (global_dataset_ptr->semanticEntities()[c].is_static_)
+            ellipse_color = cv::Scalar(255, 40, 0); // bluish
+          else
+            ellipse_color = cv::Scalar(10, 60, 255); // reddish
 
-        int ellipse_thickness = 2;
-        int center_radius = 2;
-        cv::ellipse(image, blob.ellipse_, ellipse_color, ellipse_thickness);
-      }
+          int ellipse_thickness = 2;
+          cv::ellipse(*image, blob.ellipse_, ellipse_color, ellipse_thickness);
+        }
+    }
+  } else {
+    CHECK(false) << "Image parameter passed to " << __FUNCTION__
+                 << " is nullptr";
   }
 }
 
 void GraphDrawer::addGraphNodesToImage(const Graph::GraphType& graph,
-                                       cv::Mat& image) {
+                                       cv::Mat* image) {
 
-  const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+  if (image != nullptr) {
+    const std::vector<int>& labels_to_render =
+        global_dataset_ptr->getLabelsToRender();
 
-  const int node_radius = 4;
-  const cv::Scalar node_color(216, 28, 141);
+    const int node_radius = 4;
+    const cv::Scalar node_color(216, 28, 141);
 
-  auto node_iter = boost::vertices(graph);
-  for (node_iter; node_iter.first != node_iter.second; ++node_iter.first) {
-    const Graph::VertexDescriptor& node_descriptor = *node_iter.first;
-    const Graph::VertexProperty& node = graph[node_descriptor];
+    auto node_iter = boost::vertices(graph);
+    for (node_iter; node_iter.first != node_iter.second; ++node_iter.first) {
+      const Graph::VertexDescriptor& node_descriptor = *node_iter.first;
+      const Graph::VertexProperty& node = graph[node_descriptor];
 
-    const cv::Point& center = node.center_;
-    const int label = node.semantic_label_;
+      const cv::Point& center = node.center_;
+      const int label = node.semantic_label_;
 
-    if (std::find(labels_to_render.begin(), labels_to_render.end(), label) !=
-        std::end(labels_to_render)) {
-      cv::circle(image, center, node_radius, node_color, CV_FILLED);
+      if (std::find(labels_to_render.begin(), labels_to_render.end(), label) !=
+          std::end(labels_to_render)) {
+        cv::circle(*image, center, node_radius, node_color, CV_FILLED);
+      }
     }
+  } else {
+    CHECK(false) << "Image parameter passed to " << __FUNCTION__
+                 << " is nullptr";
   }
 }
 
 void GraphDrawer::addGraphEdgesToImage(const Graph::GraphType& graph,
-                                       cv::Mat& image) {
+                                       cv::Mat* image) {
 
-  const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+  if (image != nullptr) {
+    const std::vector<int>& labels_to_render =
+        global_dataset_ptr->getLabelsToRender();
 
-  const int edge_thickness = 2;
-  const cv::Scalar edge_color(58, 189, 255);
+    const int edge_thickness = 2;
+    const cv::Scalar edge_color(58, 189, 255);
 
-  // second, add the edges between the nodes of the graph
-  auto edge_iter = boost::edges(graph);
-  for (edge_iter; edge_iter.first != edge_iter.second; ++edge_iter.first) {
-    // get the two vertices connected by this edge
-    const Graph::VertexDescriptor& vd_from =
-        boost::source(*edge_iter.first, graph);
-    const Graph::VertexDescriptor& vd_to =
-        boost::target(*edge_iter.first, graph);
+    // second, add the edges between the nodes of the graph
+    auto edge_iter = boost::edges(graph);
+    for (edge_iter; edge_iter.first != edge_iter.second; ++edge_iter.first) {
+      // get the two vertices connected by this edge
+      const Graph::VertexDescriptor& vd_from =
+          boost::source(*edge_iter.first, graph);
+      const Graph::VertexDescriptor& vd_to =
+          boost::target(*edge_iter.first, graph);
 
-    const Graph::VertexProperty& v_from = graph[vd_from];
-    const Graph::VertexProperty& v_to = graph[vd_to];
+      const Graph::VertexProperty& v_from = graph[vd_from];
+      const Graph::VertexProperty& v_to = graph[vd_to];
 
-    const int from_label = v_from.semantic_label_;
-    const int to_label = v_to.semantic_label_;
+      const int from_label = v_from.semantic_label_;
+      const int to_label = v_to.semantic_label_;
 
-    // only draw the edge if both nodes are to render
-    if (std::find(labels_to_render.begin(), labels_to_render.end(), from_label)
-        != std::end(labels_to_render) &&
-        std::find(labels_to_render.begin(), labels_to_render.end(), to_label)
-            != std::end(labels_to_render)) {
-      const cv::Point& from_center = v_from.center_;
-      const cv::Point& to_center = v_to.center_;
+      // only draw the edge if both nodes are to render
+      if (std::find(labels_to_render.begin(),
+                    labels_to_render.end(),
+                    from_label)
+          != std::end(labels_to_render) &&
+          std::find(labels_to_render.begin(), labels_to_render.end(), to_label)
+              != std::end(labels_to_render)) {
+        const cv::Point& from_center = v_from.center_;
+        const cv::Point& to_center = v_to.center_;
 
-      cv::line(image, from_center, to_center, edge_color, edge_thickness);
+        cv::line(*image, from_center, to_center, edge_color, edge_thickness);
+      }
     }
+  } else {
+    CHECK(false) << "Image parameter passed to " << __FUNCTION__
+                 << " is nullptr";
   }
 
 }
