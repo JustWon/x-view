@@ -1,9 +1,9 @@
 #ifndef X_VIEW_AIRSIM_DATASET_H
 #define X_VIEW_AIRSIM_DATASET_H
 
-#include <glog/logging.h>
-
 #include <x_view_core/datasets/abstract_dataset.h>
+
+#include <glog/logging.h>
 
 namespace x_view {
 

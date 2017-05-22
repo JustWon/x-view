@@ -13,7 +13,7 @@ class SynthiaDataset : public AbstractDataset {
 
  public:
   SynthiaDataset();
-  virtual ~SynthiaDataset(){}
+  virtual ~SynthiaDataset() {}
 
   virtual const std::string datasetName() const override {
     return std::string("Synthia Dataset");

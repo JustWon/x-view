@@ -1,11 +1,11 @@
 #ifndef X_VIEW_VISUAL_DESCRIPTOR_LANDMARK_H_
 #define  X_VIEW_VISUAL_DESCRIPTOR_LANDMARK_H_
 
+#include <x_view_core/landmarks/abstract_semantic_landmark.h>
+#include <x_view_core/x_view_types.h>
+
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/nonfree/features2d.hpp>
-
-#include <x_view_core/x_view_types.h>
-#include <x_view_core/landmarks/abstract_semantic_landmark.h>
 
 namespace x_view {
 

@@ -1,6 +1,7 @@
 #include <x_view_core/matchers/vector_matcher.h>
-#include <x_view_core/landmarks/abstract_semantic_landmark.h>
+
 #include <x_view_core/features/vector_descriptor.h>
+#include <x_view_core/landmarks/abstract_semantic_landmark.h>
 
 namespace x_view {
 

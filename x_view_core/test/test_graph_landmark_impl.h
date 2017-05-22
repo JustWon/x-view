@@ -1,3 +1,4 @@
+
 #ifndef X_VIEW_TEST_GRAPH_LANDMARK_IMPL_H
 #define X_VIEW_TEST_GRAPH_LANDMARK_IMPL_H
 
@@ -18,8 +19,6 @@ typedef std::shared_ptr<GraphLandmark> GraphLandmarkPtr;
 
 /// \brief test the custom image
 void testCustomImage();
-/// \brief test the chessboard image
-void testChessboardImage();
 /// \brief test the disc image
 void testDiscImage();
 
@@ -55,14 +54,6 @@ void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
                        const std::vector<int>& expectedInstanceCount,
                        const std::string& imageName);
 
-/**
- * \brief Checks that no pixel appears twice in the blob structure generated
- * by the graphLandmark pointed by the passed parameter
- * \param graphLadmarkPtr pointer to the graphLandmark
- * \param imageName logging image name
- */
-void testDuplicatePixels(const GraphLandmarkPtr& graphLadmarkPtr,
-                         const std::string& imageName);
 
 /**
  * \brief Creates a custom image of size 'desiredRows' x 'desiredCols'

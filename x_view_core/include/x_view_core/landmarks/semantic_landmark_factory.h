@@ -1,9 +1,9 @@
 #ifndef X_VIEW_SEMANTIC_LANDMARK_FACTORY_H
 #define X_VIEW_SEMANTIC_LANDMARK_FACTORY_H
 
-#include <opencv2/core/core.hpp>
-
 #include <x_view_core/x_view_types.h>
+
+#include <opencv2/core/core.hpp>
 
 namespace x_view {
 
