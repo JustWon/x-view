@@ -16,7 +16,7 @@ TEST(XViewSlamTestSuite, test_graphLandmark) {
   // ignore any generated blob
   GraphLandmark::MINIMUM_BLOB_SIZE = 0;
   // don't perform dilation and erosion on the input images.
-  GraphLandmark::DILATE_AND_ERODE = true;
+  GraphLandmark::DILATE_AND_ERODE = false;
 
   // test different images
   testCustomImage();
