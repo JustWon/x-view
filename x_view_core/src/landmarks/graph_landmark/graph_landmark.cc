@@ -39,7 +39,7 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
 #ifdef X_VIEW_DEBUG
   // ************ Graph drawing *********** //
   cv::Mat draw_image =
-      GraphDrawer::createImageFromBlobs(image_blobs_, image.rows, image.cols);
+      GraphDrawer::createImageFromBlobs(image_blobs_, image.size());
   GraphDrawer::addGraphEdgesToImage(graph, draw_image);
   GraphDrawer::addGraphNodesToImage(graph, draw_image);
   GraphDrawer::addEllipsesToImage(image_blobs_, draw_image);

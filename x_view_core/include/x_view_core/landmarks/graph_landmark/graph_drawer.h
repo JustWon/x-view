@@ -1,8 +1,8 @@
 #ifndef X_VIEW_GRAPH_DRAWER_H
 #define X_VIEW_GRAPH_DRAWER_H
 
-#include <x_view_core/landmarks/graph_landmark/graph_landmark_types.h>
 #include <x_view_core/features/graph_descriptor.h>
+#include <x_view_core/landmarks/graph_landmark/graph_landmark_types.h>
 
 #include <opencv2/opencv.hpp>
 
@@ -26,8 +26,8 @@ class GraphDrawer {
    * \return Image representing the blobs contained in the ImageBlobs
    * datastructure passed as argument.
    */
-  static cv::Mat createImageFromBlobs(const ImageBlobs& blobs, const int
-  rows, const int cols);
+  static cv::Mat createImageFromBlobs(const ImageBlobs& blobs, const
+  cv::Size& size);
 
   /**
    * \brief Adds text/labels to the image positioned at the center of the
@@ -63,7 +63,7 @@ class GraphDrawer {
   */
   static void addGraphEdgesToImage(const Graph::GraphType& graph,
                                    cv::Mat& image);
-  
+
 };
 
 }

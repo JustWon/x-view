@@ -1,9 +1,10 @@
 #include <x_view_core/landmarks/graph_landmark/graph_drawer.h>
-#include <x_view_core/landmarks/graph_landmark/blob.h>
-#include <x_view_core/datasets/abstract_dataset.h>
 
-#include <iostream>
+#include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/landmarks/graph_landmark/blob.h>
+
 #include <bitset>
+#include <iostream>
 
 namespace x_view {
 
@@ -22,8 +23,8 @@ void GraphDrawer::printBlobs(const ImageBlobs& blobs, std::ostream& out) {
 }
 
 cv::Mat GraphDrawer::createImageFromBlobs(const ImageBlobs& blobs,
-                                          const int rows, const int cols) {
-  cv::Mat image(rows, cols, CV_8UC3, cv::Scalar::all(0));
+                                          const cv::Size& size) {
+  cv::Mat image(size.height, size.width, CV_8UC3, cv::Scalar::all(0));
 
   const std::vector<int>& labels_to_render =
       global_dataset_ptr->getLabelsToRender();

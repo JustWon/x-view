@@ -1,6 +1,7 @@
 #include <x_view_core/landmarks/graph_landmark/graph_builder.h>
-#include <x_view_core/landmarks/graph_landmark/blob.h>
+
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/landmarks/graph_landmark/blob.h>
 
 namespace x_view {
 

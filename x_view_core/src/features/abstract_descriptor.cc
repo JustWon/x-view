@@ -2,7 +2,7 @@
 
 namespace x_view {
 
-AbstractDescriptor::AbstractDescriptor(){
+AbstractDescriptor::AbstractDescriptor() {
 }
 
 AbstractDescriptor::~AbstractDescriptor() {

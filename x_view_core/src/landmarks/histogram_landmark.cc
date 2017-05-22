@@ -1,7 +1,7 @@
 #include <x_view_core/landmarks/histogram_landmark.h>
+
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/features/vector_descriptor.h>
-
 #include <x_view_core/x_view_tools.h>
 
 namespace x_view {

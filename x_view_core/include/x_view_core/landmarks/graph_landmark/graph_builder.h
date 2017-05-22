@@ -1,8 +1,8 @@
 #ifndef X_VIEW_GRAPH_BUILDER_H
 #define X_VIEW_GRAPH_BUILDER_H
 
-#include <x_view_core/landmarks/graph_landmark/graph_landmark_types.h>
 #include <x_view_core/features/graph_descriptor.h>
+#include <x_view_core/landmarks/graph_landmark/graph_landmark_types.h>
 
 namespace x_view {
 

@@ -1,16 +1,15 @@
 #ifndef X_VIEW_GRAPH_LANDMARK_H_
 #define  X_VIEW_GRAPH_LANDMARK_H_
 
-#include <x_view_core/landmarks/graph_landmark/graph_landmark_types.h>
-
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/opencv.hpp>
-
-#include <x_view_core/x_view_types.h>
-#include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/features/graph_descriptor.h>
 #include <x_view_core/features/graph.h>
+#include <x_view_core/landmarks/abstract_semantic_landmark.h>
+#include <x_view_core/landmarks/graph_landmark/graph_landmark_types.h>
+#include <x_view_core/x_view_types.h>
+
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv.hpp>
 
 namespace x_view {
 

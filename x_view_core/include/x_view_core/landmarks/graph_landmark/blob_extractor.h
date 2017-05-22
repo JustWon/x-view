@@ -1,11 +1,10 @@
 #ifndef X_VIEW_BLOB_EXTRACTOR_H
 #define X_VIEW_BLOB_EXTRACTOR_H
 
-#include <x_view_core/landmarks/graph_landmark/graph_landmark_types.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
+#include <x_view_core/landmarks/graph_landmark/graph_landmark_types.h>
 
 #include <opencv2/core/core.hpp>
-
 #include <opencvblobslib/blob.h>
 
 #include <vector>

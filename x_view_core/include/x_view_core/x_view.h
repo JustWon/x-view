@@ -1,16 +1,16 @@
 #ifndef X_VIEW_X_VIEW_H_
 #define X_VIEW_X_VIEW_H_
 
-#include <memory>
+#include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/landmarks/abstract_semantic_landmark.h>
+#include <x_view_core/landmarks/semantic_landmark_factory.h>
+#include <x_view_core/matchers/abstract_matcher.h>
+#include <x_view_core/x_view_types.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
 
-#include <x_view_core/x_view_types.h>
-#include <x_view_core/datasets/abstract_dataset.h>
-#include <x_view_core/landmarks/semantic_landmark_factory.h>
-#include <x_view_core/landmarks/abstract_semantic_landmark.h>
-#include <x_view_core/matchers/abstract_matcher.h>
+#include <memory>
 
 namespace x_view {
 

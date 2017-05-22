@@ -1,11 +1,11 @@
 #ifndef X_VIEW_VECTOR_DESCRIPTOR_H
 #define X_VIEW_VECTOR_DESCRIPTOR_H
 
-#include <vector>
+#include <x_view_core/features/abstract_descriptor.h>
 
 #include <opencv2/core/core.hpp>
 
-#include <x_view_core/features/abstract_descriptor.h>
+#include <vector>
 
 namespace x_view {
 
