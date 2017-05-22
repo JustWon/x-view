@@ -108,7 +108,7 @@ void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
     int instancePixelCount = 0;
     auto const& instanceBlobs = graphLandmarkPtr->getBlobs()[i];
     for (int j = 0; j < instanceBlobs.size(); ++j)
-      instancePixelCount += instanceBlobs[j].size_;
+      instancePixelCount += instanceBlobs[j].num_pixels_;
     CHECK_EQ(expectedPixelCount[i], instancePixelCount)
       << "In image " << imageName << ", class instance " << i
       << " should have " << expectedPixelCount[i] << " pixels, but has "
