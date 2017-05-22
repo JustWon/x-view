@@ -37,7 +37,7 @@ class GraphDrawer {
    * \param image The labels are rendered on top of the image passed as
    * argument.
    */
-  static void addLabelsToImage(const ImageBlobs& blobs, cv::Mat& image);
+  static void addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image);
 
   /**
    * \brief Adds ellipses to the image representing the blobs.
@@ -45,7 +45,7 @@ class GraphDrawer {
    * \param image The ellipses are rendered on top of the image passed as
    * argument.
    */
-  static void addEllipsesToImage(const ImageBlobs& blobs, cv::Mat& image);
+  static void addEllipsesToImage(const ImageBlobs& blobs, cv::Mat* image);
 
   /**
   * \brief Adds the graph nodes to the image representing the blobs.
@@ -54,7 +54,7 @@ class GraphDrawer {
   * argument.
   */
   static void addGraphNodesToImage(const Graph::GraphType& graph,
-                                   cv::Mat& image);
+                                   cv::Mat* image);
 
   /**
   * \brief Adds the graph edges to the image representing the blobs.
@@ -63,7 +63,7 @@ class GraphDrawer {
   * argument.
   */
   static void addGraphEdgesToImage(const Graph::GraphType& graph,
-                                   cv::Mat& image);
+                                   cv::Mat* image);
 
 };
 
