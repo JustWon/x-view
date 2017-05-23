@@ -1,4 +1,5 @@
 #include <x_view_core/features/graph.h>
+#include <x_view_core/landmarks/graph_landmark/random_walker.h>
 
 #ifndef X_VIEW_TEST_RANDOM_WALK_H
 #define X_VIEW_TEST_RANDOM_WALK_H
@@ -26,7 +27,10 @@ x_view::Graph::GraphType generateRandomGraph(const int num_vertices,
  * counting how many non-zero elements it contains and on the non-zero
  * elements values.
  * \param graph Graph to be tested.
+ * \param params Parameters to be used by the RandomWalker class to generate
+ * the transition probability matrix.
  */
-void testTransitionProbabilityMatrix(const x_view::Graph::GraphType graph);
+void testTransitionProbabilityMatrix(const x_view::Graph::GraphType graph,
+                                     const x_view::RandomWalkerParams& params);
 
 #endif //PROJECT_TEST_RANDOM_WALK_H

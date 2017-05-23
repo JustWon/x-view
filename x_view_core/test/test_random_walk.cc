@@ -40,10 +40,11 @@ x_view::Graph::GraphType generateRandomGraph(const int num_vertices,
   return graph;
 }
 
-void testTransitionProbabilityMatrix(const x_view::Graph::GraphType graph) {
+void testTransitionProbabilityMatrix(const x_view::Graph::GraphType graph,
+                                     const x_view::RandomWalkerParams& params) {
 
   // Build the transition probability of the graph.
-  x_view::RandomWalker random_walker(graph);
+  x_view::RandomWalker random_walker(graph, params);
   const Eigen::SparseMatrix<float>& trans =
       random_walker.getTransitionProbabilityMatrix();
 

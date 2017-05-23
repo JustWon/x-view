@@ -2,8 +2,10 @@
 
 namespace x_view {
 
-RandomWalker::RandomWalker(const Graph::GraphType& graph)
-    : graph_(graph) {
+RandomWalker::RandomWalker(const Graph::GraphType& graph,
+                           const RandomWalkerParams& params)
+    : graph_(graph),
+      params_(params) {
   precomputeTransitionProbabilities();
 }
 
