@@ -14,5 +14,6 @@ int main(int argc, char **argv) {
 
   FLAGS_alsologtostderr = true;
   FLAGS_colorlogtostderr = true;
+
   return RUN_ALL_TESTS();
 }

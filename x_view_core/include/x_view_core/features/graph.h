@@ -19,6 +19,9 @@ class Graph {
 
   /// \brief Property associated to a graph vertex.
   struct VertexProperty {
+    /// \brief index of the vertex in the graph, such that
+    /// boost::vertex(i, graph) returns the vertex property with index_ == i.
+    int index_;
     /// \brief Semantic label associated to this graph vertex. This label
     /// corresponds to the same specified in the dataset description.
     int semantic_label_;
@@ -50,13 +53,16 @@ class Graph {
 
   /**
   * \brief A graph object represented as an adjacency list.
-  * \details First parameter: what stl container is used to store the edges.
+  * \details
+  * First parameter: what stl container is used to store the edges. Using
+   * setS as edge container to enforce uniqueness of edges, i.e. edge 1-2 is
+   * the same as edge 2-1.
   * Second parameter: what stl container is used to store the graph vertices.
   * Third parameter: directed or undirected graph type.
   * Fourth parameter: node representation.
   * Fifth parameter: edge representation.
   */
-  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
+  typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
                                 VertexProperty, EdgeProperty> GraphType;
 
   /// \brief Access to vertices stored in the graph.

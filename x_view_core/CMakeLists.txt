@@ -45,6 +45,7 @@ cs_add_library(${PROJECT_NAME}
         src/landmarks/graph_landmark/blob_extractor.cc
         src/landmarks/graph_landmark/graph_builder.cc
         src/landmarks/graph_landmark/graph_drawer.cc
+        src/landmarks/graph_landmark/random_walker.cc
 
         # Features matchers
         src/matchers/vector_matcher.cc
@@ -59,6 +60,8 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_graph_landmark_main.cc
         test/test_graph_landmark.cc
         test/test_graph.cc
+        test/test_random_walk_main.cc
+        test/test_random_walk.cc
         test/test_graph_matching_main.cc
         test/test_graph_matching.cc
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test

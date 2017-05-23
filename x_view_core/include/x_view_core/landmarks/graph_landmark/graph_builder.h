@@ -63,11 +63,16 @@ class GraphBuilder {
   /**
    * \brief Generates a graph vertex containing the relevant information
    * extracted from the blob object passed as argument.
+   * \param index Integer representing the index (position) of the blob
+   * transformed into a vertex. This index represents corresponds to the
+   * number of previously inserted blobs, i.e. the first inserted blob will
+   * have index=0, the second index=1 etc.
    * \param blob Blob object to the converted into a graph node.
    * \return A graph node containing the relevant information extracted from
    * the blob passed as argument.
    */
-  static Graph::VertexProperty blobToGraphVertex(const Blob& blob);
+  static Graph::VertexProperty blobToGraphVertex(const int index,
+                                                 const Blob& blob);
 
 };
 

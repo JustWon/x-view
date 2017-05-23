@@ -70,10 +70,12 @@ void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
     blob_vector->clear();
 
     // Each blob is a graph node
+    int blob_count = 0;
     for (int c = 0; c < blobs.size(); ++c) {
       for (const Blob& blob : blobs[c]) {
         blob_vector->push_back(&blob);
-        Graph::VertexProperty vertex = GraphBuilder::blobToGraphVertex(blob);
+        Graph::VertexProperty vertex =
+            GraphBuilder::blobToGraphVertex(blob_count++, blob);
         vertex_descriptors->push_back(boost::add_vertex(vertex, *graph));
       }
     }
@@ -84,12 +86,13 @@ void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
 
 }
 
-Graph::VertexProperty GraphBuilder::blobToGraphVertex(const Blob& blob) {
+Graph::VertexProperty GraphBuilder::blobToGraphVertex(const int index,
+                                                      const Blob& blob) {
   const int semantic_label = blob.semantic_label_;
   const std::string label = global_dataset_ptr->label(semantic_label);
   const int size = blob.num_pixels_;
   const cv::Point center = blob.center_;
-  return Graph::VertexProperty{semantic_label, label, size, center};
+  return Graph::VertexProperty{index, semantic_label, label, size, center};
 }
 
 }
