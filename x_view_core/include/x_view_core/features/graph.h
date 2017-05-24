@@ -33,9 +33,11 @@ class Graph {
     cv::Point center_;
 
     const std::string vertexInfo() const {
-      return std::string("(v) " + std::to_string(semantic_label_) + ": " +
-          semantic_entity_name_ + ", size: " + std::to_string(size_) + ", "
-          "center: [" + std::to_string(center_.x) + ", " + std::to_string
+      return std::string("(v) " + std::to_string(index_) +
+          ", label: " + std::to_string(semantic_label_) +
+          ", name: " + semantic_entity_name_ +
+          ", size: " + std::to_string(size_) +
+          ", center: [" + std::to_string(center_.x) + ", " + std::to_string
           (center_.y) + "]");
     }
   };
@@ -46,7 +48,7 @@ class Graph {
     int to_;
 
     const std::string edgeInfo() const {
-      return std::string("(e) " + std::to_string(from_) + "->" +
+      return std::string("(e) " + std::to_string(from_) + "--" +
           std::to_string(to_));
     }
   };

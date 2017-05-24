@@ -22,30 +22,39 @@ TEST(XViewSlamTestSuite, test_random_walk) {
   Graph::GraphType& graph = g.graph();
 
   // create multiple random graphs with different topology and test them.
-  std::vector<int> num_desired_vertices{8, 15, 50, 500};
-  std::vector<float> edge_probabilities{0.0, 0.1, 0.5, 0.8, 1.0};
+  std::vector<int> num_desired_vertices{8, 15, 100};
+  std::vector<float> edge_probabilities{0.0, 0.01, 0.1, 0.5};
+  std::vector<RandomWalkerParams::RANDOM_SAMPLING_TYPE> sampling_types{
+      RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM,
+      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME
+  };
   boost::progress_display show_progress(num_desired_vertices.size() *
-                                            edge_probabilities.size(),
+                                            edge_probabilities.size() *
+                                            sampling_types.size(),
                                         std::cout,
                                         "Transition probabilities\n");
-  for (const int num_vertices : num_desired_vertices)
+  for (const int num_vertices : num_desired_vertices) {
     for (const float edge_probability : edge_probabilities) {
+      for (const auto sampling_type : sampling_types) {
 
-      const x_view::RandomWalkerParams::RANDOM_SAMPLING_TYPE sampling_type =
-          x_view::RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM;
-      const int walk_length = 2;
-      const int num_walks_per_vertex = 15;
+        const int walk_length = 2;
+        const int num_walks_per_vertex = 15;
 
-      x_view::RandomWalkerParams params;
-      params.random_sampling_type_ = sampling_type;
-      params.walk_length_ = walk_length;
-      params.num_walks_ = num_walks_per_vertex;
-      graph = generateRandomGraph(num_vertices,
-                                  edge_probability,
-                                  num_semantic_classes);
+        x_view::RandomWalkerParams params;
+        params.random_sampling_type_ = sampling_type;
+        params.walk_length_ = walk_length;
+        params.num_walks_ = num_walks_per_vertex;
+        graph = generateRandomGraph(num_vertices,
+                                    edge_probability,
+                                    num_semantic_classes);
 
-      testTransitionProbabilityMatrix(graph, params);
-      ++show_progress;
+        testTransitionProbabilityMatrix(graph, params);
+        params.random_sampling_type_ =
+            RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM;
+        testTransitionProbabilityMatrix(graph, params);
+        ++show_progress;
+      }
     }
+  }
 }
 

@@ -8,8 +8,6 @@
 #include <boost/graph/erdos_renyi_generator.hpp>
 #include <boost/random/linear_congruential.hpp>
 
-#include <eigen3/Eigen/Core>
-
 x_view::Graph::GraphType generateRandomGraph(const int num_vertices,
                                              const float edge_probability,
                                              const int num_semantic_classes) {
@@ -35,6 +33,18 @@ x_view::Graph::GraphType generateRandomGraph(const int num_vertices,
     // set a random semantic label to the vertex.
     vertex.semantic_label_ = rand() & num_semantic_classes;
     vertex.semantic_entity_name_ = std::to_string(vertex.semantic_label_);
+  }
+
+  // add edge properties
+  auto edges_iter = boost::edges(graph);
+  for (edges_iter.first; edges_iter.first != edges_iter.second;
+       ++edges_iter.first) {
+    // get the vertex descriptors defining the current edge
+    const auto& from_v = graph[boost::source(*edges_iter.first, graph)];
+    const auto& to_v = graph[boost::target(*edges_iter.first, graph)];
+    // set the edge properties
+    graph[*edges_iter.first].from_ = from_v.index_;
+    graph[*edges_iter.first].to_ = to_v.index_;
   }
 
   return graph;
@@ -65,8 +75,7 @@ void testTransitionProbabilityMatrix(const x_view::Graph::GraphType graph,
       }
     }
     // Each non-zero element in the row should have value
-    // 1.0/num_elements_in_row as the random walk is unweighted and uniformly
-    // samples the nodes from the neighborhood.
+    // 1.0/num_elements_in_row.
     const float should_have_value = 1.f / num_elements_in_row;
     for (int j = 0; j < trans.cols(); ++j) {
       const float v = trans.coeff(vertex_index, j);

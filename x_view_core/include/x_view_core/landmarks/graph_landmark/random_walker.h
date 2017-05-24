@@ -28,7 +28,10 @@ struct RandomWalkerParams {
   /// (i.e. by randomly sampling neighbors around each node belonging to the
   /// random walk) or using other techniques.
   enum class RANDOM_SAMPLING_TYPE {
-    UNIFORM = 0  /// \brief true random walk.
+    /// \brief True random walk.
+    UNIFORM = 0,
+    /// \brief Avoid transitions between vertices with same semantic label.
+    AVOID_SAME
   };
 
   /**
@@ -89,8 +92,23 @@ class RandomWalker {
   /**
    * \brief Precomputation of transition probabilities between each neighbor
    * node in the graph graph_
+   * \details This function computes transition probabilities between
+   * vertices in the graph without any sort of weight between nodes. This
+   * means that the probability of going from node i to any of its adjacent
+   * vertices is the same independently of the node labels.
    */
-  void precomputeTransitionProbabilities();
+  void precomputeUniformTransitionProbabilities();
+
+  /**
+   * \brief Precomputation of transition probabilities between each neighbor
+   * node in the graph graph_ avoiding transitions between nodes with same
+   * semantic label.
+   * \details This function computes transition probabilities between
+   * vertices in the graph without any sort of weight between nodes.
+   * Nevertheless the probability of going from a node to one of its
+   * neighbors is only non-zero if their semantic labels are different.
+   */
+  void precomputeAvoidingTransitionProbabilities();
 
   /**
    * \brief Generated num_walks random walks of length walk_length for each

@@ -9,7 +9,7 @@ IF (NOT CMAKE_BUILD_TYPE)
 ENDIF (NOT CMAKE_BUILD_TYPE)
 
 
-message("Building XView in ${CMAKE_BUILD_TYPE} mode")
+message(STATUS "Building XView in ${CMAKE_BUILD_TYPE} mode")
 
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
     add_definitions(-DX_VIEW_DEBUG)
