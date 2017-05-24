@@ -45,11 +45,11 @@ cs_add_library(${PROJECT_NAME}
         src/landmarks/graph_landmark/blob_extractor.cc
         src/landmarks/graph_landmark/graph_builder.cc
         src/landmarks/graph_landmark/graph_drawer.cc
-        src/landmarks/graph_landmark/random_walker.cc
 
         # Features matchers
         src/matchers/vector_matcher.cc
-        src/matchers/graph_matcher.cc
+        src/matchers/graph_matcher/graph_matcher.cc
+        src/matchers/graph_matcher/random_walker.cc
         )
 
 

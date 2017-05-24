@@ -1,6 +1,6 @@
 #include "test_random_walk.h"
 
-#include <x_view_core/landmarks/graph_landmark/random_walker.h>
+#include <x_view_core/matchers/graph_matcher/random_walker.h>
 
 #include <glog/logging.h>
 

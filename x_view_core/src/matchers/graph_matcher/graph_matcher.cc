@@ -1,4 +1,4 @@
-#include <x_view_core/matchers/graph_matcher.h>
+#include <x_view_core/matchers/graph_matcher/graph_matcher.h>
 
 #include <x_view_core/features/graph_descriptor.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>

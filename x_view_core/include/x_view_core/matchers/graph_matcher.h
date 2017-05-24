@@ -1,31 +1,11 @@
-#ifndef X_VIEW_GRAPH_MATCHER_H
-#define X_VIEW_GRAPH_MATCHER_H
+#ifndef X_VIEW_GRAPH_MATCHER_FOLDER_
+#define X_VIEW_GRAPH_MATCHER_FOLDER_
 
-#include <x_view_core/matchers/abstract_matcher.h>
+// Since graph matcher is a complex object, and putting all relevant code
+// into a single header/source file is messy, this header file includes all
+// necessary declarations in order to work with a graph matcher object.
 
-namespace x_view {
+#include <x_view_core/matchers/graph_matcher/graph_matcher.h>
+#include <x_view_core/matchers/graph_matcher/random_walker.h>
 
-/**
- * \brief An interface each landmark-matcher based on graph-features
- * must implement.
- */
-class GraphMatcher : public AbstractMatcher {
-
- public:
-
-  GraphMatcher();
-  virtual ~GraphMatcher();
-
-  class GraphMatchingResult : public AbstractMatchingResult {
-
-  };
-
-  virtual MatchingResultPtr match(const SemanticLandmarkPtr& query_landmark)
-  override;
-
-  static LandmarksMatcherPtr create();
-};
-
-}
-
-#endif //X_VIEW_GRAPH_MATCHER_H
+#endif //X_VIEW_GRAPH_MATCHER_FOLDER_

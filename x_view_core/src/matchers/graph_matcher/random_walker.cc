@@ -1,4 +1,4 @@
-#include <x_view_core/landmarks/graph_landmark/random_walker.h>
+#include <x_view_core/matchers/graph_matcher/random_walker.h>
 
 #include <glog/logging.h>
 
@@ -50,20 +50,15 @@ void RandomWalker::precomputeUniformTransitionProbabilities() {
         boost::degree(*vertex_iter.first, graph_);
     if (num_neighbors > 0) {
       const float prob = 1.f / num_neighbors;
-      std::vector<Eigen::Triplet<float>> row_triplets(num_neighbors);
-      // iterate over the neighbors and add the implicitly defined vertex to
+      // iterate over the neighbors and add the implicitly defined edge to
       // the transition probability matrix.
       for (int n_idx = 0; neighbors.first != neighbors.second;
            ++neighbors.first, ++n_idx) {
         const Graph::VertexProperty& vertex_j = graph_[*neighbors.first];
         const int index_j = vertex_j.index_;
         // add an edge between index_i and index_j
-        row_triplets.push_back(Eigen::Triplet<float>(index_i, index_j, prob));
+        triplet_list.push_back(Eigen::Triplet<float>(index_i, index_j, prob));
       }
-
-      // add the row triplets to the global triplet list
-      triplet_list.insert(triplet_list.end(), row_triplets.begin(),
-                          row_triplets.end());
     }
   }
 

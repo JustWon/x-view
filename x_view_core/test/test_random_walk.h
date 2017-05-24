@@ -1,5 +1,5 @@
 #include <x_view_core/features/graph.h>
-#include <x_view_core/landmarks/graph_landmark/random_walker.h>
+#include <x_view_core/matchers/graph_matcher/random_walker.h>
 
 #ifndef X_VIEW_TEST_RANDOM_WALK_H
 #define X_VIEW_TEST_RANDOM_WALK_H
