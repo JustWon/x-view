@@ -23,7 +23,9 @@ TEST(XViewSlamTestSuite, test_random_walk) {
 
   // create multiple random graphs with different topology and test them.
   std::vector<int> num_desired_vertices{8, 15, 100};
+  num_desired_vertices = {15};
   std::vector<float> edge_probabilities{0.0, 0.01, 0.1, 0.5};
+  edge_probabilities = {0.2};
   std::vector<RandomWalkerParams::RANDOM_SAMPLING_TYPE> sampling_types{
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM,
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME
@@ -35,23 +37,21 @@ TEST(XViewSlamTestSuite, test_random_walk) {
                                         "Transition probabilities\n");
   for (const int num_vertices : num_desired_vertices) {
     for (const float edge_probability : edge_probabilities) {
+      const int walk_length = 3;
+      const int num_walks_per_vertex = 5;
+      graph = generateRandomGraph(num_vertices,
+                                  edge_probability,
+                                  num_semantic_classes);
       for (const auto sampling_type : sampling_types) {
-
-        const int walk_length = 2;
-        const int num_walks_per_vertex = 15;
 
         x_view::RandomWalkerParams params;
         params.random_sampling_type_ = sampling_type;
         params.walk_length_ = walk_length;
         params.num_walks_ = num_walks_per_vertex;
-        graph = generateRandomGraph(num_vertices,
-                                    edge_probability,
-                                    num_semantic_classes);
 
         testTransitionProbabilityMatrix(graph, params);
-        params.random_sampling_type_ =
-            RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM;
-        testTransitionProbabilityMatrix(graph, params);
+        g.printVertices();
+        g.printEdges();
         ++show_progress;
       }
     }

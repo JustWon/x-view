@@ -58,6 +58,20 @@ void testTransitionProbabilityMatrix(const x_view::Graph::GraphType graph,
   const Eigen::SparseMatrix<float>& trans =
       random_walker.getTransitionProbabilityMatrix();
 
+  const auto& random_walks = random_walker.getRandomWalks();
+
+  std::cout << Eigen::MatrixXd(trans) << std::endl;
+
+  int node_id = 0;
+  for (const auto& n : random_walks) {
+    std::cout << "Random walks for node " << node_id++ << std::endl;
+    for (const auto& w:n) {
+      for (const auto& i : w)
+        std::cout << i->index_ << ", ";
+      std::cout << std::endl;
+    }
+  }
+
   // iterate over all vertices contained in the graph.
   auto vertex_iter = boost::vertices(graph);
   for (vertex_iter.first; vertex_iter.first != vertex_iter.second;
