@@ -50,8 +50,6 @@ TEST(XViewSlamTestSuite, test_random_walk) {
         params.num_walks_ = num_walks_per_vertex;
 
         testTransitionProbabilityMatrix(graph, params);
-        g.printVertices();
-        g.printEdges();
         ++show_progress;
       }
     }

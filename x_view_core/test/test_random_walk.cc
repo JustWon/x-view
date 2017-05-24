@@ -60,18 +60,6 @@ void testTransitionProbabilityMatrix(const x_view::Graph::GraphType graph,
 
   const auto& random_walks = random_walker.getRandomWalks();
 
-  std::cout << Eigen::MatrixXd(trans) << std::endl;
-
-  int node_id = 0;
-  for (const auto& n : random_walks) {
-    std::cout << "Random walks for node " << node_id++ << std::endl;
-    for (const auto& w:n) {
-      for (const auto& i : w)
-        std::cout << i->index_ << ", ";
-      std::cout << std::endl;
-    }
-  }
-
   // iterate over all vertices contained in the graph.
   auto vertex_iter = boost::vertices(graph);
   for (vertex_iter.first; vertex_iter.first != vertex_iter.second;
@@ -94,9 +82,17 @@ void testTransitionProbabilityMatrix(const x_view::Graph::GraphType graph,
     for (int j = 0; j < trans.cols(); ++j) {
       const float v = trans.coeff(vertex_index, j);
       CHECK(v == 0.f || v == should_have_value)
-      << "Probability matrix at (" << vertex_index << ", " << j
-      << ") has value " << v << " but should either be 0 or "
-      << should_have_value;
+          << "Probability matrix at (" << vertex_index << ", " << j
+          << ") has value " << v << " but should either be 0 or "
+          << should_have_value;
+      // if transition probability is nonzero, then there must be an edge
+      // between the corresponding vertices.
+      if (v > 0)
+        CHECK(boost::edge(*vertex_iter.first, boost::vertex(j, graph),
+                          graph).second)
+            << "Transition probability between vertex " << vertex_index
+            << " and vertex " << j
+            << " is nonzero but there is no edge between them.";
     }
   }
 
