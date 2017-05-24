@@ -50,11 +50,10 @@ x_view::Graph::GraphType generateRandomGraph(const int num_vertices,
   return graph;
 }
 
-void testTransitionProbabilityMatrix(const x_view::Graph::GraphType graph,
+void testTransitionProbabilityMatrix(const x_view::RandomWalker& random_walker,
+                                     const x_view::Graph::GraphType& graph,
                                      const x_view::RandomWalkerParams& params) {
 
-  // Build the transition probability of the graph.
-  x_view::RandomWalker random_walker(graph, params);
   const Eigen::SparseMatrix<float>& trans =
       random_walker.getTransitionProbabilityMatrix();
 
@@ -82,19 +81,53 @@ void testTransitionProbabilityMatrix(const x_view::Graph::GraphType graph,
     for (int j = 0; j < trans.cols(); ++j) {
       const float v = trans.coeff(vertex_index, j);
       CHECK(v == 0.f || v == should_have_value)
-          << "Probability matrix at (" << vertex_index << ", " << j
-          << ") has value " << v << " but should either be 0 or "
-          << should_have_value;
+      << "Probability matrix at (" << vertex_index << ", " << j
+      << ") has value " << v << " but should either be 0 or "
+      << should_have_value;
       // if transition probability is nonzero, then there must be an edge
       // between the corresponding vertices.
       if (v > 0)
         CHECK(boost::edge(*vertex_iter.first, boost::vertex(j, graph),
                           graph).second)
-            << "Transition probability between vertex " << vertex_index
-            << " and vertex " << j
-            << " is nonzero but there is no edge between them.";
+        << "Transition probability between vertex " << vertex_index
+        << " and vertex " << j
+        << " is nonzero but there is no edge between them.";
     }
   }
 
+}
+
+void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
+                            const x_view::Graph::GraphType& graph,
+                            const x_view::RandomWalkerParams& params) {
+  const auto& all_random_walks = random_walker.getRandomWalks();
+  int start_vertex_index = 0;
+  for (const auto& random_walks : all_random_walks) {
+    for (const auto& random_walk : random_walks) {
+      CHECK(areVerticesConnected(start_vertex_index,
+                                 random_walk[0]->index_, graph) ||
+          start_vertex_index == random_walk[0]->index_)
+      << "Start vertex " << start_vertex_index << " and vertex "
+      << random_walk[0]->index_ << " appear in a random walk "
+      << "but there is no edge between them.";
+      for (int i = 0; i < random_walk.size() - 1; ++i) {
+        const int from_index = random_walk[i]->index_;
+        const int to_index = random_walk[i + 1]->index_;
+        CHECK(areVerticesConnected(from_index, to_index, graph) ||
+            from_index == to_index)
+        << "Vertex " << random_walk[i]->index_ << " and vertex "
+        << random_walk[i + 1]->index_ << " appear in a random walk "
+        << "but there is no edge between them.";
+      }
+    }
+    ++start_vertex_index;
+  }
+}
+
+bool areVerticesConnected(const int i, const int j,
+                          const x_view::Graph::GraphType& graph) {
+  const x_view::Graph::VertexDescriptor& vi = boost::vertex(i, graph);
+  const x_view::Graph::VertexDescriptor& vj = boost::vertex(j, graph);
+  return boost::edge(vi, vj, graph).second;
 }
 
