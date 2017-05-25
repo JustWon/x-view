@@ -13,10 +13,13 @@ class Blob {
 
  public:
   Blob();
-  Blob(const int semantic_label, const CBlob& c_blob);
+  Blob(const int semantic_label, const int instance, const CBlob& c_blob);
 
   /// \brief Semantic label associated to all pixels contained in this blob.
   int semantic_label_;
+
+  /// \brief Instance value associated to the blob.
+  int instance_;
 
   /// \brief Vector of pixels representing the contour of this blob.
   std::vector<cv::Point> external_contour_pixels_;

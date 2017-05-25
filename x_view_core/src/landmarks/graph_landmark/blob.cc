@@ -5,8 +5,9 @@ namespace x_view {
 Blob::Blob() : semantic_label_(-1), c_blob_() {
 }
 
-Blob::Blob(const int semantic_label, const CBlob& c_blob)
+Blob::Blob(const int semantic_label, const int instance, const CBlob& c_blob)
     : semantic_label_(semantic_label),
+      instance_(instance),
       c_blob_(c_blob) {
   computeContours();
   computeArea();

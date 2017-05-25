@@ -28,7 +28,7 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   blob_extractor_params.blob_size_filtering_.n_min_pixels_ =
       GraphLandmark::MINIMUM_BLOB_SIZE;
   image_blobs_ =
-      BlobExtractor::findBlobsWithContour(image.clone(), blob_extractor_params);
+      BlobExtractor::findBlobsWithContour(image, blob_extractor_params);
 
   // *********** Graph generation ********** //
   GraphBuilderParams graph_builder_params;

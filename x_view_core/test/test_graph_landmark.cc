@@ -111,9 +111,9 @@ void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
     for (int j = 0; j < instanceBlobs.size(); ++j)
       instancePixelCount += instanceBlobs[j].num_pixels_;
     CHECK_EQ(expectedPixelCount[i], instancePixelCount)
-        << "In image " << imageName << ", class instance " << i
-        << " should have " << expectedPixelCount[i] << " pixels, but has "
-        << instancePixelCount;
+      << "In image " << imageName << ", class instance " << i
+      << " should have " << expectedPixelCount[i] << " pixels, but has "
+      << instancePixelCount;
   }
 }
 
@@ -123,9 +123,9 @@ void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
   auto const& blobs = graphLandmarkPtr->getBlobs();
   for (int i = 0; i < expectedInstanceCount.size(); ++i) {
     CHECK_EQ(expectedInstanceCount[i], blobs[i].size())
-        << "In image " << imageName << ", class " << i << " should have "
-        << expectedInstanceCount[i] << " instances, but has "
-        << blobs[i].size();
+      << "In image " << imageName << ", class " << i << " should have "
+      << expectedInstanceCount[i] << " instances, but has "
+      << blobs[i].size();
   }
 }
 
@@ -137,15 +137,23 @@ void createCustomImage(const int desiredRows, const int desiredCols,
     for (int j = 0; j < desiredCols; ++j) {
       if (i < desiredRows / 2) {
         if (j < desiredCols / 2) {
-          image.at<cv::Vec3b>(i, j)[0] = (uchar) 0;
+          image.at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(0);
+          image.at<cv::Vec3b>(i, j)[1] = static_cast<unsigned char>(50);
+          image.at<cv::Vec3b>(i, j)[2] = static_cast<unsigned char>(0);
         } else {
-          image.at<cv::Vec3b>(i, j)[0] = (uchar) 1;
+          image.at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(1);
+          image.at<cv::Vec3b>(i, j)[1] =static_cast<unsigned char>(100);
+          image.at<cv::Vec3b>(i, j)[2] = static_cast<unsigned char>(0);
         }
       } else {
         if (j < desiredCols / 2) {
-          image.at<cv::Vec3b>(i, j)[0] = (uchar) 2;
+          image.at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(2);
+          image.at<cv::Vec3b>(i, j)[1] = static_cast<unsigned char>(150);
+          image.at<cv::Vec3b>(i, j)[2] = static_cast<unsigned char>(0);
         } else {
-          image.at<cv::Vec3b>(i, j)[0] = (uchar) 3;
+          image.at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(3);
+          image.at<cv::Vec3b>(i, j)[1] = static_cast<unsigned char>(200);
+          image.at<cv::Vec3b>(i, j)[2] = static_cast<unsigned char>(0);
         }
       }
     }
@@ -161,7 +169,7 @@ void createDiscImage(const int desiredRows, const int desiredCols,
   image = cv::Scalar::all(0);
 
   for (int c = 0; c < centers.size(); ++c)
-    cv::circle(image, centers[c], radii[c], cv::Scalar(labels[c], 0, 0),
+    cv::circle(image, centers[c], radii[c], cv::Scalar(labels[c], c+1, 0),
                -1, 8, 0);
 
 }
