@@ -32,6 +32,9 @@ ImageBlobs BlobExtractor::findBlobsWithContour(const cv::Mat& image,
     cv::inRange(all_labels_image, cv::Scalar(c), cv::Scalar(c),
                 current_class_layer);
 
+    // TODO: make data unique (e.g. set) and sort + iterate over those values
+    // for instance extraction.
+
     // compute a smoother version of the image by performing dilation
     // followed by erosion
     cv::Mat dilated, eroded;
