@@ -18,7 +18,9 @@ class Blob {
   /// \brief Semantic label associated to all pixels contained in this blob.
   int semantic_label_;
 
-  /// \brief Instance value associated to the blob.
+  /// \brief Instance value associated to the blob. If a blob has no
+  /// instance (e.g. static objects in Synthia dataset), then the value
+  /// associated to this member is instance_ = -1.
   int instance_;
 
   /// \brief Vector of pixels representing the contour of this blob.

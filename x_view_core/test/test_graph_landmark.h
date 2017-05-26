@@ -38,17 +38,17 @@ void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
                     const std::string& imageName);
 
 /**
- * \brief Checks if the number of instances per class found by the
+ * \brief Checks if the number of blobs per class found by the
  * graphLandmarkPrt object is the same as the expected one
  * \param graphLandmarkPtr pointer to the graphLandmark
- * \param expectedInstanceCount expected number of instances per class, such
- * that 'expectedInstanceCount[i]' contains the number of expected instances
+ * \param expected_blob_count expected number of blobs per class, such
+ * that 'expected_blob_count[i]' contains the number of expected blobs
  * for class 'i'
  * \param imageName logging image name
  */
-void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
-                       const std::vector<int>& expectedInstanceCount,
-                       const std::string& imageName);
+void testBlobsCount(const GraphLandmarkPtr& graphLandmarkPtr,
+                    const std::vector<int>& expected_blob_count,
+                    const std::string& imageName);
 
 /**
  * \brief Creates a custom image of size 'desiredRows' x 'desiredCols'

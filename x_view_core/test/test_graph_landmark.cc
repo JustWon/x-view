@@ -33,7 +33,7 @@ void testCustomImage() {
         CAST(GraphLandmark::create(customImage, SE3()), GraphLandmark);
 
     testPixelCount(customImageLandmarkPtr, image_name);
-    testInstanceCount(customImageLandmarkPtr, {1, 1, 1, 1}, image_name);
+    testBlobsCount(customImageLandmarkPtr, {1, 1, 1, 1}, image_name);
 
     ++show_progress;
   }
@@ -117,15 +117,14 @@ void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
   }
 }
 
-void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
-                       const std::vector<int>& expectedInstanceCount,
-                       const std::string& imageName) {
+void testBlobsCount(const GraphLandmarkPtr& graphLandmarkPtr,
+                    const std::vector<int>& expected_blob_count,
+                    const std::string& imageName) {
   const auto& blobs = graphLandmarkPtr->getBlobs();
-  for (int i = 0; i < expectedInstanceCount.size(); ++i) {
-    CHECK_EQ(expectedInstanceCount[i], blobs[i].size())
+  for (int i = 0; i < expected_blob_count.size(); ++i) {
+    CHECK_EQ(expected_blob_count[i], blobs[i].size())
       << "In image " << imageName << ", class " << i << " should have "
-      << expectedInstanceCount[i] << " instances, but has "
-      << blobs[i].size();
+      << expected_blob_count[i] << " blobs, but has " << blobs[i].size();
   }
 }
 

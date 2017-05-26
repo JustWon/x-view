@@ -28,7 +28,7 @@ struct BlobExtractorParams {
    * value representing the number of pixels, or by a value relative to the
    * number of pixels in the image.
    */
-    enum class MIN_BLOB_SIZE_TYPE {
+  enum class MIN_BLOB_SIZE_TYPE {
     RELATIVE_TO_IMAGE_SIZE,
     ABSOLUTE
   };
@@ -119,6 +119,17 @@ class BlobExtractor {
   static ImageBlobs findBlobsWithContour(const cv::Mat& image,
                                          const BlobExtractorParams& params =
                                          BlobExtractorParams());
+
+ private:
+  static void extractBlobsConsideringInstances(const cv::Mat& instance_layer,
+                                               ClassBlobs* class_blobs,
+                                               const int current_semantic_class,
+                                               const BlobExtractorParams& params);
+
+  static void extractBlobsWithoutInstances(const cv::Mat& current_class_layer,
+                                           ClassBlobs* class_blobs,
+                                           const int current_semantic_class,
+                                           const BlobExtractorParams& params);
 
 };
 
