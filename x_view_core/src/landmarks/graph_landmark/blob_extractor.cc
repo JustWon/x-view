@@ -5,8 +5,6 @@
 
 #include <opencvblobslib/BlobResult.h>
 
-#include <unordered_set>
-
 namespace x_view {
 
 int BlobExtractorParams::BlobSizeFiltering::minimumBlobSize(const cv::Size&
@@ -48,35 +46,56 @@ ImageBlobs BlobExtractor::findBlobsWithContour(const cv::Mat& image,
     // binary mask.
     cv::Mat instance_layer = all_instances_image & current_class_layer;
 
-    // If the current semantic class has some distinguishable instances,
-    // process them.
-    if (cv::countNonZero(instance_layer) > 0) {
-      BlobExtractor::extractBlobsConsideringInstances(instance_layer,
-                                                      &(image_blobs[c]),
-                                                      c, params);
-    }
-      // Otherwise the pixels associated to the current semantic label have
-      // no instance information.
-    else {
+    // If the current semantic class has no distinguishable instances,
+    // process the input image only considering the semantic labels.
+    if (cv::countNonZero(instance_layer) == 0) {
       BlobExtractor::extractBlobsWithoutInstances(current_class_layer,
                                                   &(image_blobs[c]),
                                                   c, params);
+    }
+      // Otherwise the pixels associated to the current semantic label have
+      // instance information and each instance has to be extracted separately.
+    else {
+      BlobExtractor::extractBlobsConsideringInstances(instance_layer,
+                                                      &(image_blobs[c]),
+                                                      c, params);
     }
   }
   return image_blobs;
 }
 
-void BlobExtractor::extractBlobsConsideringInstances(const cv::Mat& instance_layer,
+void BlobExtractor::extractBlobsWithoutInstances(cv::Mat& current_class_layer,
+                                                 ClassBlobs* class_blobs,
+                                                 const int current_semantic_class,
+                                                 const BlobExtractorParams& params) {
+#ifdef X_VIEW_DEBUG
+  std::cout << "Class " << current_semantic_class << " has no instances"
+            << std::endl;
+#endif
+  // Since there are no instances, set the instance_value to -1.
+  const int instance_value = -1;
+
+  // Compute a smoother version of the image by performing dilation
+  // followed by erosion.
+  if (params.dilate_and_erode_)
+    BlobExtractor::dilateAndErode(&current_class_layer, params);
+
+  BlobExtractor::extractBlobsAndAddToContainer(current_class_layer,
+                                               class_blobs,
+                                               instance_value,
+                                               current_semantic_class,
+                                               params);
+
+}
+
+void BlobExtractor::extractBlobsConsideringInstances(cv::Mat& instance_layer,
                                                      ClassBlobs* class_blobs,
                                                      const int current_semantic_class,
                                                      const BlobExtractorParams& params) {
+
   // Collect all different instances of the current label.
   std::unordered_set<unsigned char> instance_set;
-  for (int i = 0; i < instance_layer.rows; ++i) {
-    const unsigned char* row_ptr = instance_layer.ptr<uchar>(i);
-    for (int j = 0; j < instance_layer.cols; j++)
-      instance_set.insert(row_ptr[j]);
-  }
+  collectInstancesFromImage(instance_layer, &instance_set);
 
   // Remove the instance '0' as it is not a real instance, but rather it
   // comes from the masking operation when creating instance_layer.
@@ -98,71 +117,34 @@ void BlobExtractor::extractBlobsConsideringInstances(const cv::Mat& instance_lay
     cv::inRange(instance_layer, cv::Scalar(instance_value),
                 cv::Scalar(instance_value), current_instance);
 
-    // compute a smoother version of the image by performing dilation
+    // Compute a smoother version of the image by performing dilation
     // followed by erosion.
-    cv::Mat dilated, eroded;
-    if (params.dilate_and_erode_) {
-      cv::dilate(current_instance, dilated, cv::Mat(), cv::Point(-1, -1),
-                 params.num_dilate_reps_);
-      cv::erode(dilated, eroded, cv::Mat(), cv::Point(-1, -1),
-                params.num_erode_reps_);
-    } else
-      eroded = current_instance;
+    if (params.dilate_and_erode_)
+      BlobExtractor::dilateAndErode(&current_instance, params);
 
-    // Extract the blobs associated to the current instance. Usually
-    // there is only one blob per instance, but due to occlusions in
-    // the scene, a single instance could also be composed by two blobs.
-    const int num_threads = params.num_threads_;
-    const int minimum_blob_size = params.minimumBlobSize(instance_layer.size());
-    CBlobResult res(eroded, cv::Mat(), num_threads);
-    for (int b = 0; b < res.GetNumBlobs(); ++b) {
-      if (res.GetBlob(b)->Area(AreaMode::PIXELWISE) >= minimum_blob_size) {
-        class_blobs->push_back(
-            Blob(current_semantic_class,
-                 static_cast<int>(instance_value),
-                 *(res.GetBlob(b))));
-#ifdef X_VIEW_DEBUG
-        std::cout << "Added blob with size "
-                  << class_blobs->back().num_pixels_
-                  << " and instance id: "
-                  << class_blobs->back().instance_
-                  << std::endl;
-#endif
-      }
-    }
+    BlobExtractor::extractBlobsAndAddToContainer(current_instance,
+                                                 class_blobs,
+                                                 static_cast<int>(instance_value),
+                                                 current_semantic_class,
+                                                 params);
   }
 }
 
-void BlobExtractor::extractBlobsWithoutInstances(const cv::Mat& current_class_layer,
-                                                 ClassBlobs* class_blobs,
-                                                 const int current_semantic_class,
-                                                 const BlobExtractorParams& params) {
-#ifdef X_VIEW_DEBUG
-  std::cout << "Class " << current_semantic_class << " has no instances"
-            << std::endl;
-#endif
-  // Compute a smoother version of the image by performing dilation
-  // followed by erosion.
-  cv::Mat dilated, eroded;
-  if (params.dilate_and_erode_) {
-    cv::dilate(current_class_layer, dilated, cv::Mat(), cv::Point(-1, -1),
-               params.num_dilate_reps_);
-    cv::erode(dilated, eroded, cv::Mat(), cv::Point(-1, -1),
-              params.num_erode_reps_);
-  } else
-    eroded = current_class_layer;
-
-  // Extract all blobs associated with the current semantic class.
+void BlobExtractor::extractBlobsAndAddToContainer(cv::Mat& image,
+                                                  ClassBlobs* class_blobs,
+                                                  const int instance_value,
+                                                  const int current_semantic_class,
+                                                  const BlobExtractorParams& params) {
+  // Extract the blobs associated to the current instance.
+  // Usually there is only one blob per instance, but due to occlusions in
+  // the scene, a single instance could also be composed by two blobs.
   const int num_threads = params.num_threads_;
-  const int minimum_blob_size =
-      params.minimumBlobSize(current_class_layer.size());
-  CBlobResult res(eroded, cv::Mat(), num_threads);
+  const int minimum_blob_size = params.minimumBlobSize(image.size());
+  CBlobResult res(image, cv::Mat(), num_threads);
   for (int b = 0; b < res.GetNumBlobs(); ++b) {
     if (res.GetBlob(b)->Area(AreaMode::PIXELWISE) >= minimum_blob_size) {
-      const int instance_value = -1;
-      class_blobs->push_back(Blob(current_semantic_class,
-                                  instance_value,
-                                  *(res.GetBlob(b))));
+      class_blobs->push_back(
+          Blob(current_semantic_class, instance_value, *(res.GetBlob(b))));
 #ifdef X_VIEW_DEBUG
       std::cout << "Added blob with size "
                 << class_blobs->back().num_pixels_
@@ -173,5 +155,35 @@ void BlobExtractor::extractBlobsWithoutInstances(const cv::Mat& current_class_la
     }
   }
 }
+
+void BlobExtractor::dilateAndErode(cv::Mat* image,
+                                   const BlobExtractorParams& params) {
+  if (image != nullptr) {
+    cv::dilate(*image, *image, cv::Mat(), cv::Point(-1, -1),
+               params.num_dilate_reps_);
+    cv::erode(*image, *image, cv::Mat(), cv::Point(-1, -1),
+              params.num_erode_reps_);
+  } else {
+    CHECK(false) << "Image pointer passed to " << __FUNCTION__ << " is a "
+        "nullptr";
+  }
 }
+
+void BlobExtractor::collectInstancesFromImage(const cv::Mat& image,
+                                              std::unordered_set<unsigned char>* instance_set) {
+  if (instance_set != nullptr) {
+    instance_set->clear();
+    for (int i = 0; i < image.rows; ++i) {
+      const unsigned char* row_ptr = image.ptr<uchar>(i);
+      for (int j = 0; j < image.cols; j++)
+        instance_set->insert(row_ptr[j]);
+    }
+  } else {
+    CHECK(false) << "Instance set pointer passed to " << __FUNCTION__ << " is"
+        " a nullptr";
+  }
+}
+
+}
+
 

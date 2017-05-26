@@ -8,6 +8,7 @@
 #include <opencvblobslib/blob.h>
 
 #include <vector>
+#include <unordered_set>
 
 #ifdef X_VIEW_DEBUG
 #define X_VIEW_NUM_THREADS_BLOB_EXTRACTION 1
@@ -121,15 +122,89 @@ class BlobExtractor {
                                          BlobExtractorParams());
 
  private:
-  static void extractBlobsConsideringInstances(const cv::Mat& instance_layer,
+
+  /**
+   * \brief Extracts the blobs from a binary single channel mask/image. This
+   * function if used to extract blobs for semantic classes which have no
+   * instance dinstiction.
+   * \param current_class_layer Single channel binary image where a pixel is
+   * one only if its label is identical to current_semantic_class.
+   * \param class_blobs Pointer to ClassBlobs to be filled up with the
+   * detected blobs. The pointer usually points to
+   * ImageBlobs[current_semantic_class].
+   * \param current_semantic_class Semantic class associated to the extracted
+   * blobs.
+   * \param params Const reference to parameters used during blobs extraction.
+   */
+  static void extractBlobsWithoutInstances(cv::Mat& current_class_layer,
+                                           ClassBlobs* class_blobs,
+                                           const int current_semantic_class,
+                                           const BlobExtractorParams& params);
+
+  /**
+   * \brief Extracts the blobs from a binary single channel mask/image. This
+   * function is used to extract blobs for semantic classes which have
+   * differentiate instances with an unique instance id, therefore after
+   * determining how many instances of class current_semantic_class exist in
+   * the image, a loop is performed over the instances and blobs are
+   * extracted for each of them.
+   * \param instance_layer Single channel binary image where a pixel is
+   * one only if its label is identical to current_semantic_class. All pixels
+   * marked as one in the binary image belong to the same instance of the
+   * semantic class.
+   * \param class_blobs Pointer to ClassBlobs to be filled up with the
+   * detected blobs. The pointer usually points to
+   * ImageBlobs[current_semantic_class].
+   * \param current_semantic_class Semantic class associated to the extracted
+   * blobs.
+   * \param params Const reference to parameters used during blobs extraction.
+   */
+  static void extractBlobsConsideringInstances(cv::Mat& instance_layer,
                                                ClassBlobs* class_blobs,
                                                const int current_semantic_class,
                                                const BlobExtractorParams& params);
 
-  static void extractBlobsWithoutInstances(const cv::Mat& current_class_layer,
-                                           ClassBlobs* class_blobs,
-                                           const int current_semantic_class,
-                                           const BlobExtractorParams& params);
+  /**
+   * \brief Given a binary single channel image, this function extracts the
+   * blobs associated to the the current_semantic_class and to the specific
+   * instance instance_value.
+   * \param image Binary single channel image where a pixel is one only if
+   * its corresponding semantic label corresponds to current_semantic_class
+   * and its instance id is identical to instance_value.
+   * \param class_blobs Pointer to ClassBlobs object filled up with the
+   * extracted blobs.
+   * \param instance_value Instance value of the blobs to be extracted.
+   * \param current_semantic_class Semantic class index of blobs to be
+   * extracted.
+   * \param params Const reference to parameters used during blobs extraction.
+   */
+  static void extractBlobsAndAddToContainer(cv::Mat& image,
+                                            ClassBlobs* class_blobs,
+                                            const int instance_value,
+                                            const int current_semantic_class,
+                                            const BlobExtractorParams& params);
+
+  /**
+   * \brief Dilates and erodes the binary single channel image pointed by the
+   * passed parameter.
+   * \param image Pointer to single channel binary image to be dilated and
+   * eroded.
+   * \param params Const reference to parameters used for dilation and erosion.
+   */
+  static void dilateAndErode(cv::Mat* image, const BlobExtractorParams& params);
+
+  /**
+   * \brief Given a single channel image containing instance information for
+   * each pixel, this function collects the individual instances and stores
+   * them into the instance_set parameter passed as argument.
+   * \param image Single channel image containing information about the
+   * instance associated to each pixel.
+   * \param instance_set Pointer to an unordered set. After calling the
+   * function the unordered set pointed by the parameter contains all
+   * different instances contained in the image passed as parameter.
+   */
+  static void collectInstancesFromImage(const cv::Mat& image,
+                                        std::unordered_set<unsigned char>* instance_set);
 
 };
 

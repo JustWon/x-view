@@ -11,7 +11,7 @@ namespace x_view {
 // FIXME: should this parameter be read by the config file?
 int GraphLandmark::MINIMUM_BLOB_SIZE = 500;
 
-bool GraphLandmark::DILATE_AND_ERODE = false;
+bool GraphLandmark::DILATE_AND_ERODE = true;
 
 GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
@@ -23,6 +23,8 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   // *********** Blobs extraction ********** //
   BlobExtractorParams blob_extractor_params;
   blob_extractor_params.dilate_and_erode_ = GraphLandmark::DILATE_AND_ERODE;
+  blob_extractor_params.num_erode_reps_ = 4;
+  blob_extractor_params.num_dilate_reps_ = 4;
   blob_extractor_params.blob_size_filtering_.type_ =
       BlobExtractorParams::MIN_BLOB_SIZE_TYPE::ABSOLUTE;
   blob_extractor_params.blob_size_filtering_.n_min_pixels_ =
