@@ -73,11 +73,22 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
       if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
           std::end(labels_to_render))
         for (const Blob& blob : blobs[c]) {
-
-          std::string label = std::to_string(blob.semantic_label_) + ") " +
+          const std::string label = std::to_string(blob.semantic_label_);
+          const std::string label_descr =
               global_dataset_ptr->label(blob.semantic_label_);
-          cv::putText(*image, label, blob.center_, cv::FONT_HERSHEY_DUPLEX,
-                      0.85, font_color, 1, CV_AA);
+
+          const std::string text = label + ") " + label_descr;
+          cv::putText(*image, text, blob.center_, cv::FONT_HERSHEY_DUPLEX,
+                      0.65, font_color, 1, CV_AA);
+          // if the blob has an instance id associated to it, render it on a
+          // new line.
+          // new line.
+          if (blob.instance_ != -1) {
+            const std::string instance =
+                "id: " + std::to_string(blob.instance_);
+            cv::putText(*image, instance, blob.center_ + cv::Point(0, 20),
+                        cv::FONT_HERSHEY_DUPLEX, 0.65, font_color, 1, CV_AA);
+          }
         }
     }
   } else {

@@ -164,9 +164,12 @@ void createDiscImage(const int desiredRows, const int desiredCols,
   image.create(desiredRows, desiredCols, CV_IMAGE_TYPE);
   image = cv::Scalar::all(0);
 
-  for (int c = 0; c < centers.size(); ++c)
-    cv::circle(image, centers[c], radii[c], cv::Scalar(labels[c], (c + 1) *
-                   255 / centers.size(), 0),
+  for (int c = 0; c < centers.size(); ++c) {
+    const int label = labels[c];
+    const int instance_id = c + 1;
+    cv::circle(image, centers[c], radii[c],
+               cv::Scalar(label, instance_id, 0),
                -1, 8, 0);
+  }
 
 }
