@@ -16,6 +16,9 @@ bool GraphLandmark::DILATE_AND_ERODE = false;
 GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
 
+  cv::imshow("Input image", image);
+  cv::waitKey();
+
   // Graph descriptor filled up by this function
   Graph descriptor;
   Graph::GraphType& graph = descriptor.graph();

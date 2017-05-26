@@ -40,8 +40,8 @@ cv::Mat SynthiaDataset::convertSemanticImage(
   const int msg_size = static_cast<int>(msg->data.size());
   const int step_size = msg->step;
 
-  CHECK(!bool(msg->is_bigendian)) << "Message passed to SynthiaDataset must be "
-      "little endian";
+  CHECK(!bool(msg->is_bigendian))
+  << "Message passed to SynthiaDataset must be little endian";
 
   const int cols = msg->width;
   const int rows = msg->height;
@@ -51,7 +51,7 @@ cv::Mat SynthiaDataset::convertSemanticImage(
   // associated to each pixel
   // the second channel contains a unique ID associated to dynamic objects
   // the third channel is not used
-  cv::Mat labelImage(rows, cols, CV_8UC3, cv::Scalar(0, 0, 0));
+  cv::Mat labelImage(rows, cols, CV_8UC3, cv::Scalar::all(0));
 
   // loop over the rows of the image implicitly stored into msg
   for (int i = 0; i < rows; ++i) {
@@ -60,15 +60,23 @@ cv::Mat SynthiaDataset::convertSemanticImage(
       // index of the pixel, need to have "6*j" because each pixel value is
       // stored into two consecutive bytes and there are three channels
       int idx = step_size * i + 6 * j;
-      CHECK(idx < msg_size) << "Computed index is larger or equal to message "
-          "size";
+      CHECK(idx < msg_size)
+      << "Computed index is larger or equal to message size";
 
-      // loop over the three channels and extract the semantic classes
+      // loop over the three channels and extract the semantic classes plus
+      // the instances
+
       cv::Vec3b values;
       for (int c = 0; c < 3; ++c) {
-        values[2 - c] = (uchar) (
-            std::max(0, std::min(twoBytesToInt(&(msg->data[idx + 2 * c])),
-                                 numSemanticClasses() - 1)));
+        values[2 - c] = static_cast<uchar>(
+            std::max(
+                0,
+                std::min(
+                    twoBytesToInt(&(msg->data[idx + 2 * c])),
+                    numSemanticClasses() - 1
+                )
+            )
+        );
       }
       labelImage.at<cv::Vec3b>(cv::Point(j, i)) = values;
     }

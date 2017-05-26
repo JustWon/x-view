@@ -25,8 +25,7 @@ ImageBlobs BlobExtractor::findBlobsWithContour(const cv::Mat& image,
 
   const cv::Mat all_labels_image = extractChannelFromImage(image, 0);
   const cv::Mat all_instances_image = extractChannelFromImage(image, 1);
-  cv::imshow("Instance image", all_instances_image);
-  cv::waitKey();
+
   ImageBlobs image_blobs(global_dataset_ptr->numSemanticClasses());
 
   // extract only the pixels associated with each class, and compute their
@@ -59,7 +58,9 @@ ImageBlobs BlobExtractor::findBlobsWithContour(const cv::Mat& image,
                                     static_cast<unsigned char>(0)));
 
     // if there are distinct instances, then process them independently
-    if(instance_vector.size() > 0) {
+    if (instance_vector.size() > 0) {
+      std::cout << "Class " << c << " has " << instance_vector.size() << " "
+          "instances" << std::endl;
       for (int i = 0; i < instance_vector.size(); ++i) {
         // extract the pixels from the instance_layer which have value equal to
         // instance_vector[i]
@@ -73,27 +74,31 @@ ImageBlobs BlobExtractor::findBlobsWithContour(const cv::Mat& image,
         cv::Mat dilated, eroded;
         if (params.dilate_and_erode_) {
 
-          cv::dilate(current_class_layer, dilated, cv::Mat(), cv::Point(-1, -1),
+          cv::dilate(current_instance, dilated, cv::Mat(), cv::Point(-1, -1),
                      params.num_dilate_reps_);
           cv::erode(dilated, eroded, cv::Mat(), cv::Point(-1, -1),
                     params.num_erode_reps_);
         } else
-          eroded = current_class_layer;
+          eroded = current_instance;
 
         const int num_threads = params.num_threads_;
         const int minimum_blob_size = params.minimumBlobSize(image.size());
         CBlobResult res(eroded, cv::Mat(), num_threads);
         for (int b = 0; b < res.GetNumBlobs(); ++b) {
-          if (res.GetBlob(b)->Area(AreaMode::PIXELWISE) >= minimum_blob_size)
+          if (res.GetBlob(b)->Area(AreaMode::PIXELWISE) >= minimum_blob_size) {
             image_blobs[c].push_back(
                 Blob(c, static_cast<int>(instance_value), *(res.GetBlob(b))));
+            std::cout << "added blob with size " << image_blobs[c].back()
+                .num_pixels_ << " and instance id: " << image_blobs[c]
+                          .back().instance_ << std::endl;
+          }
         }
-
       }
     }
-    // otherwise the semantic label has no instance, thus we add it as a
-    // single blob
+      // otherwise the semantic label has no instance, thus we add it as a
+      // single blob
     else {
+      std::cout << "Class " << c << " has zero instances" << std::endl;
       // compute a smoother version of the image by performing dilation
       // followed by erosion
       cv::Mat dilated, eroded;
@@ -110,9 +115,12 @@ ImageBlobs BlobExtractor::findBlobsWithContour(const cv::Mat& image,
       const int minimum_blob_size = params.minimumBlobSize(image.size());
       CBlobResult res(eroded, cv::Mat(), num_threads);
       for (int b = 0; b < res.GetNumBlobs(); ++b) {
-        if (res.GetBlob(b)->Area(AreaMode::PIXELWISE) >= minimum_blob_size)
-          image_blobs[c].push_back(
-              Blob(c, -1, *(res.GetBlob(b))));
+        if (res.GetBlob(b)->Area(AreaMode::PIXELWISE) >= minimum_blob_size) {
+          image_blobs[c].push_back(Blob(c, -1, *(res.GetBlob(b))));
+          std::cout << "added blob with size " << image_blobs[c].back()
+              .num_pixels_ << " and instance id: " << image_blobs[c]
+              .back().instance_<<std::endl;
+        }
       }
     }
 

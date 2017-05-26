@@ -86,13 +86,13 @@ void testDiscImage() {
 }
 
 void countPixelLabelsInImage(const cv::Mat& image,
-                             std::vector<int>& pixelCount) {
-  pixelCount.clear();
-  pixelCount.resize(global_dataset_ptr->numSemanticClasses());
+                             std::vector<int>& pixel_count) {
+  pixel_count.clear();
+  pixel_count.resize(global_dataset_ptr->numSemanticClasses());
   for (int i = 0; i < image.rows; ++i) {
     for (int j = 0; j < image.cols; ++j) {
       int label = static_cast<int>(image.at<cv::Vec3b>(i, j)[0]);
-      pixelCount[label]++;
+      pixel_count[label]++;
     }
   }
 }
@@ -101,26 +101,26 @@ void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
                     const std::string& imageName) {
 
   // vector counting explicitly the number of pixels
-  std::vector<int> expectedPixelCount;
+  std::vector<int> expected_pixel_count;
   countPixelLabelsInImage(graphLandmarkPtr->getSemanticImage(),
-                          expectedPixelCount);
+                          expected_pixel_count);
 
-  for (int i = 0; i < expectedPixelCount.size(); ++i) {
-    int instancePixelCount = 0;
-    auto const& instanceBlobs = graphLandmarkPtr->getBlobs()[i];
-    for (int j = 0; j < instanceBlobs.size(); ++j)
-      instancePixelCount += instanceBlobs[j].num_pixels_;
-    CHECK_EQ(expectedPixelCount[i], instancePixelCount)
+  for (int i = 0; i < expected_pixel_count.size(); ++i) {
+    int semantic_class_pixel_count = 0;
+    const auto& semantic_label_blobs = graphLandmarkPtr->getBlobs()[i];
+    for (int j = 0; j < semantic_label_blobs.size(); ++j)
+      semantic_class_pixel_count += semantic_label_blobs[j].num_pixels_;
+    CHECK_EQ(expected_pixel_count[i], semantic_class_pixel_count)
       << "In image " << imageName << ", class instance " << i
-      << " should have " << expectedPixelCount[i] << " pixels, but has "
-      << instancePixelCount;
+      << " should have " << expected_pixel_count[i] << " pixels, but has "
+      << semantic_class_pixel_count;
   }
 }
 
 void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
                        const std::vector<int>& expectedInstanceCount,
                        const std::string& imageName) {
-  auto const& blobs = graphLandmarkPtr->getBlobs();
+  const auto& blobs = graphLandmarkPtr->getBlobs();
   for (int i = 0; i < expectedInstanceCount.size(); ++i) {
     CHECK_EQ(expectedInstanceCount[i], blobs[i].size())
       << "In image " << imageName << ", class " << i << " should have "
@@ -139,21 +139,17 @@ void createCustomImage(const int desiredRows, const int desiredCols,
         if (j < desiredCols / 2) {
           image.at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(0);
           image.at<cv::Vec3b>(i, j)[1] = static_cast<unsigned char>(50);
-          image.at<cv::Vec3b>(i, j)[2] = static_cast<unsigned char>(0);
         } else {
           image.at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(1);
-          image.at<cv::Vec3b>(i, j)[1] =static_cast<unsigned char>(100);
-          image.at<cv::Vec3b>(i, j)[2] = static_cast<unsigned char>(0);
+          image.at<cv::Vec3b>(i, j)[1] = static_cast<unsigned char>(100);
         }
       } else {
         if (j < desiredCols / 2) {
           image.at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(2);
           image.at<cv::Vec3b>(i, j)[1] = static_cast<unsigned char>(150);
-          image.at<cv::Vec3b>(i, j)[2] = static_cast<unsigned char>(0);
         } else {
           image.at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(3);
           image.at<cv::Vec3b>(i, j)[1] = static_cast<unsigned char>(200);
-          image.at<cv::Vec3b>(i, j)[2] = static_cast<unsigned char>(0);
         }
       }
     }
@@ -169,7 +165,8 @@ void createDiscImage(const int desiredRows, const int desiredCols,
   image = cv::Scalar::all(0);
 
   for (int c = 0; c < centers.size(); ++c)
-    cv::circle(image, centers[c], radii[c], cv::Scalar(labels[c], c+1, 0),
+    cv::circle(image, centers[c], radii[c], cv::Scalar(labels[c], (c + 1) *
+                   255 / centers.size(), 0),
                -1, 8, 0);
 
 }

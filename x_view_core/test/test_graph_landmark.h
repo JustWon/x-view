@@ -21,11 +21,11 @@ void testDiscImage();
 /**
  * \brief Counts how many pixels with each label are present in the image
  * \param image cv::Mat to be analyzed
- * \param pixelCount vector filled up with the pixel count such that
+ * \param pixel_count vector filled up with the pixel count such that
  * 'pixelCount[i]' contains the number of pixels in 'image' having label 'i'
  */
 void countPixelLabelsInImage(const cv::Mat& image,
-                             std::vector<int>& pixelCount);
+                             std::vector<int>& pixel_count);
 
 /**
  * \brief Checks if the number of pixels for each class 'i' in 'image' is the

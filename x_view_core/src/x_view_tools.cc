@@ -2,8 +2,6 @@
 
 #include <glog/logging.h>
 
-#include <vector>
-
 namespace x_view {
 
 int twoBytesToInt(const unsigned char b1, const unsigned char b2) {
