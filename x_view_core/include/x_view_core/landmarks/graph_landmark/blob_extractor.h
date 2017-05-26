@@ -105,6 +105,11 @@ struct BlobExtractorParams {
 
 /**
 * \brief This class provides methods to extract blobs from an image.
+* \details Given an image with three channels, this class provides methods to
+ * extract blobs considering the semantic class associated to each pixel
+ * (first channel), and in case instance information is also provided (second
+ * channel) the extracted blobs distinguish between object of the same
+ * semantic class having different instance id.
 */
 class BlobExtractor {
 
@@ -142,12 +147,7 @@ class BlobExtractor {
                                            const BlobExtractorParams& params);
 
   /**
-   * \brief Extracts the blobs from a binary single channel mask/image. This
-   * function is used to extract blobs for semantic classes which have
-   * differentiate instances with an unique instance id, therefore after
-   * determining how many instances of class current_semantic_class exist in
-   * the image, a loop is performed over the instances and blobs are
-   * extracted for each of them.
+   * \brief Extracts the blobs from a binary single channel mask/image.
    * \param instance_layer Single channel binary image where a pixel is
    * one only if its label is identical to current_semantic_class. All pixels
    * marked as one in the binary image belong to the same instance of the
@@ -158,6 +158,11 @@ class BlobExtractor {
    * \param current_semantic_class Semantic class associated to the extracted
    * blobs.
    * \param params Const reference to parameters used during blobs extraction.
+   * \details This function is used to extract blobs for semantic classes which
+   * have differentiate instances with an unique instance id, therefore after
+   * determining how many instances of class current_semantic_class exist in
+   * the image, a loop is performed over the instances and blobs are
+   * extracted for each of them.
    */
   static void extractBlobsConsideringInstances(cv::Mat& instance_layer,
                                                ClassBlobs* class_blobs,
