@@ -13,6 +13,8 @@ using namespace x_view;
 
 TEST(XViewSlamTestSuite, test_random_walk) {
 
+  LOG(INFO) << "\n\n====Testing random walks generation====";
+
   const int num_semantic_classes = 3;
   LOG(INFO) << "Testing random walks with " << num_semantic_classes
             << "classes.";

@@ -137,7 +137,8 @@ struct SubgraphCallback {
                   typename boost::graph_traits<GraphType>::vertices_size_type
                   subgraph_size) {
 
-    std::cout << "Correspondences found by mcgregor:" << std::endl;
+    std::ostringstream  log_message;
+    log_message << "Correspondences found by mcgregor:\n";
 
     // print out the vertex correspondences found by the mcgregor algorithm
     auto v_begin = boost::vertices(graph1_).first;
@@ -147,16 +148,14 @@ struct SubgraphCallback {
       // Skip unmapped vertices
       auto correspondence = boost::get(correspondence_map_1_to_2, v);
       if (correspondence != boost::graph_traits<GraphType>::null_vertex()) {
-        std::cout << "\tvertex: \t" << v << ", " << graph1_[v]
+        log_message << "\tvertex: \t" << v << ", " << graph1_[v]
                   << " \t <-> \t "
                   << "vertex: \t" << correspondence << ", "
-                  << graph2_[correspondence]
-                  << std::endl;
+                  << graph2_[correspondence] << "\n";
       }
-
     }
 
-    std::cout  << std::endl;
+    LOG(INFO) << log_message.str();
 
     // count the number of edges in the found subgraph used as a distance
     // measure

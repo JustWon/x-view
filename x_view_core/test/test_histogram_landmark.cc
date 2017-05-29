@@ -49,6 +49,8 @@ std::vector<std::pair<int, double>>& expected) {
 
 TEST(XViewSlamTestSuite, test_histogram_landmark) {
 
+  LOG(INFO) << "\n\n====Testing histogram landmark====";
+
   // Initialize a fake dataset having num_semantic_classes classes
   const int num_semantic_classes = 2;
   global_dataset_ptr =

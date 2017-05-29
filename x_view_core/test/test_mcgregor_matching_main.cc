@@ -6,6 +6,8 @@ int mc_gregor_maximal_num_edges;
 
 TEST(XViewSlamTestSuite, test_mcgregor_matching) {
 
+  LOG(INFO) << "\n\n====Testing mcgregor graph matching====";
+
   // Run a bunch of tests for different graphs and compute matches with
   // mcgregor algorithm
   SimpleGraphsTest simple_graph_test;
