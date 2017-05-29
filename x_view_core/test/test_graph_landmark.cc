@@ -1,6 +1,7 @@
 #include "test_graph_landmark.h"
 
-#include <highgui.h>
+#include <glog/logging.h>
+
 
 #define CV_IMAGE_TYPE  CV_8UC3
 
@@ -8,7 +9,7 @@
 
 void testCustomImage() {
 
-  const std::string image_name = "custom image\n";
+  const std::string image_name = "custom image";
 
   // Initialize a fake dataset having num_semantic_classes classes
   int num_semantic_classes = 4;
@@ -22,34 +23,34 @@ void testCustomImage() {
   std::vector<int> sizes = {100, 200, 333, 800, 1500};
 #endif // X_VIEW_DEBUG
 
-  boost::progress_display show_progress(sizes.size(), std::cout, image_name);
   for (auto size : sizes) {
     const int rows = size;
     const int cols = static_cast<int>(size * 1.5);
+    LOG(INFO) << "Testing " << image_name << " for image size: ["
+              << rows << " x " << cols << "]";
 
     cv::Mat customImage;
     createCustomImage(rows, cols, customImage);
     GraphLandmarkPtr customImageLandmarkPtr =
         CAST(GraphLandmark::create(customImage, SE3()), GraphLandmark);
 
+    CHECK_NOTNULL(customImageLandmarkPtr.get());
+
     testPixelCount(customImageLandmarkPtr, image_name);
     testBlobsCount(customImageLandmarkPtr, {1, 1, 1, 1}, image_name);
-
-    ++show_progress;
+    LOG(INFO) << "Test passed.";
   }
 }
 
 void testDiscImage() {
 
-  const std::string image_name = "disc image\n";
+  const std::string image_name = "disc image";
   // random number generator to generate discs
   cv::RNG rng(2);
 
   std::vector<int> classes = {2, 3, 5, 15};
   std::vector<int> num_discs = {2, 15};
-  boost::progress_display show_progress(classes.size() * num_discs.size(),
-                                        std::cout,
-                                        image_name);
+
   for (auto numClasses : classes) {
     global_dataset_ptr =
         std::make_shared<const AbstractDataset>
@@ -59,6 +60,8 @@ void testDiscImage() {
     const int cols = static_cast<int>(500 * 1.5);
     const int diag = static_cast<int>(std::sqrt(rows * rows + cols * cols));
     for (int num_disc : num_discs) {
+      LOG(INFO) << "Testing " << image_name << " for image size: ["
+                << rows << " x " << cols << "] and " << num_disc << " discs.";
 
       cv::Mat discImage;
       std::vector<cv::Point> centers;
@@ -77,8 +80,7 @@ void testDiscImage() {
           CAST(GraphLandmark::create(discImage, SE3()), GraphLandmark);
 
       testPixelCount(discImageLandmarkPtr, image_name);
-
-      ++show_progress;
+      LOG(INFO) << "Test passed.";
     }
 
   }

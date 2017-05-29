@@ -47,7 +47,7 @@ std::vector<std::pair<int, double>>& expected) {
   }
 }
 
-TEST(XViewSlamTestSuite, histogramLandmark) {
+TEST(XViewSlamTestSuite, test_histogram_landmark) {
 
   // Initialize a fake dataset having num_semantic_classes classes
   const int num_semantic_classes = 2;

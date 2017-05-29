@@ -6,7 +6,6 @@
 #include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/x_view_types.h>
 
-#include <boost/progress.hpp>
 #include <opencv2/core/core.hpp>
 
 using namespace x_view;

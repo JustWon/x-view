@@ -15,6 +15,10 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
     add_definitions(-DX_VIEW_DEBUG)
 ENDIF()
 
+# Flag used by XView to know the path of where it is located.
+add_definitions(-DX_VIEW_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR})
+add_definitions(-DX_VIEW_LOG_DIR=${CMAKE_CURRENT_SOURCE_DIR}/logs/)
+
 find_package(catkin_simple 0.1.0 REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
@@ -61,8 +65,8 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_graph_landmark.cc
         test/test_random_walk_main.cc
         test/test_random_walk.cc
-        test/test_graph_matching_main.cc
-        test/test_graph_matching.cc
+        test/test_mcgregor_matching_main.cc
+        test/test_mcgregor_matching.cc
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )
 

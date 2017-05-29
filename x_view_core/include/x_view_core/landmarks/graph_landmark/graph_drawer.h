@@ -4,6 +4,7 @@
 #include <x_view_core/features/graph_descriptor.h>
 #include <x_view_core/landmarks/graph_landmark/graph_landmark_types.h>
 
+#include <glog/logging.h>
 #include <opencv2/opencv.hpp>
 
 namespace x_view {
@@ -12,12 +13,10 @@ class GraphDrawer {
 
  public:
   /**
-   * \brief Prints the blob structure to the stream passed as argument.
+   * \brief Prints the blob structure to the LOG(INFO).
    * \param blobs Blob datastructure to be printed.
-   * \param out Stream used to print the blob structure.
    */
-  static void printBlobs(const ImageBlobs& blobs,
-                         std::ostream& out = std::cout);
+  static void printBlobs(const ImageBlobs& blobs);
 
   /**
    * \brief Generates a new image os size image_size representing the blobs

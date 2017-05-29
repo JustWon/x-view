@@ -4,21 +4,18 @@
 #include <x_view_core/landmarks/graph_landmark/blob.h>
 
 #include <bitset>
-#include <iostream>
 
 namespace x_view {
 
-void GraphDrawer::printBlobs(const ImageBlobs& blobs, std::ostream& out) {
+void GraphDrawer::printBlobs(const ImageBlobs& blobs) {
   for (int c = 0; c < blobs.size(); ++c) {
-    out << "Found " << blobs[c].size()
-        << " instances of class " << c << ":" << std::endl;
+    LOG(INFO) << "Found " << blobs[c].size()
+              << " instances of class " << c << ":";
     for (int i = 0; i < blobs[c].size(); ++i) {
-      out << "\tInstance " << i << " composed by "
-          << blobs[c][i].num_pixels_ << " pixels with mean "
-              "pixel "
-          << blobs[c][i].center_ << std::endl;
+      LOG(INFO) << "\tInstance " << i << " composed by "
+                << blobs[c][i].num_pixels_ << " pixels with mean "
+                    "pixel " << blobs[c][i].center_;
     }
-    out << std::endl;
   }
 }
 

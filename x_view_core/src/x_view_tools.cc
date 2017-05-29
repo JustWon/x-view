@@ -24,4 +24,14 @@ cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel) {
   return image_channels[channel];
 }
 
+const std::string& getRootDirectory() {
+  static std::string x_view_root = std::string(X_VIEW_XSTR(X_VIEW_ROOT_DIR));
+  return x_view_root;
+}
+
+const std::string& getLogDirectory() {
+  static std::string x_view_log = std::string(X_VIEW_XSTR(X_VIEW_LOG_DIR));
+  return x_view_log;
+}
+
 };

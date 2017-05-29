@@ -33,6 +33,26 @@ int twoBytesToInt(const unsigned char* b);
  */
 cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel);
 
+
+/**
+ * \brief Stringification macros used to transform preprocessor strings into
+ * c++ strings.
+ */
+#define X_VIEW_XSTR(s) X_VIEW_STR(s)
+#define X_VIEW_STR(s)  #s
+
+/**
+ * @brief Returns a string containing the absolute path to the X_View root
+ * directory specified in the CMakeLists.txt file as "-DX_VIEW_ROOT_DIR=..."
+ */
+const std::string& getRootDirectory();
+
+/**
+ * @brief Returns a string containing the absolute path to the X_View log
+ * directory specified in the CMakeLists.txt file as "-DX_VIEW_LOG_DIR=..."
+ */
+const std::string& getLogDirectory();
+
 }
 
 #endif //X_VIEW_X_VIEW_TOOLS_H

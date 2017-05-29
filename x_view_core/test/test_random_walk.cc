@@ -83,7 +83,7 @@ void testTransitionProbabilityMatrix(const x_view::RandomWalker& random_walker,
       CHECK(v == 0.f || v == should_have_value)
       << "Probability matrix at (" << vertex_index << ", " << j
       << ") has value " << v << " but should either be 0 or "
-      << should_have_value;
+      << should_have_value << ".";
       // if transition probability is nonzero, then there must be an edge
       // between the corresponding vertices.
       if (v > 0)

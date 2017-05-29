@@ -14,8 +14,12 @@ using namespace x_view;
 TEST(XViewSlamTestSuite, test_random_walk) {
 
   const int num_semantic_classes = 3;
+  LOG(INFO) << "Testing random walks with " << num_semantic_classes
+            << "classes.";
+
   global_dataset_ptr =
       std::make_shared<AbstractDataset>(AbstractDataset(num_semantic_classes));
+  CHECK_NOTNULL(global_dataset_ptr.get());
 
   typedef Graph::VertexProperty Vertex;
   typedef Graph::VertexDescriptor VertexDescriptor;
@@ -30,25 +34,19 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM,
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME
   };
-  boost::progress_display
-      show_progress(num_desired_vertices.size() * edge_probabilities.size() *
-                        sampling_types.size(),
-                    std::cout, "Transition probabilities\n");
+
   for (const int num_vertices : num_desired_vertices) {
     for (const float edge_probability : edge_probabilities) {
       const int walk_length = 3;
       const int num_walks_per_vertex = 100;
-      auto t1 = std::chrono::high_resolution_clock::now();
+
       graph = generateRandomGraph(num_vertices,
                                   edge_probability,
                                   num_semantic_classes);
-      auto t2 = std::chrono::high_resolution_clock::now();
-      std::cout << "Built " << num_walks_per_vertex
-                << " walks per vertex of length " << walk_length
-                << " on a graph with " << num_vertices << " nodes and "
-                << boost::num_edges(graph) << " edges in "
-                << std::chrono::duration_cast<std::chrono::duration<double>>(
-                    t2 - t1).count() << " seconds" << std::endl;
+
+      LOG(INFO) << "Testing random graph with " << boost::num_vertices(graph)
+                << " vertices, " << boost::num_edges(graph) << " edges.";
+
       for (const auto sampling_type : sampling_types) {
 
         RandomWalkerParams params;
@@ -56,11 +54,18 @@ TEST(XViewSlamTestSuite, test_random_walk) {
         params.walk_length_ = walk_length;
         params.num_walks_ = num_walks_per_vertex;
 
+        // Generate random walks for the graph and measure execution time.
+        auto t1 = std::chrono::high_resolution_clock::now();
         RandomWalker random_walker(graph, params);
+        auto t2 = std::chrono::high_resolution_clock::now();
+        LOG(INFO) << "Generated " << num_walks_per_vertex
+                  << " walks per vertex of length " << walk_length << " in "
+                  << std::chrono::duration_cast<std::chrono::duration<double>>
+                      (t2 - t1).count() << " seconds.";
         testTransitionProbabilityMatrix(random_walker, graph, params);
         testRandomWalkSequence(random_walker, graph, params);
-        ++show_progress;
       }
+      LOG(INFO) << "Test passed.";
     }
   }
 }

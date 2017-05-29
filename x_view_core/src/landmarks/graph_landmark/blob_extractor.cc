@@ -68,10 +68,9 @@ void BlobExtractor::extractBlobsWithoutInstances(cv::Mat& current_class_layer,
                                                  ClassBlobs* class_blobs,
                                                  const int current_semantic_class,
                                                  const BlobExtractorParams& params) {
-#ifdef X_VIEW_DEBUG
-  std::cout << "Class " << current_semantic_class << " has no instances"
-            << std::endl;
-#endif
+
+  LOG(INFO) << "Class " << current_semantic_class << " has no instances.";
+
   // Since there are no instances, set the instance_value to -1.
   const int instance_value = -1;
 
@@ -105,10 +104,9 @@ void BlobExtractor::extractBlobsConsideringInstances(cv::Mat& instance_layer,
       "elements resulting from the masking with the current_class_layer "
       "image.";
 
-#ifdef X_VIEW_DEBUG
-  std::cout << "Class " << current_semantic_class << " has "
-            << instance_set.size() << " instances" << std::endl;
-#endif
+  LOG(INFO) << "Class " << current_semantic_class << " has "
+            << instance_set.size() << " instances.";
+
   // Iterate over all instance found in the current semantic class.
   for (const unsigned char instance_value : instance_set) {
     // Extract only the instance with instance value equal to
@@ -145,43 +143,36 @@ void BlobExtractor::extractBlobsAndAddToContainer(cv::Mat& image,
     if (res.GetBlob(b)->Area(AreaMode::PIXELWISE) >= minimum_blob_size) {
       class_blobs->push_back(
           Blob(current_semantic_class, instance_value, *(res.GetBlob(b))));
-#ifdef X_VIEW_DEBUG
-      std::cout << "Added blob with size "
-                << class_blobs->back().num_pixels_
-                << " and instance id: "
-                << class_blobs->back().instance_
-                << std::endl;
-#endif
+
+      LOG(INFO) << "Added blob with size " << class_blobs->back().num_pixels_
+                << " and instance id: " << class_blobs->back().instance_ << ".";
+
     }
   }
 }
 
 void BlobExtractor::dilateAndErode(cv::Mat* image,
                                    const BlobExtractorParams& params) {
-  if (image != nullptr) {
-    cv::dilate(*image, *image, cv::Mat(), cv::Point(-1, -1),
-               params.num_dilate_reps_);
-    cv::erode(*image, *image, cv::Mat(), cv::Point(-1, -1),
-              params.num_erode_reps_);
-  } else {
-    CHECK(false) << "Image pointer passed to " << __FUNCTION__ << " is a "
-        "nullptr";
-  }
+
+  CHECK_NOTNULL(image);
+  
+  cv::dilate(*image, *image, cv::Mat(), cv::Point(-1, -1),
+             params.num_dilate_reps_);
+  cv::erode(*image, *image, cv::Mat(), cv::Point(-1, -1),
+            params.num_erode_reps_);
 }
 
 void BlobExtractor::collectInstancesFromImage(const cv::Mat& image,
                                               std::unordered_set<unsigned char>* instance_set) {
-  if (instance_set != nullptr) {
-    instance_set->clear();
-    for (int i = 0; i < image.rows; ++i) {
-      const unsigned char* row_ptr = image.ptr<uchar>(i);
-      for (int j = 0; j < image.cols; j++)
-        instance_set->insert(row_ptr[j]);
-    }
-  } else {
-    CHECK(false) << "Instance set pointer passed to " << __FUNCTION__ << " is"
-        " a nullptr";
+  CHECK_NOTNULL(instance_set);
+
+  instance_set->clear();
+  for (int i = 0; i < image.rows; ++i) {
+    const unsigned char* row_ptr = image.ptr<uchar>(i);
+    for (int j = 0; j < image.cols; j++)
+      instance_set->insert(row_ptr[j]);
   }
+
 }
 
 }

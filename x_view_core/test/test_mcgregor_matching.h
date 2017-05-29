@@ -1,5 +1,5 @@
-#ifndef X_VIEW_TEST_GRAPH_MATCHING_IMPL_H
-#define X_VIEW_TEST_GRAPH_MATCHING_IMPL_H
+#ifndef X_VIEW_TEST_MCGREGOR_MATCHING_H
+#define X_VIEW_TEST_MCGREGOR_MATCHING_H
 
 #include <iostream>
 
@@ -188,4 +188,4 @@ struct SubgraphCallback {
 
 };
 
-#endif //X_VIEW_TEST_GRAPH_MATCHING_IMPL_H
+#endif //X_VIEW_TEST_MCGREGOR_MATCHING_H
