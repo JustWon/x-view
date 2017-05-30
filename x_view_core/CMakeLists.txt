@@ -65,6 +65,8 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_graph_landmark.cc
         test/test_random_walk_main.cc
         test/test_random_walk.cc
+        test/test_walk_matching_main.cc
+        test/test_walk_matching.cc
         test/test_mcgregor_matching_main.cc
         test/test_mcgregor_matching.cc
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
