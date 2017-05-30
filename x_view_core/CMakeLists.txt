@@ -54,12 +54,14 @@ cs_add_library(${PROJECT_NAME}
         src/matchers/vector_matcher.cc
         src/matchers/graph_matcher/graph_matcher.cc
         src/matchers/graph_matcher/random_walker.cc
+        src/matchers/graph_matcher/vertex_similarity.cc
         )
 
 
 # X-View tests
 catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_main.cc
+        test/test_common.cc
         test/test_histogram_landmark.cc
         test/test_graph_landmark_main.cc
         test/test_graph_landmark.cc

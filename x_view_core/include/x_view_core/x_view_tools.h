@@ -5,9 +5,8 @@
 
 namespace x_view {
 
-// Utility function to convert two consecutive bytes into a 16bits unsigned
-// int value. This function assumes little endiannes of the system
 
+// ************************* Image manipulation ******************************//
 /**
  * \brief Interpret two consecutive bytes as an integer.
  * \param b1 First byte.
@@ -34,6 +33,7 @@ int twoBytesToInt(const unsigned char* b);
 cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel);
 
 
+// ******************************* Logging ***********************************//
 /**
  * \brief Stringification macros used to transform preprocessor strings into
  * c++ strings.
@@ -52,6 +52,18 @@ const std::string& getRootDirectory();
  * directory specified in the CMakeLists.txt file as "-DX_VIEW_LOG_DIR=..."
  */
 const std::string& getLogDirectory();
+
+/**
+ * \brief Sets up parameters for logging such that log files are written to
+ * the directory specified by "-DX_VIEW_LOG_DIR=..." in the CMakeLists.txt file.
+ * \param argv Arguments received in the main() function.
+ */
+void setupLogging(char** argv);
+
+/**
+ * \brief Makes sure all log are written to the corresponding files.
+ */
+void finalizeLogging();
 
 }
 

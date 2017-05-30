@@ -1,6 +1,7 @@
 #include <x_view_core/matchers/graph_matcher/random_walker.h>
 
 #include <glog/logging.h>
+#include <x_view_core/datasets/abstract_dataset.h>
 
 namespace x_view {
 
@@ -34,43 +35,64 @@ void RandomWalker::generateRandomWalks() {
   random_walks_.clear();
   random_walks_.resize(num_vertices);
 
+  mapped_walks_.clear();
+  mapped_walks_.resize(num_vertices);
+
   auto vertex_iter = boost::vertices(graph_);
   for (vertex_iter.first; vertex_iter.first != vertex_iter.second;
        ++vertex_iter.first) {
     const Graph::VertexDescriptor start_vertex_descriptor = *vertex_iter.first;
     const Graph::VertexProperty& vertex_i = graph_[start_vertex_descriptor];
     const int vertex_index = vertex_i.index_;
-    // generate num_random_walks random walks of length walk_length
+
+    // Create a walk map object which stores the generated random walks keyed
+    // by a unique identifier.
+    WalkMap walk_map;
+    walk_map.reserve(params_.num_walks_);
+
+    // Generate num_random_walks random walks of length walk_length.
     for (int w = 0; w < params_.num_walks_; ++w) {
-      // create a new random walk and initialize its size
+      // Create a new random walk and initialize its size.
       RandomWalk random_walk(params_.walk_length_);
-      // the previous vertex in the random_walk starts by the start_vertex_descriptor
+      // The previous vertex in the random_walk starts by the
+      // start_vertex_descriptor.
       Graph::VertexDescriptor previous = start_vertex_descriptor;
       for (int step = 0; step < params_.walk_length_; ++step) {
-        // query the index of the current vertex and randomly sample the next
+        // Query the index of the current vertex and randomly sample the next
         // vertex to follow on the random_walk.
         const int current_vertex_index = graph_[previous].index_;
         const Graph::VertexDescriptor next = nextVertex(current_vertex_index);
         const Graph::VertexProperty& vertex_j = graph_[next];
 
-        // add the vertex to the random_walk
+        // Add the vertex to the random_walk
         random_walk[step] = &vertex_j;
 
-        // set the current graph vertex descriptor as the previous so that it
+        // Set the current graph vertex descriptor as the previous so that it
         // can be used in the next iteration.
         previous = next;
       }
 
-      // add the generated random_walk to the random_walks_ container.
+      // Add the generated random_walk to the random_walks_ container.
       random_walks_[vertex_index].push_back(random_walk);
+
+      // Add the generated random_walk to the random walk map keyed by a
+      // unique identifier.
+      const int walk_id = RandomWalker::computeRandomWalkKey(random_walk);
+      // Check whether this id has already been added to the walk_map
+      WalkMap::iterator found_position = walk_map.find(walk_id);
+      if (found_position == walk_map.end()) // New id.
+        walk_map.insert({walk_id, MappedWalk(random_walk)});
+      else // Increase multiplicity of already inserted MappedWalk with same id.
+        ++(found_position->second);
     }
+    // Set the walk_map to the global mapped_walks_ container
+    mapped_walks_[vertex_index] = walk_map;
   }
 }
 
 const Graph::VertexDescriptor RandomWalker::nextVertex(
     const int current_vertex_index) const {
   const float probability = random_distribution_(random_engine_);
-  // TODO: get next random vertex using transition probability matrix.
 
   // iterate over the elements of the current_vertex_index-th row of the
   // transition probability matrix and select the vertex sampled with the
@@ -204,6 +226,17 @@ void RandomWalker::precomputeAvoidingTransitionProbabilities() {
   // build the sparse matrix from the triplet list.
   transition_probabilities_.setFromTriplets(triplet_list.begin(),
                                             triplet_list.end());
+}
+
+const int RandomWalker::computeRandomWalkKey(const RandomWalk& random_walk) {
+  const static int num_classes = global_dataset_ptr->numSemanticClasses();
+  int id = 0;
+  int mult = 1;
+  for (const auto& val : random_walk) {
+    id += mult * val->semantic_label_;
+    mult *= num_classes;
+  }
+  return id;
 }
 
 }

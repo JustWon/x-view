@@ -2,6 +2,8 @@
 
 #include <glog/logging.h>
 
+#include <iostream>
+
 namespace x_view {
 
 int twoBytesToInt(const unsigned char b1, const unsigned char b2) {
@@ -32,6 +34,46 @@ const std::string& getRootDirectory() {
 const std::string& getLogDirectory() {
   static std::string x_view_log = std::string(X_VIEW_XSTR(X_VIEW_LOG_DIR));
   return x_view_log;
+}
+
+void setupLogging(char** argv) {
+
+  const std::string& log_dir_name = x_view::getLogDirectory();
+
+  std::vector<std::pair<const int, std::string> > log_file_names =
+      {{google::INFO, "log_INFO"},
+       {google::WARNING, "log_WARN"},
+       {google::ERROR, "log_ERR"},
+       {google::FATAL, "log_FATAL"}};
+
+  for (const auto& level : log_file_names) {
+    google::SetLogDestination(level.first,
+                              (log_dir_name + level.second).c_str());
+
+    google::SetLogSymlink(level.first, "__LAST");
+  }
+
+  // Print logs also to the console if their level is greater than
+  // min_console_level;
+  const int min_console_level = google::ERROR;
+  FLAGS_colorlogtostderr = true;
+  google::SetStderrLogging(min_console_level);
+
+#ifdef X_VIEW_DEBUG
+  FLAGS_alsologtostderr = true;
+#endif
+
+  google::InitGoogleLogging(argv[0]);
+
+  std::cout << "X-View is logging to <" << log_dir_name << ">" << std::endl;
+
+}
+
+void finalizeLogging() {
+  google::FlushLogFiles(google::INFO);
+  google::FlushLogFiles(google::WARNING);
+  google::FlushLogFiles(google::ERROR);
+  google::FlushLogFiles(google::FATAL);
 }
 
 };

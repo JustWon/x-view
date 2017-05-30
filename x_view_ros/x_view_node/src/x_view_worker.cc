@@ -22,7 +22,7 @@ XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n) {
     dataset_.reset(new x_view::SynthiaDataset);
   else
     CHECK(false) << "Dataset '" << params_.dataset_name
-    << "' is not supported" << std::endl;
+                 << "' is not supported" << std::endl;
 }
 
 XViewWorker::~XViewWorker() {
@@ -42,9 +42,8 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
     tf_listener_.lookupTransform(params_.world_frame, params_.sensor_frame,
                                  msg->header.stamp, tf_transform);
   } else {
-    ROS_ERROR_STREAM(
-        "Failed to get transformation between " << params_.world_frame
-        << " and " << params_.sensor_frame);
+    LOG(ERROR) << "Failed to get transformation between "
+               << params_.world_frame << " and " << params_.sensor_frame;
   }
   x_view::SE3 pose;
   tf_transform.getRotation().normalize();
@@ -56,42 +55,39 @@ void XViewWorker::getParameters() {
 
   // XView parameters.
   if (!nh_.getParam("/XView/landmarks/type", params_
-                    .x_view_params.semantic_landmark_type_)) {
-    ROS_ERROR_STREAM("Failed to get param '/XView/landmarks/type'\nUsing "
-        "default <SURF> landmark type.");
+      .x_view_params.semantic_landmark_type_)) {
+    LOG(ERROR) << "Failed to get param '/XView/landmarks/type'\n"
+        "Using default <SURF> landmark type.";
     params_.x_view_params.semantic_landmark_type_ = "SURF";
   }
 
   if (!nh_.getParam("/XView/matcher/type", params_
-                    .x_view_params.landmark_matching_type_)) {
-    ROS_ERROR_STREAM("Failed to get param '/XView/matcher/type'\nUsing "
-        "default <VISUAL> landmark matcher.");
+      .x_view_params.landmark_matching_type_)) {
+    LOG(ERROR) << "Failed to get param '/XView/matcher/type'\n"
+        "Using default <VISUAL> landmark matcher.";
     params_.x_view_params.landmark_matching_type_ = "VECTOR";
   }
 
 
   // XViewWorker parameters.
   if (!nh_.getParam("/XViewWorker/dataset", params_.dataset_name)) {
-    ROS_ERROR_STREAM("Failed to get param '/XViewWorker/dataset'\nUsing "
-        "default <SYNTHIA> dataset.");
+    LOG(ERROR) << "Failed to get param '/XViewWorker/dataset'\n"
+        "Using default <SYNTHIA> dataset.";
     params_.dataset_name = "SYNTHIA";
   }
   params_.x_view_params.semantic_dataset_name_ = params_.dataset_name;
 
   if (!nh_.getParam("/XViewWorker/semantics_image_topic",
                     params_.semantics_image_topic)) {
-    ROS_ERROR_STREAM("Failed to get param "
-        "'/XViewWorker/semantics_image_topic'");
+    LOG(ERROR) << "Failed to get param '/XViewWorker/semantics_image_topic'";
   }
   if (!nh_.getParam("/XViewWorker/world_frame",
                     params_.world_frame)) {
-    ROS_ERROR_STREAM("Failed to get param "
-        "'/XViewWorker/world_frame'");
+    LOG(ERROR) << "Failed to get param '/XViewWorker/world_frame'";
   }
   if (!nh_.getParam("/XViewWorker/sensor_frame",
                     params_.sensor_frame)) {
-    ROS_ERROR_STREAM("Failed to get param "
-        "'/XViewWorker/sensor_frame'");
+    LOG(ERROR) << "Failed to get param '/XViewWorker/sensor_frame'";
   }
 }
 

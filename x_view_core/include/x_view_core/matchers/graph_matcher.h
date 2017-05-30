@@ -7,5 +7,6 @@
 
 #include <x_view_core/matchers/graph_matcher/graph_matcher.h>
 #include <x_view_core/matchers/graph_matcher/random_walker.h>
+#include <x_view_core/matchers/graph_matcher/vertex_similarity.h>
 
 #endif //X_VIEW_GRAPH_MATCHER_FOLDER_
