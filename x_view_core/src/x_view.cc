@@ -47,14 +47,19 @@ void XView::processSemanticImage(const cv::Mat& image, const SE3& pose) {
 
 void XView::printInfo() const {
   std::string info = "\n";
-  info += "==============================================================";
-  info += "\n                          XView";
+  info += "==========================================================";
+  info += "\n                  XView";
+#ifdef X_VIEW_DEBUG
+  info += " (Debug)";
+#else
+  info += " (Release)";
+#endif
   info += "\n" + dataset_->datasetInfo("\t");
   info += "\n\tLandmark type:\t<" + params_.semantic_landmark_type_ + ">";
   info += "\n\tMatcher type: \t<" + params_.landmark_matching_type_ + ">";
-  info += "\n===============================================================";
+  info += "\n===========================================================\n";
 
-  std::cout << info << std::endl;
+  LOG(INFO) << info;
 }
 
 void XView::parseParameters() {
@@ -173,11 +178,10 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
       auto max_vote =
           std::max_element(voting_per_image.begin(), voting_per_image.end());
 
-      std::cout << "Current frame (" << number_of_training_images
+      LOG(INFO) << "Current frame (" << number_of_training_images
                 << ") voted " << 100 * ((double) *max_vote) / (matches.size())
                 << "% for image ("
-                << std::distance(voting_per_image.begin(), max_vote)
-                << ")!" << std::endl;
+                << std::distance(voting_per_image.begin(), max_vote) << ")!";
     }
   }
 

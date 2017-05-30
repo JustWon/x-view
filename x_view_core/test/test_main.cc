@@ -10,7 +10,7 @@ x_view::ConstDatasetPrt global_dataset_ptr;
 int main(int argc, char** argv) {
 
   x_view::setupLogging(argv);
-  LOG(INFO) << "Running all X-View core tests";
+  LOG(INFO) << "\n================== Running X-View Tests ==================\n";
 
   testing::InitGoogleTest(&argc, argv);
 

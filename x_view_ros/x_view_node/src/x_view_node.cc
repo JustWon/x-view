@@ -12,6 +12,8 @@ int main(int argc, char** argv) {
 
   ros::init(argc, argv, "X_View");
   ros::NodeHandle node_handle("~");
+  
+  LOG(INFO) << "\n=================== Running X-View Node ==================\n";
 
   x_view_ros::XViewWorker worker(node_handle);
 
