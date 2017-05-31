@@ -50,33 +50,71 @@ void RandomWalker::generateRandomWalks() {
     WalkMap walk_map;
     walk_map.reserve(params_.num_walks_);
 
-    // Generate num_random_walks random walks of length walk_length.
-    for (int w = 0; w < params_.num_walks_; ++w) {
-      // Create a new random walk and initialize its size.
-      RandomWalk random_walk(params_.walk_length_);
-      // The previous vertex in the random_walk starts by the
-      // start_vertex_descriptor.
-      Graph::VertexDescriptor previous = start_vertex_descriptor;
-      for (int step = 0; step < params_.walk_length_; ++step) {
-        // Query the index of the current vertex and randomly sample the next
-        // vertex to follow on the random_walk.
-        const int current_vertex_index = graph_[previous].index_;
-        const Graph::VertexDescriptor next = nextVertex(current_vertex_index);
-        const Graph::VertexProperty& vertex_j = graph_[next];
+    // If we have to visit all neighbors in the first step.
+    if (params_.force_visiting_each_neighbor_) {
+      const auto neighbors =
+          boost::adjacent_vertices(start_vertex_descriptor, graph_);
+      auto current_neighbor = neighbors.first;
+      for (int w = 0; w < params_.num_walks_; ++w) {
+        RandomWalk random_walk(params_.walk_length_);
+        // Add the current neighbor as the first vertex of the random walk.
+        const Graph::VertexProperty& current_neighbor_vertex_p =
+            graph_[*current_neighbor];
+        random_walk[0] = &current_neighbor_vertex_p;
 
-        // Add the vertex to the random_walk
-        random_walk[step] = &vertex_j;
+        Graph::VertexDescriptor previous = *current_neighbor;
+        for (int step = 1; step < params_.walk_length_; ++step) {
+          // Query the index of the current vertex and randomly sample the next
+          // vertex to follow on the random_walk.
+          const int current_vertex_index = graph_[previous].index_;
+          const Graph::VertexDescriptor next = nextVertex(current_vertex_index);
+          const Graph::VertexProperty& vertex_j = graph_[next];
 
-        // Set the current graph vertex descriptor as the previous so that it
-        // can be used in the next iteration.
-        previous = next;
+          // Add the vertex to the random_walk
+          random_walk[step] = &vertex_j;
+
+          // Set the current graph vertex descriptor as the previous so that it
+          // can be used in the next iteration.
+          previous = next;
+        }
+
+        // increase the current_neighbor
+        ++current_neighbor;
+        if (current_neighbor == neighbors.second)
+          current_neighbor = neighbors.first;
+
+        // Add the generated random_walk to the random_walks_ container.
+        random_walks_[vertex_index].push_back(random_walk);
       }
+    } else {// Randomly perform the first step
 
-      // Add the generated random_walk to the random_walks_ container.
-      random_walks_[vertex_index].push_back(random_walk);
+      // Generate num_random_walks random walks of length walk_length.
+      for (int w = 0; w < params_.num_walks_; ++w) {
+        // Create a new random walk and initialize its size.
+        RandomWalk random_walk(params_.walk_length_);
+        // The previous vertex in the random_walk starts by the
+        // start_vertex_descriptor.
+        Graph::VertexDescriptor previous = start_vertex_descriptor;
+        for (int step = 0; step < params_.walk_length_; ++step) {
+          // Query the index of the current vertex and randomly sample the next
+          // vertex to follow on the random_walk.
+          const int current_vertex_index = graph_[previous].index_;
+          const Graph::VertexDescriptor next = nextVertex(current_vertex_index);
+          const Graph::VertexProperty& vertex_j = graph_[next];
 
-      // Add the generated random_walk to the random walk map keyed by a
-      // unique identifier.
+          // Add the vertex to the random_walk
+          random_walk[step] = &vertex_j;
+
+          // Set the current graph vertex descriptor as the previous so that it
+          // can be used in the next iteration.
+          previous = next;
+        }
+      }
+    }
+
+    // Iterate over the generated random walks of the current vertex_index and
+    // map them to a unique identifier.
+    for (const RandomWalk& random_walk : random_walks_[vertex_index]) {
       const int walk_id = RandomWalker::computeRandomWalkKey(random_walk);
       // Check whether this id has already been added to the walk_map
       WalkMap::iterator found_position = walk_map.find(walk_id);
@@ -84,9 +122,11 @@ void RandomWalker::generateRandomWalks() {
         walk_map.insert({walk_id, MappedWalk(random_walk)});
       else // Increase multiplicity of already inserted MappedWalk with same id.
         ++(found_position->second);
+
+      // Set the walk_map to the global mapped_walks_ container
+      mapped_walks_[vertex_index] = walk_map;
     }
-    // Set the walk_map to the global mapped_walks_ container
-    mapped_walks_[vertex_index] = walk_map;
+
   }
 }
 

@@ -28,46 +28,60 @@ TEST(XViewSlamTestSuite, test_random_walk) {
   Graph g;
   Graph::GraphType& graph = g.graph();
 
+  const int walk_length = 3;
+  const int num_walks_per_vertex = 20;
+
   // create multiple random graphs with different topology and test them.
-  std::vector<int> num_desired_vertices{10, 100, 300};
-  std::vector<float> edge_probabilities{0.0, 0.01, 0.15};
+  std::vector<std::pair<int, float>> graph_statistics{
+      {10, 0.5},  // graph statistic has form (num_vertices, edge_probability)
+      {10, 1.0},
+      {50, 0.2},
+      {50, 0.5},
+      {300, 0.05}
+  };
   std::vector<RandomWalkerParams::RANDOM_SAMPLING_TYPE> sampling_types{
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM,
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME
   };
 
-  for (const int num_vertices : num_desired_vertices) {
-    for (const float edge_probability : edge_probabilities) {
-      const int walk_length = 3;
-      const int num_walks_per_vertex = 100;
+  int num_vertices;
+  float edge_probability;
+  for (auto graph_statistic : graph_statistics) {
+    std::tie(num_vertices, edge_probability) = graph_statistic;
 
-      graph = generateRandomGraph(num_vertices,
-                                  edge_probability,
-                                  num_semantic_classes);
+    graph = generateRandomGraph(num_vertices,
+                                edge_probability,
+                                num_semantic_classes);
 
-      LOG(INFO) << "Testing random graph with " << boost::num_vertices(graph)
-                << " vertices, " << boost::num_edges(graph) << " edges.";
+    LOG(INFO) << "Testing random graph with " << boost::num_vertices(graph)
+              << " vertices, " << boost::num_edges(graph) << " edges.";
 
-      for (const auto sampling_type : sampling_types) {
+    for (const auto sampling_type : sampling_types) {
 
-        RandomWalkerParams params;
-        params.random_sampling_type_ = sampling_type;
-        params.walk_length_ = walk_length;
-        params.num_walks_ = num_walks_per_vertex;
+      RandomWalkerParams params;
+      params.random_sampling_type_ = sampling_type;
+      params.walk_length_ = walk_length;
+      params.num_walks_ = num_walks_per_vertex;
+      params.force_visiting_each_neighbor_ = true;
 
-        // Generate random walks for the graph and measure execution time.
-        auto t1 = std::chrono::high_resolution_clock::now();
-        RandomWalker random_walker(graph, params);
-        auto t2 = std::chrono::high_resolution_clock::now();
-        LOG(INFO) << "Generated " << num_walks_per_vertex
-                  << " walks per vertex of length " << walk_length << " in "
-                  << std::chrono::duration_cast<std::chrono::duration<double>>
-                      (t2 - t1).count() << " seconds.";
-        testTransitionProbabilityMatrix(random_walker, graph, params);
-        testRandomWalkSequence(random_walker, graph, params);
-      }
-      LOG(INFO) << "Test passed.";
+      // Generate random walks for the graph and measure execution time.
+      auto t1 = std::chrono::high_resolution_clock::now();
+      RandomWalker random_walker(graph, params);
+      auto t2 = std::chrono::high_resolution_clock::now();
+      LOG(INFO) << "Generated " << num_walks_per_vertex
+                << " walks per vertex of length " << walk_length << " in "
+                << std::chrono::duration_cast<std::chrono::duration<double>>
+                    (t2 - t1).count() << " seconds.";
+
+      testTransitionProbabilityMatrix(random_walker, graph, params);
+      testRandomWalkSequence(random_walker, graph, params);
+      if (params.random_sampling_type_ ==
+          RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME)
+        testAvoidingStrategy(random_walker, graph, params);
+
     }
+    LOG(INFO) << "Test passed.";
   }
+
 }
 

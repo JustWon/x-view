@@ -31,6 +31,20 @@ void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
                             const x_view::Graph::GraphType& graph,
                             const x_view::RandomWalkerParams& params);
 
+
+/**
+ * \brief Tests the avoiding strategy, i.e. it verifies that two consecutive
+ * nodes in a random walk never have equal label except for the case when a
+ * node has only neighbors with same label.
+ * \param random_walker RandomWalker instance to be tested.
+ * \param graph Graph to be tested.
+ * \param params Parameters to be used by the RandomWalker class to generate
+ * the random walks.
+ */
+void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
+                          const x_view::Graph::GraphType& graph,
+                          const x_view::RandomWalkerParams& params);
+
 /**
  * \brief Tests if the i-th and the j-th vertex of the graph passed as
  * parameter are linked by an edge.
@@ -42,5 +56,6 @@ void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
  */
 bool areVerticesConnected(const int i, const int j,
                           const x_view::Graph::GraphType& graph);
+
 
 #endif //PROJECT_TEST_RANDOM_WALK_H

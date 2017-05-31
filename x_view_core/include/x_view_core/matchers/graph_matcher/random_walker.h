@@ -43,7 +43,8 @@ struct RandomWalkerParams {
   RandomWalkerParams()
       : random_sampling_type_(RANDOM_SAMPLING_TYPE::UNIFORM),
         num_walks_(DEFAULT_NUM_RANDOM_WALKS),
-        walk_length_(DEFAULT_RANDOM_WALK_LENGTH) {
+        walk_length_(DEFAULT_RANDOM_WALK_LENGTH),
+        force_visiting_each_neighbor_(false) {
   }
 
   /// \brief Determines the type of random walk to be generated.
@@ -53,6 +54,11 @@ struct RandomWalkerParams {
   /// \brief Random walk length (i.e. number of steps taken for each walk
   /// starting from the source node).
   int walk_length_;
+  /// \brief If set to true, then the first generated random walk step is
+  /// forced to visit each of the neighbors of the source vertex. Otherwise the
+  /// random walks are effectively random allowing the first step to always
+  /// visit the same neighbor without ever visiting the others.
+  bool force_visiting_each_neighbor_;
 };
 
 /**
@@ -72,11 +78,11 @@ class RandomWalker {
   typedef Eigen::SparseMatrix<float> TransitionProbMatrix;
 
   /// \brief Aside from storing the random walks as a sequence of
-  /// VertexProperties, the RandomWalker also maps each walk to a unique
+  /// VertexProperty pointers, the RandomWalker also maps each walk to a unique
   /// integer identifier, that is used to check if two vertices share the
-  /// same random walk. The value mapped by the key is the following struct
-  /// capturing the mapped random walk, and the number of times the random
-  /// walk appears for the source vertex.
+  /// same random walk. The value/object mapped by the key is the following
+  /// struct capturing the mapped random walk, and the number of times the
+  /// random walk appears for the source vertex.
   struct MappedWalk {
     const RandomWalk& random_walk_;
     int multiplicity_;
@@ -99,7 +105,6 @@ class RandomWalker {
   /// unique integer identifier is computed by 'hashing' the semantic labels
   /// of the random walk.
   typedef std::unordered_map<int, MappedWalk> WalkMap;
-
 
   /**
    * \brief Constructor of random walk object.

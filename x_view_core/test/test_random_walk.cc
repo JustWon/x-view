@@ -78,6 +78,50 @@ void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
   }
 }
 
+void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
+                          const x_view::Graph::GraphType& graph,
+                          const x_view::RandomWalkerParams& params) {
+  const auto& all_random_walks = random_walker.getRandomWalks();
+  int start_vertex_index = 0;
+  for (const auto& random_walks : all_random_walks) {
+    for (const auto& random_walk : random_walks) {
+      for (int i = 0; i < random_walk.size() - 1; ++i) {
+        const int from_index = random_walk[i]->index_;
+        const int from_label = random_walk[i]->semantic_label_;
+        const auto& from_vertex_descriptor = boost::vertex(from_index, graph);
+        // Get the neighbors of the current vertex.
+        auto from_vertex_neighbors =
+            boost::adjacent_vertices(from_vertex_descriptor, graph);
+        bool all_neighbors_have_same_label = true;
+        // Check whether all neighbors have the same semantic label as the
+        // current vertex or not.
+        for (from_vertex_neighbors.first;
+             from_vertex_neighbors.first != from_vertex_neighbors.second;
+             ++from_vertex_neighbors.first) {
+          if (graph[*from_vertex_neighbors.first].semantic_label_ !=
+              from_label) {
+            all_neighbors_have_same_label = false;
+            break;
+          }
+        }
+        // Only verify avoiding property if there is at least one neighbor
+        // with different semantic label.
+        if (!all_neighbors_have_same_label) {
+          const int to_index = random_walk[i + 1]->index_;
+          const int to_label = random_walk[i + 1]->semantic_label_;
+          CHECK(from_label != to_label)
+          << "Even though the RandomWalker class is using the avoiding "
+          << "strategy, there is a random walk starting from vertex "
+          << start_vertex_index << " with an edge between nodes "
+          << from_index << " and " << to_index
+          << " that have the same semantic label " << from_label;
+        }
+      }
+    }
+    ++start_vertex_index;
+  }
+}
+
 bool areVerticesConnected(const int i, const int j,
                           const x_view::Graph::GraphType& graph) {
   const x_view::Graph::VertexDescriptor& vi = boost::vertex(i, graph);
