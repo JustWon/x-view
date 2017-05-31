@@ -39,6 +39,7 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
       ;
 
   RandomWalker random_walker(graph, random_walker_params);
+  random_walker.generateRandomWalks();
 
   Eigen::MatrixXf scores(num_vertices, num_vertices);
   scores.setZero();

@@ -6,6 +6,8 @@ int mc_gregor_maximal_num_edges;
 
 TEST(XViewSlamTestSuite, test_mcgregor_matching) {
 
+  // Only test mcgregor algorithm in release mode as in debut it takes too long.
+#ifndef X_VIEW_DEBUG
   LOG(INFO) << "\n\n====Testing mcgregor graph matching====";
 
   // Run a bunch of tests for different graphs and compute matches with
@@ -15,6 +17,7 @@ TEST(XViewSlamTestSuite, test_mcgregor_matching) {
 
   PaperGraphsTest paper_graphs_test;
   paper_graphs_test.run();
+#endif
 }
 
 

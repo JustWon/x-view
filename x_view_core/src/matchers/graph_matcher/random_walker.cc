@@ -26,8 +26,6 @@ RandomWalker::RandomWalker(const Graph::GraphType& graph,
                    << __FUNCTION__;
     }
   }
-
-  generateRandomWalks();
 }
 
 void RandomWalker::generateRandomWalks() {

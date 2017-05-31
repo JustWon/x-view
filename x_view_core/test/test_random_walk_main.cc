@@ -44,6 +44,8 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME
   };
 
+  std::vector<bool> force_visiting_neighbors{true, false};
+
   int num_vertices;
   float edge_probability;
   for (auto graph_statistic : graph_statistics) {
@@ -57,28 +59,34 @@ TEST(XViewSlamTestSuite, test_random_walk) {
               << " vertices, " << boost::num_edges(graph) << " edges.";
 
     for (const auto sampling_type : sampling_types) {
+      for (const bool force_visiting_neighbor : force_visiting_neighbors) {
 
-      RandomWalkerParams params;
-      params.random_sampling_type_ = sampling_type;
-      params.walk_length_ = walk_length;
-      params.num_walks_ = num_walks_per_vertex;
-      params.force_visiting_each_neighbor_ = true;
+        RandomWalkerParams params;
+        params.random_sampling_type_ = sampling_type;
+        params.walk_length_ = walk_length;
+        params.num_walks_ = num_walks_per_vertex;
+        params.force_visiting_each_neighbor_ = force_visiting_neighbor;
 
-      // Generate random walks for the graph and measure execution time.
-      auto t1 = std::chrono::high_resolution_clock::now();
-      RandomWalker random_walker(graph, params);
-      auto t2 = std::chrono::high_resolution_clock::now();
-      LOG(INFO) << "Generated " << num_walks_per_vertex
-                << " walks per vertex of length " << walk_length << " in "
-                << std::chrono::duration_cast<std::chrono::duration<double>>
-                    (t2 - t1).count() << " seconds.";
+        // Generate random walks for the graph and measure execution time.
+        RandomWalker random_walker(graph, params);
+        auto t1 = std::chrono::high_resolution_clock::now();
+        random_walker.generateRandomWalks();
+        auto t2 = std::chrono::high_resolution_clock::now();
+        LOG(INFO) << "Generated " << num_walks_per_vertex
+                  << " walks for each of " << num_vertices << " vertices "
+                  << " of length " << walk_length << " in "
+                  << std::chrono::duration_cast<std::chrono::duration<double>>
+                      (t2 - t1).count() << " seconds.";
 
-      testTransitionProbabilityMatrix(random_walker, graph, params);
-      testRandomWalkSequence(random_walker, graph, params);
-      if (params.random_sampling_type_ ==
-          RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME)
-        testAvoidingStrategy(random_walker, graph, params);
+        testTransitionProbabilityMatrix(random_walker, graph, params);
+        testRandomWalkSequence(random_walker, graph, params);
+        if (params.random_sampling_type_ ==
+            RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME)
+          testAvoidingStrategy(random_walker, graph, params);
+        if(params.force_visiting_each_neighbor_)
+          testVisitingNeighbors(random_walker, graph, params);
 
+      }
     }
     LOG(INFO) << "Test passed.";
   }

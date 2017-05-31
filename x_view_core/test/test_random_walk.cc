@@ -122,6 +122,51 @@ void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
   }
 }
 
+void testVisitingNeighbors(const x_view::RandomWalker& random_walker,
+                           const x_view::Graph::GraphType& graph,
+                           const x_view::RandomWalkerParams& params) {
+  const auto& all_random_walks = random_walker.getRandomWalks();
+  unsigned long start_vertex_index = 0;
+  for (const auto& random_walks : all_random_walks) {
+    const auto& start_vertex_d = boost::vertex(start_vertex_index, graph);
+    const unsigned long num_neighbors = boost::degree(start_vertex_d, graph);
+    // Only proceed with the check if the number of random walks generated
+    // for this vertex is larger than the number of neighbors.
+    if (params.num_walks_ >= num_neighbors) {
+      auto start_neighbors = boost::adjacent_vertices(start_vertex_d, graph);
+      std::map<int, bool> neighbor_index_visited;
+      // Set the neighbors as non-visited.
+      for (start_neighbors.first;
+           start_neighbors.first != start_neighbors.second;
+           ++start_neighbors.first) {
+        const auto& current_neighbor_p = graph[*start_neighbors.first];
+        neighbor_index_visited[current_neighbor_p.index_] = false;
+      }
+      // Loop over the walks and make sure the first vertex of the walk is
+      // one neighbor.
+      for (const auto& random_walk : random_walks) {
+        const int first_vertex_index = random_walk[0]->index_;
+        bool first_step_was_found_in_neighbor_list =
+            (neighbor_index_visited.find(first_vertex_index) !=
+                neighbor_index_visited.end());
+        CHECK(first_step_was_found_in_neighbor_list)
+        << "Vertex " << first_vertex_index << " at index 0 of random walk "
+        << "is not a neighbor of the source node " << start_vertex_index;
+
+        // Set the first_vertex_index as found
+        neighbor_index_visited[first_vertex_index] = true;
+      }
+
+      for (const auto& index_found : neighbor_index_visited) {
+        CHECK(index_found.second)
+        << "Neighbor " << index_found.first << " of source vertex "
+        << start_vertex_index << " never shows up in the random walks.";
+      }
+    }
+    ++start_vertex_index;
+  }
+}
+
 bool areVerticesConnected(const int i, const int j,
                           const x_view::Graph::GraphType& graph) {
   const x_view::Graph::VertexDescriptor& vi = boost::vertex(i, graph);

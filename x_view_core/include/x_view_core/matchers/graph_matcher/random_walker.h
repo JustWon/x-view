@@ -119,6 +119,14 @@ class RandomWalker {
                const int random_seed = 0);
 
   /**
+   * \brief Generated num_walks random walks of length walk_length for each
+   * node contained in the graph graph_. The length and number of random
+   * walks generated for each graph vertex is determined by the parameters
+   * passed to the constructor.
+   */
+  void generateRandomWalks();
+
+  /**
    * \brief Access to the transition probability matrix.
    * \return A const reference to the transition probability matrix computed
    * for the graph passed to the constructor of this object.
@@ -133,10 +141,16 @@ class RandomWalker {
    * of the graph.
    */
   const std::vector<RandomWalks>& getRandomWalks() const {
+    CHECK(random_walks_.size() > 0)
+    << "Random walks might not have been computed. You might want to "
+    << "call 'random_walker.generateRandomWalks()' first.";
     return random_walks_;
   }
 
   const std::vector<WalkMap>& getMappedWalks() const {
+    CHECK(mapped_walks_.size() > 0)
+    << "Random walks might not have been computed. You might want to "
+    << "call 'random_walker.generateRandomWalks()' first.";
     return mapped_walks_;
   }
 
@@ -151,7 +165,7 @@ class RandomWalker {
     << "Vertex index (" << vertex_index << ") passed to " << __FUNCTION__
     << "is either negative or larger than the number of vertices contained in"
         " the graph";
-    return random_walks_[vertex_index];
+    return getRandomWalks()[vertex_index];
   }
 
  private:
@@ -186,13 +200,6 @@ class RandomWalker {
   static const int computeRandomWalkKey(const RandomWalk& random_walk);
 
  protected:
-  /**
-   * \brief Generated num_walks random walks of length walk_length for each
-   * node contained in the graph graph_. The length and number of random
-   * walks generated for each graph vertex is determined by the parameters
-   * passed to the constructor.
-   */
-  void generateRandomWalks();
 
   /**
    * \brief Samples a new vertex from the set of neighbors of the current
