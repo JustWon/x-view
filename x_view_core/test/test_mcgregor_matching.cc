@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+namespace x_view_test {
+
 void AbstractMaximalSubgraphTest::run() const {
   LOG(INFO) << "Testing " << graph_name_;
 
@@ -223,6 +225,8 @@ void PaperGraphsTest::buildGraphDatabase() {
   boost::add_edge(v2_8, v2_9, {EdgeData::EdgeLabelName::CLOSE}, g2);
   boost::add_edge(v2_9, v2_10, {EdgeData::EdgeLabelName::DISTANT}, g2);
   boost::add_edge(v2_6, v2_10, {EdgeData::EdgeLabelName::DISTANT}, g2);
+}
+
 }
 
 

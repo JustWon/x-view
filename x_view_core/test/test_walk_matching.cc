@@ -3,5 +3,7 @@
 #include <glog/logging.h>
 
 
+namespace x_view_test {
 
+}
 

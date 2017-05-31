@@ -3,6 +3,7 @@
 
 #include <x_view_core/features/graph.h>
 
+namespace x_view_test {
 /**
  * \brief Generates a random graph with num_vertices vertices, where each
  * pair of vertices is linked by an edge with probability edge_probability. A
@@ -18,5 +19,6 @@
 x_view::Graph::GraphType generateRandomGraph(const int num_vertices,
                                              const float edge_probability,
                                              const int num_semantic_classes);
+}
 
 #endif //X_VIEW_TEST_COMMON_H

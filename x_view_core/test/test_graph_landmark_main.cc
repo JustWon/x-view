@@ -11,6 +11,9 @@
 
 #include <gtest/gtest.h>
 
+using namespace x_view;
+using namespace x_view_test;
+
 TEST(XViewSlamTestSuite, test_graph_landmark) {
 
   LOG(INFO) << "\n\n====Testing graph landmark====";

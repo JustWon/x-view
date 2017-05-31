@@ -9,6 +9,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/mcgregor_common_subgraphs.hpp>
 
+namespace x_view_test {
 //*************************** Graph specifications ***************************//
 
 /// \brief Object representing a vertex of the graph.
@@ -137,7 +138,7 @@ struct SubgraphCallback {
                   typename boost::graph_traits<GraphType>::vertices_size_type
                   subgraph_size) {
 
-    std::ostringstream  log_message;
+    std::ostringstream log_message;
     log_message << "Correspondences found by mcgregor:\n";
 
     // print out the vertex correspondences found by the mcgregor algorithm
@@ -149,9 +150,9 @@ struct SubgraphCallback {
       auto correspondence = boost::get(correspondence_map_1_to_2, v);
       if (correspondence != boost::graph_traits<GraphType>::null_vertex()) {
         log_message << "\tvertex: \t" << v << ", " << graph1_[v]
-                  << " \t <-> \t "
-                  << "vertex: \t" << correspondence << ", "
-                  << graph2_[correspondence] << "\n";
+                    << " \t <-> \t "
+                    << "vertex: \t" << correspondence << ", "
+                    << graph2_[correspondence] << "\n";
       }
     }
 
@@ -186,5 +187,7 @@ struct SubgraphCallback {
   const GraphType& graph2_;
 
 };
+
+}
 
 #endif //X_VIEW_TEST_MCGREGOR_MATCHING_H

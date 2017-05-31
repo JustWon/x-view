@@ -9,6 +9,7 @@
 #include <chrono>
 
 using namespace x_view;
+using namespace x_view_test;
 
 TEST(XViewSlamTestSuite, test_random_walk) {
 

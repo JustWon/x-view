@@ -12,6 +12,7 @@
 #include <glog/logging.h>
 
 using namespace x_view;
+using namespace x_view_test;
 
 TEST(XViewSlamTestSuite, test_walk_matching) {
 
@@ -35,8 +36,7 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
   random_walker_params.walk_length_ = walk_length;
   random_walker_params.num_walks_ = num_walks;
   random_walker_params.random_sampling_type_ =
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME
-      ;
+      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
 
   RandomWalker random_walker(graph, random_walker_params);
   random_walker.generateRandomWalks();
@@ -53,7 +53,7 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
     const auto& vertex_d_i = boost::vertex(i, graph);
     const auto& vertex_i = graph[vertex_d_i];
     const auto& mapped_walks_i = mapped_walks[i];
-    for (int j = i ; j < num_vertices; ++j) {
+    for (int j = i; j < num_vertices; ++j) {
       const auto& vertex_d_j = boost::vertex(j, graph);
       const auto& vertex_j = graph[vertex_d_j];
       // Score is only nonzero if the source vertex has same semantic label.

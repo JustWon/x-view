@@ -4,6 +4,8 @@
 #include <boost/graph/erdos_renyi_generator.hpp>
 #include <boost/random/linear_congruential.hpp>
 
+namespace x_view_test {
+
 x_view::Graph::GraphType generateRandomGraph(const int num_vertices,
                                              const float edge_probability,
                                              const int num_semantic_classes) {
@@ -45,5 +47,5 @@ x_view::Graph::GraphType generateRandomGraph(const int num_vertices,
 
   return graph;
 }
-
+}
 

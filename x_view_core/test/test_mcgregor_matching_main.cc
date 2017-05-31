@@ -2,7 +2,9 @@
 
 #include "test_mcgregor_matching.h"
 
-int mc_gregor_maximal_num_edges;
+using namespace x_view_test;
+
+int x_view_test::mc_gregor_maximal_num_edges;
 
 TEST(XViewSlamTestSuite, test_mcgregor_matching) {
 

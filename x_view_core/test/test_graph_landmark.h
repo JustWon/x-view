@@ -10,6 +10,8 @@
 
 using namespace x_view;
 
+namespace x_view_test {
+
 typedef std::shared_ptr<GraphLandmark> GraphLandmarkPtr;
 
 /// \brief test the custom image
@@ -71,5 +73,7 @@ void createDiscImage(const int desiredRows, const int desiredCols,
                      const std::vector<cv::Point>& centers,
                      const std::vector<int> radii,
                      const std::vector<int> labels, cv::Mat& image);
+
+}
 
 #endif //X_VIEW_TEST_GRAPH_LANDMARK_H

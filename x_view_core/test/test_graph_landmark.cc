@@ -2,6 +2,7 @@
 
 #include <glog/logging.h>
 
+namespace x_view_test {
 
 #define CV_IMAGE_TYPE  CV_8UC3
 
@@ -172,5 +173,7 @@ void createDiscImage(const int desiredRows, const int desiredCols,
                cv::Scalar(label, instance_id, 0),
                -1, 8, 0);
   }
+
+}
 
 }
