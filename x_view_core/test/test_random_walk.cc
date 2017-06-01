@@ -1,9 +1,5 @@
 #include "test_random_walk.h"
 
-#include <x_view_core/matchers/graph_matcher/random_walker.h>
-
-#include <glog/logging.h>
-
 namespace x_view_test {
 
 void testTransitionProbabilityMatrix(const x_view::RandomWalker& random_walker,

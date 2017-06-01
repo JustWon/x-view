@@ -1,6 +1,5 @@
 #include <x_view_core/matchers/graph_matcher/random_walker.h>
 
-#include <glog/logging.h>
 #include <x_view_core/datasets/abstract_dataset.h>
 
 namespace x_view {

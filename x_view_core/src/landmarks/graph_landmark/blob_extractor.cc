@@ -155,7 +155,7 @@ void BlobExtractor::dilateAndErode(cv::Mat* image,
                                    const BlobExtractorParams& params) {
 
   CHECK_NOTNULL(image);
-  
+
   cv::dilate(*image, *image, cv::Mat(), cv::Point(-1, -1),
              params.num_dilate_reps_);
   cv::erode(*image, *image, cv::Mat(), cv::Point(-1, -1),

@@ -9,10 +9,6 @@
 #include <x_view_core/matchers/graph_matcher/vertex_similarity.h>
 
 #include <boost/graph/random.hpp>
-#include <Eigen/Core>
-#include <glog/logging.h>
-
-#include <random>
 
 using namespace x_view;
 using namespace x_view_test;

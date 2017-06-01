@@ -49,7 +49,7 @@ const float VertexSimilarity::score_hard(const RandomWalker::WalkMap& node1,
       }
     }
   }
-  return float(score) / (normalization+1);
+  return float(score) / (normalization + 1);
 }
 
 const float VertexSimilarity::score_weighted(const RandomWalker::WalkMap& node1,

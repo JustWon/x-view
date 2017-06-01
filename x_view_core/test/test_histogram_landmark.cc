@@ -4,9 +4,6 @@
 #include <x_view_core/features/vector_descriptor.h>
 #include <x_view_core/landmarks/histogram_landmark.h>
 
-#include <glog/logging.h>
-#include <opencv2/core/core.hpp>
-
 using namespace x_view;
 
 namespace x_view_test {

@@ -12,15 +12,12 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/histogram_landmark.h>
 
-#include <opencv2/core/core.hpp>
-
 using namespace x_view;
 using namespace x_view_test;
 
 #define CV_IMAGE_TYPE  CV_8UC3
 
 #define CAST(from, to) std::dynamic_pointer_cast<to>(from)
-
 
 TEST(XViewSlamTestSuite, test_histogram_landmark) {
 

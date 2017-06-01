@@ -1,9 +1,6 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 
 #include <cv_bridge/cv_bridge.h>
-#include <opencv2/core/core.hpp>
-
-#include <iomanip>
 
 namespace enc = sensor_msgs::image_encodings;
 
@@ -76,7 +73,7 @@ const unsigned long AbstractDataset::largestLabelSize() const {
 
 std::ostream& operator<<(std::ostream& out, const AbstractDataset& dataset) {
   out << "Dataset name: " << dataset.datasetName() << std::endl << std::endl;
-  const unsigned long max_label_length = dataset.largestLabelSize()+1;
+  const unsigned long max_label_length = dataset.largestLabelSize() + 1;
   out << std::setfill(' ');
   out << std::left << std::setw(4) << "id:"
       << std::left << std::setw(max_label_length) << "label:"
@@ -84,7 +81,8 @@ std::ostream& operator<<(std::ostream& out, const AbstractDataset& dataset) {
       << std::left << std::setw(10) << "drawable";
   for (const auto& elem : dataset.semanticEntities()) {
     out << "\n" << std::left << std::setw(4) << elem.semantic_entity_id_;
-    out << std::left << std::setw(max_label_length) << elem.semantic_entity_name_;
+    out << std::left << std::setw(max_label_length)
+        << elem.semantic_entity_name_;
     out << std::left << std::setw(17) << (elem.is_static_ ? "static"
                                                           : "dynamic");
     out << std::left << std::setw(10) << (elem.is_to_render_ ? "yes" : "no");

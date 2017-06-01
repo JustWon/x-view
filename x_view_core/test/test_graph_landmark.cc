@@ -1,7 +1,5 @@
 #include "test_graph_landmark.h"
 
-#include <glog/logging.h>
-
 namespace x_view_test {
 
 #define CV_IMAGE_TYPE  CV_8UC3

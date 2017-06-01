@@ -87,7 +87,7 @@ void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
 }
 
 VertexProperty GraphBuilder::blobToGraphVertex(const int index,
-                                                      const Blob& blob) {
+                                               const Blob& blob) {
   const int semantic_label = blob.semantic_label_;
   const std::string label = global_dataset_ptr->label(semantic_label);
   const int size = blob.num_pixels_;

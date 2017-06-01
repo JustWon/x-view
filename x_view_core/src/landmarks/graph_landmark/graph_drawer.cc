@@ -3,8 +3,6 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
 
-#include <bitset>
-
 namespace x_view {
 
 void GraphDrawer::printBlobs(const ImageBlobs& blobs) {

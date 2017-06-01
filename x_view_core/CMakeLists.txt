@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(x_view_core)
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # if no build type given, than set the build type to "Release"
 IF (NOT CMAKE_BUILD_TYPE)
@@ -11,9 +11,9 @@ ENDIF (NOT CMAKE_BUILD_TYPE)
 
 message(STATUS "Building XView in ${CMAKE_BUILD_TYPE} mode")
 
-IF(CMAKE_BUILD_TYPE MATCHES Debug)
+IF (CMAKE_BUILD_TYPE MATCHES Debug)
     add_definitions(-DX_VIEW_DEBUG)
-ENDIF()
+ENDIF ()
 
 # Flag used by XView to know the path of where it is located.
 add_definitions(-DX_VIEW_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR})
@@ -83,12 +83,12 @@ target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
 # Note, this trick only includes the relevant header files but does not link
 # the sources against the generated libraries, so it is only a hack useful for
 # the IDE static analyzer to give hints about types.
-if($ENV{CLION_IDE})
+if ($ENV{CLION_IDE})
     set(OPENCVBLOBS_CLION_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/devel/.private/opencv_blobs_catkin/include)
     message("Manually include project directories: "
             ${OPENCVBLOBS_CLION_INCLUDE_DIR})
     include_directories(${OPENCVBLOBS_CLION_INCLUDE_DIR})
-endif()
+endif ()
 # Documentation
 add_doxygen(REQUIRED)
 

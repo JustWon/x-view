@@ -4,8 +4,6 @@
 #include <x_view_core/landmarks/graph_landmark/graph_builder.h>
 #include <x_view_core/landmarks/graph_landmark/graph_drawer.h>
 
-#include <opencv2/highgui/highgui.hpp>
-
 namespace x_view {
 
 // FIXME: should this parameter be read by the config file?
@@ -35,7 +33,7 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   GraphBuilderParams graph_builder_params;
   graph_builder_params.max_distance_for_neighborhood_ = 4;
   descriptor = GraphBuilder::createGraphFromNeighborBlobs(image_blobs_,
-                                                     graph_builder_params);
+                                                          graph_builder_params);
 
 #ifdef X_VIEW_DEBUG
   // ************ Graph drawing *********** //

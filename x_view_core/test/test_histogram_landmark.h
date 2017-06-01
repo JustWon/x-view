@@ -11,7 +11,7 @@ using namespace x_view;
 namespace x_view_test {
 
 void performLabelTest(const SemanticLandmarkPtr& landmark_,
-                      const std::vector <std::pair<int, double>>& expected);
+                      const std::vector<std::pair<int, double>>& expected);
 }
 
 #endif //X_VIEW_TEST_HISTOGRAM_LANDMARK_H

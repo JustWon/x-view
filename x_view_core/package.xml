@@ -20,6 +20,6 @@
     <depend>minkindr</depend>
     <depend>opencv2_catkin</depend>
     <depend>opencv_blobs_catkin</depend>
-    
+
 </package>
 
