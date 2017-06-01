@@ -19,7 +19,7 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
 
   const int distance_squared = distance * distance;
 
-  // increase the box dimension to avoid rejecting matches between blobs in
+  // Increase the box dimension to avoid rejecting matches between blobs in
   // case they are close but their original bounding_box's don't touch.
   const cv::Point box_shift(distance, distance);
   const cv::Size box_expansion(2 * distance, 2 * distance);
@@ -32,7 +32,7 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
   if ((bounding_box_i & bounding_box_j).area() == 0)
     return false;
 
-  // external contour
+  // External contour.
   const std::vector<cv::Point>& external_contour_i = bi
       .external_contour_pixels_;
   const std::vector<cv::Point>& external_contour_j = bj
@@ -40,14 +40,14 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
 
   for (const cv::Point& pi : external_contour_i)
     for (const cv::Point& pj : external_contour_j) {
-      // compute pixel distance
+      // Compute pixel distance.
       cv::Point diff = pi - pj;
       const int dist2 = diff.dot(diff);
       if (dist2 <= distance_squared)
         return true;
     }
 
-  // internal contours
+  // Internal contours.
   const std::vector<std::vector<cv::Point>>& internal_contours_i =
       bi.internal_contour_pixels_;
   const std::vector<std::vector<cv::Point>>& internal_contours_j =
@@ -56,7 +56,7 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
   for (const auto& internal_contour_i : internal_contours_i)
     for (const cv::Point& pi : internal_contour_i)
       for (const cv::Point& pj : external_contour_j) {
-        // compute pixel distance
+        // Compute pixel distance.
         cv::Point diff = pi - pj;
         const int dist2 = diff.dot(diff);
         if (dist2 <= distance_squared)
@@ -66,7 +66,7 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
   for (const auto& internal_contour_j : internal_contours_j)
     for (const cv::Point& pj : internal_contour_j)
       for (const cv::Point& pi : external_contour_i) {
-        // compute pixel distance
+        // Compute pixel distance.
         cv::Point diff = pi - pj;
         const int dist2 = diff.dot(diff);
         if (dist2 <= distance_squared)
@@ -89,7 +89,7 @@ void Blob::computeBoundingBox() {
   if (external_contour_pixels_.size() == 0)
     computeContours();
 
-  // iterate over the pixels belonging to the blob contour and determine the
+  // Iterate over the pixels belonging to the blob contour and determine the
   // minimum and maximum value for the x and y coordinate.
   int min_x = std::numeric_limits<int>::max();
   int max_x = std::numeric_limits<int>::min();
@@ -114,11 +114,20 @@ void Blob::computeFittingEllipse() {
     ellipse_ = cv::fitEllipse(external_contour_pixels_);
   else
     ellipse_ = cv::RotatedRect(external_contour_pixels_[0], cv::Size(1, 1), 0);
-  // scale down the ellipse by a factor of two
+  // Scale down the ellipse by a factor of two.
   ellipse_.size.height *= 0.5;
   ellipse_.size.width *= 0.5;
 
   center_ = ellipse_.center;
+}
+
+std::ostream& operator<<(std::ostream& out, const Blob& blob) {
+  out << "label: " << blob.semantic_label_
+      << ", instance: " << blob.instance_
+      << ", num pixels: " << blob.num_pixels_
+      << ", center: " << blob.center_
+      << ", bounding box: " << blob.bounding_box_;
+  return out;
 }
 
 }

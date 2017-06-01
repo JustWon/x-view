@@ -98,10 +98,10 @@ class AbstractDataset {
  * \param dataset AbstractDataset object to be streamed.
  * \return Stream filled with AbstaractDataset.
  */
-std::ostream& operator << (std::ostream& out, const AbstractDataset& dataset);
+std::ostream& operator<<(std::ostream& out, const AbstractDataset& dataset);
 
 /// \brief Overloaded operator to print object pointed by ConstDatasetPtr.
-std::ostream& operator << (std::ostream& out, const ConstDatasetPtr& ptr);
+std::ostream& operator<<(std::ostream& out, const ConstDatasetPtr& ptr);
 
 /// \brief Dataset accessible from everywhere in the x_view project.
 extern ConstDatasetPtr global_dataset_ptr;

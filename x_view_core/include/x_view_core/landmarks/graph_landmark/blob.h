@@ -73,6 +73,9 @@ class Blob {
 
 };
 
+/// \brief Overloaded operator to print a Blob.
+std::ostream& operator<<(std::ostream& out, const Blob& blob);
+
 }
 
 #endif //X_VIEW_BLOB_H

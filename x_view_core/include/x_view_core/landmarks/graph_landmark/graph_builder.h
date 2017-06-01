@@ -72,7 +72,7 @@ class GraphBuilder {
    * the blob passed as argument.
    */
   static VertexProperty blobToGraphVertex(const int index,
-                                                 const Blob& blob);
+                                          const Blob& blob);
 
 };
 
