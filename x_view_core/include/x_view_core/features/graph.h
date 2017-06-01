@@ -33,16 +33,35 @@ struct EdgeProperty {
 };
 
 /**
-* \brief A graph object represented as an adjacency list.
-* \details
-* First parameter: what stl container is used to store the edges. Using
-* setS as edge container to enforce uniqueness of edges, i.e. edge 1-2 is
-* the same as edge 2-1.
-* Second parameter: what stl container is used to store the graph vertices.
-* Third parameter: directed or undirected graph type.
-* Fourth parameter: node representation.
-* Fifth parameter: edge representation.
-*/
+ * \brief A graph object represented as an adjacency list.
+ * \details
+ * First parameter: what stl container is used to store the edges. Using
+ * setS as edge container to enforce uniqueness of edges, i.e. edge 1-2 is
+ * the same as edge 2-1.
+ * Second parameter: what stl container is used to store the graph vertices.
+ * Third parameter: directed or undirected graph type.
+ * Fourth parameter: node representation.
+ * Fifth parameter: edge representation.
+ * \note The second parameter must be boost::vecS such that each vertex can
+ * be accessed directly by the program as follows:
+ * \code{.cpp}
+ * Graph graph = createSomeGraph();
+ * VertexProperty first_vertex = graph[0];
+ * VertexProperty tenth_vertex = graph[9];
+ * \endcode
+ * Otherwise each time one wants to access a vertex it must perform a
+ * linear/logarithmic search on the vertex list:
+ * \code{.cpp}
+ * Graph graph = createSomeGraph();
+ * VertexProperty tenth_vertex;
+ * auto vertex_iter = boost::vertices(graph);
+ * for(int i = 0; vertex_iter.first != vertex_iter.second;
+ *     ++i,++vertex_iter.first) {
+ *     if(i == 9)
+ *         tenth_vertex = graph[*vertex_iter.first];
+ * }
+ *\endcode
+ */
 typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
                               VertexProperty, EdgeProperty> Graph;
 

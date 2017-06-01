@@ -8,8 +8,6 @@
 #include <x_view_core/matchers/graph_matcher/random_walker.h>
 #include <x_view_core/matchers/graph_matcher/vertex_similarity.h>
 
-#include <boost/graph/random.hpp>
-
 using namespace x_view;
 using namespace x_view_test;
 
@@ -40,20 +38,21 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
   const int seed = 0;
   std::mt19937 rng(seed);
 
-  const auto& old_vertex = boost::random_vertex(graph2, rng);
-  VertexProperty new_vertex;
-  new_vertex.index_ = static_cast<int>(boost::num_vertices(graph2));
-  new_vertex.semantic_label_ = 1;
-  new_vertex.semantic_entity_name_ = "Newly entered vertex";
-  const auto new_vertex_d = boost::add_vertex(new_vertex, graph2);
-  boost::add_edge(new_vertex_d, old_vertex,
-                  {new_vertex.index_, graph2[old_vertex].index_}, graph2);
+  // Define parameters for modifying the graph.
+  GraphModifierParams params;
+  params.num_vertices_to_add_ = 12;
+  params.num_links_for_new_vertices_ = 3;
+  params.num_vertices_to_remove_ = 5;
+  params.num_edges_to_add_ = 0;
+  params.num_edges_to_remove_ = 0;
 
-  auto random_edge = boost::random_edge(graph2, rng);
-  boost::remove_edge(random_edge, graph2);
+  // Effectively add and remove vertices and edges from the graph.
+  modifyGraph(&graph2, params, rng);
 
   std::cout << "Graph 1:\n" << graph1 << std::endl;
   std::cout << "Graph 2:\n" << graph2 << std::endl;
+
+  std::cout << "Done"<<std::endl;
 
   // Random walker parameters
   RandomWalkerParams random_walker_params;

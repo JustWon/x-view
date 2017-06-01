@@ -46,6 +46,14 @@ RandomWalker::RandomWalker(const Graph& graph,
       graph_(graph),
       params_(params) {
 
+  // Check that the graph type being used has a vertex_list_selector which
+  // corresponds to boost::vecS! If an other selector would be used, the
+  // implementation contained in this file does not work.
+  static_assert(std::is_same<boost::vecS, Graph::vertex_list_selector>::value,
+                "Random walker only works with Graphs "
+                    "having with 'boost::vecS' vertex list selector "
+                    "(second template argument).");
+
   if (params_.random_sampling_type_ !=
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM &&
       params_.allow_returning_back_ == false) {
@@ -85,10 +93,11 @@ void RandomWalker::generateRandomWalks() {
   mapped_walks_.resize(num_vertices);
 
   auto vertex_iter = boost::vertices(graph_);
+  int vertex_index = 0;
   for (; vertex_iter.first != vertex_iter.second; ++vertex_iter.first) {
     const VertexDescriptor start_vertex_descriptor = *vertex_iter.first;
     const VertexProperty& vertex_i = graph_[start_vertex_descriptor];
-    const int vertex_index = vertex_i.index_;
+    //const int vertex_index = vertex_i.index_;
 
     // Create a walk map object which stores the generated random walks keyed
     // by a unique identifier.
@@ -130,9 +139,9 @@ void RandomWalker::generateRandomWalks() {
         // Query the index of the current vertex and randomly sample the next
         // vertex to follow on the random_walk.
         const int
-            current_vertex_index = graph_[current_vertex_descriptor].index_;
+            current_vertex_index = current_vertex_descriptor;
         VertexDescriptor next = nextVertex(current_vertex_index);
-        int next_vertex_index = graph_[next].index_;
+        int next_vertex_index = next;
 
         unsigned long current_number_of_neighbors =
             boost::degree(current_vertex_descriptor, graph_);
@@ -145,7 +154,7 @@ void RandomWalker::generateRandomWalks() {
           // we need to find a new next vertex.
           while (next_vertex_index == old_vertex_index) {
             next = nextVertex(current_vertex_index);
-            next_vertex_index = graph_[next].index_;
+            next_vertex_index = next;
           }
         }
 
@@ -154,7 +163,7 @@ void RandomWalker::generateRandomWalks() {
         random_walk[step] = &vertex_j;
 
         // Set the old vertex index accordingly.
-        old_vertex_index = graph_[current_vertex_descriptor].index_;
+        old_vertex_index = current_vertex_descriptor;
 
         // Set the current graph vertex descriptor as the next so that it
         // can be used in the next iteration.
@@ -180,6 +189,7 @@ void RandomWalker::generateRandomWalks() {
       mapped_walks_[vertex_index] = walk_map;
     }
 
+    ++vertex_index;
   }
 }
 
@@ -221,12 +231,13 @@ void RandomWalker::precomputeUniformTransitionProbabilities() {
 
   // iterate over all vertices of the graph and compute the transition
   // probability from that vertex to its neighbors.
-  std::vector <Eigen::Triplet<float>> triplet_list;
+  std::vector<Eigen::Triplet<float>> triplet_list;
   auto vertex_iter = boost::vertices(graph_);
+  int index_i = 0;
   for (; vertex_iter.first != vertex_iter.second; ++vertex_iter.first) {
     // extract the current vertex from the graph
     const VertexProperty& vertex_i = graph_[*vertex_iter.first];
-    const int index_i = vertex_i.index_;
+    //const int index_i = vertex_i.index_;
     // compute the adjacent vertices of the current vertex v_index
     auto neighbors = boost::adjacent_vertices(*vertex_iter.first, graph_);
     const unsigned long num_neighbors =
@@ -239,9 +250,11 @@ void RandomWalker::precomputeUniformTransitionProbabilities() {
         const VertexProperty& vertex_j = graph_[*neighbors.first];
         const int index_j = vertex_j.index_;
         // add an edge between index_i and index_j
-        triplet_list.push_back(Eigen::Triplet<float>(index_i, index_j, prob));
+        triplet_list.push_back(Eigen::Triplet<float>(index_i, *neighbors.first,
+                                                     prob));
       }
     }
+    ++index_i;
   }
 
   // build the sparse matrix from the triplet list.
@@ -257,7 +270,7 @@ void RandomWalker::precomputeAvoidingTransitionProbabilities() {
 
   // iterate over all vertices of the graph and compute the transition
   // probability from that vertex to its neighbors.
-  std::vector <Eigen::Triplet<float>> triplet_list;
+  std::vector<Eigen::Triplet<float>> triplet_list;
   auto vertex_iter = boost::vertices(graph_);
   for (; vertex_iter.first != vertex_iter.second; ++vertex_iter.first) {
     // extract the current vertex from the graph
