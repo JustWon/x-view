@@ -25,10 +25,8 @@ cv::Mat AbstractDataset::convertSemanticImage(
     return image;
   }
   catch (cv_bridge::Exception& e) {
-    ROS_ERROR_STREAM("Could not convert from '"
-                         << msg->encoding
-                         << "' to '" << enc::BGR8 << "'"
-                         << "\nError: " << e.what());
+    LOG(FATAL) << "Could not convert from '" << msg->encoding
+               << "' to '" << enc::BGR8 << "'\nError: " << e.what();
   }
 }
 

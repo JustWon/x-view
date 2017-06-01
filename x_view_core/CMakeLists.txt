@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(x_view_core)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -march=native")
 
 # if no build type given, than set the build type to "Release"
 IF (NOT CMAKE_BUILD_TYPE)

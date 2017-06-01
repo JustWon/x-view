@@ -16,6 +16,8 @@ image_size) const {
     const int
         min_blob_size = static_cast<int>(num_total_pixels * n_min_pixels_);
     return min_blob_size;
+  } else {
+    LOG(FATAL) << "Unrecognized size type.";
   }
 }
 

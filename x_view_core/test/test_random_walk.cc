@@ -9,12 +9,10 @@ void testTransitionProbabilityMatrix(const x_view::RandomWalker& random_walker,
   const Eigen::SparseMatrix<float>& trans =
       random_walker.getTransitionProbabilityMatrix();
 
-  const auto& random_walks = random_walker.getRandomWalks();
-
   // iterate over all vertices contained in the graph.
   auto vertex_iter = boost::vertices(graph);
-  for (vertex_iter.first; vertex_iter.first != vertex_iter.second;
-       ++vertex_iter.first) {
+  for (; vertex_iter.first != vertex_iter.second;
+         ++vertex_iter.first) {
     // each vertex corresponds to a row in the transition probability matrix.
     // The row is determined by the index associated to the vertex.
     const x_view::VertexProperty& vi = graph[*vertex_iter.first];
@@ -93,9 +91,8 @@ void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
         bool all_neighbors_have_same_label = true;
         // Check whether all neighbors have the same semantic label as the
         // current vertex or not.
-        for (from_vertex_neighbors.first;
-             from_vertex_neighbors.first != from_vertex_neighbors.second;
-             ++from_vertex_neighbors.first) {
+        for (; from_vertex_neighbors.first != from_vertex_neighbors.second;
+               ++from_vertex_neighbors.first) {
           if (graph[*from_vertex_neighbors.first].semantic_label_ !=
               from_label) {
             all_neighbors_have_same_label = false;
@@ -134,9 +131,8 @@ void testVisitingNeighbors(const x_view::RandomWalker& random_walker,
       auto start_neighbors = boost::adjacent_vertices(start_vertex_d, graph);
       std::map<int, bool> neighbor_index_visited;
       // Set the neighbors as non-visited.
-      for (start_neighbors.first;
-           start_neighbors.first != start_neighbors.second;
-           ++start_neighbors.first) {
+      for (; start_neighbors.first != start_neighbors.second;
+             ++start_neighbors.first) {
         const auto& current_neighbor_p = graph[*start_neighbors.first];
         neighbor_index_visited[current_neighbor_p.index_] = false;
       }
