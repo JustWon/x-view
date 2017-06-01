@@ -6,17 +6,17 @@
 
 namespace x_view_test {
 
-x_view::Graph::GraphType generateRandomGraph(const int num_vertices,
-                                             const float edge_probability,
-                                             const int num_semantic_classes) {
+x_view::Graph generateRandomGraph(const int num_vertices,
+                                  const float edge_probability,
+                                  const int num_semantic_classes) {
 
   typedef boost::erdos_renyi_iterator<boost::minstd_rand,
-                                      x_view::Graph::GraphType> ERGen;
+                                      x_view::Graph> ERGen;
 
   boost::minstd_rand gen;
   // Create random graph
-  x_view::Graph::GraphType graph(ERGen(gen, num_vertices, edge_probability),
-                                 ERGen(), num_vertices);
+  x_view::Graph graph(ERGen(gen, num_vertices, edge_probability),
+                      ERGen(), num_vertices);
 
   // add properties to the vertices
   auto vertex_iter = boost::vertices(graph);

@@ -7,7 +7,7 @@
 namespace x_view_test {
 
 void testTransitionProbabilityMatrix(const x_view::RandomWalker& random_walker,
-                                     const x_view::Graph::GraphType& graph,
+                                     const x_view::Graph& graph,
                                      const x_view::RandomWalkerParams& params) {
 
   const Eigen::SparseMatrix<float>& trans =
@@ -21,7 +21,7 @@ void testTransitionProbabilityMatrix(const x_view::RandomWalker& random_walker,
        ++vertex_iter.first) {
     // each vertex corresponds to a row in the transition probability matrix.
     // The row is determined by the index associated to the vertex.
-    const x_view::Graph::VertexProperty& vi = graph[*vertex_iter.first];
+    const x_view::VertexProperty& vi = graph[*vertex_iter.first];
     const int vertex_index = vi.index_;
     // count the non-zero elements in the corresponding row of the transition
     // probability matrix.
@@ -54,7 +54,7 @@ void testTransitionProbabilityMatrix(const x_view::RandomWalker& random_walker,
 }
 
 void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
-                            const x_view::Graph::GraphType& graph,
+                            const x_view::Graph& graph,
                             const x_view::RandomWalkerParams& params) {
   const auto& all_random_walks = random_walker.getRandomWalks();
   int start_vertex_index = 0;
@@ -81,7 +81,7 @@ void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
 }
 
 void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
-                          const x_view::Graph::GraphType& graph,
+                          const x_view::Graph& graph,
                           const x_view::RandomWalkerParams& params) {
   const auto& all_random_walks = random_walker.getRandomWalks();
   int start_vertex_index = 0;
@@ -125,7 +125,7 @@ void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
 }
 
 void testVisitingNeighbors(const x_view::RandomWalker& random_walker,
-                           const x_view::Graph::GraphType& graph,
+                           const x_view::Graph& graph,
                            const x_view::RandomWalkerParams& params) {
   const auto& all_random_walks = random_walker.getRandomWalks();
   unsigned long start_vertex_index = 0;
@@ -167,13 +167,6 @@ void testVisitingNeighbors(const x_view::RandomWalker& random_walker,
     }
     ++start_vertex_index;
   }
-}
-
-bool areVerticesConnected(const int i, const int j,
-                          const x_view::Graph::GraphType& graph) {
-  const x_view::Graph::VertexDescriptor& vi = boost::vertex(i, graph);
-  const x_view::Graph::VertexDescriptor& vj = boost::vertex(j, graph);
-  return boost::edge(vi, vj, graph).second;
 }
 
 }

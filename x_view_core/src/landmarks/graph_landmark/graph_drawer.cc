@@ -50,149 +50,130 @@ cv::Mat GraphDrawer::createImageFromBlobs(const ImageBlobs& blobs,
         cv::drawContours(image, v_contours, 0, color, CV_FILLED);
 
       }
-
   }
-
   return image;
-
 }
 
 void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
 
-  if (image != nullptr) {
-    const std::vector<int>& labels_to_render =
-        global_dataset_ptr->getLabelsToRender();
+  CHECK_NOTNULL(image);
 
-    const cv::Scalar font_color = cv::Scalar(255, 255, 255);
-    for (int c = 0; c < blobs.size(); ++c) {
-      // only add the blob if the label has not to be ignored, thus if it can
-      // not be found in the passed parameter
-      if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
-          std::end(labels_to_render))
-        for (const Blob& blob : blobs[c]) {
-          const std::string label = std::to_string(blob.semantic_label_);
-          const std::string label_descr =
-              global_dataset_ptr->label(blob.semantic_label_);
+  const std::vector<int>& labels_to_render =
+      global_dataset_ptr->getLabelsToRender();
 
-          const std::string text = label + ") " + label_descr;
-          cv::putText(*image, text, blob.center_, cv::FONT_HERSHEY_DUPLEX,
-                      0.65, font_color, 1, CV_AA);
-          // if the blob has an instance id associated to it, render it on a
-          // new line.
-          // new line.
-          if (blob.instance_ != -1) {
-            const std::string instance =
-                "id: " + std::to_string(blob.instance_);
-            cv::putText(*image, instance, blob.center_ + cv::Point(0, 20),
-                        cv::FONT_HERSHEY_DUPLEX, 0.65, font_color, 1, CV_AA);
-          }
+  const cv::Scalar font_color = cv::Scalar(255, 255, 255);
+  for (int c = 0; c < blobs.size(); ++c) {
+    // only add the blob if the label has not to be ignored, thus if it can
+    // not be found in the passed parameter
+    if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
+        std::end(labels_to_render))
+      for (const Blob& blob : blobs[c]) {
+        const std::string label = std::to_string(blob.semantic_label_);
+        const std::string label_descr =
+            global_dataset_ptr->label(blob.semantic_label_);
+
+        const std::string text = label + ") " + label_descr;
+        cv::putText(*image, text, blob.center_, cv::FONT_HERSHEY_DUPLEX,
+                    0.65, font_color, 1, CV_AA);
+        // if the blob has an instance id associated to it, render it on a
+        // new line.
+        // new line.
+        if (blob.instance_ != -1) {
+          const std::string instance =
+              "id: " + std::to_string(blob.instance_);
+          cv::putText(*image, instance, blob.center_ + cv::Point(0, 20),
+                      cv::FONT_HERSHEY_DUPLEX, 0.65, font_color, 1, CV_AA);
         }
-    }
-  } else {
-    CHECK(false) << "Image parameter passed to " << __FUNCTION__
-                 << " is nullptr";
+      }
   }
 }
 
 void GraphDrawer::addEllipsesToImage(const ImageBlobs& blobs, cv::Mat* image) {
 
-  if (image != nullptr) {
-    const std::vector<int>& labels_to_render =
-        global_dataset_ptr->getLabelsToRender();
+  CHECK_NOTNULL(image);
 
-    // Draw the blobs onto the image
-    for (int c = 0; c < blobs.size(); ++c) {
-      // only add the blob if the label has not to be ignored, thus if it can
-      // not be found in the passed parameter
-      if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
-          std::end(labels_to_render))
-        for (const Blob& blob : blobs[c]) {
-          cv::Scalar ellipse_color;
-          if (global_dataset_ptr->semanticEntities()[c].is_static_)
-            ellipse_color = cv::Scalar(255, 40, 0); // bluish
-          else
-            ellipse_color = cv::Scalar(10, 60, 255); // reddish
+  const std::vector<int>& labels_to_render =
+      global_dataset_ptr->getLabelsToRender();
 
-          int ellipse_thickness = 2;
-          cv::ellipse(*image, blob.ellipse_, ellipse_color, ellipse_thickness);
-        }
-    }
-  } else {
-    CHECK(false) << "Image parameter passed to " << __FUNCTION__
-                 << " is nullptr";
+  // Draw the blobs onto the image
+  for (int c = 0; c < blobs.size(); ++c) {
+    // only add the blob if the label has not to be ignored, thus if it can
+    // not be found in the passed parameter
+    if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
+        std::end(labels_to_render))
+      for (const Blob& blob : blobs[c]) {
+        cv::Scalar ellipse_color;
+        if (global_dataset_ptr->semanticEntities()[c].is_static_)
+          ellipse_color = cv::Scalar(255, 40, 0); // bluish
+        else
+          ellipse_color = cv::Scalar(10, 60, 255); // reddish
+
+        int ellipse_thickness = 2;
+        cv::ellipse(*image, blob.ellipse_, ellipse_color, ellipse_thickness);
+      }
   }
 }
 
-void GraphDrawer::addGraphNodesToImage(const Graph::GraphType& graph,
-                                       cv::Mat* image) {
+void GraphDrawer::addGraphNodesToImage(const Graph& graph, cv::Mat* image) {
 
-  if (image != nullptr) {
-    const std::vector<int>& labels_to_render =
-        global_dataset_ptr->getLabelsToRender();
+  CHECK_NOTNULL(image);
 
-    const int node_radius = 4;
-    const cv::Scalar node_color(216, 28, 141);
+  const std::vector<int>& labels_to_render =
+      global_dataset_ptr->getLabelsToRender();
 
-    auto node_iter = boost::vertices(graph);
-    for (node_iter; node_iter.first != node_iter.second; ++node_iter.first) {
-      const Graph::VertexDescriptor& node_descriptor = *node_iter.first;
-      const Graph::VertexProperty& node = graph[node_descriptor];
+  const int node_radius = 4;
+  const cv::Scalar node_color(216, 28, 141);
 
-      const cv::Point& center = node.center_;
-      const int label = node.semantic_label_;
+  auto node_iter = boost::vertices(graph);
+  for (; node_iter.first != node_iter.second; ++node_iter.first) {
+    const VertexDescriptor& node_descriptor = *node_iter.first;
+    const VertexProperty& node = graph[node_descriptor];
 
-      if (std::find(labels_to_render.begin(), labels_to_render.end(), label) !=
-          std::end(labels_to_render)) {
-        cv::circle(*image, center, node_radius, node_color, CV_FILLED);
-      }
+    const cv::Point& center = node.center_;
+    const int label = node.semantic_label_;
+
+    if (std::find(labels_to_render.begin(), labels_to_render.end(), label) !=
+        std::end(labels_to_render)) {
+      cv::circle(*image, center, node_radius, node_color, CV_FILLED);
     }
-  } else {
-    CHECK(false) << "Image parameter passed to " << __FUNCTION__
-                 << " is nullptr";
   }
 }
 
-void GraphDrawer::addGraphEdgesToImage(const Graph::GraphType& graph,
-                                       cv::Mat* image) {
+void GraphDrawer::addGraphEdgesToImage(const Graph& graph, cv::Mat* image) {
 
-  if (image != nullptr) {
-    const std::vector<int>& labels_to_render =
-        global_dataset_ptr->getLabelsToRender();
+  CHECK_NOTNULL(image);
 
-    const int edge_thickness = 2;
-    const cv::Scalar edge_color(58, 189, 255);
+  const std::vector<int>& labels_to_render =
+      global_dataset_ptr->getLabelsToRender();
 
-    // second, add the edges between the nodes of the graph
-    auto edge_iter = boost::edges(graph);
-    for (edge_iter; edge_iter.first != edge_iter.second; ++edge_iter.first) {
-      // get the two vertices connected by this edge
-      const Graph::VertexDescriptor& vd_from =
-          boost::source(*edge_iter.first, graph);
-      const Graph::VertexDescriptor& vd_to =
-          boost::target(*edge_iter.first, graph);
+  const int edge_thickness = 2;
+  const cv::Scalar edge_color(58, 189, 255);
 
-      const Graph::VertexProperty& v_from = graph[vd_from];
-      const Graph::VertexProperty& v_to = graph[vd_to];
+  // second, add the edges between the nodes of the graph
+  auto edge_iter = boost::edges(graph);
+  for (; edge_iter.first != edge_iter.second; ++edge_iter.first) {
+    // get the two vertices connected by this edge
+    const VertexDescriptor& vd_from = boost::source(*edge_iter.first, graph);
+    const VertexDescriptor& vd_to = boost::target(*edge_iter.first, graph);
 
-      const int from_label = v_from.semantic_label_;
-      const int to_label = v_to.semantic_label_;
+    const VertexProperty& v_from = graph[vd_from];
+    const VertexProperty& v_to = graph[vd_to];
 
-      // only draw the edge if both nodes are to render
-      if (std::find(labels_to_render.begin(),
-                    labels_to_render.end(),
-                    from_label)
-          != std::end(labels_to_render) &&
-          std::find(labels_to_render.begin(), labels_to_render.end(), to_label)
-              != std::end(labels_to_render)) {
-        const cv::Point& from_center = v_from.center_;
-        const cv::Point& to_center = v_to.center_;
+    const int from_label = v_from.semantic_label_;
+    const int to_label = v_to.semantic_label_;
 
-        cv::line(*image, from_center, to_center, edge_color, edge_thickness);
-      }
+    // only draw the edge if both nodes are to render
+    if (std::find(labels_to_render.begin(),
+                  labels_to_render.end(),
+                  from_label)
+        != std::end(labels_to_render) &&
+        std::find(labels_to_render.begin(), labels_to_render.end(), to_label)
+            != std::end(labels_to_render)) {
+      const cv::Point& from_center = v_from.center_;
+      const cv::Point& to_center = v_to.center_;
+
+      cv::line(*image, from_center, to_center, edge_color, edge_thickness);
     }
-  } else {
-    CHECK(false) << "Image parameter passed to " << __FUNCTION__
-                 << " is nullptr";
   }
 
 }

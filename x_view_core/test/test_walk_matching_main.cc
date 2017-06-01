@@ -35,21 +35,17 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
   const int walk_length = 3;
 
   // Generate a random graph with the parameters specified above.
-  Graph g1;
-  Graph::GraphType& graph1 = g1.graph();
-  graph1 =
+  Graph graph1 =
       generateRandomGraph(num_vertices, edge_probability, num_semantic_classes);
 
   // Copy the generated graph into a new graph instance.
-  Graph g2;
-  Graph::GraphType& graph2 = g2.graph();
-  graph2 = graph1;
+  Graph graph2 = graph1;
 
   const int seed = 0;
   std::mt19937 rng(seed);
 
   const auto& old_vertex = boost::random_vertex(graph2, rng);
-  Graph::VertexProperty new_vertex;
+  VertexProperty new_vertex;
   new_vertex.index_ = static_cast<int>(boost::num_vertices(graph2));
   new_vertex.semantic_label_ = 1;
   new_vertex.semantic_entity_name_ = "Newly entered vertex";
@@ -60,16 +56,8 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
   auto random_edge = boost::random_edge(graph2, rng);
   boost::remove_edge(random_edge, graph2);
 
-  std::cout << "Vertices of graph 1:\n";
-  g1.printVertices();
-  std::cout << "Edges of graph 1:\n";
-  g1.printEdges();
-
-  std::cout << "Vertices of graph 2:\n";
-  g2.printVertices();
-  std::cout << "Edges of graph 2:\n";
-  g2.printEdges();
-
+  std::cout << "Graph 1:\n" << graph1 << std::endl;
+  std::cout << "Graph 2:\n" << graph2 << std::endl;
 
   // Random walker parameters
   RandomWalkerParams random_walker_params;
@@ -78,7 +66,7 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
   random_walker_params.random_sampling_type_ =
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
   random_walker_params.force_visiting_each_neighbor_ = true;
-  random_walker_params.allow_returning_back_= false;
+  random_walker_params.allow_returning_back_ = false;
 
   RandomWalker random_walker1(graph1, random_walker_params);
   random_walker1.generateRandomWalks();

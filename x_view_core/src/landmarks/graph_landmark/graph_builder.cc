@@ -7,13 +7,13 @@ namespace x_view {
 
 std::vector<const Blob*> GraphBuilder::DEFAULT_BLOB_VECTOR;
 
-Graph::GraphType GraphBuilder::createGraphFromNeighborBlobs(const ImageBlobs&
+Graph GraphBuilder::createGraphFromNeighborBlobs(const ImageBlobs&
 blobs, const GraphBuilderParams& params) {
 
-  Graph::GraphType graph;
+  Graph graph;
 
   // vector containing references to the created graph nodes
-  std::vector<Graph::VertexDescriptor> vertex_descriptors;
+  std::vector<VertexDescriptor> vertex_descriptors;
   // vector keeping track of which blob is associated to which graph node
   std::vector<const Blob*> blob_vector;
 
@@ -40,11 +40,11 @@ blobs, const GraphBuilderParams& params) {
 
 }
 
-Graph::GraphType GraphBuilder::createCompleteGraph(const ImageBlobs& blobs) {
+Graph GraphBuilder::createCompleteGraph(const ImageBlobs& blobs) {
 
-  Graph::GraphType graph;
+  Graph graph;
 
-  std::vector<Graph::VertexDescriptor> vertex_descriptors;
+  std::vector<VertexDescriptor> vertex_descriptors;
 
   GraphBuilder::addBlobsToGraph(blobs, &graph, &vertex_descriptors);
 
@@ -61,8 +61,8 @@ Graph::GraphType GraphBuilder::createCompleteGraph(const ImageBlobs& blobs) {
 }
 
 void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
-                                   Graph::GraphType* graph,
-                                   std::vector<Graph::VertexDescriptor>* vertex_descriptors,
+                                   Graph* graph,
+                                   std::vector<VertexDescriptor>* vertex_descriptors,
                                    std::vector<const Blob*>* blob_vector) {
 
   if (graph != nullptr) {
@@ -74,7 +74,7 @@ void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
     for (int c = 0; c < blobs.size(); ++c) {
       for (const Blob& blob : blobs[c]) {
         blob_vector->push_back(&blob);
-        Graph::VertexProperty vertex =
+        VertexProperty vertex =
             GraphBuilder::blobToGraphVertex(blob_count++, blob);
         vertex_descriptors->push_back(boost::add_vertex(vertex, *graph));
       }
@@ -86,13 +86,13 @@ void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
 
 }
 
-Graph::VertexProperty GraphBuilder::blobToGraphVertex(const int index,
+VertexProperty GraphBuilder::blobToGraphVertex(const int index,
                                                       const Blob& blob) {
   const int semantic_label = blob.semantic_label_;
   const std::string label = global_dataset_ptr->label(semantic_label);
   const int size = blob.num_pixels_;
   const cv::Point center = blob.center_;
-  return Graph::VertexProperty{index, semantic_label, label, size, center};
+  return VertexProperty{index, semantic_label, label, size, center};
 }
 
 }

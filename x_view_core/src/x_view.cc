@@ -18,7 +18,7 @@
 namespace x_view {
 
 // declaration of global dataset pointer
-ConstDatasetPrt global_dataset_ptr;
+ConstDatasetPtr global_dataset_ptr;
 
 XView::XView(XViewParams& params) : params_(params) {
   // parse the passed parameters and instantiate concrete classes for all
@@ -46,20 +46,19 @@ void XView::processSemanticImage(const cv::Mat& image, const SE3& pose) {
 }
 
 void XView::printInfo() const {
-  std::string info = "\n";
-  info += "==========================================================";
-  info += "\n                  XView";
-#ifdef X_VIEW_DEBUG
-  info += " (Debug)";
-#else
-  info += " (Release)";
-#endif
-  info += "\n" + dataset_->datasetInfo("\t");
-  info += "\n\tLandmark type:\t<" + params_.semantic_landmark_type_ + ">";
-  info += "\n\tMatcher type: \t<" + params_.landmark_matching_type_ + ">";
-  info += "\n===========================================================\n";
+  LOG(INFO)
+      << "\n==========================================================\n"
+      << "                  XView"
+      #ifdef X_VIEW_DEBUG
+      << " (Debug)"
+      #else
+      << " (Release)"
+      #endif
+      << "\n\n" << dataset_
+      << "\n\tLandmark type:\t<" + params_.semantic_landmark_type_ + ">"
+      << "\n\tMatcher type: \t<" + params_.landmark_matching_type_ + ">"
+      << "\n==========================================================\n";
 
-  LOG(INFO) << info;
 }
 
 void XView::parseParameters() {

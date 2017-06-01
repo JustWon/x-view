@@ -34,7 +34,6 @@ class AbstractDataset {
     int semantic_entity_id_;
     bool is_static_;
     bool is_to_render_;
-
   };
 
   AbstractDataset(const int num_semantic_classes);
@@ -47,10 +46,6 @@ class AbstractDataset {
   virtual const std::string datasetName() const {
     return std::string("Abstract Dataset");
   };
-
-  ///\brief Generates a human readable description of the database, t is the
-  /// standard indentation to be used between new lines of the generated string.
-  virtual const std::string datasetInfo(const std::string& t = "") const;
 
   ///\brief Returns the number of semantic classes contained in the dataset.
   int numSemanticClasses() const { return num_semantic_classes_; }
@@ -79,21 +74,37 @@ class AbstractDataset {
   /// one might want to render.
   virtual const std::vector<int> getLabelsToRender() const;
 
-  /// \brief returns a vector containing the index of the semantic entities
+  /// \brief Returns a vector containing the index of the semantic entities
   /// being static.
   virtual const std::vector<int> getStaticLabels() const;
 
-  /// \brief returns a vector containing the index of the semantic entities
+  /// \brief Returns a vector containing the index of the semantic entities
   /// being dynamic.
   virtual const std::vector<int> getDynamicLabels() const;
+
+  /// \brief Returns the length of the longest label in the dataset. This
+  /// function is used for formatting the output.
+  const unsigned long largestLabelSize() const;
 
  protected:
   const int num_semantic_classes_;
   std::vector<SemanticEntity> semantic_entities_;
 };
 
+/**
+ * \brief Streams the dataset in a human readable way to the passed
+ * stream argument.
+ * \param out Stream object to be streamed to.
+ * \param dataset AbstractDataset object to be streamed.
+ * \return Stream filled with AbstaractDataset.
+ */
+std::ostream& operator << (std::ostream& out, const AbstractDataset& dataset);
+
+/// \brief Overloaded operator to print object pointed by ConstDatasetPtr.
+std::ostream& operator << (std::ostream& out, const ConstDatasetPtr& ptr);
+
 /// \brief Dataset accessible from everywhere in the x_view project.
-extern ConstDatasetPrt global_dataset_ptr;
+extern ConstDatasetPtr global_dataset_ptr;
 
 }
 

@@ -23,12 +23,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       std::make_shared<AbstractDataset>(AbstractDataset(num_semantic_classes));
   CHECK_NOTNULL(global_dataset_ptr.get());
 
-  typedef Graph::VertexProperty Vertex;
-  typedef Graph::VertexDescriptor VertexDescriptor;
-
-  Graph g;
-  Graph::GraphType& graph = g.graph();
-
+  Graph graph;
   const int walk_length = 3;
   const int num_walks_per_vertex = 20;
 
@@ -57,9 +52,6 @@ TEST(XViewSlamTestSuite, test_random_walk) {
                                 edge_probability,
                                 num_semantic_classes);
 
-    LOG(INFO) << "Testing random graph with " << boost::num_vertices(graph)
-              << " vertices, " << boost::num_edges(graph) << " edges.";
-
     for (const auto sampling_type : sampling_types) {
       for (const bool force_visiting_neighbor : force_visiting_neighbors_vec) {
         for (const bool allow_returning_back : allow_returning_back_vec) {
@@ -70,6 +62,11 @@ TEST(XViewSlamTestSuite, test_random_walk) {
           params.num_walks_ = num_walks_per_vertex;
           params.force_visiting_each_neighbor_ = force_visiting_neighbor;
           params.allow_returning_back_ = allow_returning_back;
+
+          LOG(INFO) << "Testing random graph with:\n\t"
+                    << "Num vertices: " << num_vertices << "\n\t"
+                    << "Num edges: " << boost::num_edges(graph) << "\n"
+                    << "Parameters: \n" << params << std::endl;
 
           // Generate random walks for the graph and measure execution time.
           RandomWalker random_walker(graph, params);

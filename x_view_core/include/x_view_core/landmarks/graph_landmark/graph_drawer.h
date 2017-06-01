@@ -52,8 +52,7 @@ class GraphDrawer {
   * \param image The nodes are rendered on top of the image passed as
   * argument.
   */
-  static void addGraphNodesToImage(const Graph::GraphType& graph,
-                                   cv::Mat* image);
+  static void addGraphNodesToImage(const Graph& graph, cv::Mat* image);
 
   /**
   * \brief Adds the graph edges to the image representing the blobs.
@@ -61,8 +60,7 @@ class GraphDrawer {
   * \param image The edges are rendered on top of the image passed as
   * argument.
   */
-  static void addGraphEdgesToImage(const Graph::GraphType& graph,
-                                   cv::Mat* image);
+  static void addGraphEdgesToImage(const Graph& graph, cv::Mat* image);
 
 };
 

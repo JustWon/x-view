@@ -18,7 +18,6 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
 
   // Graph descriptor filled up by this function
   Graph descriptor;
-  Graph::GraphType& graph = descriptor.graph();
 
   // *********** Blobs extraction ********** //
   BlobExtractorParams blob_extractor_params;
@@ -35,15 +34,15 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   // *********** Graph generation ********** //
   GraphBuilderParams graph_builder_params;
   graph_builder_params.max_distance_for_neighborhood_ = 4;
-  graph = GraphBuilder::createGraphFromNeighborBlobs(image_blobs_,
+  descriptor = GraphBuilder::createGraphFromNeighborBlobs(image_blobs_,
                                                      graph_builder_params);
 
 #ifdef X_VIEW_DEBUG
   // ************ Graph drawing *********** //
   cv::Mat draw_image =
       GraphDrawer::createImageFromBlobs(image_blobs_, image.size());
-  GraphDrawer::addGraphEdgesToImage(graph, &draw_image);
-  GraphDrawer::addGraphNodesToImage(graph, &draw_image);
+  GraphDrawer::addGraphEdgesToImage(descriptor, &draw_image);
+  GraphDrawer::addGraphNodesToImage(descriptor, &draw_image);
   GraphDrawer::addEllipsesToImage(image_blobs_, &draw_image);
   GraphDrawer::addLabelsToImage(image_blobs_, &draw_image);
   cv::imshow("Semantic entities and graph structure", draw_image);

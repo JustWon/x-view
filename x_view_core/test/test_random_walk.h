@@ -17,7 +17,7 @@ namespace x_view_test {
  * the transition probability matrix.
  */
 void testTransitionProbabilityMatrix(const x_view::RandomWalker& random_walker,
-                                     const x_view::Graph::GraphType& graph,
+                                     const x_view::Graph& graph,
                                      const x_view::RandomWalkerParams& params);
 
 /**
@@ -30,7 +30,7 @@ void testTransitionProbabilityMatrix(const x_view::RandomWalker& random_walker,
  * the random walks.
  */
 void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
-                            const x_view::Graph::GraphType& graph,
+                            const x_view::Graph& graph,
                             const x_view::RandomWalkerParams& params);
 
 /**
@@ -43,7 +43,7 @@ void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
  * the random walks.
  */
 void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
-                          const x_view::Graph::GraphType& graph,
+                          const x_view::Graph& graph,
                           const x_view::RandomWalkerParams& params);
 
 /**
@@ -55,20 +55,8 @@ void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
  * the random walks.
  */
 void testVisitingNeighbors(const x_view::RandomWalker& random_walker,
-                           const x_view::Graph::GraphType& graph,
+                           const x_view::Graph& graph,
                            const x_view::RandomWalkerParams& params);
-
-/**
- * \brief Tests if the i-th and the j-th vertex of the graph passed as
- * parameter are linked by an edge.
- * \param i Index of the first vertex.
- * \param j Index of the second vertex.
- * \param graph Graph containing the two vertices passed as argument.
- * \return True if an edge exists between vertex i and vertex j, false
- * otherwise.
- */
-bool areVerticesConnected(const int i, const int j,
-                          const x_view::Graph::GraphType& graph);
 
 }
 

@@ -29,7 +29,7 @@ class GraphBuilder {
    * \return A graph object containing nodes and edges based on the
    * ImageBlobs datastructure passed as argument.
    */
-  static Graph::GraphType createGraphFromNeighborBlobs(const ImageBlobs&
+  static Graph createGraphFromNeighborBlobs(const ImageBlobs&
   blobs, const GraphBuilderParams& params = GraphBuilderParams());
 
   /**
@@ -39,7 +39,7 @@ class GraphBuilder {
    * \return A complete graph object containing nodes based on the ImageBlobs
    * datastructure passed as argument.
    */
-  static Graph::GraphType createCompleteGraph(const ImageBlobs& blobs);
+  static Graph createCompleteGraph(const ImageBlobs& blobs);
 
  private:
 
@@ -57,8 +57,8 @@ class GraphBuilder {
    * the inserted nodes.
    */
   static void addBlobsToGraph(const ImageBlobs& blobs,
-                              Graph::GraphType* graph,
-                              std::vector<Graph::VertexDescriptor>* vertex_descriptors,
+                              Graph* graph,
+                              std::vector<VertexDescriptor>* vertex_descriptors,
                               std::vector<const Blob*>* blob_vector = &DEFAULT_BLOB_VECTOR);
   /**
    * \brief Generates a graph vertex containing the relevant information
@@ -71,7 +71,7 @@ class GraphBuilder {
    * \return A graph node containing the relevant information extracted from
    * the blob passed as argument.
    */
-  static Graph::VertexProperty blobToGraphVertex(const int index,
+  static VertexProperty blobToGraphVertex(const int index,
                                                  const Blob& blob);
 
 };

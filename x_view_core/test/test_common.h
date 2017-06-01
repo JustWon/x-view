@@ -16,9 +16,9 @@ namespace x_view_test {
  * num_semantic_classes-1}
  * \return The randomly generated graph.
  */
-x_view::Graph::GraphType generateRandomGraph(const int num_vertices,
-                                             const float edge_probability,
-                                             const int num_semantic_classes);
+x_view::Graph generateRandomGraph(const int num_vertices,
+                                  const float edge_probability,
+                                  const int num_semantic_classes);
 }
 
 #endif //X_VIEW_TEST_COMMON_H

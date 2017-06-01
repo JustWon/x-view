@@ -117,7 +117,7 @@ class XView {
   //=======================================================================//
 
   /// \brief Dataset information.
-  ConstDatasetPrt dataset_;
+  ConstDatasetPtr dataset_;
 
   /// \brief Semantic landmark type being used by XView.
   SemanticLandmarkType semantic_landmark_type_;
