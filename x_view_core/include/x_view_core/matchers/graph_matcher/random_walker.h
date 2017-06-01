@@ -44,7 +44,8 @@ struct RandomWalkerParams {
       : random_sampling_type_(RANDOM_SAMPLING_TYPE::UNIFORM),
         num_walks_(DEFAULT_NUM_RANDOM_WALKS),
         walk_length_(DEFAULT_RANDOM_WALK_LENGTH),
-        force_visiting_each_neighbor_(false) {
+        force_visiting_each_neighbor_(false),
+        allow_returning_back_(true) {
   }
 
   /// \brief Determines the type of random walk to be generated.
@@ -59,6 +60,8 @@ struct RandomWalkerParams {
   /// random walks are effectively random allowing the first step to always
   /// visit the same neighbor without ever visiting the others.
   bool force_visiting_each_neighbor_;
+
+  bool allow_returning_back_;
 };
 
 /**
@@ -113,6 +116,20 @@ class RandomWalker {
    * \param params Parameters to be used by the RandomWalker class to
    * generate random walks.
    * \param random_seed Integer to be used as seed for random number generator.
+   * \details The constructor of the RandomWalker class verifies the
+   * coherence of the parameters passed as argument. In particular it
+   * verifies that some combinations of parameters are not present, and in
+   * case they are those parameters are changed to the default state. A
+   * warning is issued whenever this happens.
+   * For this reason, whenever the parameters passed to the constructor are
+   * used again from outside, one should use the parameters of the object
+   * directly accessing them as:
+   * \code{.cpp}
+   * RandomWalkerParams params;
+   * {fill up parameters}
+   * RandomWalker random_walker(graph, params);
+   * params = random_walker.params();
+   * \endcode
    */
   RandomWalker(const Graph::GraphType& graph,
                const RandomWalkerParams& params = RandomWalkerParams(),
@@ -167,6 +184,12 @@ class RandomWalker {
         " the graph";
     return getRandomWalks()[vertex_index];
   }
+
+  /**
+   * \brief Access to the parameters being used by the RandomWalker.
+   * \return Const reference to the parameters used by the RandomWalker.
+   */
+  const RandomWalkerParams& params() const { return params_; }
 
  private:
   /// \brief Distribution to be used when picking a new random number.

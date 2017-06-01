@@ -4,12 +4,12 @@
 
 using namespace x_view_test;
 
-int x_view_test::mc_gregor_maximal_num_edges;
-
 TEST(XViewSlamTestSuite, test_mcgregor_matching) {
 
   // Only test mcgregor algorithm in release mode as in debut it takes too long.
-#ifndef X_VIEW_DEBUG
+#ifdef X_VIEW_DEBUG
+  CHECK(true);
+#else
   LOG(INFO) << "\n\n====Testing mcgregor graph matching====";
 
   // Run a bunch of tests for different graphs and compute matches with

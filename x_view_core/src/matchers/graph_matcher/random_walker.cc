@@ -12,6 +12,21 @@ RandomWalker::RandomWalker(const Graph::GraphType& graph,
       random_engine_(random_seed),
       graph_(graph),
       params_(params) {
+
+  if (params_.random_sampling_type_ !=
+      RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM &&
+      params_.allow_returning_back_ == false) {
+    LOG(WARNING) << "Random walker cannot use sampling type different than "
+                 << "'UNIFORM' and at the same time restrict the walk to not "
+                 << "returning back. Setting RandomWalkerParameter to:\n"
+                 << "\t-Random sampling type: UNIFORM\n"
+                 << "\t-Allow returning back: true";
+    RandomWalkerParams& params_temp = const_cast<RandomWalkerParams&>(params_);
+    params_temp.random_sampling_type_ =
+        RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM;
+    params_temp.allow_returning_back_ = true;
+  }
+
   switch (params_.random_sampling_type_) {
     case RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM: {
       precomputeUniformTransitionProbabilities();
@@ -48,66 +63,74 @@ void RandomWalker::generateRandomWalks() {
     WalkMap walk_map;
     walk_map.reserve(params_.num_walks_);
 
-    // If we have to visit all neighbors in the first step.
-    if (params_.force_visiting_each_neighbor_) {
-      const auto neighbors =
-          boost::adjacent_vertices(start_vertex_descriptor, graph_);
-      auto current_neighbor = neighbors.first;
-      for (int w = 0; w < params_.num_walks_; ++w) {
-        RandomWalk random_walk(params_.walk_length_);
+    const auto neighbors =
+        boost::adjacent_vertices(start_vertex_descriptor, graph_);
+    auto neighbor_iterator = neighbors.first;
+
+    for (int w = 0; w < params_.num_walks_; ++w) {
+      RandomWalk random_walk(params_.walk_length_);
+      Graph::VertexDescriptor current_vertex_descriptor;
+      int old_vertex_index = vertex_index;
+      // Add the first vertex either by visiting all 1-ring neighbors, or by
+      // sampling one randomly following the transition probability matrix.
+      if (params_.force_visiting_each_neighbor_) {
         // Add the current neighbor as the first vertex of the random walk.
         const Graph::VertexProperty& current_neighbor_vertex_p =
-            graph_[*current_neighbor];
+            graph_[*neighbor_iterator];
         random_walk[0] = &current_neighbor_vertex_p;
 
-        Graph::VertexDescriptor previous = *current_neighbor;
-        for (int step = 1; step < params_.walk_length_; ++step) {
-          // Query the index of the current vertex and randomly sample the next
-          // vertex to follow on the random_walk.
-          const int current_vertex_index = graph_[previous].index_;
-          const Graph::VertexDescriptor next = nextVertex(current_vertex_index);
-          const Graph::VertexProperty& vertex_j = graph_[next];
+        current_vertex_descriptor = *neighbor_iterator;
 
-          // Add the vertex to the random_walk
-          random_walk[step] = &vertex_j;
+        // increase the neighbor_iterator for next random walk
+        ++neighbor_iterator;
+        if (neighbor_iterator == neighbors.second)
+          neighbor_iterator = neighbors.first;
 
-          // Set the current graph vertex descriptor as the previous so that it
-          // can be used in the next iteration.
-          previous = next;
+      } else { // The first step can be taken randomly.
+        current_vertex_descriptor = nextVertex(vertex_index);
+        const Graph::VertexProperty
+            & vertex_j = graph_[current_vertex_descriptor];
+        random_walk[0] = &vertex_j;
+      }
+      // Perform remaining steps starting from 1 because the first step has
+      // already been taken.
+      for (int step = 1; step < params_.walk_length_; ++step) {
+        // Query the index of the current vertex and randomly sample the next
+        // vertex to follow on the random_walk.
+        const int
+            current_vertex_index = graph_[current_vertex_descriptor].index_;
+        Graph::VertexDescriptor next = nextVertex(current_vertex_index);
+        int next_vertex_index = graph_[next].index_;
+
+        unsigned long current_number_of_neighbors =
+            boost::degree(current_vertex_descriptor, graph_);
+
+        // If random walk cannot return to previously visited vertex and the
+        // number of neighbors of current vertex is greater than one, then
+        // check returning property.
+        if (!params_.allow_returning_back_ && current_number_of_neighbors > 1) {
+          // If next_vertex_index is the same as the one before current,
+          // we need to find a new next vertex.
+          while (next_vertex_index == old_vertex_index) {
+            next = nextVertex(current_vertex_index);
+            next_vertex_index = graph_[next].index_;
+          }
         }
 
-        // increase the current_neighbor
-        ++current_neighbor;
-        if (current_neighbor == neighbors.second)
-          current_neighbor = neighbors.first;
+        // Add the vertex to the random_walk.
+        const Graph::VertexProperty& vertex_j = graph_[next];
+        random_walk[step] = &vertex_j;
 
-        // Add the generated random_walk to the random_walks_ container.
-        random_walks_[vertex_index].push_back(random_walk);
+        // Set the old vertex index accordingly.
+        old_vertex_index = graph_[current_vertex_descriptor].index_;
+
+        // Set the current graph vertex descriptor as the next so that it
+        // can be used in the next iteration.
+        current_vertex_descriptor = next;
       }
-    } else {// Randomly perform the first step
 
-      // Generate num_random_walks random walks of length walk_length.
-      for (int w = 0; w < params_.num_walks_; ++w) {
-        // Create a new random walk and initialize its size.
-        RandomWalk random_walk(params_.walk_length_);
-        // The previous vertex in the random_walk starts by the
-        // start_vertex_descriptor.
-        Graph::VertexDescriptor previous = start_vertex_descriptor;
-        for (int step = 0; step < params_.walk_length_; ++step) {
-          // Query the index of the current vertex and randomly sample the next
-          // vertex to follow on the random_walk.
-          const int current_vertex_index = graph_[previous].index_;
-          const Graph::VertexDescriptor next = nextVertex(current_vertex_index);
-          const Graph::VertexProperty& vertex_j = graph_[next];
-
-          // Add the vertex to the random_walk
-          random_walk[step] = &vertex_j;
-
-          // Set the current graph vertex descriptor as the previous so that it
-          // can be used in the next iteration.
-          previous = next;
-        }
-      }
+      // Add the generated random_walk to the random_walks_ container.
+      random_walks_[vertex_index].push_back(random_walk);
     }
 
     // Iterate over the generated random walks of the current vertex_index and
@@ -138,7 +161,8 @@ const Graph::VertexDescriptor RandomWalker::nextVertex(
   int sampled_vertex_index = -1;
   float cumulative_probability = 0.f;
   for (int j = 0; j < transition_probabilities_.cols(); ++j) {
-    const float val = transition_probabilities_.coeff(current_vertex_index, j);
+    const float
+        val = transition_probabilities_.coeff(current_vertex_index, j);
     if (val > 0.f) {
       cumulative_probability += val;
       if (cumulative_probability >= probability) {
@@ -233,7 +257,8 @@ void RandomWalker::precomputeAvoidingTransitionProbabilities() {
       if (neighbor.semantic_label_ != semantic_label_i) {
         num_neighbors_with_different_semantic_label++;
         const int neighbor_index = neighbor.index_;
-        neighbor_indices_with_different_semantic_label.push_back(neighbor_index);
+        neighbor_indices_with_different_semantic_label.push_back(
+            neighbor_index);
       }
     }
     if (num_neighbors_with_different_semantic_label > 0) {

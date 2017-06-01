@@ -110,7 +110,10 @@ void Blob::computeBoundingBox() {
 }
 
 void Blob::computeFittingEllipse() {
-  ellipse_ = cv::fitEllipse(external_contour_pixels_);
+  if (c_blob_.Area(AreaMode::PIXELWISE) >= 5)
+    ellipse_ = cv::fitEllipse(external_contour_pixels_);
+  else
+    ellipse_ = cv::RotatedRect(external_contour_pixels_[0], cv::Size(1, 1), 0);
   // scale down the ellipse by a factor of two
   ellipse_.size.height *= 0.5;
   ellipse_.size.width *= 0.5;

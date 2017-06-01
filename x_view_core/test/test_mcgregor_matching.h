@@ -118,7 +118,7 @@ class PaperGraphsTest : public AbstractMaximalSubgraphTest {
 /// \details It is ugly to have it global, but it is not possible to store as
 /// a member variable of SubgraphCallback as the callback object is
 /// continuously destroyed and restored by the mcgregor function.
-extern int mc_gregor_maximal_num_edges;
+static int mc_gregor_maximal_num_edges;
 
 /**
  * \brief Each time a subgraph is found by the mcgregor algorithm, the
@@ -180,6 +180,9 @@ struct SubgraphCallback {
 
     mc_gregor_maximal_num_edges =
         std::max(mc_gregor_maximal_num_edges, current_subgraph_edges);
+
+    // Return true as we don't want to terminate the search of MCS.
+    return true;
   }
 
  private:
