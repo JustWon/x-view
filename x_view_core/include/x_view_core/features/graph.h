@@ -65,7 +65,9 @@ struct EdgeProperty {
 typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
                               VertexProperty, EdgeProperty> Graph;
 
-/// \brief Access to vertices stored in the graph.
+/// \brief Access to vertices stored in the graph. Since vertices are stored
+/// in a boost::vecS container, their VertexDescriptor corresponds to the
+/// index at which they are stored: a VertexDescriptor is an unsigned long type.
 typedef boost::graph_traits<Graph>::vertex_descriptor VertexDescriptor;
 
 /// \brief Access to edges stored in the graph.

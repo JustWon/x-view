@@ -92,59 +92,78 @@ void RandomWalker::generateRandomWalks() {
   mapped_walks_.clear();
   mapped_walks_.resize(num_vertices);
 
-  auto vertex_iter = boost::vertices(graph_);
-  int vertex_index = 0;
-  for (; vertex_iter.first != vertex_iter.second; ++vertex_iter.first) {
-    const VertexDescriptor start_vertex_descriptor = *vertex_iter.first;
-    const VertexProperty& vertex_i = graph_[start_vertex_descriptor];
-    //const int vertex_index = vertex_i.index_;
+  // A random walk consists of a sequence of graph vertices. The variable
+  // names used in this functions are associated to this figure:
+  //
+  //      A : source_vertex_index, the vertex where the random walk starts
+  //      |
+  //      v
+  //      B : old_vertex_index: vertex visited previously than the
+  //      |   current_vertex_index.
+  //      v
+  //      C : current_vertex_index : last vertex of the random walk.
+  //      |
+  //      v
+  //      D : next_vertex_index : vertex which will be added to the random
+  //          walk as a next step.
+
+  for (VertexDescriptor source_vertex_index = 0;
+       source_vertex_index < num_vertices; ++source_vertex_index) {
 
     // Create a walk map object which stores the generated random walks keyed
     // by a unique identifier.
     WalkMap walk_map;
     walk_map.reserve(params_.num_walks_);
 
-    const auto neighbors =
-        boost::adjacent_vertices(start_vertex_descriptor, graph_);
-    auto neighbor_iterator = neighbors.first;
+    // Query the neighbors of the source vertex.
+    const auto source_neighbors =
+        boost::adjacent_vertices(source_vertex_index, graph_);
+    auto source_neighbor_iterator = source_neighbors.first;
 
+    // Create params_.num_walks random walks.
     for (int w = 0; w < params_.num_walks_; ++w) {
       RandomWalk random_walk(params_.walk_length_);
-      VertexDescriptor current_vertex_descriptor;
-      int old_vertex_index = vertex_index;
+
+      // Prepare variables for iteration over the random walk.
+      VertexDescriptor current_vertex_index;
+      unsigned long old_vertex_index = source_vertex_index;
+
       // Add the first vertex either by visiting all 1-ring neighbors, or by
       // sampling one randomly following the transition probability matrix.
+
+      // Visit a neighbor in the first step.
       if (params_.force_visiting_each_neighbor_) {
         // Add the current neighbor as the first vertex of the random walk.
         const VertexProperty& current_neighbor_vertex_p =
-            graph_[*neighbor_iterator];
+            graph_[*source_neighbor_iterator];
         random_walk[0] = &current_neighbor_vertex_p;
 
-        current_vertex_descriptor = *neighbor_iterator;
+        // Set the current vertex index to the added neighbor.
+        current_vertex_index = *source_neighbor_iterator;
 
-        // increase the neighbor_iterator for next random walk
-        ++neighbor_iterator;
-        if (neighbor_iterator == neighbors.second)
-          neighbor_iterator = neighbors.first;
+        // Increase the source_neighbor_iterator for next random walk.
+        ++source_neighbor_iterator;
 
-      } else { // The first step can be taken randomly.
-        current_vertex_descriptor = nextVertex(vertex_index);
-        const VertexProperty
-            & vertex_j = graph_[current_vertex_descriptor];
-        random_walk[0] = &vertex_j;
+        // Make sure to loop over all neighbors as a cycle.
+        if (source_neighbor_iterator == source_neighbors.second)
+          source_neighbor_iterator = source_neighbors.first;
+
+      }
+        // The first step can be taken randomly.
+      else {
+        // Randomly sample a vertex for the first step.
+        current_vertex_index = nextVertex(source_vertex_index);
+        const VertexProperty& current_vertex_p = graph_[current_vertex_index];
+        random_walk[0] = &current_vertex_p;
       }
       // Perform remaining steps starting from 1 because the first step has
       // already been taken.
       for (int step = 1; step < params_.walk_length_; ++step) {
-        // Query the index of the current vertex and randomly sample the next
-        // vertex to follow on the random_walk.
-        const int
-            current_vertex_index = current_vertex_descriptor;
-        VertexDescriptor next = nextVertex(current_vertex_index);
-        int next_vertex_index = next;
+
+        VertexDescriptor next_vertex_index = nextVertex(current_vertex_index);
 
         unsigned long current_number_of_neighbors =
-            boost::degree(current_vertex_descriptor, graph_);
+            boost::degree(current_vertex_index, graph_);
 
         // If random walk cannot return to previously visited vertex and the
         // number of neighbors of current vertex is greater than one, then
@@ -153,32 +172,31 @@ void RandomWalker::generateRandomWalks() {
           // If next_vertex_index is the same as the one before current,
           // we need to find a new next vertex.
           while (next_vertex_index == old_vertex_index) {
-            next = nextVertex(current_vertex_index);
-            next_vertex_index = next;
+            next_vertex_index = nextVertex(current_vertex_index);
           }
         }
 
         // Add the vertex to the random_walk.
-        const VertexProperty& vertex_j = graph_[next];
-        random_walk[step] = &vertex_j;
+        const VertexProperty& next_vertex_p = graph_[next_vertex_index];
+        random_walk[step] = &next_vertex_p;
 
         // Set the old vertex index accordingly.
-        old_vertex_index = current_vertex_descriptor;
+        old_vertex_index = current_vertex_index;
 
         // Set the current graph vertex descriptor as the next so that it
         // can be used in the next iteration.
-        current_vertex_descriptor = next;
+        current_vertex_index = next_vertex_index;
       }
 
       // Add the generated random_walk to the random_walks_ container.
-      random_walks_[vertex_index].push_back(random_walk);
+      random_walks_[source_vertex_index].push_back(random_walk);
     }
 
     // Iterate over the generated random walks of the current vertex_index and
     // map them to a unique identifier.
-    for (const RandomWalk& random_walk : random_walks_[vertex_index]) {
+    for (const RandomWalk& random_walk : random_walks_[source_vertex_index]) {
       const int walk_id = RandomWalker::computeRandomWalkKey(random_walk);
-      // Check whether this id has already been added to the walk_map
+      // Check whether this id has already been added to the walk_map.
       WalkMap::iterator found_position = walk_map.find(walk_id);
       if (found_position == walk_map.end()) // New id.
         walk_map.insert({walk_id, MappedWalk(random_walk)});
@@ -186,15 +204,13 @@ void RandomWalker::generateRandomWalks() {
         ++(found_position->second);
 
       // Set the walk_map to the global mapped_walks_ container
-      mapped_walks_[vertex_index] = walk_map;
+      mapped_walks_[source_vertex_index] = walk_map;
     }
-
-    ++vertex_index;
   }
 }
 
 const VertexDescriptor RandomWalker::nextVertex(
-    const int current_vertex_index) const {
+    const VertexDescriptor current_vertex_index) const {
   const float probability = random_distribution_(random_engine_);
 
   // Iterate over the elements of the current_vertex_index-th row of the
@@ -203,8 +219,7 @@ const VertexDescriptor RandomWalker::nextVertex(
   int sampled_vertex_index = -1;
   float cumulative_probability = 0.f;
   for (int j = 0; j < transition_probabilities_.cols(); ++j) {
-    const float
-        val = transition_probabilities_.coeff(current_vertex_index, j);
+    const float val = transition_probabilities_.coeff(current_vertex_index, j);
     if (val > 0.f) {
       cumulative_probability += val;
       if (cumulative_probability >= probability) {
@@ -213,7 +228,7 @@ const VertexDescriptor RandomWalker::nextVertex(
       }
     }
   }
-  // If there this vertex has no connections to any other edge.
+  // If this vertex has no connections to any other vertex.
   if (sampled_vertex_index == -1)
     return boost::vertex(current_vertex_index, graph_);
 
@@ -225,98 +240,86 @@ const VertexDescriptor RandomWalker::nextVertex(
 
 void RandomWalker::precomputeUniformTransitionProbabilities() {
   const unsigned long num_vertices = boost::num_vertices(graph_);
-  // reset the transition probability matrix
+  // Reset the transition probability matrix.
   transition_probabilities_.resize(num_vertices, num_vertices);
   transition_probabilities_.data().squeeze();
 
-  // iterate over all vertices of the graph and compute the transition
+  // Iterate over all vertices of the graph and compute the transition
   // probability from that vertex to its neighbors.
   std::vector<Eigen::Triplet<float>> triplet_list;
-  auto vertex_iter = boost::vertices(graph_);
-  int index_i = 0;
-  for (; vertex_iter.first != vertex_iter.second; ++vertex_iter.first) {
-    // extract the current vertex from the graph
-    const VertexProperty& vertex_i = graph_[*vertex_iter.first];
-    //const int index_i = vertex_i.index_;
-    // compute the adjacent vertices of the current vertex v_index
-    auto neighbors = boost::adjacent_vertices(*vertex_iter.first, graph_);
-    const unsigned long num_neighbors =
-        boost::degree(*vertex_iter.first, graph_);
+  for (VertexDescriptor vertex_index_i = 0;
+       vertex_index_i < num_vertices; ++vertex_index_i) {
+    // Compute the adjacent vertices of the current vertex.
+    const auto neighbors = boost::adjacent_vertices(vertex_index_i, graph_);
+    const unsigned long num_neighbors = boost::degree(vertex_index_i, graph_);
     if (num_neighbors > 0) {
       const float prob = 1.f / num_neighbors;
-      // iterate over the neighbors and add the implicitly defined edge to
+      // Iterate over the neighbors and add the implicitly defined edge to
       // the transition probability matrix.
-      for (; neighbors.first != neighbors.second; ++neighbors.first) {
-        const VertexProperty& vertex_j = graph_[*neighbors.first];
-        const int index_j = vertex_j.index_;
-        // add an edge between index_i and index_j
-        triplet_list.push_back(Eigen::Triplet<float>(index_i, *neighbors.first,
-                                                     prob));
+      for (auto neighbor_iterator = neighbors.first;
+           neighbor_iterator != neighbors.second; ++neighbor_iterator) {
+        // Add an edge between index_i and index_j
+        triplet_list.push_back({vertex_index_i, *neighbor_iterator, prob});
       }
     }
-    ++index_i;
   }
 
-  // build the sparse matrix from the triplet list.
+  // Build the sparse matrix from the triplet list.
   transition_probabilities_.setFromTriplets(triplet_list.begin(),
                                             triplet_list.end());
 }
 
 void RandomWalker::precomputeAvoidingTransitionProbabilities() {
   const unsigned long num_vertices = boost::num_vertices(graph_);
-  // reset the transition probability matrix
+  // Reset the transition probability matrix.
   transition_probabilities_.resize(num_vertices, num_vertices);
   transition_probabilities_.data().squeeze();
 
-  // iterate over all vertices of the graph and compute the transition
+  // Iterate over all vertices of the graph and compute the transition
   // probability from that vertex to its neighbors.
   std::vector<Eigen::Triplet<float>> triplet_list;
-  auto vertex_iter = boost::vertices(graph_);
-  for (; vertex_iter.first != vertex_iter.second; ++vertex_iter.first) {
-    // extract the current vertex from the graph
-    const VertexProperty& vertex_i = graph_[*vertex_iter.first];
-    const int index_i = vertex_i.index_;
+  for (VertexDescriptor vertex_index_i = 0;
+       vertex_index_i < num_vertices; ++vertex_index_i) {
+    // Extract the current vertex from the graph.
+    const VertexProperty& vertex_i = graph_[vertex_index_i];
     const int semantic_label_i = vertex_i.semantic_label_;
-    // compute the adjacent vertices of the current vertex v_index
-    auto neighbors = boost::adjacent_vertices(*vertex_iter.first, graph_);
-    // count how many neighbors exist with different semantic label
+    // Compute the adjacent vertices of the current vertex.
+    const auto neighbors = boost::adjacent_vertices(vertex_index_i, graph_);
+    const unsigned long num_neighbors = boost::degree(vertex_index_i, graph_);
+    // Count how many neighbors exist with different semantic label.
     unsigned long num_neighbors_with_different_semantic_label = 0;
-    std::vector<int> neighbor_indices_with_different_semantic_label;
-    for (; neighbors.first != neighbors.second; ++neighbors.first) {
-      const VertexProperty& neighbor = graph_[*neighbors.first];
-      // only add neighbor if the semantic label is different
+    std::vector<VertexDescriptor> neighbor_with_different_semantic_label;
+    for (auto neighbor_iterator = neighbors.first;
+         neighbor_iterator != neighbors.second; ++neighbor_iterator) {
+      const VertexProperty& neighbor = graph_[*neighbor_iterator];
+      // Only add neighbor if the semantic label is different.
       if (neighbor.semantic_label_ != semantic_label_i) {
-        num_neighbors_with_different_semantic_label++;
-        const int neighbor_index = neighbor.index_;
-        neighbor_indices_with_different_semantic_label.push_back(
-            neighbor_index);
+        ++num_neighbors_with_different_semantic_label;
+        // Add the neighbor to the neighbors with different semantic label
+        neighbor_with_different_semantic_label.push_back(*neighbor_iterator);
       }
     }
     if (num_neighbors_with_different_semantic_label > 0) {
       const float prob = 1.f / num_neighbors_with_different_semantic_label;
-      // add the transition probability to the neighbors with different
-      // semantic label
-      for (const int neighbor_index :
-          neighbor_indices_with_different_semantic_label) {
-        // add an edge between index_i and index_j
-        triplet_list.push_back(Eigen::Triplet<float>(index_i, neighbor_index,
-                                                     prob));
+      // Add the transition probability to the neighbors with different
+      // semantic label.
+      for (const VertexDescriptor& neighbor_index :
+          neighbor_with_different_semantic_label) {
+        // Add an edge between vertex_index_i and neighbor_index.
+        triplet_list.push_back({vertex_index_i, neighbor_index, prob});
       }
-    }// if all neighbor nodes have the same label, sample randomly between them
+    }// If all neighbor nodes have the same label, sample randomly between them.
     else {
-      // reset the neighbor iterators
-      neighbors = boost::adjacent_vertices(*vertex_iter.first, graph_);
-      const float prob = 1.f / boost::degree(*vertex_iter.first, graph_);
-      for (; neighbors.first != neighbors.second; ++neighbors.first) {
-        const VertexProperty& vertex_j = graph_[*neighbors.first];
-        const int index_j = vertex_j.index_;
-        // add an edge between index_i and index_j
-        triplet_list.push_back(Eigen::Triplet<float>(index_i, index_j, prob));
+      const float prob = 1.f / num_neighbors;
+      for (auto neighbor_iterator = neighbors.first;
+           neighbor_iterator != neighbors.second; ++neighbor_iterator) {
+        // Add an edge between vertex_index_i and neighbor_iterator.
+        triplet_list.push_back({vertex_index_i, *neighbor_iterator, prob});
       }
     }
   }
 
-  // build the sparse matrix from the triplet list.
+  // Build the sparse matrix from the triplet list.
   transition_probabilities_.setFromTriplets(triplet_list.begin(),
                                             triplet_list.end());
 }
