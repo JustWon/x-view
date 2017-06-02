@@ -54,8 +54,8 @@ void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
   int start_vertex_index = 0;
   for (const auto& random_walks : all_random_walks) {
     for (const auto& random_walk : random_walks) {
-      CHECK(areVerticesConnected(start_vertex_index,
-                                 random_walk[0]->index_, graph) ||
+      CHECK(areVerticesConnectedByIndex(start_vertex_index,
+                                        random_walk[0]->index_, graph) ||
           start_vertex_index == random_walk[0]->index_)
       << "Start vertex " << start_vertex_index << " and vertex "
       << random_walk[0]->index_ << " appear in a random walk "
@@ -63,7 +63,7 @@ void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
       for (int i = 0; i < random_walk.size() - 1; ++i) {
         const int from_index = random_walk[i]->index_;
         const int to_index = random_walk[i + 1]->index_;
-        CHECK(areVerticesConnected(from_index, to_index, graph) ||
+        CHECK(areVerticesConnectedByIndex(from_index, to_index, graph) ||
             from_index == to_index)
         << "Vertex " << random_walk[i]->index_ << " and vertex "
         << random_walk[i + 1]->index_ << " appear in a random walk "

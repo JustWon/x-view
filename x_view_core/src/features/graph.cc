@@ -1,12 +1,194 @@
 #include <x_view_core/features/graph.h>
 #include <x_view_core/datasets/abstract_dataset.h>
 
+#include <boost/graph/connected_components.hpp>
+#include <boost/graph/random.hpp>
+
 namespace x_view {
 
-bool areVerticesConnected(const int v1, const int v2, const Graph& graph) {
-  const x_view::VertexDescriptor& vi = boost::vertex(v1, graph);
-  const x_view::VertexDescriptor& vj = boost::vertex(v2, graph);
-  return boost::edge(vi, vj, graph).second;
+bool areVerticesConnectedByIndex(const int v1, const int v2,
+                                 const Graph& graph) {
+  const auto edges = boost::edges(graph);
+  bool edge_exists = false;
+  for (auto edge = edges.first; edge != edges.second; ++edge) {
+    const EdgeProperty e_p = graph[*edge];
+    if ((e_p.from_ == v1 && e_p.to_ == v2) ||
+        (e_p.from_ == v2 && e_p.to_ == v1)) {
+      // An edge exists linking node with index v1 and node with index v2
+      edge_exists = true;
+      return edge_exists;
+    }
+  }
+  return edge_exists;
+}
+
+void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
+                            const int link_to_n_vertices) {
+  CHECK_NOTNULL(graph);
+
+  // Create the new vertex.
+  VertexProperty new_vertex;
+  new_vertex.index_ = static_cast<int>(boost::num_vertices(*graph));
+  // Random semantic label.
+  new_vertex.semantic_label_ =
+      static_cast<int>(rng() % global_dataset_ptr->numSemanticClasses());
+  new_vertex.semantic_entity_name_ =
+      "Random vertex " + std::to_string(new_vertex.index_);
+
+  // Define random vertices to be linked with the new vertex.
+  std::vector<VertexDescriptor> vertices_to_link;
+  while (vertices_to_link.size() < link_to_n_vertices) {
+    const VertexDescriptor link_v_d = boost::random_vertex(*graph, rng);
+    if (std::find(vertices_to_link.begin(), vertices_to_link.end(), link_v_d)
+        == vertices_to_link.end())
+      vertices_to_link.push_back(boost::random_vertex(*graph, rng));
+  }
+
+  const VertexDescriptor& new_vertex_d = boost::add_vertex(new_vertex, *graph);
+  LOG(INFO) << "Added vertex " << (*graph)[new_vertex_d];
+  for (const VertexDescriptor& v_d : vertices_to_link) {
+    const VertexProperty& v_p = (*graph)[v_d];
+    LOG(INFO) << "--> linked to existing vertex " << v_p.index_ << std::endl;
+    boost::add_edge(v_d, new_vertex_d, {v_p.index_, new_vertex.index_}, *graph);
+  }
+}
+
+void addRandomEdgeToGraph(Graph* graph, std::mt19937& rng) {
+  CHECK_NOTNULL(graph);
+
+  bool edge_added = false;
+  while (!edge_added) {
+    // Select two random vertices from the graph.
+    const VertexDescriptor& v1_d = boost::random_vertex(*graph, rng);
+    const VertexDescriptor& v2_d = boost::random_vertex(*graph, rng);
+
+    if (addEdgeBetweenVertices(v1_d, v2_d, graph)) {
+      const VertexProperty& v1_p = (*graph)[v1_d];
+      const VertexProperty& v2_p = (*graph)[v2_d];
+
+      LOG(INFO) << "Added edge between vertices " << v1_p.index_
+                << ", " << v2_p.index_ << std::endl;
+      edge_added = true;
+    }
+  }
+}
+
+bool addEdgeBetweenVertices(const VertexDescriptor& v_1_d,
+                            const VertexDescriptor& v_2_d, Graph* graph) {
+
+  CHECK_NOTNULL(graph);
+
+  if (boost::edge(v_1_d, v_2_d, *graph).second) {
+    LOG(WARNING) << "Edge between " << (*graph)[v_1_d] << " and "
+                 << (*graph)[v_2_d] << " already exists";
+    return false;
+  } else {
+    const VertexProperty& v_1_p = (*graph)[v_1_d];
+    const VertexProperty& v_2_p = (*graph)[v_2_d];
+    boost::add_edge(v_1_d, v_2_d, {v_1_p.index_, v_2_p.index_}, *graph);
+    return true;
+  }
+}
+
+void removeRandomVertexFromGraph(Graph* graph, std::mt19937& rng) {
+  CHECK_NOTNULL(graph);
+
+  if (boost::num_vertices(*graph) <= 1) {
+    LOG(WARNING) << "Cannot remove a vertex from a graph with "
+                 << boost::num_vertices(*graph) << " vertices.";
+    return;
+  }
+
+  bool single_connected_component = false;
+  while (!single_connected_component) {
+
+    // Try to remove the vertex on a test graph.
+    Graph test_graph = *graph;
+
+    // Select a random vertex from the graph.
+    const VertexDescriptor v_d = boost::random_vertex(test_graph, rng);
+    // Create a copy of the vertex property to be deleted as the vertex
+    // descriptor will be invalidated after the remove_vertex call.
+    const VertexProperty v_p = test_graph[v_d];
+
+    boost::clear_vertex(v_d, test_graph);
+    boost::remove_vertex(v_d, test_graph);
+
+    // Compute the connected components of the new graph.
+    std::vector<int> component(boost::num_vertices(test_graph));
+    int num_connected_components =
+        boost::connected_components(test_graph, &component[0]);
+
+    if (num_connected_components == 1) {
+      LOG(INFO) << "Removed vertex " << v_p << ".";
+      single_connected_component = true;
+      *graph = test_graph;
+    } else {
+      LOG(WARNING)
+          << "Could not remove vertex " << v_d
+          << " as it would create two disconnected components. "
+          << "Choosing a new vertex.";
+    }
+  }
+}
+
+void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng) {
+  CHECK_NOTNULL(graph);
+
+  if (boost::num_edges(*graph) == 1)
+    return;
+
+  bool single_connected_component = false;
+  while (!single_connected_component) {
+
+    // Try to remove the vertex on a test graph.
+    Graph test_graph = *graph;
+
+    // Select two random vertices from the graph.
+    const VertexDescriptor& v_1_d = boost::random_vertex(test_graph, rng);
+    const VertexDescriptor& v_2_d = boost::random_vertex(test_graph, rng);
+
+    if (removeEdgeBetweenVertices(v_1_d, v_2_d, &test_graph)) {
+
+      // Compute the connected components of the new graph.
+      std::vector<int> component(boost::num_vertices(test_graph));
+      int num_connected_components =
+          boost::connected_components(test_graph, &component[0]);
+
+      if (num_connected_components == 1) {
+        EdgeProperty e_p;
+        e_p.from_ = test_graph[v_1_d].index_;
+        e_p.to_ = test_graph[v_2_d].index_;
+        LOG(INFO) << "Removed edge " << e_p << ".";
+        single_connected_component = true;
+        *graph = test_graph;
+      } else {
+        EdgeProperty e_p;
+        e_p.from_ = test_graph[v_1_d].index_;
+        e_p.to_ = test_graph[v_2_d].index_;
+        LOG(WARNING)
+            << "Could not remove edge " << e_p
+            << " as it would create two disconnected components. "
+            << "Choosing a new edge.";
+      }
+    }
+  }
+}
+
+bool removeEdgeBetweenVertices(const VertexDescriptor& v_1_d,
+                               const VertexDescriptor& v_2_d, Graph* graph) {
+  CHECK_NOTNULL(graph);
+
+  if (!boost::edge(v_1_d, v_2_d, *graph).second) {
+    LOG(WARNING) << "Edge between " << (*graph)[v_1_d] << " and "
+                 << (*graph)[v_2_d] << " does not exist, cannot remove it.";
+    return false;
+  } else {
+
+    boost::remove_edge(v_1_d, v_2_d, *graph);
+    return true;
+  }
+
 }
 
 std::ostream& operator<<(std::ostream& out, const VertexProperty& v) {

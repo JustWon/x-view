@@ -65,23 +65,22 @@ void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
                                    std::vector<VertexDescriptor>* vertex_descriptors,
                                    std::vector<const Blob*>* blob_vector) {
 
-  if (graph != nullptr) {
-    vertex_descriptors->clear();
-    blob_vector->clear();
+  CHECK_NOTNULL(graph);
+  CHECK_NOTNULL(vertex_descriptors);
+  CHECK_NOTNULL(blob_vector);
 
-    // Each blob is a graph node
-    int blob_count = 0;
-    for (int c = 0; c < blobs.size(); ++c) {
-      for (const Blob& blob : blobs[c]) {
-        blob_vector->push_back(&blob);
-        VertexProperty vertex =
-            GraphBuilder::blobToGraphVertex(blob_count++, blob);
-        vertex_descriptors->push_back(boost::add_vertex(vertex, *graph));
-      }
+  vertex_descriptors->clear();
+  blob_vector->clear();
+
+  // Each blob is a graph node
+  int blob_count = 0;
+  for (int c = 0; c < blobs.size(); ++c) {
+    for (const Blob& blob : blobs[c]) {
+      blob_vector->push_back(&blob);
+      VertexProperty vertex =
+          GraphBuilder::blobToGraphVertex(blob_count++, blob);
+      vertex_descriptors->push_back(boost::add_vertex(vertex, *graph));
     }
-  } else {
-    CHECK(false) << "Graph pointer passed to " << __FUNCTION__
-                 << " is a nullptr";
   }
 
 }

@@ -6,6 +6,8 @@
 
 #include <opencv2/core/core.hpp>
 
+#include <random>
+
 namespace x_view {
 
 /// \brief Property associated to a graph vertex.
@@ -76,13 +78,87 @@ typedef boost::graph_traits<Graph>::edge_descriptor EdgeDescriptor;
 /**
  * \brief Tests if the i-th and the j-th vertex of the graph passed as
  * parameter are linked by an edge.
- * \param v1 Index of the first vertex.
- * \param v2 Index of the second vertex.
+ * \param v1 Index got by graph[v_1_d].index_ of first vertex descriptor.
+ * \param v2 Index got by graph[v_2_d].index_ of second vertex descriptor.
  * \param graph Graph containing the two vertices passed as argument.
- * \return True if an edge exists between vertex i and vertex j, false
- * otherwise.
+ * \return True if an edge exists between vertex with index_ = i
+ * and vertex with index_ = j, false otherwise.
+ * \note This approach is inefficient as it uses a member of the
+ * VertexProperty to check the edge existence, consider using
+ * VertexDescriptors whenever possible:
+ * \code{.cpp}
+ * Graph graph = getSomeGraph();
+ * const VertexDescriptor v_1_d = getFirstVertexDescriptor();
+ * const VertexDescriptor v_2_d = getSecondVertexDescriptor();
+ * // Efficient way:
+ * bool vertices_connected_1 = boost.:edge(v_1_d, v_2_d, graph).second;
+ * // Inefficient way:
+ * const VertexProperty v_1_p = graph[v_1 _d];
+ * const VertexProperty v_2_p = graph[v_2 _d];
+ * bool vertices_connected_2 =
+ *    areVerticesConnectedByIndex(v_1_p.index_, v_2_p.index_, graph);
+ *
+ * assert(vertices_connected_1  == vertices_connected_2);
+ * \endcode
  */
-bool areVerticesConnected(const int v1, const int v2, const Graph& graph);
+bool areVerticesConnectedByIndex(const int v1, const int v2,
+                                 const Graph& graph);
+
+/**
+ * \brief Adds a new generated VertexProperty to the graph pointed by the
+ * passed argument. The newly generated vertex is linked towards
+ * link_to_n_vertices existing vertices of the graph.
+ * \param graph Pointer to the graph to be modified.
+ * \param rng Instance of mersenne twister random number generator.
+ * \param link_to_n_vertices The added vertex is linked to link_to_n_vertices
+ * randomly chosen vertices of the graph. This ensure that the new graph
+ * consists of a single connected component.
+ */
+void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
+                            const int link_to_n_vertices = 2);
+
+/**
+ * \brief Adds a new generated EdgeProperty to the graph pointed by the
+ * passed argument. The edge is defined by randomly selecting two different
+ * vertices of the graph passed as argument, and is added to the graph only
+ * if the resulting edge does not already exist.
+ * \param graph Pointer to the graph to be modified.
+ * \param rng Instance of mersenne twister random number generator.
+ */
+void addRandomEdgeToGraph(Graph* graph, std::mt19937& rng);
+
+/**
+ * \brief Adds an edge between the VertexDescriptors passed as argument if
+ * the edge does not exist yet.
+ * \param v_1_d VertexDescriptor of first vertex.
+ * \param v_2_d VertexDescriptor of second vertex.
+ * \param graph Pointer to graph an edge is added to.
+ * \return True if the edge has been added, false if the edge was already
+ * present.
+ */
+bool addEdgeBetweenVertices(const VertexDescriptor& v_1_d,
+                            const VertexDescriptor& v_2_d, Graph* graph);
+
+/**
+ * \brief Removes a random vertex from the graph pointed by the passed argument.
+ * This function makes sure that removing the vertex from the graph
+ * does not create two disconnected components.
+ * \param graph Pointer to the graph to be modified.
+ * \param rng Instance of mersenne twister random number generator
+ */
+void removeRandomVertexFromGraph(Graph* graph, std::mt19937& rng);
+
+/**
+ * \brief Removes a random edge from the graph pointed by the passed argument.
+ * This function makes sure that removing the edge from the graph
+ * does not vreate two disconnected components.
+ * \param graph Pointer to the graph to be modified.
+ * \param rng Instance of mersenne twister random number generator
+ */
+void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng);
+
+bool removeEdgeBetweenVertices(const VertexDescriptor& v_1_d,
+                               const VertexDescriptor& v_2_d, Graph* graph);
 
 /// \brief Overloaded operator to print a vertex.
 std::ostream& operator<<(std::ostream& out, const VertexProperty& v);

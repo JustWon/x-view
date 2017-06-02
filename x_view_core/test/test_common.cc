@@ -22,8 +22,7 @@ x_view::Graph generateRandomGraph(const int num_vertices,
   auto vertex_iter = boost::vertices(graph);
   int vertex_index = 0;
   // iterate over all vertices
-  for (vertex_iter.first; vertex_iter.first != vertex_iter.second;
-       ++vertex_iter.first) {
+  for (; vertex_iter.first != vertex_iter.second; ++vertex_iter.first) {
     auto& vertex = graph[*vertex_iter.first];
     vertex.index_ = vertex_index++;
     vertex.size_ = 1;
@@ -35,8 +34,7 @@ x_view::Graph generateRandomGraph(const int num_vertices,
 
   // add edge properties
   auto edges_iter = boost::edges(graph);
-  for (edges_iter.first; edges_iter.first != edges_iter.second;
-       ++edges_iter.first) {
+  for (; edges_iter.first != edges_iter.second; ++edges_iter.first) {
     // get the vertex descriptors defining the current edge
     const auto& from_v = graph[boost::source(*edges_iter.first, graph)];
     const auto& to_v = graph[boost::target(*edges_iter.first, graph)];

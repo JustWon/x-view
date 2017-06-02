@@ -9,15 +9,6 @@ using namespace x_view;
 
 namespace x_view_test {
 
-void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
-                            const int link_to_n_vertices = 2);
-
-void addRandomEdgeToGraph(Graph* graph, std::mt19937& rng);
-
-void removeRandomVertexFromGraph(Graph* graph, std::mt19937& rng);
-
-void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng);
-
 struct GraphModifierParams {
   int num_vertices_to_add_;
   int num_vertices_to_remove_;

@@ -24,7 +24,7 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
   CHECK_NOTNULL(global_dataset_ptr.get());
 
   const int num_vertices = 10;
-  const float edge_probability = 0.2;
+  const float edge_probability = 0.3;
   const int num_walks = 1000;
   const int walk_length = 3;
 
@@ -40,19 +40,17 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
 
   // Define parameters for modifying the graph.
   GraphModifierParams params;
-  params.num_vertices_to_add_ = 12;
-  params.num_links_for_new_vertices_ = 3;
-  params.num_vertices_to_remove_ = 5;
-  params.num_edges_to_add_ = 0;
-  params.num_edges_to_remove_ = 0;
+  params.num_vertices_to_add_ = 2;
+  params.num_links_for_new_vertices_ = 2;
+  params.num_vertices_to_remove_ = 2;
+  params.num_edges_to_add_ = 3;
+  params.num_edges_to_remove_ = 5;
 
   // Effectively add and remove vertices and edges from the graph.
   modifyGraph(&graph2, params, rng);
 
   std::cout << "Graph 1:\n" << graph1 << std::endl;
   std::cout << "Graph 2:\n" << graph2 << std::endl;
-
-  std::cout << "Done"<<std::endl;
 
   // Random walker parameters
   RandomWalkerParams random_walker_params;
