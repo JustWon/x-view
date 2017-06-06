@@ -4,6 +4,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 
+#include <boost/graph/breadth_first_search.hpp>
 #include <opencv2/core/core.hpp>
 
 #include <random>
@@ -151,14 +152,24 @@ void removeRandomVertexFromGraph(Graph* graph, std::mt19937& rng);
 /**
  * \brief Removes a random edge from the graph pointed by the passed argument.
  * This function makes sure that removing the edge from the graph
- * does not vreate two disconnected components.
+ * does not create two disconnected components.
  * \param graph Pointer to the graph to be modified.
  * \param rng Instance of mersenne twister random number generator
  */
 void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng);
 
+/**
+ * \brief Removes the edge between the vertex descriptors passed as argument
+ * and returns true only if the vertex has been removed correctly.
+ * \param v_1_d First vertex descriptor.
+ * \param v_2_d Second vertex descriptor.
+ * \param graph Pointer to graph to be modified.
+ * \return True if the function succeeded in removing the edge, false
+ * otherwise.
+ */
 bool removeEdgeBetweenVertices(const VertexDescriptor& v_1_d,
                                const VertexDescriptor& v_2_d, Graph* graph);
+
 
 /// \brief Overloaded operator to print a vertex.
 std::ostream& operator<<(std::ostream& out, const VertexProperty& v);

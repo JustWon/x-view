@@ -1,12 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "test_walk_matching.h"
-#include "test_common.h"
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark.h>
-#include <x_view_core/matchers/graph_matcher/random_walker.h>
-#include <x_view_core/matchers/graph_matcher/vertex_similarity.h>
 
 using namespace x_view;
 using namespace x_view_test;
@@ -15,7 +12,7 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
 
   LOG(INFO) << "\n\n====Testing walk matching====";
 
-  const int num_semantic_classes = 3;
+  const int num_semantic_classes = 13;
   LOG(INFO) << "Testing walk matching with " << num_semantic_classes
             << "classes.";
 
@@ -23,81 +20,69 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
       std::make_shared<AbstractDataset>(AbstractDataset(num_semantic_classes));
   CHECK_NOTNULL(global_dataset_ptr.get());
 
-  const int num_vertices = 10;
-  const float edge_probability = 0.3;
+  const unsigned long seed = 0;
+
+  // Graph construction parameters
+  const int num_vertices = 500;
+  const float edge_probability = 0.005;
+
+  // Graph modifier parameters
+  const int num_vertices_to_add = 0;
+  const int num_links_for_new_vertices = 0;
+  const int num_vertices_to_remove = 0;
+  const int num_edges_to_add = 0;
+  const int num_edges_to_remove = 0;
+
+  // Size of the extracted subgraph.
+  const int extraction_radius = 2;
+
+  // Random walker params
   const int num_walks = 1000;
   const int walk_length = 3;
+  const RandomWalkerParams::RANDOM_SAMPLING_TYPE sampling_type =
+      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
+  const bool force_visiting_each_neighbor = true;
+  const bool allow_returning_back = true;
 
-  // Generate a random graph with the parameters specified above.
-  Graph graph1 =
-      generateRandomGraph(num_vertices, edge_probability, num_semantic_classes);
+  // Define parameter for generating the graphs.
+  GraphConstructionParams construction_params;
+  construction_params.num_vertices_ = num_vertices;
+  construction_params.edge_probability_ = edge_probability;
+  construction_params.num_semantic_classes_ = num_semantic_classes;
+  construction_params.seed_ = seed;
 
-  // Copy the generated graph into a new graph instance.
-  Graph graph2 = graph1;
+  // Define parameters for modifying the graphs.
+  GraphModifierParams modifier_params;
+  modifier_params.num_vertices_to_add_ = num_vertices_to_add;
+  modifier_params.num_links_for_new_vertices_ = num_links_for_new_vertices;
+  modifier_params.num_vertices_to_remove_ = num_vertices_to_remove;
+  modifier_params.num_edges_to_add_ = num_edges_to_add;
+  modifier_params.num_edges_to_remove_ = num_edges_to_remove;
 
-  const int seed = 0;
-  std::mt19937 rng(seed);
-
-  // Define parameters for modifying the graph.
-  GraphModifierParams params;
-  params.num_vertices_to_add_ = 2;
-  params.num_links_for_new_vertices_ = 2;
-  params.num_vertices_to_remove_ = 2;
-  params.num_edges_to_add_ = 3;
-  params.num_edges_to_remove_ = 5;
-
-  // Effectively add and remove vertices and edges from the graph.
-  modifyGraph(&graph2, params, rng);
-
-  std::cout << "Graph 1:\n" << graph1 << std::endl;
-  std::cout << "Graph 2:\n" << graph2 << std::endl;
-
-  // Random walker parameters
+  // Define parameters for random walk extraction.
   RandomWalkerParams random_walker_params;
   random_walker_params.walk_length_ = walk_length;
   random_walker_params.num_walks_ = num_walks;
-  random_walker_params.random_sampling_type_ =
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
-  random_walker_params.force_visiting_each_neighbor_ = true;
-  random_walker_params.allow_returning_back_ = false;
+  random_walker_params.random_sampling_type_ = sampling_type;
+  random_walker_params.force_visiting_each_neighbor_
+      = force_visiting_each_neighbor;
+  random_walker_params.allow_returning_back_ = allow_returning_back;
 
-  RandomWalker random_walker1(graph1, random_walker_params);
-  random_walker1.generateRandomWalks();
 
-  RandomWalker random_walker2(graph2, random_walker_params);
-  random_walker2.generateRandomWalks();
+  /////////// CHAIN GRAPH ///////////
 
-  // Retrieve the parameters passed to the RandomWalker as some of them
-  // might have changed due to input coherence.
-  random_walker_params = random_walker1.params();
+  GraphPair graph_pair_chain = generateChainGraphPair(construction_params,
+                                                      modifier_params,
+                                                      extraction_radius);
+  computeVertexSimilarity(graph_pair_chain, random_walker_params);
 
-  Eigen::MatrixXf scores(boost::num_vertices(graph1),
-                         boost::num_vertices(graph2));
-  scores.setZero();
 
-  const auto& mapped_walks1 = random_walker1.getMappedWalks();
-  const auto& mapped_walks2 = random_walker2.getMappedWalks();
+  /////////// RANDOM GRAPH ///////////
 
-  // Set the similarity score type to be used.
-  VertexSimilarity::setScoreType(VertexSimilarity::SCORE_TYPE::HARD);
+  GraphPair graph_pair_random = generateRandomGraphPair(construction_params,
+                                                        modifier_params,
+                                                        extraction_radius);
+  computeVertexSimilarity(graph_pair_random, random_walker_params);
 
-  for (int i = 0; i < boost::num_vertices(graph1); ++i) {
-    const auto& vertex_d_i = boost::vertex(i, graph1);
-    const auto& vertex_i = graph1[vertex_d_i];
-    const auto& mapped_walks_i = mapped_walks1[i];
-    for (int j = 0; j < boost::num_vertices(graph2); ++j) {
-      const auto& vertex_d_j = boost::vertex(j, graph2);
-      const auto& vertex_j = graph2[vertex_d_j];
-      // Score is only nonzero if the source vertex has same semantic label.
-      if (vertex_i.semantic_label_ == vertex_j.semantic_label_) {
-        const auto& mapped_walks_j = mapped_walks2[j];
-        const float score =
-            VertexSimilarity::score(mapped_walks_i, mapped_walks_j);
-        scores(i, j) = score;
-      }
-    }
-  }
-
-  std::cout << "Similarity matrix:\n" << scores << std::endl;
 }
 

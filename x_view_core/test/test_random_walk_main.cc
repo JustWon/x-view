@@ -23,7 +23,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       std::make_shared<AbstractDataset>(AbstractDataset(num_semantic_classes));
   CHECK_NOTNULL(global_dataset_ptr.get());
 
-  Graph graph;
+  const unsigned long seed = 0;
   const int walk_length = 3;
   const int num_walks_per_vertex = 20;
 
@@ -32,8 +32,10 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       {10, 0.5},  // graph statistic has form (num_vertices, edge_probability)
       {10, 1.0},
       {50, 0.2},
-      {50, 0.5},
-      {300, 0.05}
+      {50, 0.5}
+#ifndef X_VIEW_DEBUG
+      ,{300, 0.05}
+#endif
   };
   std::vector<RandomWalkerParams::RANDOM_SAMPLING_TYPE> sampling_types{
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM,
@@ -48,9 +50,13 @@ TEST(XViewSlamTestSuite, test_random_walk) {
   for (auto graph_statistic : graph_statistics) {
     std::tie(num_vertices, edge_probability) = graph_statistic;
 
-    graph = generateRandomGraph(num_vertices,
-                                edge_probability,
-                                num_semantic_classes);
+    GraphConstructionParams construction_params;
+    construction_params.num_vertices_ = num_vertices;
+    construction_params.edge_probability_ = edge_probability;
+    construction_params.num_semantic_classes_ = num_semantic_classes;
+    construction_params.seed_ = seed;
+
+    Graph graph = generateRandomGraph(construction_params);
 
     for (const auto sampling_type : sampling_types) {
       for (const bool force_visiting_neighbor : force_visiting_neighbors_vec) {

@@ -1,7 +1,9 @@
 #ifndef X_VIEW_TEST_WALK_MATCHING_H
 #define X_VIEW_TEST_WALK_MATCHING_H
+#include "test_common.h"
 
 #include <x_view_core/features/graph.h>
+#include <x_view_core/matchers/graph_matcher/random_walker.h>
 
 #include <random>
 
@@ -9,17 +11,77 @@ using namespace x_view;
 
 namespace x_view_test {
 
+/**
+ * \brief Parameters used to modify the topology of a graph.
+ */
 struct GraphModifierParams {
+  /// \brief Number of new vertices to add to the graph.
   int num_vertices_to_add_;
+  /// \brief Number of vertices to remove from the graph.
   int num_vertices_to_remove_;
+  /// \brief Number of new edges to add to the graph.
   int num_edges_to_add_;
+  /// \brief Number of edges to remove from the graph.
   int num_edges_to_remove_;
-
+  /// \brief Number of edges to create between each new vertex and the
+  /// existing ones.
   int num_links_for_new_vertices_ = 2;
 };
 
+/**
+ * \brief Modifies the graph pointed by the passed argument following the
+ * parameters contained in the second argument.
+ * \param graph Pointer pointing to the graph to be modified.
+ * \param params Parameters used for modifying the graph.
+ * \param rng Random number generator used to randomly create/remove
+ * vertices/edges.
+ */
 void modifyGraph(Graph* graph, const GraphModifierParams& params,
                  std::mt19937& rng);
+
+/**
+ * \brief Small container used to combine a base graph with a new subgraph.
+ */
+struct GraphPair {
+  Graph base_graph_;
+  Graph sub_graph_;
+};
+
+/**
+ * \brief Generates a new graph with a chain topology.
+ * \param construction_params Parameters used to construct the graph.
+ * \param modifier_params Parameters used to modify the subgraph extracted
+ * from the generated base_graph_.
+ * \param extraction_radius Radius used for graph extraction.
+ * \return A GraphPair object, containing the generated graph with
+ * corresponding extracted subgraph.
+ */
+GraphPair generateChainGraphPair(const GraphConstructionParams& construction_params,
+                                 const GraphModifierParams& modifier_params,
+                                 const int extraction_radius);
+
+/**
+ * \brief Generates a new graph with a random topology.
+ * \param construction_params Parameters used to construct the graph.
+ * \param modifier_params Parameters used to modify the subgraph extracted
+ * from the generated base_graph_.
+ * \param extraction_radius Radius used for graph extraction.
+ * \return A GraphPair object, containing the generated graph with
+ * corresponding extracted subgraph.
+ */
+GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_params,
+                                  const GraphModifierParams& modifier_params,
+                                  const int extraction_radius);
+
+/**
+ * \brief Routine computing vertex similarities between the graphs contained
+ * in the passed argument.
+ * \param graph_pair Object containing the two graph to be compared.
+ * \param random_walker_params Parameters used to extract random walks from
+ * the graphs passed as argument.
+ */
+void computeVertexSimilarity(const GraphPair& graph_pair,
+                             const RandomWalkerParams& random_walker_params);
 
 }
 
