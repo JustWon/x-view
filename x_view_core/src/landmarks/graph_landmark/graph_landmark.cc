@@ -38,11 +38,8 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
 #ifdef X_VIEW_DEBUG
   // ************ Graph drawing *********** //
   cv::Mat draw_image =
-      GraphDrawer::createImageFromBlobs(image_blobs_, image.size());
-  GraphDrawer::addGraphEdgesToImage(descriptor, &draw_image);
-  GraphDrawer::addGraphNodesToImage(descriptor, &draw_image);
-  GraphDrawer::addEllipsesToImage(image_blobs_, &draw_image);
-  GraphDrawer::addLabelsToImage(image_blobs_, &draw_image);
+      GraphDrawer::createImageWithLabels(image_blobs_, descriptor,
+                                         image.size());
   cv::imshow("Semantic entities and graph structure", draw_image);
   cv::waitKey();
 #endif // X_VIEW_DEBUG

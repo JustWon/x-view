@@ -17,6 +17,18 @@ void GraphDrawer::printBlobs(const ImageBlobs& blobs) {
   }
 }
 
+cv::Mat GraphDrawer::createImageWithLabels(const ImageBlobs& blobs,
+                                           const Graph& graph,
+                                          const cv::Size& size) {
+  cv::Mat image = GraphDrawer::createImageFromBlobs(blobs, size);
+  GraphDrawer::addGraphEdgesToImage(graph, &image);
+  GraphDrawer::addGraphNodesToImage(graph, &image);
+  GraphDrawer::addEllipsesToImage(blobs, &image);
+  GraphDrawer::addLabelsToImage(blobs, &image);
+
+  return image;
+}
+
 cv::Mat GraphDrawer::createImageFromBlobs(const ImageBlobs& blobs,
                                           const cv::Size& size) {
   cv::Mat image(size.height, size.width, CV_8UC3, cv::Scalar::all(0));

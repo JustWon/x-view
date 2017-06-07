@@ -32,5 +32,8 @@ TEST(XViewSlamTestSuite, test_graph_landmark) {
   // test different images
   testCustomImage();
   testDiscImage();
+
+  // Close all windows.
+  cv::destroyAllWindows();
 }
 

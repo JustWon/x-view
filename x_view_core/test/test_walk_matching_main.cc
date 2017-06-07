@@ -26,6 +26,7 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
 
   testRandomGraph(seed);
 
-
+  // Close all windows.
+  cv::destroyAllWindows();
 }
 

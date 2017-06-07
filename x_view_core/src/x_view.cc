@@ -140,10 +140,27 @@ void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
                            AbstractMatcher::MatchingResultPtr& matching_result) {
 
+  const cv::Mat& semantic_image = semantics_a->getSemanticImage();
+
+  const auto graph_landmark =
+      std::dynamic_pointer_cast<GraphLandmark>(semantics_a);
+  CHECK_NOTNULL(graph_landmark.get());
+
+  const auto graph_descriptor =
+      std::dynamic_pointer_cast<const GraphDescriptor>
+          (graph_landmark->getDescriptor());
+
   // compute a match between the current semantic landmark and the ones
   // already visited
-  matching_result = descriptor_matcher_->match(semantics_a);
+  matching_result = descriptor_matcher_->match(graph_landmark);
 
+  cv::Mat graph_image = GraphDrawer::createImageWithLabels
+      (graph_landmark->getBlobs(), graph_descriptor->getDescriptor(),
+       semantic_image.size());
+  cv::imshow("Current graph-landmark", graph_image);
+  cv::waitKey(200);
+
+  /*
   // The code inside these brackets is here only for log purposes
   {
 
@@ -175,6 +192,7 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
                 << std::distance(voting_per_image.begin(), max_vote) << ")!";
     }
   }
+   */
 
   semantics_db_.push_back(semantics_a);
 }

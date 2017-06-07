@@ -1,7 +1,14 @@
 #ifndef X_VIEW_GRAPH_MATCHER_H
 #define X_VIEW_GRAPH_MATCHER_H
 
+#include <x_view_core/features/graph.h>
 #include <x_view_core/matchers/abstract_matcher.h>
+#include <x_view_core/matchers/graph_matcher/random_walker.h>
+#include <x_view_core/x_view_types.h>
+
+#include <map>
+#include <memory>
+#include <vector>
 
 namespace x_view {
 
@@ -24,6 +31,11 @@ class GraphMatcher : public AbstractMatcher {
   override;
 
   static LandmarksMatcherPtr create();
+
+ private:
+  Graph global_semantic_graph_;
+  std::vector<RandomWalker::WalkMap> global_walk_map_vector_;
+
 };
 
 }

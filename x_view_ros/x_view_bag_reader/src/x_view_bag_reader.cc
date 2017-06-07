@@ -90,7 +90,7 @@ void XViewBagReader::iterateBagFromTo(const std::string& image_topic,
   auto const& view = topic_views_[image_topic];
   const int step = (from <= to ? +1 : -1);
   for (int i = from; step * i < step * to; i += step) {
-    LOG(INFO) << "Processing semantic image at index " << i;
+    std::cout << "Processing semantic image at index " << i << std::endl;
     x_view_.processSemanticImage(view.getSemanticImageAtFrame(i),
                                  x_view::SE3());
   }

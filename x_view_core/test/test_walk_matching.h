@@ -89,13 +89,28 @@ Eigen::MatrixXf computeVertexSimilarity(const GraphPair& graph_pair,
  * \brief Displays the similarity matrix passed as argument as a heatmap
  * converting it into a cv::Mat object and computing a colormap on the entries.
  * \param similarity_matrix Similarity matrix to be displayed.
- * \param desired_size Desired size of shown image.
  * \param name Name to be used when displaying the similarity matrix.
+ * \param desired_size Desired size of shown image.
  */
 void displaySimilarityMatrix(const Eigen::MatrixXf& similarity_matrix,
-                             const int desired_size = 400,
-                             const std::string& name = "");
+                             const std::string& name = "",
+                             const int desired_size = 400);
 
+/**
+ * \brief Displays the filtered similarity matrix such that each column of
+ * the resulting heat map only shows the highest match, i.e. shows which
+ * vertex represented in the vertical axis of the similarity matrix is the most
+ * similar to each vertex in the horizontal axis of the similarity matrix.
+ * \param similarity_matrix Similarity matrix to be displayed.
+ * \param filter_val Only similarities larger than this parameter are shown
+ * in the image.
+ * \param name Name to be used when displaying the similarity matrix.
+ * \param desired_size Desired size of shown image.
+ */
+void displayFilteredSimilarityMatrix(const Eigen::MatrixXf& similarity_matrix,
+                                     const float filter_val = 0.0f,
+                                     const std::string& name = "",
+                                     const int desired_size = 400);
 
 /**
  * \brief Modifies the graph pointed by the passed argument following the
@@ -107,7 +122,6 @@ void displaySimilarityMatrix(const Eigen::MatrixXf& similarity_matrix,
  */
 void modifyGraph(Graph* graph, const GraphModifierParams& params,
                  std::mt19937& rng);
-
 
 }
 

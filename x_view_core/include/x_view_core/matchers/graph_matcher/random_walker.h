@@ -83,7 +83,7 @@ class RandomWalker {
   /// struct capturing the mapped random walk, and the number of times the
   /// random walk appears for the source vertex.
   struct MappedWalk {
-    const RandomWalk& random_walk_;
+    const RandomWalk random_walk_;
     int multiplicity_;
 
     MappedWalk(const RandomWalk& random_walk)
@@ -216,6 +216,12 @@ class RandomWalker {
    */
   void precomputeAvoidingTransitionProbabilities();
 
+  /**
+   * \brief Computes a unique key associated to the random walk passed as
+   * parameter. This key is used as key in the WalkMap structure.
+   * \param random_walk Random walk whose key is to be computed.
+   * \return Integer value used as key in the WalkMap structure.
+   */
   static const int computeRandomWalkKey(const RandomWalk& random_walk);
 
  protected:

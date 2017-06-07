@@ -1,9 +1,9 @@
 XView: {
   landmarks: {
-    type: "SURF"
+    type: "GRAPH"
   },
   matcher: {
-    type: "VECTOR"
+    type: "GRAPH"
   }
 }
 
