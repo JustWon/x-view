@@ -41,7 +41,7 @@ void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
     const VertexDescriptor link_v_d = boost::random_vertex(*graph, rng);
     if (std::find(vertices_to_link.begin(), vertices_to_link.end(), link_v_d)
         == vertices_to_link.end())
-      vertices_to_link.push_back(boost::random_vertex(*graph, rng));
+      vertices_to_link.push_back(link_v_d);
   }
 
   const VertexDescriptor& new_vertex_d = boost::add_vertex(new_vertex, *graph);
@@ -144,33 +144,26 @@ void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng) {
     // Try to remove the vertex on a test graph.
     Graph test_graph = *graph;
 
-    // Select two random vertices from the graph.
-    const VertexDescriptor& v_1_d = boost::random_vertex(test_graph, rng);
-    const VertexDescriptor& v_2_d = boost::random_vertex(test_graph, rng);
+    // Select a random edge to be removed.
+    const EdgeDescriptor& e_d = boost::random_edge(test_graph, rng);
 
-    if (removeEdgeBetweenVertices(v_1_d, v_2_d, &test_graph)) {
+    // Compute the connected components of the new graph.
+    std::vector<int> component(boost::num_vertices(test_graph));
+    int num_connected_components =
+        boost::connected_components(test_graph, &component[0]);
 
-      // Compute the connected components of the new graph.
-      std::vector<int> component(boost::num_vertices(test_graph));
-      int num_connected_components =
-          boost::connected_components(test_graph, &component[0]);
+    if (num_connected_components == 1) {
+      const EdgeProperty& e_p = test_graph[e_d];
+      LOG(INFO) << "Removed edge " << e_p << ".";
+      single_connected_component = true;
+      *graph = test_graph;
+    } else {
+      const EdgeProperty& e_p = test_graph[e_d];
+      LOG(WARNING)
+          << "Could not remove edge " << e_p
+          << " as it would create two disconnected components. "
+          << "Choosing a new edge.";
 
-      if (num_connected_components == 1) {
-        EdgeProperty e_p;
-        e_p.from_ = test_graph[v_1_d].index_;
-        e_p.to_ = test_graph[v_2_d].index_;
-        LOG(INFO) << "Removed edge " << e_p << ".";
-        single_connected_component = true;
-        *graph = test_graph;
-      } else {
-        EdgeProperty e_p;
-        e_p.from_ = test_graph[v_1_d].index_;
-        e_p.to_ = test_graph[v_2_d].index_;
-        LOG(WARNING)
-            << "Could not remove edge " << e_p
-            << " as it would create two disconnected components. "
-            << "Choosing a new edge.";
-      }
     }
   }
 }

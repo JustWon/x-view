@@ -5,11 +5,21 @@
 #include <x_view_core/features/graph.h>
 #include <x_view_core/matchers/graph_matcher/random_walker.h>
 
+#include <Eigen/Core>
+
 #include <random>
 
 using namespace x_view;
 
 namespace x_view_test {
+
+/**
+ * \brief Tests a chain-like grpah a
+ * \param seed
+ */
+void testChainGraph(const unsigned long seed);
+
+void testRandomGraph(const unsigned long seed);
 
 /**
  * \brief Parameters used to modify the topology of a graph.
@@ -27,17 +37,6 @@ struct GraphModifierParams {
   /// existing ones.
   int num_links_for_new_vertices_ = 2;
 };
-
-/**
- * \brief Modifies the graph pointed by the passed argument following the
- * parameters contained in the second argument.
- * \param graph Pointer pointing to the graph to be modified.
- * \param params Parameters used for modifying the graph.
- * \param rng Random number generator used to randomly create/remove
- * vertices/edges.
- */
-void modifyGraph(Graph* graph, const GraphModifierParams& params,
-                 std::mt19937& rng);
 
 /**
  * \brief Small container used to combine a base graph with a new subgraph.
@@ -79,9 +78,36 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
  * \param graph_pair Object containing the two graph to be compared.
  * \param random_walker_params Parameters used to extract random walks from
  * the graphs passed as argument.
+ * \return A similarity matrix whose entry (i,j) corresponds to the
+ * similarity between node 'i' in graph_pair.base_graph_ and node 'j' in
+ * graph_pair.sub_graph_.
  */
-void computeVertexSimilarity(const GraphPair& graph_pair,
-                             const RandomWalkerParams& random_walker_params);
+Eigen::MatrixXf computeVertexSimilarity(const GraphPair& graph_pair,
+                                        const RandomWalkerParams& random_walker_params);
+
+/**
+ * \brief Displays the similarity matrix passed as argument as a heatmap
+ * converting it into a cv::Mat object and computing a colormap on the entries.
+ * \param similarity_matrix Similarity matrix to be displayed.
+ * \param desired_size Desired size of shown image.
+ * \param name Name to be used when displaying the similarity matrix.
+ */
+void displaySimilarityMatrix(const Eigen::MatrixXf& similarity_matrix,
+                             const int desired_size = 400,
+                             const std::string& name = "");
+
+
+/**
+ * \brief Modifies the graph pointed by the passed argument following the
+ * parameters contained in the second argument.
+ * \param graph Pointer pointing to the graph to be modified.
+ * \param params Parameters used for modifying the graph.
+ * \param rng Random number generator used to randomly create/remove
+ * vertices/edges.
+ */
+void modifyGraph(Graph* graph, const GraphModifierParams& params,
+                 std::mt19937& rng);
+
 
 }
 

@@ -12,40 +12,119 @@
 
 namespace x_view_test {
 
-void modifyGraph(Graph* graph, const GraphModifierParams& params,
-                 std::mt19937& rng) {
-  CHECK_NOTNULL(graph);
+void testChainGraph(const unsigned long seed) {
+  // Graph construction parameters
+  const int num_vertices = 50;
 
-  std::vector<int> component(boost::num_vertices(*graph));
-  int num_connected_components =
-      boost::connected_components(*graph, &component[0]);
+  // Graph modifier parameters
+  const int num_vertices_to_add = 0;
+  const int num_links_for_new_vertices = 0;
+  const int num_vertices_to_remove = 0;
+  const int num_edges_to_add = 2;
+  const int num_edges_to_remove = 0;
 
-  CHECK(num_connected_components == 1)
-  << "Input graph to " << __FUNCTION__ << " has " << num_connected_components
-  << " connected components. Function " << __FUNCTION__
-  << " only works with single components.";
+  // Size of the extracted subgraph.
+  const int extraction_radius = 4;
 
-  for (int i = 0; i < params.num_vertices_to_add_; ++i)
-    addRandomVertexToGraph(graph, rng, params.num_links_for_new_vertices_);
+  // Random walker params
+  const int num_walks = 200;
+  const int walk_length = 3;
+  const RandomWalkerParams::RANDOM_SAMPLING_TYPE sampling_type =
+      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
+  const bool force_visiting_each_neighbor = true;
+  const bool allow_returning_back = true;
 
-  for (int i = 0; i < params.num_vertices_to_remove_; ++i)
-    removeRandomVertexFromGraph(graph, rng);
+  // Define parameter for generating the graphs.
+  GraphConstructionParams construction_params;
+  construction_params.num_vertices_ = num_vertices;
+  construction_params.num_semantic_classes_
+      = global_dataset_ptr->numSemanticClasses();
+  construction_params.seed_ = seed;
 
-  for (int i = 0; i < params.num_edges_to_add_; ++i)
-    addRandomEdgeToGraph(graph, rng);
+  // Define parameters for modifying the graphs.
+  GraphModifierParams modifier_params;
+  modifier_params.num_vertices_to_add_ = num_vertices_to_add;
+  modifier_params.num_links_for_new_vertices_ = num_links_for_new_vertices;
+  modifier_params.num_vertices_to_remove_ = num_vertices_to_remove;
+  modifier_params.num_edges_to_add_ = num_edges_to_add;
+  modifier_params.num_edges_to_remove_ = num_edges_to_remove;
 
-  for (int i = 0; i < params.num_edges_to_remove_; ++i) {
-    removeRandomEdgeFromGraph(graph, rng);
-  }
+  // Define parameters for random walk extraction.
+  RandomWalkerParams random_walker_params;
+  random_walker_params.walk_length_ = walk_length;
+  random_walker_params.num_walks_ = num_walks;
+  random_walker_params.random_sampling_type_ = sampling_type;
+  random_walker_params.force_visiting_each_neighbor_
+      = force_visiting_each_neighbor;
+  random_walker_params.allow_returning_back_ = allow_returning_back;
 
-  component.resize(boost::num_vertices(*graph));
-  num_connected_components =
-      boost::connected_components(*graph, &component[0]);
 
-  CHECK(num_connected_components == 1)
-  << "After removing and adding vertices/edges to the graph, there are "
-  << "disconnected  components.";
+  GraphPair graph_pair_chain = generateChainGraphPair(construction_params,
+                                                      modifier_params,
+                                                      extraction_radius);
+  Eigen::MatrixXf chain_similarity =
+      computeVertexSimilarity(graph_pair_chain, random_walker_params);
 
+  const int desired_size = 500;
+  displaySimilarityMatrix(chain_similarity, desired_size, "chain");
+}
+
+void testRandomGraph(const unsigned long seed) {
+  // Graph construction parameters
+  const int num_vertices = 500;
+  const float edge_probability = 0.01;
+
+  // Graph modifier parameters
+  const int num_vertices_to_add = 10;
+  const int num_links_for_new_vertices = 3;
+  const int num_vertices_to_remove = 10;
+  const int num_edges_to_add = 10;
+  const int num_edges_to_remove = 20;
+
+  // Size of the extracted subgraph.
+  const int extraction_radius = 2;
+
+  // Random walker params
+  const int num_walks = 200;
+  const int walk_length = 3;
+  const RandomWalkerParams::RANDOM_SAMPLING_TYPE sampling_type =
+      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
+  const bool force_visiting_each_neighbor = true;
+  const bool allow_returning_back = true;
+
+  // Define parameter for generating the graphs.
+  GraphConstructionParams construction_params;
+  construction_params.num_vertices_ = num_vertices;
+  construction_params.edge_probability_ = edge_probability;
+  construction_params.num_semantic_classes_
+      = global_dataset_ptr->numSemanticClasses();
+  construction_params.seed_ = seed;
+
+  // Define parameters for modifying the graphs.
+  GraphModifierParams modifier_params;
+  modifier_params.num_vertices_to_add_ = num_vertices_to_add;
+  modifier_params.num_links_for_new_vertices_ = num_links_for_new_vertices;
+  modifier_params.num_vertices_to_remove_ = num_vertices_to_remove;
+  modifier_params.num_edges_to_add_ = num_edges_to_add;
+  modifier_params.num_edges_to_remove_ = num_edges_to_remove;
+
+  // Define parameters for random walk extraction.
+  RandomWalkerParams random_walker_params;
+  random_walker_params.walk_length_ = walk_length;
+  random_walker_params.num_walks_ = num_walks;
+  random_walker_params.random_sampling_type_ = sampling_type;
+  random_walker_params.force_visiting_each_neighbor_
+      = force_visiting_each_neighbor;
+  random_walker_params.allow_returning_back_ = allow_returning_back;
+
+  GraphPair graph_pair_random = generateRandomGraphPair(construction_params,
+                                                        modifier_params,
+                                                        extraction_radius);
+  Eigen::MatrixXf random_similarity =
+      computeVertexSimilarity(graph_pair_random, random_walker_params);
+
+  const int desired_size = 500;
+  displaySimilarityMatrix(random_similarity, desired_size, "random");
 }
 
 GraphPair generateChainGraphPair(const GraphConstructionParams& construction_params,
@@ -103,8 +182,10 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
   return graph_pair;
 }
 
-void computeVertexSimilarity(const GraphPair& graph_pair,
-                             const RandomWalkerParams& random_walker_params) {
+
+
+Eigen::MatrixXf computeVertexSimilarity(const GraphPair& graph_pair,
+                                        const RandomWalkerParams& random_walker_params) {
 
   const Graph& base_graph = graph_pair.base_graph_;
   RandomWalker random_walker_base(base_graph, random_walker_params);
@@ -143,40 +224,89 @@ void computeVertexSimilarity(const GraphPair& graph_pair,
     }
   }
 
-  // Display the generated similarities as a heatmap image.
-  const int desired_heatmap_size = 800;
-  const float reshape_factor =
-      static_cast<float>(desired_heatmap_size)
-          / std::max(scores.cols(), scores.rows());
+  return scores;
+}
 
-  // Normalize score matrix and convert it to opencv image.
-  const float max_score = scores.maxCoeff();
-  scores /= max_score;
-  cv::Mat show_scores;
-  cv::eigen2cv(scores, show_scores);
+void displaySimilarityMatrix(const Eigen::MatrixXf& similarity_matrix,
+                             const int desired_size,
+                             const std::string& name) {
 
-  cv::resize(show_scores, show_scores, cv::Size(), reshape_factor,
-             reshape_factor, cv::INTER_NEAREST);
-  cv::applyColorMap(show_scores, show_scores, cv::COLORMAP_JET);
+  auto roundToClosestMultiple = [](const int number, const int multiple) {
+    return ((number + multiple / 2) / multiple) * multiple;
+  };
+  const int resulting_rows =
+      roundToClosestMultiple(desired_size, similarity_matrix.rows());
+  const int resulting_cols =
+      roundToClosestMultiple(desired_size, similarity_matrix.cols());
 
-  cv::imshow("Similarity score", show_scores);
+  // Normalize score matrix and convert them to opencv image.
+  const float max_score = similarity_matrix.maxCoeff();
+  Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic>
+  normalized_similarity =  (similarity_matrix / max_score * 255).cast<unsigned char>();
+  cv::Mat cv_scores, color_scores;
+  cv::eigen2cv(normalized_similarity, cv_scores);
+
+  cv::resize(cv_scores, cv_scores, cv::Size(resulting_cols, resulting_rows),
+             0, 0, cv::INTER_NEAREST);
+
+  cv::applyColorMap(cv_scores, color_scores, cv::COLORMAP_BONE);
+
+  cv::imshow("Similarity score " + name, color_scores);
 
   // Only show matches which achieve score larger than score_filter.
-  const float score_filter = 0.3;
-  Eigen::MatrixXf scores_max(scores.rows(), scores.cols());
+  const float score_filter = 0.f;
+  Eigen::MatrixXf
+      scores_max(similarity_matrix.rows(), similarity_matrix.cols());
   scores_max.setZero();
-  for (int i = 0; i < scores.cols(); ++i) {
+  for (int i = 0; i < similarity_matrix.cols(); ++i) {
     int max_index;
-    if (scores.col(i).maxCoeff(&max_index) > score_filter)
+    if (similarity_matrix.col(i).maxCoeff(&max_index) > score_filter)
       scores_max(max_index, i) = 1;
   }
   cv::Mat show_scores_max;
   cv::eigen2cv(scores_max, show_scores_max);
-  cv::resize(show_scores_max, show_scores_max, cv::Size(), reshape_factor,
-             reshape_factor, cv::INTER_NEAREST);
+  cv::resize(show_scores_max, show_scores_max,
+             cv::Size(resulting_cols, resulting_rows),
+             0, 0, cv::INTER_NEAREST);
 
-  cv::imshow("Max scores", show_scores_max);
+  cv::imshow("Max scores " + name, show_scores_max);
   cv::waitKey();
+}
+
+void modifyGraph(Graph* graph, const GraphModifierParams& params,
+                 std::mt19937& rng) {
+  CHECK_NOTNULL(graph);
+
+  std::vector<int> component(boost::num_vertices(*graph));
+  int num_connected_components =
+      boost::connected_components(*graph, &component[0]);
+
+  CHECK(num_connected_components == 1)
+  << "Input graph to " << __FUNCTION__ << " has " << num_connected_components
+  << " connected components. Function " << __FUNCTION__
+  << " only works with single components.";
+
+  for (int i = 0; i < params.num_vertices_to_add_; ++i)
+    addRandomVertexToGraph(graph, rng, params.num_links_for_new_vertices_);
+
+  for (int i = 0; i < params.num_edges_to_add_; ++i)
+    addRandomEdgeToGraph(graph, rng);
+
+  for (int i = 0; i < params.num_vertices_to_remove_; ++i)
+    removeRandomVertexFromGraph(graph, rng);
+
+  for (int i = 0; i < params.num_edges_to_remove_; ++i) {
+    removeRandomEdgeFromGraph(graph, rng);
+  }
+
+  component.resize(boost::num_vertices(*graph));
+  num_connected_components =
+      boost::connected_components(*graph, &component[0]);
+
+  CHECK(num_connected_components == 1)
+  << "After removing and adding vertices/edges to the graph, there are "
+  << "disconnected  components.";
+
 }
 
 }
