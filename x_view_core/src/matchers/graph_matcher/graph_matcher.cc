@@ -52,8 +52,6 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(const SemanticLandmarkPtr
   random_walker_params.num_walks_ = 100;
   random_walker_params.random_sampling_type_ =
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM;
-  random_walker_params.allow_returning_back_ = true;
-  random_walker_params.force_visiting_each_neighbor_ = false;
 
   RandomWalker random_walker(query_semantic_graph, random_walker_params);
   random_walker.generateRandomWalks();

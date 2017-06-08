@@ -23,7 +23,6 @@ TEST(XViewSlamTestSuite, test_walk_matching) {
   const unsigned long seed = 0;
 
   testChainGraph(seed);
-
   testRandomGraph(seed);
 
   // Close all windows.

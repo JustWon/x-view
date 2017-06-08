@@ -31,8 +31,6 @@ void testChainGraph(const unsigned long seed) {
   const int walk_length = 3;
   const RandomWalkerParams::RANDOM_SAMPLING_TYPE sampling_type =
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
-  const bool force_visiting_each_neighbor = true;
-  const bool allow_returning_back = true;
 
   // Define parameter for generating the graphs.
   GraphConstructionParams construction_params;
@@ -53,10 +51,7 @@ void testChainGraph(const unsigned long seed) {
   RandomWalkerParams random_walker_params;
   random_walker_params.walk_length_ = walk_length;
   random_walker_params.num_walks_ = num_walks;
-  random_walker_params.random_sampling_type_ = sampling_type;
-  random_walker_params.force_visiting_each_neighbor_
-      = force_visiting_each_neighbor;
-  random_walker_params.allow_returning_back_ = allow_returning_back;
+  random_walker_params.random_sampling_type_ = sampling_type;;;
 
 
   GraphPair graph_pair_chain = generateChainGraphPair(construction_params,
@@ -92,8 +87,6 @@ void testRandomGraph(const unsigned long seed) {
   const int walk_length = 3;
   const RandomWalkerParams::RANDOM_SAMPLING_TYPE sampling_type =
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
-  const bool force_visiting_each_neighbor = true;
-  const bool allow_returning_back = true;
 
   // Define parameter for generating the graphs.
   GraphConstructionParams construction_params;
@@ -116,9 +109,6 @@ void testRandomGraph(const unsigned long seed) {
   random_walker_params.walk_length_ = walk_length;
   random_walker_params.num_walks_ = num_walks;
   random_walker_params.random_sampling_type_ = sampling_type;
-  random_walker_params.force_visiting_each_neighbor_
-      = force_visiting_each_neighbor;
-  random_walker_params.allow_returning_back_ = allow_returning_back;
 
   GraphPair graph_pair_random = generateRandomGraphPair(construction_params,
                                                         modifier_params,
