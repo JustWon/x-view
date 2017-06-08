@@ -46,16 +46,16 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params);
 x_view::Graph generateChainGraph(const GraphConstructionParams& params);
 
 /**
- * \brief An instance of this class is used to build a subgraph based on K-NN.
+ * \brief An instance of this class is used to build a subgraph based on K-hops.
  */
-class KNNBSFVisitor : public boost::default_bfs_visitor {
+class KhopVisitor : public boost::default_bfs_visitor {
 
  public:
   /// \brief Map which assigns to each VertexDescriptor an integer distance
-  /// (number of edges) needed to reach the source vertex in a graph.
+  /// (number of edges/hops) needed to reach the source vertex in a graph.
   typedef std::map<const x_view::VertexDescriptor, int> DistanceMap;
 
-  KNNBSFVisitor(DistanceMap& dist)
+  KhopVisitor(DistanceMap& dist)
       : dist_(dist) {}
 
   /**

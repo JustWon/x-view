@@ -65,7 +65,9 @@ class VertexSimilarity {
    * \brief Function implementing the ScoreFunctionType signature which
    * computes the similarity between two graph vertices by counting how many
    * exact correspondences exist between the random walks associated to the
-   * graph vertices passed as argument.
+   * graph vertices passed as argument. This function computes an unweighed
+   * inner product between the keys associated to the random walks of the
+   * compared vertices.
    * \param node1 Walk map associated to the first node to be compared.
    * \param node2 Walk map associated to the second node to be compared.
    * \return A floating point score representing the similarity between node1
@@ -81,11 +83,22 @@ class VertexSimilarity {
                                 const RandomWalker::WalkMap& node2);
 
   /**
-   * \brief What does it do?
+   * \brief Function implementing the ScoreFunctionType signature which
+   * computes the similarity between two graph vertices by counting how many
+   * exact correspondences exist between the random walks associated to the
+   * graph vertices passed as argument. This function computes a weighed
+   * inner product between the keys associated to the random walks of the
+   * compared vertices.
    * \param node1 Walk map associated to the first node to be compared.
    * \param node2 Walk map associated to the second node to be compared.
    * \return A floating point score representing the similarity between node1
    * and node2. The higher the most similar.
+   * \code{.cpp}
+   * RandomWalker random_walker(graph, random_walker_params);
+   * const auto& mapped_walks = random_walker.getMappedWalks();
+   * float similarity_i_j =
+   *    VertexSimilarity::score(mapped_walks[i], mapped_walks[j]);
+   * \endcode
    */
   static const float score_weighted(const RandomWalker::WalkMap& node1,
                                     const RandomWalker::WalkMap& node2);

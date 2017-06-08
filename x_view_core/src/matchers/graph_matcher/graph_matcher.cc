@@ -91,17 +91,17 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(const SemanticLandmarkPtr
     auto roundToClosestMultiple = [](const int number, const int multiple) {
       return ((number + multiple / 2) / multiple) * multiple;
     };
+    const int desired_size = 400;
     const int resulting_rows =
-        roundToClosestMultiple(400, similarity_matrix.rows());
+        roundToClosestMultiple(desired_size, similarity_matrix.rows());
     const int resulting_cols =
-        roundToClosestMultiple(400, similarity_matrix.cols());
+        roundToClosestMultiple(desired_size, similarity_matrix.cols());
 
     // Normalize score matrix and convert them to opencv image.
     const float max_score = similarity_matrix.maxCoeff();
     Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic>
     normalized_similarity =
-        (similarity_matrix / max_score * 255).cast < unsigned
-    char > ();
+        (similarity_matrix / max_score * 255).cast <unsigned char>();
     cv::Mat cv_scores, color_scores;
     cv::eigen2cv(normalized_similarity, cv_scores);
 
@@ -144,7 +144,8 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(const SemanticLandmarkPtr
                                    query_walk_map_vector.end());
 
     // Create a matching result pointer which will be returned by this function.
-    auto matchingResult = std::make_shared<GraphMatchingResult>();
+    auto matchingResult =
+        std::make_shared<GraphMatchingResult>(GraphMatchingResult(similarity_matrix));
 
     // Return the matching result filled with the matches.
     return matchingResult;

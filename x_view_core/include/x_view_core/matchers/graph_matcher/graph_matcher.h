@@ -6,6 +6,8 @@
 #include <x_view_core/matchers/graph_matcher/random_walker.h>
 #include <x_view_core/x_view_types.h>
 
+#include <Eigen/Dense>
+
 #include <map>
 #include <memory>
 #include <vector>
@@ -24,7 +26,23 @@ class GraphMatcher : public AbstractMatcher {
   virtual ~GraphMatcher();
 
   class GraphMatchingResult : public AbstractMatchingResult {
+   public:
+    GraphMatchingResult()
+        : AbstractMatchingResult(),
+          similarity_matrix_() {
+    }
 
+    GraphMatchingResult(const Eigen::MatrixXf& similarity_matrix)
+        : AbstractMatchingResult(),
+          similarity_matrix_(similarity_matrix) {
+    }
+
+    const Eigen::MatrixXf& getSimilarityMatrix() const {
+      return similarity_matrix_;
+    }
+
+   private:
+    Eigen::MatrixXf similarity_matrix_;
   };
 
   virtual MatchingResultPtr match(const SemanticLandmarkPtr& query_landmark)

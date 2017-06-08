@@ -115,11 +115,11 @@ x_view::Graph extractSubgraphAroundVertex(const x_view::Graph& original,
   // An object mapping each VertexDescriptor to the corresponding integer
   // distance to the source VertexDescriptor. This object is filled up by the
   // KNNBSVisitor class.
-  KNNBSFVisitor::DistanceMap dist;
+  KhopVisitor::DistanceMap dist;
 
   // Perform BFS in order to compute the integer distance from each vertex of
   // the original graph from the source VertexDescriptor.
-  KNNBSFVisitor vis(dist);
+  KhopVisitor vis(dist);
   boost::breadth_first_search(original, source, boost::visitor(vis));
 
   // Map which assigns two VertexDescriptors to each other. This is

@@ -12,8 +12,11 @@ int main(int argc, char** argv) {
 
   x_view_ros::XViewBagReader bag_reader(node_handle);
 
-  bag_reader.iterateBagFromTo("Stereo_Left/Omni_F/labels", 0, 20);
-
+  // FIXME Something is wrong with frame 6 as it stops the workflow of graph
+  // matcher.
+  bag_reader.iterateBagFromTo("Stereo_Left/Omni_F/labels", 0, 5);
+  bag_reader.iterateBagFromTo("Stereo_Left/Omni_F/labels", 0, 5);
+  bag_reader.iterateBagFromTo("Stereo_Left/Omni_F/labels", 0, 5);
 
   x_view::finalizeLogging();
 
