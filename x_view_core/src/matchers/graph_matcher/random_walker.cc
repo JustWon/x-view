@@ -82,6 +82,15 @@ RandomWalker::RandomWalker(const Graph& graph,
                    << __FUNCTION__;
     }
   }
+
+  // Check that each row of the transition probability matrix has at least
+  // one non zero element.
+  for(int i = 0; i < transition_probabilities_.rows(); ++i) {
+    Eigen::SparseVector<float, Eigen::RowMajor> row =
+        transition_probabilities_.row(i);
+    CHECK(row.nonZeros() > 0) << "Row " << i << " of transition probability "
+        "matrix does not contain non-zero elements.";
+  }
 }
 
 void RandomWalker::generateRandomWalks() {

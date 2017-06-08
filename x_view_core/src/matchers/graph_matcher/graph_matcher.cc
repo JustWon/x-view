@@ -2,11 +2,13 @@
 
 #include <x_view_core/features/graph_descriptor.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
+#include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/matchers/graph_matcher/vertex_similarity.h>
 
 #include <boost/graph/copy.hpp>
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/opencv.hpp>
+
 
 namespace x_view {
 
@@ -22,15 +24,26 @@ GraphMatcher::~GraphMatcher() {
 
 AbstractMatcher::MatchingResultPtr GraphMatcher::match(const SemanticLandmarkPtr& query_landmark) {
 
-  // Extract and cast the descriptor associated to the query_landmark.
-  auto graph_descriptor =
-      std::dynamic_pointer_cast<const GraphDescriptor>
-          (query_landmark->getDescriptor());
+  // Cast the SemanticLandmarkPtr to a GraphLandmarkPtr.
+  const auto graph_landmark_ptr =
+      std::dynamic_pointer_cast<const GraphLandmark>(query_landmark);
+
+  CHECK(graph_landmark_ptr != nullptr) << "Impossible to cast 'query_landmark' "
+      "to a 'GraphLandmark' pointer. Be sure the passed 'SemanticLandmarkPtr' "
+      "points to an instance of 'GraphLandmark'.";
+
+  // Cast the descriptor associated to the graph_landmark_ptr to a
+  // GraphDescriptor.
+  const auto graph_descriptor =
+      std::dynamic_pointer_cast<const GraphDescriptor>(
+          graph_landmark_ptr->getDescriptor());
 
   // Perform checks related to the cast.
   CHECK(graph_descriptor != nullptr) << "Impossible to cast descriptor "
-      "associated to queryLandmark to a 'const GraphDescriptor'";
+      "associated to graph_landmark_ptr to a 'const GraphDescriptor'";
 
+  // Extract the representation of the descriptor from the graph_descriptor
+  // object.
   const Graph& query_semantic_graph = graph_descriptor->getDescriptor();
 
   // Extract the random walks of the graph.
@@ -38,9 +51,9 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(const SemanticLandmarkPtr
   random_walker_params.walk_length_ = 3;
   random_walker_params.num_walks_ = 100;
   random_walker_params.random_sampling_type_ =
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
+      RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM;
   random_walker_params.allow_returning_back_ = true;
-  random_walker_params.force_visiting_each_neighbor_ = true;
+  random_walker_params.force_visiting_each_neighbor_ = false;
 
   RandomWalker random_walker(query_semantic_graph, random_walker_params);
   random_walker.generateRandomWalks();
@@ -108,7 +121,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(const SemanticLandmarkPtr
     cv::resize(cv_scores, cv_scores, cv::Size(resulting_cols, resulting_rows),
                0, 0, cv::INTER_NEAREST);
 
-    cv::applyColorMap(cv_scores, color_scores, cv::COLORMAP_BONE);
+    cv::applyColorMap(cv_scores, color_scores, cv::COLORMAP_OCEAN);
 
     cv::imshow("Similarity score ", color_scores);
 

@@ -10,28 +10,29 @@ SynthiaDataset::SynthiaDataset()
     : AbstractDataset(SYNTHIA_NUM_SEMANTIC_CLASSES) {
   // see http://synthia-dataset.net/table-classes/ for class labels
 
-  // initialize the entities as {name, id, is_static, is_to_render}
+  // Initialize the entities as:
+  // {name, id, is_to_include_in_graph, is_static, is_to_render}
   semantic_entities_ = {
-      {"misc", 0, true, false},
-      {"sky", 1, true, false},
-      {"building", 2, true, true},
-      {"road", 3, true, true},
-      {"sidewalk", 4, true, true},
-      {"fence", 5, true, true},
-      {"vegetation", 6, true, true},
-      {"pole", 7, true, true},
-      {"car", 8, false, true},
-      {"sign", 9, true, true},
-      {"pedestrian", 10, false, true},
-      {"cyclist", 11, false, true},
-      {"lanemarking", 12, true, true}
+      {"misc", 0, false, true, false},
+      {"sky", 1, false, true, false},
+      {"building", 2, true, true, true},
+      {"road", 3, true, true, true},
+      {"sidewalk", 4, true, true, true},
+      {"fence", 5, true, true, true},
+      {"vegetation", 6, true, true, true},
+      {"pole", 7, true, true, true},
+      {"car", 8, true, false, true},
+      {"sign", 9, true, true, true},
+      {"pedestrian", 10, true, false, true},
+      {"cyclist", 11, true, false, true},
+      {"lanemarking", 12, true, true, true}
   };
 
   CHECK(semantic_entities_.size() == SYNTHIA_NUM_SEMANTIC_CLASSES)
-  << "Number of defined semantic entities differs from the one "
-  << "specified in the header file:\n\tSYNTHIA_NUM_SEMANTIC_CLASSES = "
-  << SYNTHIA_NUM_SEMANTIC_CLASSES << "\n\tdefined entities = "
-  << semantic_entities_.size();
+      << "Number of defined semantic entities differs from the one "
+      << "specified in the header file:\n\tSYNTHIA_NUM_SEMANTIC_CLASSES = "
+      << SYNTHIA_NUM_SEMANTIC_CLASSES << "\n\tdefined entities = "
+      << semantic_entities_.size();
 }
 
 cv::Mat SynthiaDataset::convertSemanticImage(

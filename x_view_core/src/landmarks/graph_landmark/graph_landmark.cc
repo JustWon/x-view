@@ -20,8 +20,8 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
   // *********** Blobs extraction ********** //
   BlobExtractorParams blob_extractor_params;
   blob_extractor_params.dilate_and_erode_ = GraphLandmark::DILATE_AND_ERODE;
-  blob_extractor_params.num_erode_reps_ = 4;
-  blob_extractor_params.num_dilate_reps_ = 4;
+  blob_extractor_params.num_erode_reps_ = 5;
+  blob_extractor_params.num_dilate_reps_ = 5;
   blob_extractor_params.blob_size_filtering_.type_ =
       BlobExtractorParams::MIN_BLOB_SIZE_TYPE::ABSOLUTE;
   blob_extractor_params.blob_size_filtering_.n_min_pixels_ =
@@ -31,7 +31,7 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
 
   // *********** Graph generation ********** //
   GraphBuilderParams graph_builder_params;
-  graph_builder_params.max_distance_for_neighborhood_ = 4;
+  graph_builder_params.max_distance_for_neighborhood_ = 10;
   descriptor = GraphBuilder::createGraphFromNeighborBlobs(image_blobs_,
                                                           graph_builder_params);
 

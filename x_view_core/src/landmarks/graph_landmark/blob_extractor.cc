@@ -32,9 +32,11 @@ ImageBlobs BlobExtractor::findBlobsWithContour(const cv::Mat& image,
 
   ImageBlobs image_blobs(global_dataset_ptr->numSemanticClasses());
 
-  // Iterate over the semantic classes and process only the pixels which
-  // belong to the semantic class.
-  for (int c = 0; c < global_dataset_ptr->numSemanticClasses(); ++c) {
+  // Iterate over the semantic classes which are to be added to the graph and
+  // process only the pixels which belong to the semantic class.
+  const std::vector<int> labels_to_include_in_graph =
+      global_dataset_ptr->getLabelsToIncludeInGraph();
+  for (const int c : labels_to_include_in_graph) {
     // This image is a binary image, where a pixel is set to 1 only if its
     // corresponding semantic label is equal to c. Otherwise the pixel is set
     // to 0.

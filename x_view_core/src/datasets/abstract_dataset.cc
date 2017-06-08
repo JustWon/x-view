@@ -60,6 +60,16 @@ const std::vector<int> AbstractDataset::getDynamicLabels() const {
   return dynamic_labels;
 }
 
+const std::vector<int> AbstractDataset::getLabelsToIncludeInGraph() const {
+  std::vector<int> labels_to_include_in_graph;
+  labels_to_include_in_graph.reserve(num_semantic_classes_);
+  for (auto const& c : semantic_entities_)
+    if (c.is_to_include_in_graph_)
+      labels_to_include_in_graph.push_back(c.semantic_entity_id_);
+
+  return labels_to_include_in_graph;
+}
+
 const unsigned long AbstractDataset::largestLabelSize() const {
   return std::max_element(semantic_entities_.begin(), semantic_entities_.end(),
                           [](const SemanticEntity& s1,

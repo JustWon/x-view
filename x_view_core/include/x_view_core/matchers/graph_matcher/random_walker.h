@@ -73,8 +73,9 @@ class RandomWalker {
   /// \brief Container for multiple random walks.
   typedef std::vector<RandomWalk> RandomWalks;
   /// \brief A sparse representation of transition probabilities between each
-  /// node in the graph graph_.
-  typedef Eigen::SparseMatrix<float> TransitionProbMatrix;
+  /// node in the graph graph_. Stored in row-major order to allow faster
+  /// iteration over elements of the same row.
+  typedef Eigen::SparseMatrix<float, Eigen::RowMajor> TransitionProbMatrix;
 
   /// \brief Aside from storing the random walks as a sequence of
   /// VertexProperty pointers, the RandomWalker also maps each walk to a unique

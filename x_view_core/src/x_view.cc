@@ -142,6 +142,7 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
 
   const cv::Mat& semantic_image = semantics_a->getSemanticImage();
 
+
   const auto graph_landmark =
       std::dynamic_pointer_cast<GraphLandmark>(semantics_a);
   CHECK_NOTNULL(graph_landmark.get());
@@ -149,7 +150,6 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
   const auto graph_descriptor =
       std::dynamic_pointer_cast<const GraphDescriptor>
           (graph_landmark->getDescriptor());
-
   // compute a match between the current semantic landmark and the ones
   // already visited
   matching_result = descriptor_matcher_->match(graph_landmark);
