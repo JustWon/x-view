@@ -77,7 +77,8 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
     // function which stores the similarity matrix.
     auto matchingResult = std::make_shared<GraphMatchingResult>();
 
-    Eigen::MatrixXf& similarity_matrix = matchingResult->getSimilarityMatrix();
+    SimilarityMatrixType
+        & similarity_matrix = matchingResult->getSimilarityMatrix();
 
     computeSimilarityMatrix(random_walker, &similarity_matrix,
                             vertex_similarity_score_type_);
@@ -159,7 +160,7 @@ LandmarksMatcherPtr GraphMatcher::create(const RandomWalkerParams& random_walker
 }
 
 void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
-                                           Eigen::MatrixXf* similarity_matrix,
+                                           SimilarityMatrixType* similarity_matrix,
                                            const VertexSimilarity::SCORE_TYPE
                                            score_type) const {
 
@@ -175,8 +176,9 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
   const unsigned long
       num_global_vertices = boost::num_vertices(global_semantic_graph_);
   const unsigned long num_query_vertices = boost::num_vertices(query_graph);
-  similarity_matrix->resize(num_global_vertices, num_query_vertices);
-  similarity_matrix->setZero();
+
+  // Triplets used for sparse matrix construction.
+  std::vector<Eigen::Triplet<float>> triplets;
 
   // Set the similarity score type to be used.
   VertexSimilarity::setScoreType(score_type);
@@ -194,11 +196,12 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
         const auto& mapped_walks_j = query_walk_map_vector[j];
         const float similarity =
             VertexSimilarity::score(mapped_walks_i, mapped_walks_j);
-        similarity_matrix->operator()(i, j) = similarity;
+        triplets.push_back({i, j, similarity});
       }
     }
   }
-
+  similarity_matrix->resize(num_global_vertices, num_query_vertices);
+  similarity_matrix->setFromTriplets(triplets.begin(), triplets.end());
 }
 
 }

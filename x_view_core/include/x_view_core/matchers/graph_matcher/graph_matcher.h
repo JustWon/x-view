@@ -7,7 +7,7 @@
 #include <x_view_core/matchers/graph_matcher/vertex_similarity.h>
 #include <x_view_core/x_view_types.h>
 
-#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 #include <map>
 #include <memory>
@@ -22,6 +22,8 @@ class GraphMatcher : public AbstractMatcher {
 
  public:
 
+  typedef Eigen::SparseMatrix<float> SimilarityMatrixType;
+
   GraphMatcher();
   GraphMatcher(const RandomWalkerParams& random_walker_params,
                const VertexSimilarity::SCORE_TYPE score_type);
@@ -35,17 +37,16 @@ class GraphMatcher : public AbstractMatcher {
           similarity_matrix_() {
     }
 
-    const Eigen::MatrixXf& getSimilarityMatrix() const {
+    const SimilarityMatrixType& getSimilarityMatrix() const {
       return similarity_matrix_;
     }
 
-    Eigen::MatrixXf& getSimilarityMatrix() {
+    SimilarityMatrixType& getSimilarityMatrix() {
       return similarity_matrix_;
     }
 
    private:
-    // FIXME: similarity matrix could be sparse
-    Eigen::MatrixXf similarity_matrix_;
+    SimilarityMatrixType similarity_matrix_;
   };
 
   virtual MatchingResultPtr match(const SemanticLandmarkPtr& query_landmark)
@@ -79,7 +80,7 @@ class GraphMatcher : public AbstractMatcher {
    * computing the pairwise similarity between vertices.
    */
   void computeSimilarityMatrix(const RandomWalker& random_walker,
-                               Eigen::MatrixXf* similarity_matrix,
+                               SimilarityMatrixType* similarity_matrix,
                                const VertexSimilarity::SCORE_TYPE score_type =
                                VertexSimilarity::SCORE_TYPE::HARD) const;
 

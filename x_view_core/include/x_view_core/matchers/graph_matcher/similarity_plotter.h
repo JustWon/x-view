@@ -28,6 +28,8 @@ class SimilarityPlotter {
    * as a heat map.
    * \param similarity_matrix Matrix used to generate the image.
    * \return An image representing the matrix passed as argument.
+   * \note If a sparse matrix is passed as argument, then it is automatically
+   * converted to a dense format. For large matrices this should be avoided.
    */
   static cv::Mat getImageFromSimilarityMatrix(
       const Eigen::MatrixXf& similarity_matrix);
@@ -38,6 +40,8 @@ class SimilarityPlotter {
    * \param similarity_matrix Matrix used to generate the image.
    * \return An image representing the max similarity of the similarity
    * matrix passed as argument.
+   * \note If a sparse matrix is passed as argument, then it is automatically
+   * converted to a dense format. For large matrices this should be avoided
    */
   static cv::Mat getMaxColwiseImageFromSimilarityMatrix(
       const Eigen::MatrixXf& similarity_matrix);
@@ -48,6 +52,8 @@ class SimilarityPlotter {
  * \param similarity_matrix Matrix used to generate the image.
  * \return An image representing the max similarity of the similarity
  * matrix passed as argument.
+ * \note If a sparse matrix is passed as argument, then it is automatically
+ * converted to a dense format. For large matrices this should be avoided
  */
   static cv::Mat getMaxRowwiseImageFromSimilarityMatrix(
       const Eigen::MatrixXf& similarity_matrix);
