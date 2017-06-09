@@ -1,6 +1,7 @@
 #include "test_walk_matching.h"
 
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
 #include <x_view_core/matchers/graph_matcher/vertex_similarity.h>
 
 #include <boost/graph/connected_components.hpp>
@@ -61,8 +62,22 @@ void testChainGraph(const unsigned long seed) {
       computeVertexSimilarity(graph_pair_chain, random_walker_params);
 
   const int desired_size = 500;
-  displaySimilarityMatrix(chain_similarity,  "chain", desired_size);
-  displayFilteredSimilarityMatrix(chain_similarity, 0, "chain", desired_size);
+  SimilarityPlotter::setDesiredSize(desired_size);
+
+  cv::Mat similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(chain_similarity);
+  cv::imshow("Similarity score chain", similarity_image);
+
+  cv::Mat max_col_similarity_image =
+      SimilarityPlotter::getMaxColwiseImageFromSimilarityMatrix(chain_similarity);
+  cv::imshow("Max Col Similarity score chain", max_col_similarity_image);
+
+  cv::Mat max_row_similarity_image =
+      SimilarityPlotter::getMaxRowwiseImageFromSimilarityMatrix(chain_similarity);
+  cv::imshow("Max Row Similarity score chain", max_row_similarity_image);
+
+  cv::imshow("Max COMBINED Similarity score chain", max_row_similarity_image
+  & max_col_similarity_image);
 
   cv::waitKey();
 }
@@ -73,14 +88,14 @@ void testRandomGraph(const unsigned long seed) {
   const float edge_probability = 0.001;
 
   // Graph modifier parameters
-  const int num_vertices_to_add = 10;
-  const int num_links_for_new_vertices = 3;
-  const int num_vertices_to_remove = 10;
-  const int num_edges_to_add = 10;
-  const int num_edges_to_remove = 20;
+  const int num_vertices_to_add = 0;
+  const int num_links_for_new_vertices = 2;
+  const int num_vertices_to_remove =0;
+  const int num_edges_to_add = 0;
+  const int num_edges_to_remove = 0;
 
   // Size of the extracted subgraph.
-  const int extraction_radius = 2;
+  const int extraction_radius = 1;
 
   // Random walker params
   const int num_walks = 200;
@@ -117,8 +132,21 @@ void testRandomGraph(const unsigned long seed) {
       computeVertexSimilarity(graph_pair_random, random_walker_params);
 
   const int desired_size = 500;
-  displaySimilarityMatrix(random_similarity, "random", desired_size);
-  displayFilteredSimilarityMatrix(random_similarity, 0, "random", desired_size);
+  SimilarityPlotter::setDesiredSize(desired_size);
+  cv::Mat similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(random_similarity);
+  cv::imshow("Similarity score random", similarity_image);
+
+  cv::Mat max_col_similarity_image =
+      SimilarityPlotter::getMaxColwiseImageFromSimilarityMatrix(random_similarity);
+  cv::imshow("Max Col Similarity score random", max_col_similarity_image);
+
+  cv::Mat max_row_similarity_image =
+      SimilarityPlotter::getMaxRowwiseImageFromSimilarityMatrix(random_similarity);
+  cv::imshow("Max Row Similarity score random", max_row_similarity_image);
+
+  cv::imshow("Max COMBINED Similarity score random", max_row_similarity_image
+      & max_col_similarity_image);
 
   cv::waitKey();
 }
@@ -221,69 +249,6 @@ Eigen::MatrixXf computeVertexSimilarity(const GraphPair& graph_pair,
   }
 
   return scores;
-}
-
-void displaySimilarityMatrix(const Eigen::MatrixXf& similarity_matrix,
-                             const std::string& name,
-                             const int desired_size) {
-
-  auto roundToClosestMultiple = [](const int number, const int multiple) {
-    return ((number + multiple / 2) / multiple) * multiple;
-  };
-  const int resulting_rows =
-      roundToClosestMultiple(desired_size, similarity_matrix.rows());
-  const int resulting_cols =
-      roundToClosestMultiple(desired_size, similarity_matrix.cols());
-
-  // Normalize score matrix and convert them to opencv image.
-  const float max_score = similarity_matrix.maxCoeff();
-  Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic>
-  normalized_similarity =  (similarity_matrix / max_score * 255).cast<unsigned char>();
-  cv::Mat cv_scores, color_scores;
-  cv::eigen2cv(normalized_similarity, cv_scores);
-
-  cv::resize(cv_scores, cv_scores, cv::Size(resulting_cols, resulting_rows),
-             0, 0, cv::INTER_NEAREST);
-
-  cv::applyColorMap(cv_scores, color_scores, cv::COLORMAP_BONE);
-
-  cv::imshow("Similarity score " + name, color_scores);
-}
-
-void displayFilteredSimilarityMatrix(const Eigen::MatrixXf& similarity_matrix,
-                                     const float filter_val,
-                                     const std::string& name,
-                                     const int desired_size) {
-
-  auto roundToClosestMultiple = [](const int number, const int multiple) {
-    return ((number + multiple / 2) / multiple) * multiple;
-  };
-  const int resulting_rows =
-      roundToClosestMultiple(desired_size, similarity_matrix.rows());
-  const int resulting_cols =
-      roundToClosestMultiple(desired_size, similarity_matrix.cols());
-
-  // Normalize similarity matrix
-  const float max_score = similarity_matrix.maxCoeff();
-  Eigen::MatrixXf normalized_similarity = similarity_matrix / max_score;
-
-  // Only show matches which achieve score larger than filter_val.
-  Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic>
-      scores_max(normalized_similarity.rows(), normalized_similarity.cols());
-  scores_max.setZero();
-  for (int i = 0; i < normalized_similarity.cols(); ++i) {
-    int max_index;
-    if (normalized_similarity.col(i).maxCoeff(&max_index) > filter_val)
-      scores_max(max_index, i) = 255;
-  }
-  cv::Mat show_scores_max;
-  cv::eigen2cv(scores_max, show_scores_max);
-  cv::resize(show_scores_max, show_scores_max,
-             cv::Size(resulting_cols, resulting_rows),
-             0, 0, cv::INTER_NEAREST);
-
-  cv::imshow("Max scores " + name, show_scores_max);
-  cv::waitKey();
 }
 
 void modifyGraph(Graph* graph, const GraphModifierParams& params,

@@ -32,8 +32,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       {10, 0.5},  // Graph statistic has form (num_vertices, edge_probability).
       {10, 1.0},
       {50, 0.2},
-      {50, 0.5},
-      {500, 0.01}
+      {50, 0.5}
 #ifndef X_VIEW_DEBUG
       ,{300, 0.05}
 #endif

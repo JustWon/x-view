@@ -3,11 +3,11 @@
 #include <x_view_core/features/graph_descriptor.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/landmarks/graph_landmark.h>
+#include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
 #include <x_view_core/matchers/graph_matcher/vertex_similarity.h>
 
 #include <boost/graph/copy.hpp>
-#include <opencv2/core/eigen.hpp>
-#include <opencv2/opencv.hpp>
+
 
 
 namespace x_view {
@@ -99,29 +99,21 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(const SemanticLandmarkPtr
       }
     }
 
-    auto roundToClosestMultiple = [](const int number, const int multiple) {
-      return ((number + multiple / 2) / multiple) * multiple;
-    };
-    const int desired_size = 400;
-    const int resulting_rows =
-        roundToClosestMultiple(desired_size, similarity_matrix.rows());
-    const int resulting_cols =
-        roundToClosestMultiple(desired_size, similarity_matrix.cols());
+    const cv::Mat similarity_image =
+        SimilarityPlotter::getImageFromSimilarityMatrix(similarity_matrix);
+    cv::imshow("Vertex similarity", similarity_image);
 
-    // Normalize score matrix and convert them to opencv image.
-    const float max_score = similarity_matrix.maxCoeff();
-    Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic>
-    normalized_similarity =
-        (similarity_matrix / max_score * 255).cast <unsigned char>();
-    cv::Mat cv_scores, color_scores;
-    cv::eigen2cv(normalized_similarity, cv_scores);
+    const cv::Mat max_col_similarity_image =
+        SimilarityPlotter::getMaxColwiseImageFromSimilarityMatrix(
+            similarity_matrix);
+    cv::imshow("Max col vertex similarity", max_col_similarity_image);
 
-    cv::resize(cv_scores, cv_scores, cv::Size(resulting_cols, resulting_rows),
-               0, 0, cv::INTER_NEAREST);
+    const cv::Mat max_row_similarity_image =
+        SimilarityPlotter::getMaxRowwiseImageFromSimilarityMatrix(
+            similarity_matrix);
+    cv::imshow("Max row vertex similarity", max_row_similarity_image);
 
-    cv::applyColorMap(cv_scores, color_scores, cv::COLORMAP_OCEAN);
-
-    cv::imshow("Similarity score ", color_scores);
+    cv::waitKey();
 
     const auto query_vertices = boost::vertices(query_semantic_graph);
     for(auto vertex_iter = query_vertices.first; vertex_iter !=
