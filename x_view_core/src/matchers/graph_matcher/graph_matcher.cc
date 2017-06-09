@@ -5,17 +5,19 @@
 #include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
 
-#include <boost/graph/copy.hpp>
-
 namespace x_view {
 
 GraphMatcher::GraphMatcher()
-    : random_walker_params_(RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM,
-                            100,
-                            3) {
-  // Set up parameters for matchings.
-  VertexSimilarity::setScoreType(VertexSimilarity::SCORE_TYPE::HARD);
+    : random_walker_params_(),
+      vertex_similarity_score_type_(VertexSimilarity::SCORE_TYPE::HARD) {
+  SimilarityPlotter::setColormap(cv::COLORMAP_OCEAN);
+}
 
+GraphMatcher::GraphMatcher(const RandomWalkerParams& random_walker_params,
+                           const VertexSimilarity::SCORE_TYPE score_type)
+    : random_walker_params_(random_walker_params),
+      vertex_similarity_score_type_(score_type) {
+  SimilarityPlotter::setColormap(cv::COLORMAP_OCEAN);
 }
 
 GraphMatcher::~GraphMatcher() {
@@ -45,6 +47,13 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(const SemanticLandmarkPtr
   // object.
   const Graph& query_semantic_graph = graph_descriptor->getDescriptor();
 
+  // Delegate the call to function handling directly a graphs as input.
+  return match(query_semantic_graph);
+}
+
+AbstractMatcher::MatchingResultPtr GraphMatcher::match(
+    const Graph& query_semantic_graph) {
+
   // Extract the random walks of the graph.
   RandomWalker random_walker(query_semantic_graph, random_walker_params_);
   random_walker.generateRandomWalks();
@@ -70,9 +79,8 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(const SemanticLandmarkPtr
 
     Eigen::MatrixXf& similarity_matrix = matchingResult->getSimilarityMatrix();
 
-    const VertexSimilarity::SCORE_TYPE score_type =
-        VertexSimilarity::SCORE_TYPE::HARD;
-    computeSimilarityMatrix(random_walker, &similarity_matrix, score_type);
+    computeSimilarityMatrix(random_walker, &similarity_matrix,
+                            vertex_similarity_score_type_);
 
     // Display the computed similarities.
     const cv::Mat similarity_image =
@@ -89,7 +97,11 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(const SemanticLandmarkPtr
             similarity_matrix);
     cv::imshow("Max row vertex similarity", max_row_similarity_image);
 
-    cv::waitKey(200);
+    const cv::Mat max_agree_similarity_image =
+        max_col_similarity_image & max_row_similarity_image;
+    cv::imshow("Max agree vertex similarity", max_agree_similarity_image);
+
+    cv::waitKey();
 
     const unsigned long num_global_vertices =
         boost::num_vertices(global_semantic_graph_);
@@ -133,15 +145,23 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(const SemanticLandmarkPtr
     // Return the matching result filled with the matches.
     return matchingResult;
   }
+
 }
 
 LandmarksMatcherPtr GraphMatcher::create() {
   return std::make_shared<GraphMatcher>();
 }
 
+LandmarksMatcherPtr GraphMatcher::create(const RandomWalkerParams& random_walker_params,
+                                         const VertexSimilarity::SCORE_TYPE score_type) {
+  return std::make_shared<GraphMatcher>(GraphMatcher(random_walker_params,
+                                                     score_type));
+}
+
 void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
                                            Eigen::MatrixXf* similarity_matrix,
-                                           const VertexSimilarity::SCORE_TYPE score_type) {
+                                           const VertexSimilarity::SCORE_TYPE
+                                           score_type) const {
 
   CHECK_NOTNULL(similarity_matrix);
 
@@ -156,17 +176,17 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
       num_global_vertices = boost::num_vertices(global_semantic_graph_);
   const unsigned long num_query_vertices = boost::num_vertices(query_graph);
   similarity_matrix->resize(num_global_vertices, num_query_vertices);
+  similarity_matrix->setZero();
 
   // Set the similarity score type to be used.
   VertexSimilarity::setScoreType(score_type);
 
-  std::cout << "Filling up similarity matrix " << std::endl;
   // Fill up similarity matrix.
-  for (int i = 0; i < num_global_vertices; ++i) {
+  for (unsigned long i = 0; i < num_global_vertices; ++i) {
     const auto& vertex_d_i = boost::vertex(i, global_semantic_graph_);
     const auto& vertex_p_i = global_semantic_graph_[vertex_d_i];
     const auto& mapped_walks_i = global_walk_map_vector_[i];
-    for (int j = 0; j < num_query_vertices; ++j) {
+    for (unsigned long j = 0; j < num_query_vertices; ++j) {
       const auto& vertex_d_j = boost::vertex(j, query_graph);
       const auto& vertex_p_j = query_graph[vertex_d_j];
       // Score is only nonzero if the source vertex has same semantic label.
@@ -178,8 +198,6 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
       }
     }
   }
-
-  std::cout << "Similarity matrix fulled up" << std::endl;
 
 }
 

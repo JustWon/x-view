@@ -1,5 +1,5 @@
-#ifndef X_VIEW_TEST_WALK_MATCHING_H
-#define X_VIEW_TEST_WALK_MATCHING_H
+#ifndef X_VIEW_TEST_GRAPH_LANDMARK_MATCHER_H
+#define X_VIEW_TEST_GRAPH_LANDMARK_MATCHER_H
 #include "test_common.h"
 
 #include <x_view_core/features/graph.h>
@@ -14,11 +14,16 @@ using namespace x_view;
 namespace x_view_test {
 
 /**
- * \brief Tests a chain-like grpah a
- * \param seed
+ * \brief Tests a chain-like graph.
+ * \param seed Seed used to randomly generate the chain-like graph.
  */
 void testChainGraph(const unsigned long seed);
 
+
+/**
+ * \brief Tests a graph with random topology.
+ * \param seed Seed used to randomly generate the random graph.
+ */
 void testRandomGraph(const unsigned long seed);
 
 /**
@@ -73,19 +78,6 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
                                   const int extraction_radius);
 
 /**
- * \brief Routine computing vertex similarities between the graphs contained
- * in the passed argument.
- * \param graph_pair Object containing the two graph to be compared.
- * \param random_walker_params Parameters used to extract random walks from
- * the graphs passed as argument.
- * \return A similarity matrix whose entry (i,j) corresponds to the
- * similarity between node 'i' in graph_pair.base_graph_ and node 'j' in
- * graph_pair.sub_graph_.
- */
-Eigen::MatrixXf computeVertexSimilarity(const GraphPair& graph_pair,
-                                        const RandomWalkerParams& random_walker_params);
-
-/**
  * \brief Modifies the graph pointed by the passed argument following the
  * parameters contained in the second argument.
  * \param graph Pointer pointing to the graph to be modified.
@@ -98,4 +90,4 @@ void modifyGraph(Graph* graph, const GraphModifierParams& params,
 
 }
 
-#endif //X_VIEW_TEST_WALK_MATCHING_H
+#endif //X_VIEW_TEST_GRAPH_LANDMARK_MATCHER_H

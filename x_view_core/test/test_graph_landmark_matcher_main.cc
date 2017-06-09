@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "test_walk_matching.h"
+#include "test_graph_landmark_matcher.h"
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark.h>
@@ -8,12 +8,12 @@
 using namespace x_view;
 using namespace x_view_test;
 
-TEST(XViewSlamTestSuite, test_walk_matching) {
+TEST(XViewSlamTestSuite, test_graph_landmark_matcher) {
 
-  LOG(INFO) << "\n\n====Testing walk matching====";
+  LOG(INFO) << "\n\n====Testing graph landmark matcher====";
 
   const int num_semantic_classes = 13;
-  LOG(INFO) << "Testing walk matching with " << num_semantic_classes
+  LOG(INFO) << "Testing graph landmark matcher with " << num_semantic_classes
             << "classes.";
 
   global_dataset_ptr =

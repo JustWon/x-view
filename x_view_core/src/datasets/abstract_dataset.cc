@@ -85,12 +85,15 @@ std::ostream& operator<<(std::ostream& out, const AbstractDataset& dataset) {
   out << std::setfill(' ');
   out << std::left << std::setw(4) << "id:"
       << std::left << std::setw(max_label_length) << "label:"
+      << std::left << std::setw(16) << "graph-relevant"
       << std::left << std::setw(17) << "static/dynamic"
       << std::left << std::setw(10) << "drawable";
   for (const auto& elem : dataset.semanticEntities()) {
     out << "\n" << std::left << std::setw(4) << elem.semantic_entity_id_;
     out << std::left << std::setw(max_label_length)
         << elem.semantic_entity_name_;
+    out << std::left << std::setw(16) << (elem.is_to_include_in_graph_ ?
+                                          "yes" : "no");
     out << std::left << std::setw(17) << (elem.is_static_ ? "static"
                                                           : "dynamic");
     out << std::left << std::setw(10) << (elem.is_to_render_ ? "yes" : "no");

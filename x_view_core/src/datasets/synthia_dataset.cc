@@ -14,7 +14,7 @@ SynthiaDataset::SynthiaDataset()
   // {name, id, is_to_include_in_graph, is_static, is_to_render}
   semantic_entities_ = {
       {"misc", 0, false, true, false},
-      {"sky", 1, false, true, false},
+      {"sky", 1, true, true, false},
       {"building", 2, true, true, true},
       {"road", 3, true, true, true},
       {"sidewalk", 4, true, true, true},

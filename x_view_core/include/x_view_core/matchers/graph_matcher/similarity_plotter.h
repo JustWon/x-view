@@ -52,8 +52,18 @@ class SimilarityPlotter {
   static cv::Mat getMaxRowwiseImageFromSimilarityMatrix(
       const Eigen::MatrixXf& similarity_matrix);
 
+  /**
+   * \brief Sets the colormap of the plotted similarity matrix.
+   * \param colormap Enum (int) referring to the opencv colormap to be used
+   * while plotting the similarity matrix.
+   */
+  static void setColormap(const int colormap) {
+    SimilarityPlotter::colormap_ = colormap;
+  }
+
  private:
   static int desired_image_size_;
+  static int colormap_;
   static const cv::Size computeSize(const cv::Size& original_shape);
 };
 

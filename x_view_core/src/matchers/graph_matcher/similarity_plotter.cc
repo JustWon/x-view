@@ -5,7 +5,8 @@
 
 namespace x_view {
 
-int SimilarityPlotter::desired_image_size_ = 400;
+int SimilarityPlotter::desired_image_size_ = 500;
+int SimilarityPlotter::colormap_ = cv::COLORMAP_OCEAN;
 
 cv::Mat SimilarityPlotter::getImageFromSimilarityMatrix(
     const Eigen::MatrixXf& similarity_matrix) {
@@ -22,7 +23,7 @@ cv::Mat SimilarityPlotter::getImageFromSimilarityMatrix(
              SimilarityPlotter::computeSize(cv_scores.size()),  0,
              0, cv::INTER_NEAREST);
 
-  cv::applyColorMap(cv_scores, color_scores, cv::COLORMAP_OCEAN);
+  cv::applyColorMap(cv_scores, color_scores, SimilarityPlotter::colormap_);
 
   return color_scores;
 

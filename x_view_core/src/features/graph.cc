@@ -135,8 +135,11 @@ void removeRandomVertexFromGraph(Graph* graph, std::mt19937& rng) {
 void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng) {
   CHECK_NOTNULL(graph);
 
-  if (boost::num_edges(*graph) == 1)
+  if (boost::num_edges(*graph) <= 1) {
+    LOG(WARNING) << "Cannot remove an edge from a graph with "
+                 << boost::num_edges(*graph) << " edges.";
     return;
+  }
 
   bool single_connected_component = false;
   while (!single_connected_component) {

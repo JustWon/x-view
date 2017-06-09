@@ -23,6 +23,9 @@ class GraphMatcher : public AbstractMatcher {
  public:
 
   GraphMatcher();
+  GraphMatcher(const RandomWalkerParams& random_walker_params,
+               const VertexSimilarity::SCORE_TYPE score_type);
+
   virtual ~GraphMatcher();
 
   class GraphMatchingResult : public AbstractMatchingResult {
@@ -41,13 +44,26 @@ class GraphMatcher : public AbstractMatcher {
     }
 
    private:
+    // FIXME: similarity matrix could be sparse
     Eigen::MatrixXf similarity_matrix_;
   };
 
   virtual MatchingResultPtr match(const SemanticLandmarkPtr& query_landmark)
   override;
 
+  /**
+   * \brief Overloaded function that directly matches the passed Graph to the
+   * global_semantic_graph_ stored in this matcher instance.
+   * \param query_semantic_graph Semantic graph to be matched against the
+   * global_semantic_graph_.
+   * \return MatchingResultPtr containing the result of the matching.
+   */
+  MatchingResultPtr match(const Graph& query_semantic_graph);
+
   static LandmarksMatcherPtr create();
+
+  static LandmarksMatcherPtr create(const RandomWalkerParams& random_walker_params,
+                                    const VertexSimilarity::SCORE_TYPE score_type);
 
   /**
    * \brief Computes the similarity matrix between all vertices belonging to
@@ -65,13 +81,14 @@ class GraphMatcher : public AbstractMatcher {
   void computeSimilarityMatrix(const RandomWalker& random_walker,
                                Eigen::MatrixXf* similarity_matrix,
                                const VertexSimilarity::SCORE_TYPE score_type =
-                               VertexSimilarity::SCORE_TYPE::HARD);
+                               VertexSimilarity::SCORE_TYPE::HARD) const;
 
  private:
   Graph global_semantic_graph_;
   std::vector<RandomWalker::WalkMap> global_walk_map_vector_;
 
   const RandomWalkerParams random_walker_params_;
+  const VertexSimilarity::SCORE_TYPE vertex_similarity_score_type_;
 };
 
 }
