@@ -21,6 +21,14 @@ RandomWalkerParams::RandomWalkerParams()
 #undef DEFAULT_NUM_RANDOM_WALKS
 #undef DEFAULT_RANDOM_WALK_LENGTH
 
+RandomWalkerParams::RandomWalkerParams(const RANDOM_SAMPLING_TYPE sampling_type,
+                                       const int num_walks,
+                                       const int walk_length)
+    : random_sampling_type_(sampling_type),
+      num_walks_(num_walks),
+      walk_length_(walk_length) {
+}
+
 std::ostream& operator<<(std::ostream& out, const RandomWalkerParams& params) {
 
   out << "Number of random walks:  " << params.num_walks_ << std::endl;
@@ -126,7 +134,7 @@ const VertexDescriptor RandomWalker::nextVertex(
 
   const unsigned long num_neighbor_vertices =
       boost::degree(current_vertex_index, graph_);
-  if(num_neighbor_vertices == 0) {
+  if (num_neighbor_vertices == 0) {
     LOG(WARNING) << "Vertex " << current_vertex_index << " has no neighbors. "
         "Creating constant random walk.";
     return current_vertex_index;

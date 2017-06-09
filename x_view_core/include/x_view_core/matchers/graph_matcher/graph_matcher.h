@@ -71,6 +71,7 @@ class GraphMatcher : public AbstractMatcher {
   Graph global_semantic_graph_;
   std::vector<RandomWalker::WalkMap> global_walk_map_vector_;
 
+  const RandomWalkerParams random_walker_params_;
 };
 
 }

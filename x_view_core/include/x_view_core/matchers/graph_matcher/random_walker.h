@@ -34,6 +34,9 @@ struct RandomWalkerParams {
    */
   RandomWalkerParams();
 
+  RandomWalkerParams(const RANDOM_SAMPLING_TYPE sampling_type,
+                     const int  num_walks, const int walk_length);
+
   /// \brief Determines the type of random walk to be generated.
   RANDOM_SAMPLING_TYPE random_sampling_type_;
   /// \brief Number or random walks to generate for each node in the graph.
@@ -101,20 +104,6 @@ class RandomWalker {
    * \param params Parameters to be used by the RandomWalker class to
    * generate random walks.
    * \param random_seed Integer to be used as seed for random number generator.
-   * \details The constructor of the RandomWalker class verifies the
-   * coherence of the parameters passed as argument. In particular it
-   * verifies that some combinations of parameters are not present, and in
-   * case they are those parameters are changed to the default state. A
-   * warning is issued whenever this happens.
-   * For this reason, whenever the parameters passed to the constructor are
-   * used again from outside, one should use the parameters of the object
-   * directly accessing them as:
-   * \code{.cpp}
-   * RandomWalkerParams params;
-   * {fill up parameters}
-   * RandomWalker random_walker(graph, params);
-   * params = random_walker.params();
-   * \endcode
    */
   RandomWalker(const Graph& graph,
                const RandomWalkerParams& params = RandomWalkerParams(),
