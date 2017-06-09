@@ -167,6 +167,12 @@ class RandomWalker {
    */
   const RandomWalkerParams& params() const { return params_; }
 
+  /**
+   * \brief Access to the graph over which the random walks are defined.
+   * \return Const reference to the graph used by this RandomWalker instance.
+   */
+  const Graph& graph() const {return graph_;}
+
  private:
   /// \brief Distribution to be used when picking a new random number.
   /// Needs to be mutable as it is used inside a const member function.

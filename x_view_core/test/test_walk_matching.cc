@@ -88,14 +88,14 @@ void testRandomGraph(const unsigned long seed) {
   const float edge_probability = 0.001;
 
   // Graph modifier parameters
-  const int num_vertices_to_add = 0;
+  const int num_vertices_to_add = 50;
   const int num_links_for_new_vertices = 2;
-  const int num_vertices_to_remove =0;
-  const int num_edges_to_add = 0;
-  const int num_edges_to_remove = 0;
+  const int num_vertices_to_remove =50;
+  const int num_edges_to_add = 20;
+  const int num_edges_to_remove = 20;
 
   // Size of the extracted subgraph.
-  const int extraction_radius = 1;
+  const int extraction_radius = 2;
 
   // Random walker params
   const int num_walks = 200;
