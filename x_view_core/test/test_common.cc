@@ -139,6 +139,7 @@ x_view::Graph extractSubgraphAroundVertex(const x_view::Graph& original,
     // to the radius passed as argument.
     if (distance <= radius) {
       const x_view::VertexDescriptor& v_old_d = p.first;
+      // Deep copy of the VertexProperty.
       const x_view::VertexProperty v_p = original[v_old_d];
       const x_view::VertexDescriptor& v_new_d =
           boost::add_vertex(v_p, extracted_graph);

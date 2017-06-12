@@ -19,7 +19,6 @@ namespace x_view_test {
  */
 void testChainGraph(const unsigned long seed);
 
-
 /**
  * \brief Tests a graph with random topology.
  * \param seed Seed used to randomly generate the random graph.
@@ -76,6 +75,9 @@ GraphPair generateChainGraphPair(const GraphConstructionParams& construction_par
 GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_params,
                                   const GraphModifierParams& modifier_params,
                                   const int extraction_radius);
+
+float similarityAccuracy(const GraphPair& graph_pair,
+                         const Eigen::MatrixXf& similarity_matrix);
 
 /**
  * \brief Modifies the graph pointed by the passed argument following the

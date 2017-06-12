@@ -1,27 +1,30 @@
 #include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
 
-#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/eigen.hpp>
 
 namespace x_view {
 
 int SimilarityPlotter::desired_image_size_ = 500;
+
 int SimilarityPlotter::colormap_ = cv::COLORMAP_OCEAN;
 
 cv::Mat SimilarityPlotter::getImageFromSimilarityMatrix(
-    const Eigen::MatrixXf& similarity_matrix) {
+    const Eigen::MatrixXf& similarity_matrix, bool auto_size) {
 
   // Normalize score matrix and convert them to opencv image.
   const float max_score = similarity_matrix.maxCoeff();
 
-  Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic> normalized_similarity =
-      (similarity_matrix / max_score * 255).cast<unsigned char>();
+  Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic>
+      normalized_similarity =
+  (similarity_matrix / max_score * 255).cast < unsigned
+  char > ();
 
   cv::Mat cv_scores, color_scores;
   cv::eigen2cv(normalized_similarity, cv_scores);
-  cv::resize(cv_scores, cv_scores,
-             SimilarityPlotter::computeSize(cv_scores.size()),  0,
-             0, cv::INTER_NEAREST);
+  if (auto_size)
+    cv::resize(cv_scores, cv_scores,
+               SimilarityPlotter::computeSize(cv_scores.size()), 0,
+               0, cv::INTER_NEAREST);
 
   cv::applyColorMap(cv_scores, color_scores, SimilarityPlotter::colormap_);
 
@@ -30,7 +33,7 @@ cv::Mat SimilarityPlotter::getImageFromSimilarityMatrix(
 }
 
 cv::Mat SimilarityPlotter::getMaxColwiseImageFromSimilarityMatrix(
-    const Eigen::MatrixXf& similarity_matrix) {
+    const Eigen::MatrixXf& similarity_matrix, bool auto_size) {
 
   // Normalize similarity matrix
   const float max_score = similarity_matrix.maxCoeff();
@@ -47,16 +50,16 @@ cv::Mat SimilarityPlotter::getMaxColwiseImageFromSimilarityMatrix(
   }
   cv::Mat show_scores_max;
   cv::eigen2cv(scores_max, show_scores_max);
-  cv::resize(show_scores_max, show_scores_max,
-             SimilarityPlotter::computeSize(show_scores_max.size()),
-             0, 0, cv::INTER_NEAREST);
+  if (auto_size)
+    cv::resize(show_scores_max, show_scores_max,
+               SimilarityPlotter::computeSize(show_scores_max.size()),
+               0, 0, cv::INTER_NEAREST);
 
   return show_scores_max;
 }
 
-
 cv::Mat SimilarityPlotter::getMaxRowwiseImageFromSimilarityMatrix(
-    const Eigen::MatrixXf& similarity_matrix) {
+    const Eigen::MatrixXf& similarity_matrix, bool auto_size) {
 
   // Normalize similarity matrix
   const float max_score = similarity_matrix.maxCoeff();
@@ -73,9 +76,10 @@ cv::Mat SimilarityPlotter::getMaxRowwiseImageFromSimilarityMatrix(
   }
   cv::Mat show_scores_max;
   cv::eigen2cv(scores_max, show_scores_max);
-  cv::resize(show_scores_max, show_scores_max,
-             SimilarityPlotter::computeSize(show_scores_max.size()),
-             0, 0, cv::INTER_NEAREST);
+  if (auto_size)
+    cv::resize(show_scores_max, show_scores_max,
+               SimilarityPlotter::computeSize(show_scores_max.size()),
+               0, 0, cv::INTER_NEAREST);
 
   return show_scores_max;
 }
@@ -98,6 +102,5 @@ const cv::Size SimilarityPlotter::computeSize(const cv::Size& original_size) {
   else
     return original_size;
 }
-
 
 }

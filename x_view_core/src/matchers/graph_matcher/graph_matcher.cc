@@ -103,7 +103,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
     cv::imshow("Max agree vertex similarity", max_agree_similarity_image);
 
     cv::waitKey();
-
+ 
     const unsigned long num_global_vertices =
         boost::num_vertices(global_semantic_graph_);
 
