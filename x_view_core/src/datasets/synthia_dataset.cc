@@ -29,10 +29,10 @@ SynthiaDataset::SynthiaDataset()
   };
 
   CHECK(semantic_entities_.size() == SYNTHIA_NUM_SEMANTIC_CLASSES)
-      << "Number of defined semantic entities differs from the one "
-      << "specified in the header file:\n\tSYNTHIA_NUM_SEMANTIC_CLASSES = "
-      << SYNTHIA_NUM_SEMANTIC_CLASSES << "\n\tdefined entities = "
-      << semantic_entities_.size();
+  << "Number of defined semantic entities differs from the one "
+  << "specified in the header file:\n\tSYNTHIA_NUM_SEMANTIC_CLASSES = "
+  << SYNTHIA_NUM_SEMANTIC_CLASSES << "\n\tdefined entities = "
+  << semantic_entities_.size();
 }
 
 cv::Mat SynthiaDataset::convertSemanticImage(
@@ -64,21 +64,19 @@ cv::Mat SynthiaDataset::convertSemanticImage(
       CHECK(idx < msg_size)
       << "Computed index is larger or equal to message size";
 
-      // loop over the three channels and extract the semantic classes plus
-      // the instances
-
       cv::Vec3b values;
-      for (int c = 0; c < 3; ++c) {
-        values[2 - c] = static_cast<uchar>(
-            std::max(
-                0,
-                std::min(
-                    twoBytesToInt(&(msg->data[idx + 2 * c])),
-                    numSemanticClasses() - 1
-                )
-            )
-        );
-      }
+      values[2] = static_cast<uchar>(0);
+      values[1] = static_cast<uchar>(twoBytesToInt(&(msg->data[idx + 2])));
+      values[0] = static_cast<uchar>(
+          std::max(
+              0,
+              std::min(
+                  twoBytesToInt(&(msg->data[idx + 2 * 2])),
+                  numSemanticClasses() - 1
+              )
+          )
+      );
+
       labelImage.at<cv::Vec3b>(cv::Point(j, i)) = values;
     }
 
