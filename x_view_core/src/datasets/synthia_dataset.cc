@@ -14,7 +14,7 @@ SynthiaDataset::SynthiaDataset()
   // {name, id, is_to_include_in_graph, is_static, is_to_render}
   semantic_entities_ = {
       {"misc", 0, false, true, false},
-      {"sky", 1, true, true, false},
+      {"sky", 1, false, true, false},
       {"building", 2, true, true, true},
       {"road", 3, true, true, true},
       {"sidewalk", 4, true, true, true},
@@ -23,8 +23,8 @@ SynthiaDataset::SynthiaDataset()
       {"pole", 7, true, true, true},
       {"car", 8, true, false, true},
       {"sign", 9, true, true, true},
-      {"pedestrian", 10, true, false, true},
-      {"cyclist", 11, true, false, true},
+      {"pedestrian", 10, false, false, true},
+      {"cyclist", 11, false, false, true},
       {"lanemarking", 12, true, true, true}
   };
 

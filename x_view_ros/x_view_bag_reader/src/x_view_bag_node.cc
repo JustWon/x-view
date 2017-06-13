@@ -14,9 +14,8 @@ int main(int argc, char** argv) {
 
   // FIXME Something is wrong with frame 6 as it stops the workflow of graph
   // matcher.
-  bag_reader.iterateBagFromTo("Stereo_Left/Omni_F/labels", 10, 30);
-  bag_reader.iterateBagFromTo("Stereo_Left/Omni_F/labels", 10, 30);
-  bag_reader.iterateBagFromTo("Stereo_Left/Omni_F/labels", 10, 30);
+  bag_reader.iterateBagFromTo("Stereo_Left/Omni_F/labels", 0, 100);
+  bag_reader.iterateBagFromTo("Stereo_Left/Omni_B/labels", 100, 0);
 
   x_view::finalizeLogging();
 
