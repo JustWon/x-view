@@ -81,7 +81,6 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       // Retrieve the parameters passed to the RandomWalker as some of them
       // might have changed due to input coherence.
       params = random_walker.params();
-      testTransitionProbabilityMatrix(random_walker, graph, params);
       testRandomWalkSequence(random_walker, graph, params);
       if (params.random_sampling_type_ ==
           RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME)

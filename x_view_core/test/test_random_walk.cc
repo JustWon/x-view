@@ -2,12 +2,6 @@
 
 namespace x_view_test {
 
-void testTransitionProbabilityMatrix(const x_view::RandomWalker& random_walker,
-                                     const x_view::Graph& graph,
-                                     const x_view::RandomWalkerParams& params) {
-
-}
-
 void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
                             const x_view::Graph& graph,
                             const x_view::RandomWalkerParams& params) {
