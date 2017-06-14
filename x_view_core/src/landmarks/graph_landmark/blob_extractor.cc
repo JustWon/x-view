@@ -48,7 +48,8 @@ ImageBlobs BlobExtractor::findBlobsWithContour(const cv::Mat& image,
     // the current semantic class. This is accomplished by performing and AND
     // operation on the all_instances_image with the current_class_layer
     // binary mask.
-    cv::Mat instance_layer = all_instances_image & current_class_layer;
+    cv::Mat instance_layer;
+    cv::bitwise_and(all_instances_image, current_class_layer, instance_layer);
 
     // If the current semantic class has no distinguishable instances,
     // process the input image only considering the semantic labels.
@@ -73,9 +74,10 @@ void BlobExtractor::extractBlobsWithoutInstances(cv::Mat& current_class_layer,
                                                  const int current_semantic_class,
                                                  const BlobExtractorParams& params) {
 
-  LOG(INFO) << "Class " << current_semantic_class << " has no instances.";
+  LOG(INFO) << "Class " << global_dataset_ptr->label(current_semantic_class)
+            << " has no instance information in the first image channel.";
 
-  // Since there are no instances, set the instance_value to -1.
+  // Since there are no instances, set the blob instance_value to -1.
   const int instance_value = -1;
 
   // Compute a smoother version of the image by performing dilation
@@ -98,18 +100,18 @@ void BlobExtractor::extractBlobsConsideringInstances(cv::Mat& instance_layer,
 
   // Collect all different instances of the current label.
   std::unordered_set<unsigned char> instance_set;
-  collectInstancesFromImage(instance_layer, &instance_set);
+  BlobExtractor::collectInstancesFromImage(instance_layer, &instance_set);
 
   // Remove the instance '0' as it is not a real instance, but rather it
-  // comes from the masking operation when creating instance_layer.
+  // comes from the bit-masking operation when creating instance_layer.
   const unsigned long removed_zero =
       instance_set.erase(static_cast<unsigned char>(0));
   CHECK(removed_zero > 0) << "instance_layer image should contain zero "
       "elements resulting from the masking with the current_class_layer "
       "image.";
 
-  LOG(INFO) << "Class " << current_semantic_class << " has "
-            << instance_set.size() << " instances.";
+  LOG(INFO) << "Class " << global_dataset_ptr->label(current_semantic_class)
+            << " has " << instance_set.size() << " instances.";
 
   // Iterate over all instance found in the current semantic class.
   for (const unsigned char instance_value : instance_set) {

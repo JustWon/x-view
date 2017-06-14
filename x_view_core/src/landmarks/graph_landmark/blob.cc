@@ -1,5 +1,7 @@
 #include <x_view_core/landmarks/graph_landmark/blob.h>
 
+#include <glog/logging.h>
+
 namespace x_view {
 
 Blob::Blob() : semantic_label_(-1), c_blob_() {
@@ -89,31 +91,27 @@ void Blob::computeBoundingBox() {
   if (external_contour_pixels_.size() == 0)
     computeContours();
 
-  // Iterate over the pixels belonging to the blob contour and determine the
-  // minimum and maximum value for the x and y coordinate.
-  int min_x = std::numeric_limits<int>::max();
-  int max_x = std::numeric_limits<int>::min();
-  int min_y = std::numeric_limits<int>::max();
-  int max_y = std::numeric_limits<int>::min();
-
-  for (const cv::Point& p : external_contour_pixels_) {
-    min_x = std::min(min_x, p.x);
-    max_x = std::max(max_x, p.x);
-    min_y = std::min(min_y, p.y);
-    max_y = std::max(max_y, p.y);
-  }
-
-  bounding_box_.x = min_x;
-  bounding_box_.y = min_y;
-  bounding_box_.width = max_x - min_x;
-  bounding_box_.height = max_y - min_y;
+  bounding_box_ = cv::boundingRect(external_contour_pixels_);
 }
 
 void Blob::computeFittingEllipse() {
   if (c_blob_.Area(AreaMode::PIXELWISE) >= 5)
     ellipse_ = cv::fitEllipse(external_contour_pixels_);
-  else
-    ellipse_ = cv::RotatedRect(external_contour_pixels_[0], cv::Size(1, 1), 0);
+
+  // If the distance of the fitted ellipse's center to the contour of the
+  // blob is larger than 'max_distance_thresh', then simply compute the center
+  // of the blob by fitting a circle to the contour. This threshold is set
+  // empirically and should be adapted in case of different input image
+  // resolution.
+  const int max_distance_thresh = 30;
+  if (cv::pointPolygonTest(external_contour_pixels_, ellipse_.center,
+  true) < -max_distance_thresh) {
+    LOG(WARNING) << "Computing the center of blob using the minEnclosingCircle"
+                 << " algorithm as the ellipse fitting was not effective.";
+    float r;
+    cv::minEnclosingCircle(external_contour_pixels_, ellipse_.center, r);
+    ellipse_.size = cv::Size(r, r);
+  }
   // Scale down the ellipse by a factor of two.
   ellipse_.size.height *= 0.5;
   ellipse_.size.width *= 0.5;
