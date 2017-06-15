@@ -73,6 +73,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_graph_landmark_matcher.cc
         test/test_mcgregor_matching_main.cc
         test/test_mcgregor_matching.cc
+
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )
 

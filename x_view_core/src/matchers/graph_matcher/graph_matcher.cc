@@ -141,8 +141,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
     global_walk_map_vector_.insert(global_walk_map_vector_.end(),
                                    query_walk_map_vector.begin(),
                                    query_walk_map_vector.end());
-
-
+    
     // Return the matching result filled with the matches.
     return matchingResult;
   }
