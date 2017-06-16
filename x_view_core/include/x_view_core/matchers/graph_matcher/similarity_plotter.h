@@ -37,35 +37,9 @@ class SimilarityPlotter {
   static cv::Mat getImageFromSimilarityMatrix(
       const Eigen::MatrixXf& similarity_matrix, bool auto_size = true);
 
-  /**
-   * \brief Generates an image which a pixel (i,j) is white only if the
-   * associated value is the larges of the i-th column.
-   * \param similarity_matrix Matrix used to generate the image.
-   * \param auto_size If true, then the generated image will be resized
-   * conveniently for displaying purposes, otherwise the generated image will
-   * be of the same size of the similarity matrix.
-   * \return An image representing the max similarity of the similarity
-   * matrix passed as argument.
-   * \note If a sparse matrix is passed as argument, then it is automatically
-   * converted to a dense format. For large matrices this should be avoided
-   */
-  static cv::Mat getMaxColwiseImageFromSimilarityMatrix(
-      const Eigen::MatrixXf& similarity_matrix, bool auto_size = true);
-
-  /**
- * \brief Generates an image which a pixel (i,j) is white only if the
- * associated value is the larges of the j-th row.
- * \param similarity_matrix Matrix used to generate the image.
- * \param auto_size If true, then the generated image will be resized
- * conveniently for displaying purposes, otherwise the generated image will
- * be of the same size of the similarity matrix.
- * \return An image representing the max similarity of the similarity
- * matrix passed as argument.
- * \note If a sparse matrix is passed as argument, then it is automatically
- * converted to a dense format. For large matrices this should be avoided
- */
-  static cv::Mat getMaxRowwiseImageFromSimilarityMatrix(
-      const Eigen::MatrixXf& similarity_matrix, bool auto_size = true);
+  static cv::Mat getImageFromSimilarityMatrix(
+      const Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>&
+      max_similarity_matrix, bool auto_size = true);
 
   /**
    * \brief Sets the colormap of the plotted similarity matrix.

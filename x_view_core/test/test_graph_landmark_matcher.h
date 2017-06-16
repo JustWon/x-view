@@ -3,7 +3,7 @@
 #include "test_common.h"
 
 #include <x_view_core/features/graph.h>
-#include <x_view_core/matchers/graph_matcher/random_walker.h>
+#include <x_view_core/matchers/graph_matcher.h>
 
 #include <Eigen/Core>
 
@@ -76,8 +76,19 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
                                   const GraphModifierParams& modifier_params,
                                   const int extraction_radius);
 
+/**
+ * \brief Computes the accuracy between the matched vertices contained in the
+ * matching_result_ptr passed as argument related to the graphs contained in
+ * the graph_pair parameter.
+ * \param graph_pair Struct containing the two graphs being matched.
+ * \param matching_result_ptr Pointer pointing to the GraphMatchingResult
+ * containing the similarity matrix computed between the graphs contained in
+ * the first parameter.
+ * \return Accuracy of the matching.
+ */
 float similarityAccuracy(const GraphPair& graph_pair,
-                         const Eigen::MatrixXf& similarity_matrix);
+                         const AbstractMatcher::MatchingResultPtr&
+                         matching_result_ptr);
 
 /**
  * \brief Modifies the graph pointed by the passed argument following the

@@ -52,18 +52,51 @@ void testChainGraph(const unsigned long seed) {
   CHECK_NOTNULL(graph_matcher_ptr.get());
 
   // Add the base graph to the matcher.
-  auto ignore_result = graph_matcher_ptr->match(graph_pair_chain.base_graph_);
+  graph_matcher_ptr->addDescriptor(graph_pair_chain.base_graph_);
 
   // Match the subgraph to the entire graph.
   auto matching_result = graph_matcher_ptr->match(graph_pair_chain.sub_graph_);
 
-  // Retrieve the similarity matrix.
-  Eigen::MatrixXf chain_similarity =
-      CAST(matching_result,
-           GraphMatcher::GraphMatchingResult)->getSimilarityMatrix();
-
-  const float accuracy = similarityAccuracy(graph_pair_chain, chain_similarity);
+  const float accuracy = similarityAccuracy(graph_pair_chain, matching_result);
   std::cout << "Chain matching has accuracy of " << accuracy << std::endl;
+
+#ifdef X_VIEW_DEBUG
+  // Compute similarity matrices.
+  const GraphMatcher::SimilarityMatrixType& similarity_matrix =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->getSimilarityMatrix();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_colwise =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->computeMaxSimilarityColwise();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_rowwise =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->computeMaxSimilarityRowwise();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
+      max_similarity_colwise.cwiseProduct(max_similarity_rowwise);
+
+  // Display the computed similarities.
+  const cv::Mat similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(similarity_matrix);
+  cv::imshow("Vertex similarity", similarity_image);
+
+  const cv::Mat max_col_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_colwise);
+  cv::imshow("Max col similarity", max_col_similarity_image);
+
+  const cv::Mat max_row_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_rowwise);
+  cv::imshow("Max row similarity", max_row_similarity_image);
+
+  const cv::Mat max_agree_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_agree);
+  cv::imshow("Max agree similarity", max_agree_similarity_image);
+
+  cv::waitKey();
+#endif
+
 }
 
 void testRandomGraph(const unsigned long seed) {
@@ -106,23 +139,52 @@ void testRandomGraph(const unsigned long seed) {
   CHECK_NOTNULL(graph_matcher_ptr.get());
 
   // Add the base graph to the matcher.
-  auto ignore_result =
-      graph_matcher_ptr->match(graph_pair_random.base_graph_);
+  graph_matcher_ptr->addDescriptor(graph_pair_random.base_graph_);
 
   // Match the subgraph to the entire graph.
-  auto matching_result =
-      graph_matcher_ptr->match(graph_pair_random.sub_graph_);
-
-  // Retrieve the similarity matrix.
-  Eigen::MatrixXf random_similarity =
-      CAST(matching_result,
-           GraphMatcher::GraphMatchingResult)->getSimilarityMatrix();
+  auto matching_result = graph_matcher_ptr->match(graph_pair_random.sub_graph_);
 
   const float accuracy =
-      similarityAccuracy(graph_pair_random, random_similarity);
+      similarityAccuracy(graph_pair_random, matching_result);
 
   std::cout << "Random matching has accuracy of " << accuracy << std::endl;
 
+#ifdef X_VIEW_DEBUG
+  // Compute similarity matrices.
+  const GraphMatcher::SimilarityMatrixType& similarity_matrix =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->getSimilarityMatrix();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_colwise =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->computeMaxSimilarityColwise();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_rowwise =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->computeMaxSimilarityRowwise();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
+      max_similarity_colwise.cwiseProduct(max_similarity_rowwise);
+
+  // Display the computed similarities.
+  const cv::Mat similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(similarity_matrix);
+  cv::imshow("Vertex similarity", similarity_image);
+
+  const cv::Mat max_col_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_colwise);
+  cv::imshow("Max col similarity", max_col_similarity_image);
+
+  const cv::Mat max_row_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_rowwise);
+  cv::imshow("Max row similarity", max_row_similarity_image);
+
+  const cv::Mat max_agree_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_agree);
+  cv::imshow("Max agree similarity", max_agree_similarity_image);
+
+  cv::waitKey();
+#endif
 }
 
 GraphPair generateChainGraphPair(const GraphConstructionParams& construction_params,
@@ -181,33 +243,30 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
 }
 
 float similarityAccuracy(const GraphPair& graph_pair,
-                         const Eigen::MatrixXf& similarity_matrix) {
+                         const AbstractMatcher::MatchingResultPtr&
+                         matching_result_ptr) {
   const Graph& base_graph = graph_pair.base_graph_;
   const Graph& sub_graph = graph_pair.sub_graph_;
 
-  // The generated images should be of the exact same size as the similarity
-  // matrix, thus we don't resize them.
-  const bool auto_size = false;
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_colwise =
+      CAST(matching_result_ptr, GraphMatcher::GraphMatchingResult)
+          ->computeMaxSimilarityColwise();
 
-  const cv::Mat max_col_similarity_image =
-      SimilarityPlotter::getMaxColwiseImageFromSimilarityMatrix(
-          similarity_matrix, auto_size);
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_rowwise =
+      CAST(matching_result_ptr, GraphMatcher::GraphMatchingResult)
+          ->computeMaxSimilarityRowwise();
 
-  const cv::Mat max_row_similarity_image =
-      SimilarityPlotter::getMaxRowwiseImageFromSimilarityMatrix(
-          similarity_matrix, auto_size);
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
+      max_similarity_colwise.cwiseProduct(max_similarity_rowwise);
 
-  cv::Mat max_agree_similarity_image;
-  cv::bitwise_and(max_col_similarity_image, max_row_similarity_image,
-                  max_agree_similarity_image);
 
   int correct_matches = 0;
   int num_proposed_matches = 0;
   // Loop over agree similarity matrix and check if the agreed match is a true
   // match.
-  for (int i = 0; i < max_agree_similarity_image.rows; ++i) {
-    for (int j = 0; j < max_agree_similarity_image.cols; ++j) {
-      if (max_agree_similarity_image.at<uchar>(cv::Point(j, i)) != 0) {
+  for (int i = 0; i < max_similarity_agree.rows(); ++i) {
+    for (int j = 0; j < max_similarity_agree.cols(); ++j) {
+      if (max_similarity_agree(i, j) == true) {
         // Retrieve the indices of the i-th and j-th vertices of the
         // base_graph_ and sub_graph_ respectively.
         const VertexProperty v_i_base = base_graph[i];
