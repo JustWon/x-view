@@ -18,8 +18,9 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
   std::mt19937 rng(params.seed_);
   std::uniform_int_distribution<int> dist(0, params.num_semantic_classes_ - 1);
   // Create random graph.
-  x_view::Graph graph(ERGen(gen, params.num_vertices_, params.edge_probability_),
-                      ERGen(), params.num_vertices_);
+  x_view::Graph
+      graph(ERGen(gen, params.num_vertices_, params.edge_probability_),
+            ERGen(), params.num_vertices_);
 
   // Add properties to the vertices.
   auto vertex_iter = boost::vertices(graph);
@@ -171,6 +172,55 @@ x_view::Graph extractSubgraphAroundVertex(const x_view::Graph& original,
             << boost::num_edges(extracted_graph) << " edges.";
 
   return extracted_graph;
+}
+
+void modifyGraph(x_view::Graph* graph, const GraphModifierParams& params,
+                 std::mt19937& rng) {
+  CHECK_NOTNULL(graph);
+
+  LOG_IF(WARNING, params.start_vertex_index_ == -1)
+         << "The modifier function is used with 'params.start_vertex_index_' "
+             "= -1, this means that all vertices added to the graph being "
+             "modified have 'VertexProperty::index_' = -1. To avoid this "
+             "behaviour please set the start vertex index accordingly. "
+             "(Usually the start vertex index corresponds to the max vertex "
+             "index of the graph being modified, or to the max vertex index "
+             "of the base graph associated from which the modified graph is "
+             "extracted)";
+
+  std::vector<int> component(boost::num_vertices(*graph));
+  int num_connected_components =
+      boost::connected_components(*graph, &component[0]);
+
+  CHECK(num_connected_components == 1)
+  << "Input graph to " << __FUNCTION__ << " has " << num_connected_components
+  << " connected components. Function " << __FUNCTION__
+  << " only works with single components.";
+
+  for (int i = 0; i < params.num_vertices_to_add_; ++i) {
+    int new_vertex_index = (params.start_vertex_index_ == -1) ?
+                           -1 : params.start_vertex_index_ + i;
+    addRandomVertexToGraph(graph, rng, new_vertex_index,
+                           params.num_links_for_new_vertices_);
+  }
+  for (int i = 0; i < params.num_edges_to_add_; ++i)
+    addRandomEdgeToGraph(graph, rng);
+
+  for (int i = 0; i < params.num_vertices_to_remove_; ++i)
+    removeRandomVertexFromGraph(graph, rng);
+
+  for (int i = 0; i < params.num_edges_to_remove_; ++i) {
+    removeRandomEdgeFromGraph(graph, rng);
+  }
+
+  component.resize(boost::num_vertices(*graph));
+  num_connected_components =
+      boost::connected_components(*graph, &component[0]);
+
+  CHECK(num_connected_components == 1)
+  << "After removing and adding vertices/edges to the graph, there are "
+  << "disconnected  components.";
+
 }
 
 }

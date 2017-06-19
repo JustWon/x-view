@@ -18,6 +18,7 @@ ENDIF ()
 # Flag used by XView to know the path of where it is located.
 add_definitions(-DX_VIEW_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR})
 add_definitions(-DX_VIEW_LOG_DIR=${CMAKE_CURRENT_SOURCE_DIR}/logs/)
+add_definitions(-DX_VIEW_OUT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/output/)
 
 find_package(catkin_simple 0.1.0 REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
@@ -71,6 +72,8 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_random_walk.cc
         test/test_graph_landmark_matcher_main.cc
         test/test_graph_landmark_matcher.cc
+        test/test_graph_merger_main.cc
+        test/test_graph_merger.cc
         test/test_mcgregor_matching_main.cc
         test/test_mcgregor_matching.cc
 

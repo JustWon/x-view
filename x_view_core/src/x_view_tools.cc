@@ -31,6 +31,11 @@ const std::string& getRootDirectory() {
   return x_view_root;
 }
 
+const std::string& getOutputDirectory() {
+  static std::string x_view_out = std::string(X_VIEW_XSTR(X_VIEW_OUT_DIR));
+  return x_view_out;
+}
+
 const std::string& getLogDirectory() {
   static std::string x_view_log = std::string(X_VIEW_XSTR(X_VIEW_LOG_DIR));
   return x_view_log;

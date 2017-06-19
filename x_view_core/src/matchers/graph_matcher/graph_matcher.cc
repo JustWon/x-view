@@ -16,15 +16,23 @@ GraphMatcher::GraphMatchingResult::computeMaxSimilarityColwise() const {
   MaxSimilarityMatrixType max_similarity_colwise(rows, cols);
   max_similarity_colwise.setZero();
 
-  Eigen::VectorXi max_index_per_col(cols);
+  // max_indices_per_col[j] contains a vector of indices 'i' such that
+  // all similarity_matrix(i,j) are maximal and not zero in the j-th column.
+  std::vector<std::vector<int> > max_indices_per_col(cols);
   // Iterate over all columns.
   for (int j = 0; j < cols; ++j) {
-    similarity_matrix_.col(j).maxCoeff(&(max_index_per_col[j]));
+    float max_val = similarity_matrix_.col(j).maxCoeff();
+    if (max_val > 0.f)
+      for (int i = 0; i < rows; ++i) {
+        if (similarity_matrix_(i, j) == max_val)
+          max_indices_per_col[j].push_back(i);
+      }
   }
 
   // Set the max elements to true.
-  for(int j = 0; j < cols; ++j) {
-    max_similarity_colwise(max_index_per_col[j], j) = true;
+  for (int j = 0; j < cols; ++j) {
+    for (int k = 0; k < max_indices_per_col[j].size(); ++k)
+      max_similarity_colwise(max_indices_per_col[j][k], j) = true;
   }
 
   return max_similarity_colwise;
@@ -39,15 +47,23 @@ GraphMatcher::GraphMatchingResult::computeMaxSimilarityRowwise() const {
   MaxSimilarityMatrixType max_similarity_rowwise(rows, cols);
   max_similarity_rowwise.setZero();
 
-  Eigen::VectorXi max_index_per_row(rows);
+  // max_indices_per_row[i] contains a vector of indices 'j' such that
+  // all similarity_matrix(i,j) are maximal and not zero in the i-th row.
+  std::vector<std::vector<int> > max_indices_per_row(rows);
   // Iterate over all rows.
   for (int i = 0; i < rows; ++i) {
-    similarity_matrix_.row(i).maxCoeff(&(max_index_per_row[i]));
+    float max_val = similarity_matrix_.row(i).maxCoeff();
+    if (max_val > 0.f)
+      for (int j = 0; j < cols; ++j) {
+        if (similarity_matrix_(i, j) == max_val)
+          max_indices_per_row[i].push_back(j);
+      }
   }
 
   // Set the max elements to true.
-  for(int i = 0; i < rows; ++i) {
-    max_similarity_rowwise(i, max_index_per_row[i]) = true;
+  for (int i = 0; i < rows; ++i) {
+    for (int k = 0; k < max_indices_per_row[i].size(); ++k)
+      max_similarity_rowwise(i, max_indices_per_row[i][k]) = true;
   }
 
   return max_similarity_rowwise;
@@ -229,7 +245,7 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
         const auto& mapped_walks_j = query_walk_map_vector[j];
         const float similarity =
             VertexSimilarity::score(mapped_walks_i, mapped_walks_j);
-        similarity_matrix->operator()(i, j) =  similarity;
+        similarity_matrix->operator()(i, j) = similarity;
       }
     }
   }

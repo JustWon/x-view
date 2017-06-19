@@ -1,0 +1,24 @@
+graph G {
+5 [label=11];
+6 [label=7];
+7 [label=11];
+8 [label=5];
+9 [label=8];
+10 [label=8];
+11 [label=4];
+15 [label="Random vertex 15"];
+16 [label="Random vertex 16"];
+17 [label="Random vertex 17"];
+5--6 ;
+6--7 ;
+7--8 ;
+8--9 ;
+9--10 ;
+10--11 ;
+10--15 ;
+9--15 ;
+9--16 ;
+11--16 ;
+10--17 ;
+8--17 ;
+}

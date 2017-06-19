@@ -111,12 +111,13 @@ bool areVerticesConnectedByIndex(const int v1, const int v2,
  * link_to_n_vertices existing vertices of the graph.
  * \param graph Pointer to the graph to be modified.
  * \param rng Instance of mersenne twister random number generator.
+ * \param index Index to associate to the newly added vertex.
  * \param link_to_n_vertices The added vertex is linked to link_to_n_vertices
  * randomly chosen vertices of the graph. This ensure that the new graph
  * consists of a single connected component.
  */
 void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
-                            const int link_to_n_vertices = 2);
+                            const int index, const int link_to_n_vertices);
 
 /**
  * \brief Adds a new generated EdgeProperty to the graph pointed by the
@@ -179,6 +180,8 @@ std::ostream& operator<<(std::ostream& out, const EdgeProperty& e);
 
 /// \brief Overloaded operator to print a graph.
 std::ostream& operator<<(std::ostream& out, const Graph& graph);
+
+void dumpToDotFile(Graph& graph, const std::string& filename);
 
 }
 

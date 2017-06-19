@@ -2,7 +2,9 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 
 #include <boost/graph/connected_components.hpp>
+#include <boost/graph/graphviz.hpp>
 #include <boost/graph/random.hpp>
+#include <boost/property_map/dynamic_property_map.hpp>
 
 namespace x_view {
 
@@ -23,12 +25,15 @@ bool areVerticesConnectedByIndex(const int v1, const int v2,
 }
 
 void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
-                            const int link_to_n_vertices) {
+                            const int index,  const int link_to_n_vertices) {
   CHECK_NOTNULL(graph);
 
   // Create the new vertex.
   VertexProperty new_vertex;
-  new_vertex.index_ = static_cast<int>(boost::num_vertices(*graph));
+  if(index == -1)
+    new_vertex.index_ = static_cast<int>(boost::num_vertices(*graph));
+  else
+    new_vertex.index_ = index;
   // Random semantic label.
   new_vertex.semantic_label_ =
       static_cast<int>(rng() % global_dataset_ptr->numSemanticClasses());
@@ -220,6 +225,21 @@ std::ostream& operator<<(std::ostream& out, const Graph& graph) {
     out << graph[*edge_iterator.first] << "\n";
   }
   return out;
+}
+
+void dumpToDotFile(Graph& graph, const std::string& filename) {
+
+  // Open a stream
+  std::ofstream out(filename.c_str());
+  CHECK(out.is_open());
+
+  // Create a property map to be used during writing of the graph.
+  boost::dynamic_properties dp;
+  dp.property("label", boost::get(&VertexProperty::semantic_entity_name_, graph));
+  dp.property("node_id", boost::get(&VertexProperty::index_, graph));
+
+  boost::write_graphviz_dp(out, graph, dp);
+
 }
 
 }

@@ -48,6 +48,12 @@ cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel);
 const std::string& getRootDirectory();
 
 /**
+ * @brief Returns a string containing the absolute path to the X_View output
+ * directory specified in the CMakeLists.txt file as "-DX_VIEW_OUT_DIR=..."
+ */
+const std::string& getOutputDirectory();
+
+/**
  * @brief Returns a string containing the absolute path to the X_View log
  * directory specified in the CMakeLists.txt file as "-DX_VIEW_LOG_DIR=..."
  */

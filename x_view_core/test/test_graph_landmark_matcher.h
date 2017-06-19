@@ -26,23 +26,6 @@ void testChainGraph(const unsigned long seed);
 void testRandomGraph(const unsigned long seed);
 
 /**
- * \brief Parameters used to modify the topology of a graph.
- */
-struct GraphModifierParams {
-  /// \brief Number of new vertices to add to the graph.
-  int num_vertices_to_add_;
-  /// \brief Number of vertices to remove from the graph.
-  int num_vertices_to_remove_;
-  /// \brief Number of new edges to add to the graph.
-  int num_edges_to_add_;
-  /// \brief Number of edges to remove from the graph.
-  int num_edges_to_remove_;
-  /// \brief Number of edges to create between each new vertex and the
-  /// existing ones.
-  int num_links_for_new_vertices_ = 2;
-};
-
-/**
  * \brief Small container used to combine a base graph with a new subgraph.
  */
 struct GraphPair {
@@ -89,17 +72,6 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
 float similarityAccuracy(const GraphPair& graph_pair,
                          const AbstractMatcher::MatchingResultPtr&
                          matching_result_ptr);
-
-/**
- * \brief Modifies the graph pointed by the passed argument following the
- * parameters contained in the second argument.
- * \param graph Pointer pointing to the graph to be modified.
- * \param params Parameters used for modifying the graph.
- * \param rng Random number generator used to randomly create/remove
- * vertices/edges.
- */
-void modifyGraph(Graph* graph, const GraphModifierParams& params,
-                 std::mt19937& rng);
 
 }
 

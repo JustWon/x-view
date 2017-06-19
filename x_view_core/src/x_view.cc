@@ -36,7 +36,7 @@ void XView::processSemanticImage(const cv::Mat& image, const SE3& pose) {
 
   // Compute the matches between the new feature and the ones
   // stored in the database.
-  if(frame_number_ == 0) {
+  if (frame_number_ == 0) {
     // Simply add the landmark to the matcher without matching anything.
     descriptor_matcher_->addDescriptor(landmark_ptr->getDescriptor());
   } else {
@@ -160,7 +160,7 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
   const cv::Mat& previous_semantic_image =
       previous_semantics->getSemanticImage();
 
-    // Extract graph from current and previous landmark.
+  // Extract graph from current and previous landmark.
   const auto current_graph_landmark =
       std::dynamic_pointer_cast<GraphLandmark>(semantics_a);
   CHECK_NOTNULL(current_graph_landmark.get());
@@ -192,7 +192,8 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
 
   // Compute a match between the current semantic landmark and the ones
   // already visited.
-  matching_result = graph_matcher.match(current_graph_descriptor->getDescriptor());
+  matching_result =
+      graph_matcher.match(current_graph_descriptor->getDescriptor());
 
   // Compute similarity matrices.
   const GraphMatcher::SimilarityMatrixType& similarity_matrix =
@@ -227,18 +228,20 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
       SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_agree);
   cv::imshow("Max agree similarity", max_agree_similarity_image);
 
+  // Function to create a curved polyline between two points.
   auto createCurveBetween = [](const cv::Point& start, const cv::Point& end,
-                          const int step) -> std::vector<cv::Point> {
-    const int dist = std::abs(end.x -  start.x) -1;
+                               const int step) -> std::vector<cv::Point> {
+    const int dist = std::abs(end.x - start.x) - 1;
     const int num_steps = dist / step;
     std::vector<cv::Point> line(num_steps);
     cv::Point anchor = (start + end) * 0.5;
     anchor.y -= 80;
     float t = 0.f;
-    float dt = 1.f/num_steps;
-    for(auto& point : line) {
-      point = start*((1.-t)*(1.-t))  + anchor*(2.*t*(1.-t)) + end*(t*t);
-      t+=dt;
+    float dt = 1.f / num_steps;
+    for (auto& point : line) {
+      point = start * ((1. - t) * (1. - t)) + anchor * (2. * t * (1. - t))
+          + end * (t * t);
+      t += dt;
     }
     line.push_back(end);
     return line;
@@ -253,7 +256,7 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
   cv::Mat current_graph_image = GraphDrawer::createImageWithLabels(
       current_graph_landmark->getBlobs(),
       current_graph_descriptor->getDescriptor(),
-          current_semantic_image.size()
+      current_semantic_image.size()
   );
 
   cv::Mat previous_graph_image = GraphDrawer::createImageWithLabels(
@@ -264,20 +267,25 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
 
   cv::Mat side_by_side;
   cv::hconcat(current_graph_image, previous_graph_image, side_by_side);
+  // Add separator line between the two images.
+  cv::line(side_by_side, cv::Point(current_graph_image.cols, 0),
+           cv::Point(current_graph_image.cols, current_graph_image.rows),
+           cv::Scalar::all(0), 3);
   const cv::Point right_image_shift(current_graph_image.cols, 0);
 
   std::vector<std::vector<cv::Point> > links;
   // Draw correspondences between the current and the previous image
-  for(int i = 0; i < max_similarity_agree.rows(); ++i) {
-    for(int j = 0; j < max_similarity_agree.cols(); ++j) {
-      if(max_similarity_agree(i, j) == true) {
+  for (int i = 0; i < max_similarity_agree.rows(); ++i) {
+    for (int j = 0; j < max_similarity_agree.cols(); ++j) {
+      if (max_similarity_agree(i, j) == true) {
         const cv::Point center_j =
             current_graph_descriptor->getDescriptor()[j].center_;
         const cv::Point center_i =
             previous_graph_descriptor->getDescriptor()[i].center_;
         const int link_step = 15;
-        links.push_back(createCurveBetween(center_j, center_i+right_image_shift,
-                                      link_step));
+        links.push_back(createCurveBetween(center_j,
+                                           center_i + right_image_shift,
+                                           link_step));
       }
     }
   }

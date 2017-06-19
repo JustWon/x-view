@@ -1,7 +1,7 @@
 #include "test_graph_landmark_matcher.h"
 
 #include <x_view_core/datasets/abstract_dataset.h>
-#include <x_view_core/matchers/graph_matcher.h>
+#include <x_view_core/x_view_tools.h>
 
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/random.hpp>
@@ -36,6 +36,11 @@ void testChainGraph(const unsigned long seed) {
   GraphPair graph_pair_chain = generateChainGraphPair(construction_params,
                                                       modifier_params,
                                                       extraction_radius);
+
+  std::string base_dot_file_name = getOutputDirectory() + "/chain_base.dot";
+  std::string sub_dot_file_name = getOutputDirectory() + "/chain_sub.dot";
+  dumpToDotFile(graph_pair_chain.base_graph_, base_dot_file_name);
+  dumpToDotFile(graph_pair_chain.sub_graph_, sub_dot_file_name);
 
   // Define parameters for random walk extraction.
   RandomWalkerParams random_walker_params;
@@ -101,7 +106,6 @@ void testChainGraph(const unsigned long seed) {
 
 void testRandomGraph(const unsigned long seed) {
 
-
   // Define parameter for generating the graphs.
   GraphConstructionParams construction_params;
   construction_params.num_vertices_ = 500;
@@ -118,11 +122,16 @@ void testRandomGraph(const unsigned long seed) {
   modifier_params.num_edges_to_add_ = 20;
   modifier_params.num_edges_to_remove_ = 20;
 
-  const int extraction_radius = 3;
+  const int extraction_radius = 2;
 
   GraphPair graph_pair_random = generateRandomGraphPair(construction_params,
                                                         modifier_params,
                                                         extraction_radius);
+
+  std::string base_dot_file_name = getOutputDirectory() + "/random_base.dot";
+  std::string sub_dot_file_name = getOutputDirectory() + "/random_sub.dot";
+  dumpToDotFile(graph_pair_random.base_graph_, base_dot_file_name);
+  dumpToDotFile(graph_pair_random.sub_graph_, sub_dot_file_name);
 
   // Define parameters for random walk extraction.
   RandomWalkerParams random_walker_params;
@@ -204,8 +213,20 @@ GraphPair generateChainGraphPair(const GraphConstructionParams& construction_par
       extractSubgraphAroundVertex(graph_pair.base_graph_, source_vertex,
                                   extraction_radius);
 
+  // Need to set the index at which the newly inserted vertices start to
+  // avoid false positive matches between newly inserted vertices and
+  // existing ones: newly existing vertices have indices starting at the
+  // maximal value of the base graph indices. In this way there are no two
+  // vertices with the same index.
+  int max_index = std::numeric_limits<int>::min();
+  const auto vertices = boost::vertices(graph_pair.base_graph_);
+  for(auto iter = vertices.first; iter != vertices.second; ++iter) {
+    max_index = std::max(max_index, graph_pair.base_graph_[*iter].index_);
+  }
+  GraphModifierParams updated_modifier_params = modifier_params;
+  updated_modifier_params.start_vertex_index_ = max_index + 1;
   // Effectively add and remove vertices and edges from the graph.
-  modifyGraph(&graph_pair.sub_graph_, modifier_params, rng);
+  modifyGraph(&graph_pair.sub_graph_, updated_modifier_params, rng);
 
   LOG(INFO) << "Generated chain graph with "
             << boost::num_vertices(graph_pair.base_graph_)
@@ -231,8 +252,22 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
   graph_pair.sub_graph_ =
       extractSubgraphAroundVertex(graph_pair.base_graph_, source_vertex,
                                   extraction_radius);
+
+  // Need to set the index at which the newly inserted vertices start to
+  // avoid false positive matches between newly inserted vertices and
+  // existing ones: newly existing vertices have indices starting at the
+  // maximal value of the base graph indices. In this way there are no two
+  // vertices with the same index.
+  int max_index = std::numeric_limits<int>::min();
+  const auto vertices = boost::vertices(graph_pair.base_graph_);
+  for(auto iter = vertices.first; iter != vertices.second; ++iter) {
+    max_index = std::max(max_index, graph_pair.base_graph_[*iter].index_);
+  }
+  GraphModifierParams updated_modifier_params = modifier_params;
+  updated_modifier_params.start_vertex_index_ = max_index + 1;
+
   // Effectively add and remove vertices and edges from the graph.
-  modifyGraph(&graph_pair.sub_graph_, modifier_params, rng);
+  modifyGraph(&graph_pair.sub_graph_, updated_modifier_params, rng);
 
   LOG(INFO) << "Generated random graph with "
             << boost::num_vertices(graph_pair.base_graph_)
@@ -259,7 +294,6 @@ float similarityAccuracy(const GraphPair& graph_pair,
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
       max_similarity_colwise.cwiseProduct(max_similarity_rowwise);
 
-
   int correct_matches = 0;
   int num_proposed_matches = 0;
   // Loop over agree similarity matrix and check if the agreed match is a true
@@ -282,42 +316,6 @@ float similarityAccuracy(const GraphPair& graph_pair,
   }
 
   return static_cast<float>(correct_matches) / num_proposed_matches;
-
-}
-
-void modifyGraph(Graph* graph, const GraphModifierParams& params,
-                 std::mt19937& rng) {
-  CHECK_NOTNULL(graph);
-
-  std::vector<int> component(boost::num_vertices(*graph));
-  int num_connected_components =
-      boost::connected_components(*graph, &component[0]);
-
-  CHECK(num_connected_components == 1)
-  << "Input graph to " << __FUNCTION__ << " has " << num_connected_components
-  << " connected components. Function " << __FUNCTION__
-  << " only works with single components.";
-
-  for (int i = 0; i < params.num_vertices_to_add_; ++i)
-    addRandomVertexToGraph(graph, rng, params.num_links_for_new_vertices_);
-
-  for (int i = 0; i < params.num_edges_to_add_; ++i)
-    addRandomEdgeToGraph(graph, rng);
-
-  for (int i = 0; i < params.num_vertices_to_remove_; ++i)
-    removeRandomVertexFromGraph(graph, rng);
-
-  for (int i = 0; i < params.num_edges_to_remove_; ++i) {
-    removeRandomEdgeFromGraph(graph, rng);
-  }
-
-  component.resize(boost::num_vertices(*graph));
-  num_connected_components =
-      boost::connected_components(*graph, &component[0]);
-
-  CHECK(num_connected_components == 1)
-  << "After removing and adding vertices/edges to the graph, there are "
-  << "disconnected  components.";
 
 }
 
