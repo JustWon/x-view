@@ -54,6 +54,7 @@ cs_add_library(${PROJECT_NAME}
         # Features matchers
         src/matchers/vector_matcher.cc
         src/matchers/graph_matcher/graph_matcher.cc
+        src/matchers/graph_matcher/graph_merger.cc
         src/matchers/graph_matcher/random_walker.cc
         src/matchers/graph_matcher/similarity_plotter.cc
         src/matchers/graph_matcher/vertex_similarity.cc

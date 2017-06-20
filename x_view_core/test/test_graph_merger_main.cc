@@ -46,8 +46,8 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
 
   // Modify the extracted subgraph.
   GraphModifierParams graph_modifier_params;
-  graph_modifier_params.num_vertices_to_add_ = 1;
-  graph_modifier_params.num_links_for_new_vertices_ = 1;
+  graph_modifier_params.num_vertices_to_add_ = 0;
+  graph_modifier_params.num_links_for_new_vertices_ = 0;
   graph_modifier_params.num_vertices_to_remove_ = 0;
   graph_modifier_params.num_edges_to_add_ = 0;
   graph_modifier_params.num_edges_to_remove_ = 0;
@@ -71,12 +71,8 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
   const std::string g2_path = output_path + "g2.dot";
   const std::string merged_path = output_path + "merged.dot";
 
-  std::cout << "Merged graph: \n" << merged_graph << std::endl;
   dumpToDotFile(g1, g1_path);
   dumpToDotFile(g2, g2_path);
   dumpToDotFile(merged_graph, merged_path);
-
-
-
 }
 
