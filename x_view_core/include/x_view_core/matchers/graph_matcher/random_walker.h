@@ -1,9 +1,6 @@
 #ifndef X_VIEW_RANDOM_WALKER_H
 #define X_VIEW_RANDOM_WALKER_H
 
-
-// FIXME: this header and the corresponding source file must be moved into the matcher folder as they work together with the GraphMatcher class.
-
 #include <x_view_core/features/graph.h>
 
 #include <Eigen/Sparse>
