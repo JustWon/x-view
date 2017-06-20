@@ -2,6 +2,7 @@
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/matchers/graph_matcher.h>
+#include <x_view_core/x_view_tools.h>
 
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/random.hpp>

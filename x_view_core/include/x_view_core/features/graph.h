@@ -3,7 +3,6 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
-
 #include <boost/graph/breadth_first_search.hpp>
 #include <opencv2/core/core.hpp>
 
@@ -105,28 +104,7 @@ typedef boost::graph_traits<Graph>::edge_descriptor EdgeDescriptor;
 bool areVerticesConnectedByIndex(const int v1, const int v2,
                                  const Graph& graph);
 
-/**
- * \brief Adds a new generated VertexProperty to the graph pointed by the
- * passed argument. The newly generated vertex is linked towards
- * link_to_n_vertices existing vertices of the graph.
- * \param graph Pointer to the graph to be modified.
- * \param rng Instance of mersenne twister random number generator.
- * \param link_to_n_vertices The added vertex is linked to link_to_n_vertices
- * randomly chosen vertices of the graph. This ensure that the new graph
- * consists of a single connected component.
- */
-void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
-                            const int link_to_n_vertices = 2);
 
-/**
- * \brief Adds a new generated EdgeProperty to the graph pointed by the
- * passed argument. The edge is defined by randomly selecting two different
- * vertices of the graph passed as argument, and is added to the graph only
- * if the resulting edge does not already exist.
- * \param graph Pointer to the graph to be modified.
- * \param rng Instance of mersenne twister random number generator.
- */
-void addRandomEdgeToGraph(Graph* graph, std::mt19937& rng);
 
 /**
  * \brief Adds an edge between the VertexDescriptors passed as argument if
@@ -139,24 +117,6 @@ void addRandomEdgeToGraph(Graph* graph, std::mt19937& rng);
  */
 bool addEdgeBetweenVertices(const VertexDescriptor& v_1_d,
                             const VertexDescriptor& v_2_d, Graph* graph);
-
-/**
- * \brief Removes a random vertex from the graph pointed by the passed argument.
- * This function makes sure that removing the vertex from the graph
- * does not create two disconnected components.
- * \param graph Pointer to the graph to be modified.
- * \param rng Instance of mersenne twister random number generator
- */
-void removeRandomVertexFromGraph(Graph* graph, std::mt19937& rng);
-
-/**
- * \brief Removes a random edge from the graph pointed by the passed argument.
- * This function makes sure that removing the edge from the graph
- * does not create two disconnected components.
- * \param graph Pointer to the graph to be modified.
- * \param rng Instance of mersenne twister random number generator
- */
-void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng);
 
 /**
  * \brief Removes the edge between the vertex descriptors passed as argument
