@@ -71,7 +71,8 @@ class GraphMatcher : public AbstractMatcher {
   /**
    * \brief Overloaded function that directly adds the passed Graph to the
    * matcher.
-   * \param graph Graph to be added to the matcher.
+   * \param graph Graph to be added to the matcher.r
+   * associated to the graph passed as first argument.
    */
   void addDescriptor(const Graph& graph);
 

@@ -13,20 +13,20 @@ namespace x_view_test {
 struct GraphConstructionParams {
 
   GraphConstructionParams()
-      : num_vertices_(10),
-        edge_probability_(0.1),
-        num_semantic_classes_(13),
-        seed_(0) {}
+      : num_vertices(10),
+        edge_probability(0.1),
+        num_semantic_classes(13),
+        seed(0) {}
 
   /// \brief Number of vertices of the generated graph.
-  int num_vertices_;
+  int num_vertices;
   /// \brief Probability to generate an edge between each pair of vertices.
-  float edge_probability_;
+  float edge_probability;
   /// \brief Number of semantic classes. Each vertex is associated to a
   /// random semantic class (random integer in {0, .., num_semantic_classes-1}
-  int num_semantic_classes_;
+  int num_semantic_classes;
   /// \brief Seed to be used for graph generation.
-  unsigned long seed_;
+  unsigned long seed;
 };
 
 /**
@@ -34,18 +34,18 @@ struct GraphConstructionParams {
  */
 struct GraphModifierParams {
   /// \brief Number of new vertices to add to the graph.
-  int num_vertices_to_add_;
+  int num_vertices_to_add;
   /// \brief Number of vertices to remove from the graph.
-  int num_vertices_to_remove_;
+  int num_vertices_to_remove;
   /// \brief Number of new edges to add to the graph.
-  int num_edges_to_add_;
+  int num_edges_to_add;
   /// \brief Number of edges to remove from the graph.
-  int num_edges_to_remove_;
+  int num_edges_to_remove;
   /// \brief Number of edges to create between each new vertex and the
   /// existing ones.
-  int num_links_for_new_vertices_ = 2;
+  int num_links_for_new_vertices = 2;
   /// \brief Start index to use when adding new vertices.
-  int start_vertex_index_ = -1;
+  int start_vertex_index = -1;
 };
 
 /**

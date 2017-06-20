@@ -3,7 +3,6 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
-
 #include <boost/graph/breadth_first_search.hpp>
 #include <opencv2/core/core.hpp>
 
@@ -14,25 +13,25 @@ namespace x_view {
 /// \brief Property associated to a graph vertex.
 struct VertexProperty {
   /// \brief Index of the vertex in the graph, such that
-  /// boost::vertex(i, graph) returns the vertex property with index_ == i.
-  int index_;
+  /// boost::vertex(i, graph) returns the vertex property with index == i.
+  int index;
   /// \brief Semantic label associated to this graph vertex. This label
   /// corresponds to the same specified in the dataset description.
-  int semantic_label_;
+  int semantic_label;
   /// \brief Name of semantic entity associated to this vertex.
-  std::string semantic_entity_name_;
+  std::string semantic_entity_name;
   /// \brief Number of pixels contained in this vertex/blob.
-  int size_;
+  int num_pixels;
   /// \brief Blob center.
-  cv::Point center_;
+  cv::Point center;
 };
 
 /// \brief Property associated to a graph edge.
 struct EdgeProperty {
   /// \brief Index of the first vertex defining this edge.
-  int from_;
+  int from;
   /// \brief Index of the second vertex defining this edge.
-  int to_;
+  int to;
 };
 
 /**
@@ -43,7 +42,7 @@ struct EdgeProperty {
  * the same as edge 2-1.
  * Second parameter: what stl container is used to store the graph vertices.
  * Third parameter: directed or undirected graph type.
- * Fourth parameter: node representation.
+ * Forth parameter: node representation.
  * Fifth parameter: edge representation.
  * \note The second parameter must be boost::vecS such that each vertex can
  * be accessed directly by the program as follows:
@@ -106,30 +105,6 @@ bool areVerticesConnectedByIndex(const int v1, const int v2,
                                  const Graph& graph);
 
 /**
- * \brief Adds a new generated VertexProperty to the graph pointed by the
- * passed argument. The newly generated vertex is linked towards
- * link_to_n_vertices existing vertices of the graph.
- * \param graph Pointer to the graph to be modified.
- * \param rng Instance of mersenne twister random number generator.
- * \param index Index to associate to the newly added vertex.
- * \param link_to_n_vertices The added vertex is linked to link_to_n_vertices
- * randomly chosen vertices of the graph. This ensure that the new graph
- * consists of a single connected component.
- */
-void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
-                            const int index, const int link_to_n_vertices);
-
-/**
- * \brief Adds a new generated EdgeProperty to the graph pointed by the
- * passed argument. The edge is defined by randomly selecting two different
- * vertices of the graph passed as argument, and is added to the graph only
- * if the resulting edge does not already exist.
- * \param graph Pointer to the graph to be modified.
- * \param rng Instance of mersenne twister random number generator.
- */
-void addRandomEdgeToGraph(Graph* graph, std::mt19937& rng);
-
-/**
  * \brief Adds an edge between the VertexDescriptors passed as argument if
  * the edge does not exist yet.
  * \param v_1_d VertexDescriptor of first vertex.
@@ -140,24 +115,6 @@ void addRandomEdgeToGraph(Graph* graph, std::mt19937& rng);
  */
 bool addEdgeBetweenVertices(const VertexDescriptor& v_1_d,
                             const VertexDescriptor& v_2_d, Graph* graph);
-
-/**
- * \brief Removes a random vertex from the graph pointed by the passed argument.
- * This function makes sure that removing the vertex from the graph
- * does not create two disconnected components.
- * \param graph Pointer to the graph to be modified.
- * \param rng Instance of mersenne twister random number generator
- */
-void removeRandomVertexFromGraph(Graph* graph, std::mt19937& rng);
-
-/**
- * \brief Removes a random edge from the graph pointed by the passed argument.
- * This function makes sure that removing the edge from the graph
- * does not create two disconnected components.
- * \param graph Pointer to the graph to be modified.
- * \param rng Instance of mersenne twister random number generator
- */
-void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng);
 
 /**
  * \brief Removes the edge between the vertex descriptors passed as argument

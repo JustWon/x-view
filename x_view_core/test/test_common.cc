@@ -1,10 +1,11 @@
 #include "test_common.h"
 
+#include <x_view_core/x_view_tools.h>
+
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/erdos_renyi_generator.hpp>
 #include <boost/graph/random.hpp>
 #include <boost/random/linear_congruential.hpp>
-
 #include <glog/logging.h>
 
 namespace x_view_test {
@@ -14,13 +15,12 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
   typedef boost::erdos_renyi_iterator<boost::minstd_rand,
                                       x_view::Graph> ERGen;
 
-  boost::minstd_rand gen(params.seed_);
-  std::mt19937 rng(params.seed_);
-  std::uniform_int_distribution<int> dist(0, params.num_semantic_classes_ - 1);
+  boost::minstd_rand gen(params.seed);
+  std::mt19937 rng(params.seed);
+  std::uniform_int_distribution<int> dist(0, params.num_semantic_classes - 1);
   // Create random graph.
-  x_view::Graph
-      graph(ERGen(gen, params.num_vertices_, params.edge_probability_),
-            ERGen(), params.num_vertices_);
+  x_view::Graph graph(ERGen(gen, params.num_vertices, params.edge_probability),
+                      ERGen(), params.num_vertices);
 
   // Add properties to the vertices.
   auto vertex_iter = boost::vertices(graph);
@@ -28,12 +28,12 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
   // Iterate over all vertices.
   for (; vertex_iter.first != vertex_iter.second; ++vertex_iter.first) {
     auto& vertex = graph[*vertex_iter.first];
-    vertex.index_ = vertex_index++;
-    vertex.size_ = 1;
-    vertex.center_ = cv::Point(0, 0);
+    vertex.index = vertex_index++;
+    vertex.num_pixels = 1;
+    vertex.center = cv::Point(0, 0);
     // Set a random semantic label to the vertex.
-    vertex.semantic_label_ = dist(rng);
-    vertex.semantic_entity_name_ = std::to_string(vertex.semantic_label_);
+    vertex.semantic_label = dist(rng);
+    vertex.semantic_entity_name = std::to_string(vertex.semantic_label);
   }
 
   // Add edge properties.
@@ -43,8 +43,8 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
     const auto& from_v = graph[boost::source(*edges_iter.first, graph)];
     const auto& to_v = graph[boost::target(*edges_iter.first, graph)];
     // Set the edge properties.
-    graph[*edges_iter.first].from_ = from_v.index_;
-    graph[*edges_iter.first].to_ = to_v.index_;
+    graph[*edges_iter.first].from = from_v.index;
+    graph[*edges_iter.first].to = to_v.index;
   }
 
   std::vector<int> component(boost::num_vertices(graph));
@@ -53,58 +53,58 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
 
   if (num_connected_components == 1) {
     LOG(INFO) << "Random graph generated with parameters:"
-              << "\n\tnum_vertices         : " << params.num_vertices_
-              << "\n\tedge_probability     : " << params.edge_probability_
-              << "\n\tnum_semantic_classes : " << params.num_semantic_classes_
-              << "\n\tseed                 : " << params.seed_;
+              << "\n\tnum_vertices         : " << params.num_vertices
+              << "\n\tedge_probability     : " << params.edge_probability
+              << "\n\tnum_semantic_classes : " << params.num_semantic_classes
+              << "\n\tseed                 : " << params.seed;
     return graph;
   } else {
     LOG(WARNING) << "Random graph generated with parameters:"
-                 << "\n\tnum_vertices         : " << params.num_vertices_
-                 << "\n\tedge_probability     : " << params.edge_probability_
+                 << "\n\tnum_vertices         : " << params.num_vertices
+                 << "\n\tedge_probability     : " << params.edge_probability
                  << "\n\tnum_semantic_classes : "
-                 << params.num_semantic_classes_
-                 << "\n\tseed                 : " << params.seed_
+                 << params.num_semantic_classes
+                 << "\n\tseed                 : " << params.seed
                  << "\nis not a single connected component."
                  << "\nGenerating new graph with modified parameters.";
 
     // Generate new parameters for graph generation.
     GraphConstructionParams new_params;
-    new_params.num_vertices_ = params.num_vertices_;
-    new_params.edge_probability_ =
-        std::min(1.1f, params.edge_probability_ * 1.1f);
-    new_params.num_semantic_classes_ = params.num_semantic_classes_;
-    new_params.seed_ = params.seed_;
+    new_params.num_vertices = params.num_vertices;
+    new_params.edge_probability =
+        std::min(1.1f, params.edge_probability * 1.1f);
+    new_params.num_semantic_classes = params.num_semantic_classes;
+    new_params.seed = params.seed;
     return generateRandomGraph(new_params);
   }
 }
 
 x_view::Graph generateChainGraph(const GraphConstructionParams& params) {
 
-  std::mt19937 rng(params.seed_);
-  std::uniform_int_distribution<int> dist(0, params.num_semantic_classes_ - 1);
+  std::mt19937 rng(params.seed);
+  std::uniform_int_distribution<int> dist(0, params.num_semantic_classes - 1);
 
   x_view::Graph graph;
   std::vector<x_view::VertexDescriptor> vertex_descriptors;
   // Create the vertices of the graph in sequence.
-  for (int i = 0; i < params.num_vertices_; ++i) {
+  for (int i = 0; i < params.num_vertices; ++i) {
     x_view::VertexProperty v_p;
-    v_p.index_ = i;
-    v_p.center_ = cv::Point(0, 0);
-    v_p.semantic_label_ = dist(rng);
-    v_p.semantic_entity_name_ = std::to_string(v_p.semantic_label_);
-    v_p.size_ = 0;
+    v_p.index = i;
+    v_p.center = cv::Point(0, 0);
+    v_p.semantic_label = dist(rng);
+    v_p.semantic_entity_name = std::to_string(v_p.semantic_label);
+    v_p.num_pixels = 0;
 
     vertex_descriptors.push_back(boost::add_vertex(v_p, graph));
   }
   // Add edges between each pair of consequent vertices.
-  for (int i = 0; i < params.num_vertices_ - 1; ++i) {
+  for (int i = 0; i < params.num_vertices - 1; ++i) {
     boost::add_edge(vertex_descriptors[i], vertex_descriptors[i + 1],
                     {i, i + 1}, graph);
   }
   // Close the loop.
   boost::add_edge(vertex_descriptors.back(), vertex_descriptors.front(),
-                  {params.num_vertices_ - 1, 0}, graph);
+                  {params.num_vertices - 1, 0}, graph);
 
   return graph;
 }
@@ -178,7 +178,7 @@ void modifyGraph(x_view::Graph* graph, const GraphModifierParams& params,
                  std::mt19937& rng) {
   CHECK_NOTNULL(graph);
 
-  LOG_IF(WARNING, params.start_vertex_index_ == -1)
+  LOG_IF(WARNING, params.start_vertex_index == -1)
          << "The modifier function is used with 'params.start_vertex_index_' "
              "= -1, this means that all vertices added to the graph being "
              "modified have 'VertexProperty::index_' = -1. To avoid this "
@@ -197,19 +197,19 @@ void modifyGraph(x_view::Graph* graph, const GraphModifierParams& params,
   << " connected components. Function " << __FUNCTION__
   << " only works with single components.";
 
-  for (int i = 0; i < params.num_vertices_to_add_; ++i) {
-    int new_vertex_index = (params.start_vertex_index_ == -1) ?
-                           -1 : params.start_vertex_index_ + i;
+  for (int i = 0; i < params.num_vertices_to_add; ++i) {
+    int new_vertex_index = (params.start_vertex_index == -1) ?
+                           -1 : params.start_vertex_index + i;
     addRandomVertexToGraph(graph, rng, new_vertex_index,
-                           params.num_links_for_new_vertices_);
+                           params.num_links_for_new_vertices);
   }
-  for (int i = 0; i < params.num_edges_to_add_; ++i)
+  for (int i = 0; i < params.num_edges_to_add; ++i)
     addRandomEdgeToGraph(graph, rng);
 
-  for (int i = 0; i < params.num_vertices_to_remove_; ++i)
+  for (int i = 0; i < params.num_vertices_to_remove; ++i)
     removeRandomVertexFromGraph(graph, rng);
 
-  for (int i = 0; i < params.num_edges_to_remove_; ++i) {
+  for (int i = 0; i < params.num_edges_to_remove; ++i) {
     removeRandomEdgeFromGraph(graph, rng);
   }
 

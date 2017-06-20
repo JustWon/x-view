@@ -32,7 +32,7 @@ Graph GraphBuilder::createGraphFromNeighborBlobs(const ImageBlobs& blobs,
       const Blob* bj = blob_vector[j];
 
       // only create an edge between the two blobs if they are neighbors
-      if (Blob::areNeighbors(*bi, *bj, params.max_distance_for_neighborhood_))
+      if (Blob::areNeighbors(*bi, *bj, params.max_distance_for_neighborhood))
         boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
                         {i, j}, graph);
     }
@@ -103,10 +103,10 @@ void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
 
 VertexProperty GraphBuilder::blobToGraphVertex(const int index,
                                                const Blob& blob) {
-  const int semantic_label = blob.semantic_label_;
+  const int semantic_label = blob.semantic_label;
   const std::string label = global_dataset_ptr->label(semantic_label);
-  const int size = blob.num_pixels_;
-  const cv::Point center = blob.center_;
+  const int size = blob.num_pixels;
+  const cv::Point center = blob.center;
   return VertexProperty{index, semantic_label, label, size, center};
 }
 
@@ -137,28 +137,28 @@ void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(Graph* graph,
       EdgeProperty closest_v_d_pair = {-1, -1};
       for (int i = 0; i < num_vertices; ++i) {
         if (component[i] == first_component_id) {
-          const cv::Point& center_i = (*graph)[i].center_;
+          const cv::Point& center_i = (*graph)[i].center;
           for (int j = 0; j < num_vertices; ++j) {
             if (component[j] == second_component_id) {
-              const cv::Point& center_j = (*graph)[j].center_;
+              const cv::Point& center_j = (*graph)[j].center;
               int dist2 = dist_square(center_i, center_j);
               if (dist2 < min_distance_square) {
                 min_distance_square = dist2;
-                closest_v_d_pair.from_ = i;
-                closest_v_d_pair.to_ = j;
+                closest_v_d_pair.from = i;
+                closest_v_d_pair.to = j;
               }
             }
           }
         }
       }
-      CHECK(closest_v_d_pair.from_ != -1 && closest_v_d_pair.to_ != -1)
+      CHECK(closest_v_d_pair.from != -1 && closest_v_d_pair.to != -1)
       << "Function " << __FUNCTION__ << " could not determine which "
       << "vertices are the closest pair in the disconnected graph "
       << "between component " << first_component_id << " and "
       << second_component_id;
       // The closest vertices between first_component and second_component
       // are the ones contained in closest_v_d_pair.
-      boost::add_edge(closest_v_d_pair.from_, closest_v_d_pair.to_,
+      boost::add_edge(closest_v_d_pair.from, closest_v_d_pair.to,
                       closest_v_d_pair, *graph);
     }
   }

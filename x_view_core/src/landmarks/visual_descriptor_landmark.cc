@@ -27,10 +27,10 @@ ORBVisualDescriptorLandmark::ORBVisualDescriptorLandmark(const cv::Mat& image,
   cv::Mat gray;
   cv::cvtColor(image, gray, CV_BGR2GRAY);
 
-  features_extractor_.reset(new cv::ORB(NUM_VISUAL_FEATURES));
+  features_extractor.reset(new cv::ORB(NUM_VISUAL_FEATURES));
 
   std::vector<cv::KeyPoint> keypoints;
-  features_extractor_->detect(
+  features_extractor->detect(
       gray * 255. / global_dataset_ptr->numSemanticClasses(), keypoints);
 
   // retains only the desired number of features
@@ -39,7 +39,7 @@ ORBVisualDescriptorLandmark::ORBVisualDescriptorLandmark(const cv::Mat& image,
 
   // compute the feature descriptors
   cv::Mat descriptors;
-  features_extractor_->compute(gray, keypoints, descriptors);
+  features_extractor->compute(gray, keypoints, descriptors);
 
   descriptor_ =
       std::make_shared<VisualDescriptor>(VisualDescriptor(descriptors,
@@ -57,10 +57,10 @@ SIFTVisualDescriptorLandmark::SIFTVisualDescriptorLandmark(const cv::Mat& image,
   cv::Mat gray;
   cv::cvtColor(image, gray, CV_BGR2GRAY);
 
-  features_extractor_.reset(new cv::SIFT(NUM_VISUAL_FEATURES));
+  features_extractor.reset(new cv::SIFT(NUM_VISUAL_FEATURES));
 
   std::vector<cv::KeyPoint> keypoints;
-  features_extractor_->detect(
+  features_extractor->detect(
       gray * 255. / global_dataset_ptr->numSemanticClasses(), keypoints);
 
   // retains only the desired number of features
@@ -69,7 +69,7 @@ SIFTVisualDescriptorLandmark::SIFTVisualDescriptorLandmark(const cv::Mat& image,
 
   // compute the feature descriptors
   cv::Mat descriptors;
-  features_extractor_->compute(gray, keypoints, descriptors);
+  features_extractor->compute(gray, keypoints, descriptors);
 
   descriptor_ =
       std::make_shared<VisualDescriptor>(VisualDescriptor(descriptors,
@@ -88,10 +88,10 @@ SURFVisualDescriptorLandmark::SURFVisualDescriptorLandmark(const cv::Mat& image,
   cv::cvtColor(image, gray, CV_BGR2GRAY);
 
   const double hessian_threshold = 0.2;
-  features_extractor_.reset(new cv::SURF(hessian_threshold));
+  features_extractor.reset(new cv::SURF(hessian_threshold));
 
   std::vector<cv::KeyPoint> keypoints;
-  features_extractor_->detect(
+  features_extractor->detect(
       gray * 255. / global_dataset_ptr->numSemanticClasses(), keypoints);
 
   // retains only the desired number of features
@@ -100,7 +100,7 @@ SURFVisualDescriptorLandmark::SURFVisualDescriptorLandmark(const cv::Mat& image,
 
   // compute the feature descriptors
   cv::Mat descriptors;
-  features_extractor_->compute(gray, keypoints, descriptors);
+  features_extractor->compute(gray, keypoints, descriptors);
 
   descriptor_ =
       std::make_shared<VisualDescriptor>(VisualDescriptor(descriptors,

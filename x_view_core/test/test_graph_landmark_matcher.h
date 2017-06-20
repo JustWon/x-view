@@ -25,19 +25,20 @@ void testChainGraph(const unsigned long seed);
  */
 void testRandomGraph(const unsigned long seed);
 
+
 /**
  * \brief Small container used to combine a base graph with a new subgraph.
  */
 struct GraphPair {
-  Graph base_graph_;
-  Graph sub_graph_;
+  Graph base_graph;
+  Graph sub_graph;
 };
 
 /**
  * \brief Generates a new graph with a chain topology.
  * \param construction_params Parameters used to construct the graph.
  * \param modifier_params Parameters used to modify the subgraph extracted
- * from the generated base_graph_.
+ * from the generated base_graph.
  * \param extraction_radius Radius used for graph extraction.
  * \return A GraphPair object, containing the generated graph with
  * corresponding extracted subgraph.

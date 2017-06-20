@@ -61,7 +61,7 @@ Graph GraphMerger::getMergedGraph() {
   const auto db_vertices = boost::vertices(database_graph_);
   for (auto iter = db_vertices.first; iter != db_vertices.second; ++iter)
     current_vertex_index_ =
-        std::max(current_vertex_index_, database_graph_[*iter].index_);
+        std::max(current_vertex_index_, database_graph_[*iter].index);
   ++current_vertex_index_;
 
 
@@ -138,7 +138,7 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       // merged graph.
       VertexProperty neighbor_v_p = query_graph_[*neighbor_in_query_graph];
       // Set the new index.
-      neighbor_v_p.index_ = current_vertex_index_++;
+      neighbor_v_p.index = current_vertex_index_++;
       const VertexDescriptor neighbor_in_db_graph =
           boost::add_vertex(neighbor_v_p, merged_graph_);
       std::cout << "\t\tWas added to merged graph: " << neighbor_v_p <<
@@ -146,7 +146,7 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       // Create an edge between source_in_g1 and the newly added vertex.
       auto edge_d = boost::add_edge(source_in_db_graph,
                                     neighbor_in_db_graph,
-                                    {source_v_p.index_, neighbor_v_p.index_},
+                                    {source_v_p.index, neighbor_v_p.index},
                                     merged_graph_);
       std::cout << "\t\tadded corresponding edge "
                 << merged_graph_[edge_d.first] << std::endl;
@@ -166,8 +166,8 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       const VertexProperty neighbor_v_p = merged_graph_[neighbor_in_db_graph];
       std::cout << " is already matched" << std::endl;
       auto edge_d = boost::add_edge(source_in_db_graph, neighbor_in_db_graph,
-                                    {source_v_p.index_,
-                                     neighbor_v_p.index_}, merged_graph_);
+                                    {source_v_p.index,
+                                     neighbor_v_p.index}, merged_graph_);
       if (edge_d.second == false) {
         std::cout << "\t\tAn edge was already present in the merged graph..."
                   << std::endl;

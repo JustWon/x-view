@@ -136,7 +136,7 @@ void testPixelCount(const GraphLandmarkPtr& graph_landmark_ptr,
     int semantic_class_pixel_count = 0;
     const auto& semantic_label_blobs = graph_landmark_ptr->getBlobs()[i];
     for (int j = 0; j < semantic_label_blobs.size(); ++j)
-      semantic_class_pixel_count += semantic_label_blobs[j].num_pixels_;
+      semantic_class_pixel_count += semantic_label_blobs[j].num_pixels;
     CHECK_EQ(expected_pixel_count[i], semantic_class_pixel_count)
       << "In image " << imageName << ", class instance " << i
       << " should have " << expected_pixel_count[i] << " pixels, but has "

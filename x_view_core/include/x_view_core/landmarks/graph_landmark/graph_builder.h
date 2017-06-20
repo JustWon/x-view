@@ -11,10 +11,10 @@ namespace x_view {
  */
 struct GraphBuilderParams {
   GraphBuilderParams()
-      : max_distance_for_neighborhood_(2) {}
+      : max_distance_for_neighborhood(2) {}
 
   /// \brief Threshold for determining if two blobs are neighbors or not.
-  int max_distance_for_neighborhood_;
+  int max_distance_for_neighborhood;
 };
 
 class GraphBuilder {
@@ -29,8 +29,8 @@ class GraphBuilder {
    * \return A graph object containing nodes and edges based on the
    * ImageBlobs datastructure passed as argument.
    */
-  static Graph createGraphFromNeighborBlobs(const ImageBlobs&
-  blobs, const GraphBuilderParams& params = GraphBuilderParams());
+  static Graph createGraphFromNeighborBlobs(const ImageBlobs& blobs,
+                                            const GraphBuilderParams& params = GraphBuilderParams());
 
   /**
    * \brief Creates a complete graph whose nodes correspond to the blobs

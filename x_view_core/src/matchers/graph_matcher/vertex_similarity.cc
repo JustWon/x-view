@@ -36,7 +36,7 @@ const float VertexSimilarity::score_hard(const RandomWalker::WalkMap& node1,
   int normalization = 0;
   for (const auto& walk1 : node1) {
     const int walk1_id = walk1.first;
-    // Check if walk1_id is also present in the node2 WalkMal;
+    // Check if walk1_id is also present in the node2 WalkMap.
     const auto found_iter = node2.find(walk1_id);
     // walk1_id found in node2
     if (found_iter != node2.end()) {
@@ -53,13 +53,13 @@ const float VertexSimilarity::score_weighted(const RandomWalker::WalkMap& node1,
   int normalization = 0;
   for (const auto& walk1 : node1) {
     const int walk1_id = walk1.first;
-    const int walk1_multiplicity = walk1.second.multiplicity_;
-    // Check if walk1_id is also present in the node2 WalkMal;
+    const int walk1_multiplicity = walk1.second.multiplicity;
+    // Check if walk1_id is also present in the node2 WalkMap.
     const auto found_iter = node2.find(walk1_id);
     // walk1_id found in node2
     if (found_iter != node2.end()) {
 
-      const int walk2_multiplicity = found_iter->second.multiplicity_;
+      const int walk2_multiplicity = found_iter->second.multiplicity;
 
       const int multiplicity = walk1_multiplicity * walk2_multiplicity;
       normalization += multiplicity;

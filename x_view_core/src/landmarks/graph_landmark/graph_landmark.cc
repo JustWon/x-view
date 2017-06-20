@@ -18,19 +18,19 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
 
   // *********** Blobs extraction ********** //
   BlobExtractorParams blob_extractor_params;
-  blob_extractor_params.dilate_and_erode_ = GraphLandmark::DILATE_AND_ERODE;
-  blob_extractor_params.num_erode_reps_ = 5;
-  blob_extractor_params.num_dilate_reps_ = 5;
-  blob_extractor_params.blob_size_filtering_.type_ =
+  blob_extractor_params.dilate_and_erode = GraphLandmark::DILATE_AND_ERODE;
+  blob_extractor_params.num_erode_reps = 5;
+  blob_extractor_params.num_dilate_reps = 5;
+  blob_extractor_params.blob_size_filtering.type =
       BlobExtractorParams::MIN_BLOB_SIZE_TYPE::ABSOLUTE;
-  blob_extractor_params.blob_size_filtering_.n_min_pixels_ =
+  blob_extractor_params.blob_size_filtering.num_min_pixels =
       GraphLandmark::MINIMUM_BLOB_SIZE;
   image_blobs_ =
       BlobExtractor::findBlobsWithContour(image, blob_extractor_params);
 
   // *********** Graph generation ********** //
   GraphBuilderParams graph_builder_params;
-  graph_builder_params.max_distance_for_neighborhood_ = 10;
+  graph_builder_params.max_distance_for_neighborhood = 10;
   descriptor = GraphBuilder::createGraphFromNeighborBlobs(image_blobs_,
                                                           graph_builder_params);
   // create the descriptor stored in this landmark by generating a

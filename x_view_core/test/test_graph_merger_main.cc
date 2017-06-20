@@ -30,11 +30,11 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
   // Generate a base graph.
 
   GraphConstructionParams graph_construction_params;
-  graph_construction_params.num_semantic_classes_ =
+  graph_construction_params.num_semantic_classes =
       global_dataset_ptr->numSemanticClasses();
-  graph_construction_params.seed_ = seed;
-  graph_construction_params.num_vertices_ = 15;
-  graph_construction_params.edge_probability_ = 0.2;
+  graph_construction_params.seed = seed;
+  graph_construction_params.num_vertices = 15;
+  graph_construction_params.edge_probability = 0.2;
 
   Graph g1 = generateRandomGraph(graph_construction_params);
 
@@ -46,18 +46,18 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
 
   // Modify the extracted subgraph.
   GraphModifierParams graph_modifier_params;
-  graph_modifier_params.num_vertices_to_add_ = 0;
-  graph_modifier_params.num_links_for_new_vertices_ = 0;
-  graph_modifier_params.num_vertices_to_remove_ = 0;
-  graph_modifier_params.num_edges_to_add_ = 0;
-  graph_modifier_params.num_edges_to_remove_ = 0;
+  graph_modifier_params.num_vertices_to_add = 0;
+  graph_modifier_params.num_links_for_new_vertices = 0;
+  graph_modifier_params.num_vertices_to_remove = 0;
+  graph_modifier_params.num_edges_to_add = 0;
+  graph_modifier_params.num_edges_to_remove = 0;
   // Set the index at which the newly inserted vertices start.
   int max_index = std::numeric_limits<int>::min();
   const auto vertices = boost::vertices(g1);
   for(auto iter = vertices.first; iter != vertices.second; ++iter) {
-    max_index = std::max(max_index, g1[*iter].index_);
+    max_index = std::max(max_index, g1[*iter].index);
   }
-  graph_modifier_params.start_vertex_index_ = max_index + 1;
+  graph_modifier_params.start_vertex_index = max_index + 1;
 
   Graph g2 = g2_original;
   modifyGraph(&g2, graph_modifier_params, rng);

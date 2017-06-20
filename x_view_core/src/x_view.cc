@@ -180,9 +180,9 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
   // Create a new Graph matcher which matches the current landmark with the
   // last one in the database.
   RandomWalkerParams random_walker_params;
-  random_walker_params.num_walks_ = 20;
-  random_walker_params.walk_length_ = 2;
-  random_walker_params.random_sampling_type_ =
+  random_walker_params.num_walks = 20;
+  random_walker_params.walk_length = 2;
+  random_walker_params.random_sampling_type =
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
   VertexSimilarity::SCORE_TYPE score_type = VertexSimilarity::SCORE_TYPE::HARD;
   GraphMatcher graph_matcher(random_walker_params, score_type);
@@ -279,9 +279,9 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
     for (int j = 0; j < max_similarity_agree.cols(); ++j) {
       if (max_similarity_agree(i, j) == true) {
         const cv::Point center_j =
-            current_graph_descriptor->getDescriptor()[j].center_;
+            current_graph_descriptor->getDescriptor()[j].center;
         const cv::Point center_i =
-            previous_graph_descriptor->getDescriptor()[i].center_;
+            previous_graph_descriptor->getDescriptor()[i].center;
         const int link_step = 15;
         links.push_back(createCurveBetween(center_j,
                                            center_i + right_image_shift,
