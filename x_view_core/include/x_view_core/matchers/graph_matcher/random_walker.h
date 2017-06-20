@@ -38,12 +38,12 @@ struct RandomWalkerParams {
                      const int  num_walks, const int walk_length);
 
   /// \brief Determines the type of random walk to be generated.
-  RANDOM_SAMPLING_TYPE random_sampling_type_;
+  RANDOM_SAMPLING_TYPE random_sampling_type;
   /// \brief Number or random walks to generate for each node in the graph.
-  int num_walks_;
+  int num_walks;
   /// \brief Random walk length (i.e. number of steps taken for each walk
   /// starting from the source node).
-  int walk_length_;
+  int walk_length;
 };
 
 /**
@@ -75,19 +75,19 @@ class RandomWalker {
   /// struct capturing the mapped random walk, and the number of times the
   /// random walk appears for the source vertex.
   struct MappedWalk {
-    const RandomWalk random_walk_;
-    int multiplicity_;
+    const RandomWalk random_walk;
+    int multiplicity;
 
     MappedWalk(const RandomWalk& random_walk)
-        : random_walk_(random_walk),
-          multiplicity_(1) {
+        : random_walk(random_walk),
+          multiplicity(1) {
     }
 
     /// \brief Utility operator to increase the multiplicity of by one.
     /// \details This operator is used whenever a new random walk is inserted to
     /// the walk map and the same walk ID is already present.
     MappedWalk& operator++() { // ++MappedWalk
-      ++this->multiplicity_;
+      ++this->multiplicity;
       return *this;
     }
   };

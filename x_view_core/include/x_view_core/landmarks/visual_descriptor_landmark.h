@@ -23,12 +23,12 @@ class VisualDescriptorLandmark : public AbstractSemanticLandmark {
   /// \brief Number of features to be extracted by the detector.
   static int NUM_VISUAL_FEATURES;
 
-  /// \brief Vlass responsible for extracting visual features.
-  std::unique_ptr<cv::Feature2D> features_extractor_;
+  /// \brief Class responsible for extracting visual features.
+  std::unique_ptr<cv::Feature2D> features_extractor;
 };
 
 // Macro used to create definition of visual features implemented in opencv
-// 'dName' is the feature name defined by opencv
+// 'dName' is the feature name defined by opencv.
 #define DECLARE_VISUAL_FEATURE_CLASS(dName) \
 class dName##VisualDescriptorLandmark : public VisualDescriptorLandmark { \
  public: \

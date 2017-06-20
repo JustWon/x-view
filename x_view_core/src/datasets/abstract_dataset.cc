@@ -34,8 +34,8 @@ const std::vector<int> AbstractDataset::getLabelsToRender() const {
   std::vector<int> labels_to_render;
   labels_to_render.reserve(num_semantic_classes_);
   for (auto const& c : semantic_entities_)
-    if (c.is_to_render_)
-      labels_to_render.push_back(c.semantic_entity_id_);
+    if (c.is_to_render)
+      labels_to_render.push_back(c.semantic_entity_id);
 
   return labels_to_render;
 }
@@ -44,8 +44,8 @@ const std::vector<int> AbstractDataset::getStaticLabels() const {
   std::vector<int> static_labels;
   static_labels.reserve(num_semantic_classes_);
   for (auto const& c : semantic_entities_)
-    if (c.is_static_)
-      static_labels.push_back(c.semantic_entity_id_);
+    if (c.is_static)
+      static_labels.push_back(c.semantic_entity_id);
 
   return static_labels;
 }
@@ -54,8 +54,8 @@ const std::vector<int> AbstractDataset::getDynamicLabels() const {
   std::vector<int> dynamic_labels;
   dynamic_labels.reserve(num_semantic_classes_);
   for (auto const& c : semantic_entities_)
-    if (!c.is_static_)
-      dynamic_labels.push_back(c.semantic_entity_id_);
+    if (!c.is_static)
+      dynamic_labels.push_back(c.semantic_entity_id);
 
   return dynamic_labels;
 }
@@ -64,8 +64,8 @@ const std::vector<int> AbstractDataset::getLabelsToIncludeInGraph() const {
   std::vector<int> labels_to_include_in_graph;
   labels_to_include_in_graph.reserve(num_semantic_classes_);
   for (auto const& c : semantic_entities_)
-    if (c.is_to_include_in_graph_)
-      labels_to_include_in_graph.push_back(c.semantic_entity_id_);
+    if (c.is_to_include_in_graph)
+      labels_to_include_in_graph.push_back(c.semantic_entity_id);
 
   return labels_to_include_in_graph;
 }
@@ -74,9 +74,9 @@ const unsigned long AbstractDataset::largestLabelSize() const {
   return std::max_element(semantic_entities_.begin(), semantic_entities_.end(),
                           [](const SemanticEntity& s1,
                              const SemanticEntity& s2) {
-                            return s1.semantic_entity_name_.length() <
-                                s2.semantic_entity_name_.length();
-                          })->semantic_entity_name_.length();
+                            return s1.semantic_entity_name.length() <
+                                s2.semantic_entity_name.length();
+                          })->semantic_entity_name.length();
 }
 
 std::ostream& operator<<(std::ostream& out, const AbstractDataset& dataset) {
@@ -89,14 +89,14 @@ std::ostream& operator<<(std::ostream& out, const AbstractDataset& dataset) {
       << std::left << std::setw(17) << "static/dynamic"
       << std::left << std::setw(10) << "drawable";
   for (const auto& elem : dataset.semanticEntities()) {
-    out << "\n" << std::left << std::setw(4) << elem.semantic_entity_id_;
+    out << "\n" << std::left << std::setw(4) << elem.semantic_entity_id;
     out << std::left << std::setw(max_label_length)
-        << elem.semantic_entity_name_;
-    out << std::left << std::setw(16) << (elem.is_to_include_in_graph_ ?
+        << elem.semantic_entity_name;
+    out << std::left << std::setw(16) << (elem.is_to_include_in_graph ?
                                           "yes" : "no");
-    out << std::left << std::setw(17) << (elem.is_static_ ? "static"
+    out << std::left << std::setw(17) << (elem.is_static ? "static"
                                                           : "dynamic");
-    out << std::left << std::setw(10) << (elem.is_to_render_ ? "yes" : "no");
+    out << std::left << std::setw(10) << (elem.is_to_render ? "yes" : "no");
   }
   return out;
 }

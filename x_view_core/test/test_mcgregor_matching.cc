@@ -40,12 +40,12 @@ int AbstractMaximalSubgraphTest::computeMCSDistance(int graph_index) const {
   // are equal, false otherwise.
 
   // Edges are equivalent only if their label is the same.
-  auto e_property_map_a = boost::get(&EdgeData::label_, query_graph_);
-  auto e_property_map_b = boost::get(&EdgeData::label_, g);
+  auto e_property_map_a = boost::get(&EdgeData::label, query_graph_);
+  auto e_property_map_b = boost::get(&EdgeData::label, g);
 
   // Vertices are equivalent only it their label is the same.
-  auto v_property_map_a = boost::get(&VertexData::label_, query_graph_);
-  auto v_property_map_b = boost::get(&VertexData::label_, g);
+  auto v_property_map_a = boost::get(&VertexData::label, query_graph_);
+  auto v_property_map_b = boost::get(&VertexData::label, g);
 
 
   // Predicate type required by mcgregor function

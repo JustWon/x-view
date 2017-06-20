@@ -10,14 +10,14 @@ void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
   for (const auto& random_walks : all_random_walks) {
     for (const auto& random_walk : random_walks) {
       CHECK(areVerticesConnectedByIndex(start_vertex_index,
-                                        random_walk[0]->index_, graph) ||
-          start_vertex_index == random_walk[0]->index_)
+                                        random_walk[0]->index, graph) ||
+          start_vertex_index == random_walk[0]->index)
       << "Start vertex " << start_vertex_index << " and vertex "
-      << random_walk[0]->index_ << " appear in a random walk "
+      << random_walk[0]->index << " appear in a random walk "
       << "but there is no edge between them.";
       for (int i = 0; i < random_walk.size() - 1; ++i) {
-        const int from_index = random_walk[i]->index_;
-        const int to_index = random_walk[i + 1]->index_;
+        const int from_index = random_walk[i]->index;
+        const int to_index = random_walk[i + 1]->index;
         CHECK(areVerticesConnectedByIndex(from_index, to_index, graph) ||
             from_index == to_index)
         << "Vertex " << from_index << " and vertex " << to_index
@@ -38,10 +38,10 @@ void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
   for (const auto& random_walks : all_random_walks) {
     for (const auto& random_walk : random_walks) {
       for (int i = 0; i < random_walk.size() - 1; ++i) {
-        const int from_index = random_walk[i]->index_;
-        const int from_label = random_walk[i]->semantic_label_;
+        const int from_index = random_walk[i]->index;
+        const int from_label = random_walk[i]->semantic_label;
         // Using from_index as key for extracting vertex descriptor from
-        // graph because in this test the index_ member of the VertexProperty
+        // graph because in this test the index member of the VertexProperty
         // corresponds to the VertexDescriptor index associated to the
         // VertexProperty.
         const auto& from_vertex_descriptor = boost::vertex(from_index, graph);
@@ -53,7 +53,7 @@ void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
         // current vertex or not.
         for (; from_vertex_neighbors.first != from_vertex_neighbors.second;
                ++from_vertex_neighbors.first) {
-          if (graph[*from_vertex_neighbors.first].semantic_label_ !=
+          if (graph[*from_vertex_neighbors.first].semantic_label !=
               from_label) {
             all_neighbors_have_same_label = false;
             break;
@@ -62,8 +62,8 @@ void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
         // Only verify avoiding property if there is at least one neighbor
         // with different semantic label.
         if (!all_neighbors_have_same_label) {
-          const int to_index = random_walk[i + 1]->index_;
-          const int to_label = random_walk[i + 1]->semantic_label_;
+          const int to_index = random_walk[i + 1]->index;
+          const int to_label = random_walk[i + 1]->semantic_label;
           CHECK(from_label != to_label)
           << "Even though the RandomWalker class is using the avoiding "
           << "strategy, there is a random walk starting from vertex "

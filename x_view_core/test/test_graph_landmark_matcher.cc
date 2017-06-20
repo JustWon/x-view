@@ -17,18 +17,18 @@ void testChainGraph(const unsigned long seed) {
 
   // Define parameters for generating the graphs.
   GraphConstructionParams construction_params;
-  construction_params.num_vertices_ = 50;
-  construction_params.num_semantic_classes_
+  construction_params.num_vertices = 50;
+  construction_params.num_semantic_classes
       = global_dataset_ptr->numSemanticClasses();
-  construction_params.seed_ = seed;
+  construction_params.seed = seed;
 
   // Define parameters for modifying the graphs.
   GraphModifierParams modifier_params;
-  modifier_params.num_vertices_to_add_ = 0;
-  modifier_params.num_links_for_new_vertices_ = 0;
-  modifier_params.num_vertices_to_remove_ = 0;
-  modifier_params.num_edges_to_add_ = 0;
-  modifier_params.num_edges_to_remove_ = 0;
+  modifier_params.num_vertices_to_add = 0;
+  modifier_params.num_links_for_new_vertices = 0;
+  modifier_params.num_vertices_to_remove = 0;
+  modifier_params.num_edges_to_add = 0;
+  modifier_params.num_edges_to_remove = 0;
 
   // Size of the extracted subgraph.
   const int extraction_radius = 6;
@@ -39,9 +39,9 @@ void testChainGraph(const unsigned long seed) {
 
   // Define parameters for random walk extraction.
   RandomWalkerParams random_walker_params;
-  random_walker_params.walk_length_ = 3;
-  random_walker_params.num_walks_ = 200;
-  random_walker_params.random_sampling_type_ =
+  random_walker_params.walk_length = 3;
+  random_walker_params.num_walks = 200;
+  random_walker_params.random_sampling_type =
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
 
   GraphMatcherPtr graph_matcher_ptr =
@@ -52,10 +52,10 @@ void testChainGraph(const unsigned long seed) {
   CHECK_NOTNULL(graph_matcher_ptr.get());
 
   // Add the base graph to the matcher.
-  auto ignore_result = graph_matcher_ptr->match(graph_pair_chain.base_graph_);
+  auto ignore_result = graph_matcher_ptr->match(graph_pair_chain.base_graph);
 
   // Match the subgraph to the entire graph.
-  auto matching_result = graph_matcher_ptr->match(graph_pair_chain.sub_graph_);
+  auto matching_result = graph_matcher_ptr->match(graph_pair_chain.sub_graph);
 
   // Retrieve the similarity matrix.
   Eigen::MatrixXf chain_similarity =
@@ -71,19 +71,19 @@ void testRandomGraph(const unsigned long seed) {
 
   // Define parameter for generating the graphs.
   GraphConstructionParams construction_params;
-  construction_params.num_vertices_ = 500;
-  construction_params.edge_probability_ = 0.001;
-  construction_params.num_semantic_classes_
+  construction_params.num_vertices = 500;
+  construction_params.edge_probability = 0.001;
+  construction_params.num_semantic_classes
       = global_dataset_ptr->numSemanticClasses();
-  construction_params.seed_ = seed;
+  construction_params.seed = seed;
 
   // Define parameters for modifying the graphs.
   GraphModifierParams modifier_params;
-  modifier_params.num_vertices_to_add_ = 50;
-  modifier_params.num_links_for_new_vertices_ = 2;
-  modifier_params.num_vertices_to_remove_ = 50;
-  modifier_params.num_edges_to_add_ = 20;
-  modifier_params.num_edges_to_remove_ = 20;
+  modifier_params.num_vertices_to_add = 50;
+  modifier_params.num_links_for_new_vertices = 2;
+  modifier_params.num_vertices_to_remove = 50;
+  modifier_params.num_edges_to_add = 20;
+  modifier_params.num_edges_to_remove = 20;
 
   const int extraction_radius = 3;
 
@@ -93,9 +93,9 @@ void testRandomGraph(const unsigned long seed) {
 
   // Define parameters for random walk extraction.
   RandomWalkerParams random_walker_params;
-  random_walker_params.walk_length_ = 3;
-  random_walker_params.num_walks_ = 200;
-  random_walker_params.random_sampling_type_ =
+  random_walker_params.walk_length = 3;
+  random_walker_params.num_walks = 200;
+  random_walker_params.random_sampling_type =
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
 
   GraphMatcherPtr graph_matcher_ptr =
@@ -107,11 +107,11 @@ void testRandomGraph(const unsigned long seed) {
 
   // Add the base graph to the matcher.
   auto ignore_result =
-      graph_matcher_ptr->match(graph_pair_random.base_graph_);
+      graph_matcher_ptr->match(graph_pair_random.base_graph);
 
   // Match the subgraph to the entire graph.
   auto matching_result =
-      graph_matcher_ptr->match(graph_pair_random.sub_graph_);
+      graph_matcher_ptr->match(graph_pair_random.sub_graph);
 
   // Retrieve the similarity matrix.
   Eigen::MatrixXf random_similarity =
@@ -130,25 +130,25 @@ GraphPair generateChainGraphPair(const GraphConstructionParams& construction_par
                                  const int extraction_radius) {
 
   // Seed randomization.
-  std::mt19937 rng(construction_params.seed_);
+  std::mt19937 rng(construction_params.seed);
 
   GraphPair graph_pair;
   // Generate a chain graph with the parameters specified above.
-  graph_pair.base_graph_ = generateChainGraph(construction_params);
+  graph_pair.base_graph = generateChainGraph(construction_params);
 
   const VertexDescriptor source_vertex =
-      boost::random_vertex(graph_pair.base_graph_, rng);
-  graph_pair.sub_graph_ =
-      extractSubgraphAroundVertex(graph_pair.base_graph_, source_vertex,
+      boost::random_vertex(graph_pair.base_graph, rng);
+  graph_pair.sub_graph =
+      extractSubgraphAroundVertex(graph_pair.base_graph, source_vertex,
                                   extraction_radius);
 
   // Effectively add and remove vertices and edges from the graph.
-  modifyGraph(&graph_pair.sub_graph_, modifier_params, rng);
+  modifyGraph(&graph_pair.sub_graph, modifier_params, rng);
 
   LOG(INFO) << "Generated chain graph with "
-            << boost::num_vertices(graph_pair.base_graph_)
+            << boost::num_vertices(graph_pair.base_graph)
             << " vertices and extracted a subgraph with "
-            << boost::num_vertices(graph_pair.sub_graph_) << " vertices";
+            << boost::num_vertices(graph_pair.sub_graph) << " vertices";
 
   return graph_pair;
 }
@@ -158,32 +158,32 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
                                   const int extraction_radius) {
 
   // Seed randomization.
-  std::mt19937 rng(construction_params.seed_);
+  std::mt19937 rng(construction_params.seed);
 
   GraphPair graph_pair;
   // Generate a random graph with the parameters specified above.
-  graph_pair.base_graph_ = generateRandomGraph(construction_params);
+  graph_pair.base_graph = generateRandomGraph(construction_params);
 
   const VertexDescriptor source_vertex =
-      boost::random_vertex(graph_pair.base_graph_, rng);
-  graph_pair.sub_graph_ =
-      extractSubgraphAroundVertex(graph_pair.base_graph_, source_vertex,
+      boost::random_vertex(graph_pair.base_graph, rng);
+  graph_pair.sub_graph =
+      extractSubgraphAroundVertex(graph_pair.base_graph, source_vertex,
                                   extraction_radius);
   // Effectively add and remove vertices and edges from the graph.
-  modifyGraph(&graph_pair.sub_graph_, modifier_params, rng);
+  modifyGraph(&graph_pair.sub_graph, modifier_params, rng);
 
   LOG(INFO) << "Generated random graph with "
-            << boost::num_vertices(graph_pair.base_graph_)
+            << boost::num_vertices(graph_pair.base_graph)
             << " vertices and extracted a subgraph with "
-            << boost::num_vertices(graph_pair.sub_graph_) << " vertices";
+            << boost::num_vertices(graph_pair.sub_graph) << " vertices";
 
   return graph_pair;
 }
 
 float similarityAccuracy(const GraphPair& graph_pair,
                          const Eigen::MatrixXf& similarity_matrix) {
-  const Graph& base_graph = graph_pair.base_graph_;
-  const Graph& sub_graph = graph_pair.sub_graph_;
+  const Graph& base_graph = graph_pair.base_graph;
+  const Graph& sub_graph = graph_pair.sub_graph;
 
   // The generated images should be of the exact same size as the similarity
   // matrix, thus we don't resize them.
@@ -209,11 +209,11 @@ float similarityAccuracy(const GraphPair& graph_pair,
     for (int j = 0; j < max_agree_similarity_image.cols; ++j) {
       if (max_agree_similarity_image.at<uchar>(cv::Point(j, i)) != 0) {
         // Retrieve the indices of the i-th and j-th vertices of the
-        // base_graph_ and sub_graph_ respectively.
+        // base_graph and sub_graph respectively.
         const VertexProperty v_i_base = base_graph[i];
         const VertexProperty v_j_sub = sub_graph[j];
 
-        if (v_i_base.index_ == v_j_sub.index_)
+        if (v_i_base.index == v_j_sub.index)
           ++correct_matches;
 
         ++num_proposed_matches;
@@ -239,16 +239,16 @@ void modifyGraph(Graph* graph, const GraphModifierParams& params,
   << " connected components. Function " << __FUNCTION__
   << " only works with single components.";
 
-  for (int i = 0; i < params.num_vertices_to_add_; ++i)
-    addRandomVertexToGraph(graph, rng, params.num_links_for_new_vertices_);
+  for (int i = 0; i < params.num_vertices_to_add; ++i)
+    addRandomVertexToGraph(graph, rng, params.num_links_for_new_vertices);
 
-  for (int i = 0; i < params.num_edges_to_add_; ++i)
+  for (int i = 0; i < params.num_edges_to_add; ++i)
     addRandomEdgeToGraph(graph, rng);
 
-  for (int i = 0; i < params.num_vertices_to_remove_; ++i)
+  for (int i = 0; i < params.num_vertices_to_remove; ++i)
     removeRandomVertexFromGraph(graph, rng);
 
-  for (int i = 0; i < params.num_edges_to_remove_; ++i) {
+  for (int i = 0; i < params.num_edges_to_remove; ++i) {
     removeRandomEdgeFromGraph(graph, rng);
   }
 

@@ -48,19 +48,19 @@ TEST(XViewSlamTestSuite, test_random_walk) {
     std::tie(num_vertices, edge_probability) = graph_statistic;
 
     GraphConstructionParams construction_params;
-    construction_params.num_vertices_ = num_vertices;
-    construction_params.edge_probability_ = edge_probability;
-    construction_params.num_semantic_classes_ = num_semantic_classes;
-    construction_params.seed_ = seed;
+    construction_params.num_vertices = num_vertices;
+    construction_params.edge_probability = edge_probability;
+    construction_params.num_semantic_classes = num_semantic_classes;
+    construction_params.seed = seed;
 
     Graph graph = generateRandomGraph(construction_params);
 
     for (const auto sampling_type : sampling_types) {
 
       RandomWalkerParams params;
-      params.random_sampling_type_ = sampling_type;
-      params.walk_length_ = walk_length;
-      params.num_walks_ = num_walks_per_vertex;
+      params.random_sampling_type = sampling_type;
+      params.walk_length = walk_length;
+      params.num_walks = num_walks_per_vertex;
 
       LOG(INFO) << "Testing random graph with:\n\t"
                 << "Num vertices: " << num_vertices << "\n\t"
@@ -82,7 +82,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       // might have changed due to input coherence.
       params = random_walker.params();
       testRandomWalkSequence(random_walker, graph, params);
-      if (params.random_sampling_type_ ==
+      if (params.random_sampling_type ==
           RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME)
         testAvoidingStrategy(random_walker, graph, params);
 

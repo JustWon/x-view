@@ -11,8 +11,8 @@ void GraphDrawer::printBlobs(const ImageBlobs& blobs) {
               << " instances of class " << c << ":";
     for (int i = 0; i < blobs[c].size(); ++i) {
       LOG(INFO) << "\tInstance " << i << " composed by "
-                << blobs[c][i].num_pixels_ << " pixels with mean "
-                    "pixel " << blobs[c][i].center_;
+                << blobs[c][i].num_pixels << " pixels with mean "
+                    "pixel " << blobs[c][i].center;
     }
   }
 }
@@ -43,7 +43,7 @@ cv::Mat GraphDrawer::createImageFromBlobs(const ImageBlobs& blobs,
     if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
         std::end(labels_to_render))
       for (const Blob& blob : blobs[c]) {
-        const int semantic_label = blob.semantic_label_;
+        const int semantic_label = blob.semantic_label;
         const uchar intensity =
             static_cast<uchar>(255. / (semantic_label / 8 + 1));
 
@@ -55,7 +55,7 @@ cv::Mat GraphDrawer::createImageFromBlobs(const ImageBlobs& blobs,
         color[2] = bits[2] ? intensity : static_cast<uchar>(0);
 
         std::vector<std::vector<cv::Point>> v_contours;
-        v_contours.push_back(blob.external_contour_pixels_);
+        v_contours.push_back(blob.external_contour_pixels);
 
         cv::drawContours(image, v_contours, 0, color, CV_FILLED);
 
@@ -78,20 +78,20 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
     if (std::find(labels_to_render.begin(), labels_to_render.end(), c) !=
         std::end(labels_to_render))
       for (const Blob& blob : blobs[c]) {
-        const std::string label = std::to_string(blob.semantic_label_);
+        const std::string label = std::to_string(blob.semantic_label);
         const std::string label_descr =
-            global_dataset_ptr->label(blob.semantic_label_);
+            global_dataset_ptr->label(blob.semantic_label);
 
         const std::string text = label + ") " + label_descr;
-        cv::putText(*image, text, blob.center_, cv::FONT_HERSHEY_DUPLEX,
+        cv::putText(*image, text, blob.center, cv::FONT_HERSHEY_DUPLEX,
                     0.65, font_color, 1, CV_AA);
         // if the blob has an instance id associated to it, render it on a
         // new line.
         // new line.
-        if (blob.instance_ != -1) {
+        if (blob.instance != -1) {
           const std::string instance =
-              "id: " + std::to_string(blob.instance_);
-          cv::putText(*image, instance, blob.center_ + cv::Point(0, 20),
+              "id: " + std::to_string(blob.instance);
+          cv::putText(*image, instance, blob.center + cv::Point(0, 20),
                       cv::FONT_HERSHEY_DUPLEX, 0.65, font_color, 1, CV_AA);
         }
       }
@@ -113,13 +113,13 @@ void GraphDrawer::addEllipsesToImage(const ImageBlobs& blobs, cv::Mat* image) {
         std::end(labels_to_render))
       for (const Blob& blob : blobs[c]) {
         cv::Scalar ellipse_color;
-        if (global_dataset_ptr->semanticEntities()[c].is_static_)
+        if (global_dataset_ptr->semanticEntities()[c].is_static)
           ellipse_color = cv::Scalar(255, 40, 0); // bluish
         else
           ellipse_color = cv::Scalar(10, 60, 255); // reddish
 
         int ellipse_thickness = 2;
-        cv::ellipse(*image, blob.ellipse_, ellipse_color, ellipse_thickness);
+        cv::ellipse(*image, blob.ellipse, ellipse_color, ellipse_thickness);
       }
   }
 }
@@ -139,8 +139,8 @@ void GraphDrawer::addGraphNodesToImage(const Graph& graph, cv::Mat* image) {
     const VertexDescriptor& node_descriptor = *node_iter.first;
     const VertexProperty& node = graph[node_descriptor];
 
-    const cv::Point& center = node.center_;
-    const int label = node.semantic_label_;
+    const cv::Point& center = node.center;
+    const int label = node.semantic_label;
 
     if (std::find(labels_to_render.begin(), labels_to_render.end(), label) !=
         std::end(labels_to_render)) {
@@ -169,8 +169,8 @@ void GraphDrawer::addGraphEdgesToImage(const Graph& graph, cv::Mat* image) {
     const VertexProperty& v_from = graph[vd_from];
     const VertexProperty& v_to = graph[vd_to];
 
-    const int from_label = v_from.semantic_label_;
-    const int to_label = v_to.semantic_label_;
+    const int from_label = v_from.semantic_label;
+    const int to_label = v_to.semantic_label;
 
     // only draw the edge if both nodes are to render
     if (std::find(labels_to_render.begin(),
@@ -179,8 +179,8 @@ void GraphDrawer::addGraphEdgesToImage(const Graph& graph, cv::Mat* image) {
         != std::end(labels_to_render) &&
         std::find(labels_to_render.begin(), labels_to_render.end(), to_label)
             != std::end(labels_to_render)) {
-      const cv::Point& from_center = v_from.center_;
-      const cv::Point& to_center = v_to.center_;
+      const cv::Point& from_center = v_from.center;
+      const cv::Point& to_center = v_to.center;
 
       cv::line(*image, from_center, to_center, edge_color, edge_thickness);
     }

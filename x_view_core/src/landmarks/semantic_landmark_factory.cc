@@ -2,16 +2,16 @@
 
 namespace x_view {
 
-SemanticLandmarkFactory::CreateCallBack SemanticLandmarkFactory::cb_;
+SemanticLandmarkFactory::CreateCallBack SemanticLandmarkFactory::callback_;
 
-void SemanticLandmarkFactory::setCreatorFunction(CreateCallBack cb) {
-  cb_ = cb;
+void SemanticLandmarkFactory::setCreatorFunction(CreateCallBack callback) {
+  callback_ = callback;
 }
 
 SemanticLandmarkPtr SemanticLandmarkFactory::createSemanticLandmark(const cv::Mat& image,
                                                                     const SE3& pose) {
 
-  return cb_(image, pose);
+  return callback_(image, pose);
 }
 
 }

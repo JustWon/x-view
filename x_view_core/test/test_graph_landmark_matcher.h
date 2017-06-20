@@ -30,31 +30,31 @@ void testRandomGraph(const unsigned long seed);
  */
 struct GraphModifierParams {
   /// \brief Number of new vertices to add to the graph.
-  int num_vertices_to_add_;
+  int num_vertices_to_add;
   /// \brief Number of vertices to remove from the graph.
-  int num_vertices_to_remove_;
+  int num_vertices_to_remove;
   /// \brief Number of new edges to add to the graph.
-  int num_edges_to_add_;
+  int num_edges_to_add;
   /// \brief Number of edges to remove from the graph.
-  int num_edges_to_remove_;
+  int num_edges_to_remove;
   /// \brief Number of edges to create between each new vertex and the
   /// existing ones.
-  int num_links_for_new_vertices_ = 2;
+  int num_links_for_new_vertices = 2;
 };
 
 /**
  * \brief Small container used to combine a base graph with a new subgraph.
  */
 struct GraphPair {
-  Graph base_graph_;
-  Graph sub_graph_;
+  Graph base_graph;
+  Graph sub_graph;
 };
 
 /**
  * \brief Generates a new graph with a chain topology.
  * \param construction_params Parameters used to construct the graph.
  * \param modifier_params Parameters used to modify the subgraph extracted
- * from the generated base_graph_.
+ * from the generated base_graph.
  * \param extraction_radius Radius used for graph extraction.
  * \return A GraphPair object, containing the generated graph with
  * corresponding extracted subgraph.

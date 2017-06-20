@@ -9,12 +9,11 @@ namespace x_view {
 
 int BlobExtractorParams::BlobSizeFiltering::minimumBlobSize(const cv::Size&
 image_size) const {
-  if (type_ == MIN_BLOB_SIZE_TYPE::ABSOLUTE) {
-    return static_cast<int>(n_min_pixels_);
-  } else if (type_ == MIN_BLOB_SIZE_TYPE::RELATIVE_TO_IMAGE_SIZE) {
+  if (type == MIN_BLOB_SIZE_TYPE::ABSOLUTE) {
+    return num_min_pixels;
+  } else if (type == MIN_BLOB_SIZE_TYPE::RELATIVE_TO_IMAGE_SIZE) {
     const int num_total_pixels = image_size.width * image_size.height;
-    const int
-        min_blob_size = static_cast<int>(num_total_pixels * n_min_pixels_);
+    const int  min_blob_size = static_cast<int>(num_total_pixels * fraction_min_pixels);
     return min_blob_size;
   } else {
     LOG(FATAL) << "Unrecognized size type.";
@@ -82,7 +81,7 @@ void BlobExtractor::extractBlobsWithoutInstances(cv::Mat& current_class_layer,
 
   // Compute a smoother version of the image by performing dilation
   // followed by erosion.
-  if (params.dilate_and_erode_)
+  if (params.dilate_and_erode)
     BlobExtractor::dilateAndErode(&current_class_layer, params);
 
   BlobExtractor::extractBlobsAndAddToContainer(current_class_layer,
@@ -123,7 +122,7 @@ void BlobExtractor::extractBlobsConsideringInstances(cv::Mat& instance_layer,
 
     // Compute a smoother version of the image by performing dilation
     // followed by erosion.
-    if (params.dilate_and_erode_)
+    if (params.dilate_and_erode)
       BlobExtractor::dilateAndErode(&current_instance, params);
 
     BlobExtractor::extractBlobsAndAddToContainer(current_instance,
@@ -142,7 +141,7 @@ void BlobExtractor::extractBlobsAndAddToContainer(cv::Mat& image,
   // Extract the blobs associated to the current instance.
   // Usually there is only one blob per instance, but due to occlusions in
   // the scene, a single instance could also be composed by two blobs.
-  const int num_threads = params.num_threads_;
+  const int num_threads = params.num_threads;
   const int minimum_blob_size = params.minimumBlobSize(image.size());
   CBlobResult res(image, cv::Mat(), num_threads);
   for (int b = 0; b < res.GetNumBlobs(); ++b) {
@@ -150,8 +149,8 @@ void BlobExtractor::extractBlobsAndAddToContainer(cv::Mat& image,
       class_blobs->push_back(
           Blob(current_semantic_class, instance_value, *(res.GetBlob(b))));
 
-      LOG(INFO) << "Added blob with size " << class_blobs->back().num_pixels_
-                << " and instance id: " << class_blobs->back().instance_ << ".";
+      LOG(INFO) << "Added blob with size " << class_blobs->back().num_pixels
+                << " and instance id: " << class_blobs->back().instance << ".";
 
     }
   }
@@ -163,9 +162,9 @@ void BlobExtractor::dilateAndErode(cv::Mat* image,
   CHECK_NOTNULL(image);
 
   cv::dilate(*image, *image, cv::Mat(), cv::Point(-1, -1),
-             params.num_dilate_reps_);
+             params.num_dilate_reps);
   cv::erode(*image, *image, cv::Mat(), cv::Point(-1, -1),
-            params.num_erode_reps_);
+            params.num_erode_reps);
 }
 
 void BlobExtractor::collectInstancesFromImage(const cv::Mat& image,

@@ -24,6 +24,8 @@ catkin_simple(ALL_DEPS_REQUIRED)
 
 # X-View core library
 cs_add_library(${PROJECT_NAME}
+        #### SOURCE FILES ####
+
         src/x_view.cc
         src/x_view_tools.cc
 
@@ -50,12 +52,52 @@ cs_add_library(${PROJECT_NAME}
         src/landmarks/graph_landmark/graph_builder.cc
         src/landmarks/graph_landmark/graph_drawer.cc
 
-        # Features matchers
+        # Feature matchers
         src/matchers/vector_matcher.cc
         src/matchers/graph_matcher/graph_matcher.cc
         src/matchers/graph_matcher/random_walker.cc
         src/matchers/graph_matcher/similarity_plotter.cc
         src/matchers/graph_matcher/vertex_similarity.cc
+
+        #### HEADER FILES ####
+
+        include/x_view_core/x_view.h
+        include/x_view_core/x_view_tools.h
+        include/x_view_core/x_view_types.h
+
+        # Datasets
+        include/x_view_core/datasets/abstract_dataset.h
+        include/x_view_core/datasets/airsim_dataset.h
+        include/x_view_core/datasets/synthia_dataset.h
+
+        # Descriptors
+        include/x_view_core/features/abstract_descriptor.h
+        include/x_view_core/features/graph.h
+        include/x_view_core/features/graph_descriptor.h
+        include/x_view_core/features/vector_descriptor.h
+        include/x_view_core/features/visual_descriptor.h
+
+        # Landmarks
+        include/x_view_core/landmarks/abstract_semantic_landmark.h
+        include/x_view_core/landmarks/graph_landmark.h
+        include/x_view_core/landmarks/histogram_landmark.h
+        include/x_view_core/landmarks/semantic_landmark_factory.h
+        include/x_view_core/landmarks/visual_descriptor_landmark.h
+        include/x_view_core/landmarks/graph_landmark/blob.h
+        include/x_view_core/landmarks/graph_landmark/blob_extractor.h
+        include/x_view_core/landmarks/graph_landmark/graph_builder.h
+        include/x_view_core/landmarks/graph_landmark/graph_drawer.h
+        include/x_view_core/landmarks/graph_landmark/graph_landmark.h
+        include/x_view_core/landmarks/graph_landmark/graph_landmark_types.h
+
+        # Feature matchers
+        include/x_view_core/matchers/abstract_matcher.h
+        include/x_view_core/matchers/graph_matcher.h
+        include/x_view_core/matchers/vector_matcher.h
+        include/x_view_core/matchers/graph_matcher/graph_matcher.h
+        include/x_view_core/matchers/graph_matcher/random_walker.h
+        include/x_view_core/matchers/graph_matcher/similarity_plotter.h
+        include/x_view_core/matchers/graph_matcher/vertex_similarity.h
         )
 
 

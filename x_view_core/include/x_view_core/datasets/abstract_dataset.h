@@ -18,7 +18,7 @@ class AbstractDataset {
 
   /**
    * \brief A semantic entity is represented by a human readable name and by
-   * an ID ranging from 0 to num_semantic_classes_-1.
+   * an ID ranging from 0 to num_semantic_classes_ - 1.
    */
   struct SemanticEntity {
     SemanticEntity() {}
@@ -26,24 +26,24 @@ class AbstractDataset {
                    const bool is_to_include_in_graph = true,
                    const bool is_static = true,
                    const bool is_to_render = true)
-        : semantic_entity_name_(name),
-          semantic_entity_id_(id),
-          is_to_include_in_graph_(is_to_include_in_graph),
-          is_static_(is_static),
-          is_to_render_(is_to_render) {}
+        : semantic_entity_name(name),
+          semantic_entity_id(id),
+          is_to_include_in_graph(is_to_include_in_graph),
+          is_static(is_static),
+          is_to_render(is_to_render) {}
 
     /// \brief Name associated to the semantic entity.
-    std::string semantic_entity_name_;
+    std::string semantic_entity_name;
     /// \brief Integer key (label) associated to the semantic entity.
-    int semantic_entity_id_;
+    int semantic_entity_id;
     /// \brief Flag indicating if this entity has to be included in the
     /// semantic graph construction or not.
-    bool is_to_include_in_graph_;
+    bool is_to_include_in_graph;
     /// \brief Flag indicating if this entity is of static type or not.
-    bool is_static_;
+    bool is_static;
     /// \brief Flag indicating if blobs associated with this entity are to be
     /// rendered when displaying semantic images or not.
-    bool is_to_render_;
+    bool is_to_render;
   };
 
   AbstractDataset(const int num_semantic_classes);
@@ -68,7 +68,7 @@ class AbstractDataset {
   ///\brief Returns the label (string) associated to a given index.
   const std::string& label(const int index) const {
     CHECK(index >= 0 && index < num_semantic_classes_);
-    return semantic_entities_[index].semantic_entity_name_;
+    return semantic_entities_[index].semantic_entity_name;
   }
 
   /**

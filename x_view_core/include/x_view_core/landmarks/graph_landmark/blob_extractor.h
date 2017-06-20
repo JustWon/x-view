@@ -45,15 +45,20 @@ struct BlobExtractorParams {
      * pixels smaller than 1% of of the total number of pixels in the image.
      */
     BlobSizeFiltering()
-        : type_(MIN_BLOB_SIZE_TYPE::RELATIVE_TO_IMAGE_SIZE),
-          n_min_pixels_(0.01) {}
+        : type(MIN_BLOB_SIZE_TYPE::RELATIVE_TO_IMAGE_SIZE),
+          fraction_min_pixels(0.01) {}
 
-    MIN_BLOB_SIZE_TYPE type_;
-    /// \brief If type_ is RELATIVE_TO_IMAGE_SIZE, this represents the
-    /// fraction of pixels relative to the total number of pixels in the
-    /// image. Otherwise, if type_ is ABSOLUTE, this represents the minimum
+    MIN_BLOB_SIZE_TYPE type;
+    /// \brief If type is RELATIVE_TO_IMAGE_SIZE, then the
+    /// fraction_min_pixels part of the union is active, otherwise if
+    /// type is ABSOLUTE, the num_min_pixels is active.
+    /// The first represents the fraction of pixels relative to the total
+    /// number of pixels in the image, the latter represents the minimum
     /// number of pixels a blob must have in order to be extracted.
-    float n_min_pixels_;
+    union {
+      float fraction_min_pixels;
+      int num_min_pixels;
+    };
 
     /**
      * \brief Computes the minimum number of pixels a blob must have in order
@@ -71,25 +76,25 @@ struct BlobExtractorParams {
    * threads and uses a default blob filtering struct.
    */
   BlobExtractorParams()
-      : dilate_and_erode_(false),
-        num_dilate_reps_(1),
-        num_erode_reps_(1),
-        blob_size_filtering_(BlobSizeFiltering()),
-        num_threads_(X_VIEW_NUM_THREADS_BLOB_EXTRACTION) {
+      : dilate_and_erode(false),
+        num_dilate_reps(1),
+        num_erode_reps(1),
+        blob_size_filtering(BlobSizeFiltering()),
+        num_threads(X_VIEW_NUM_THREADS_BLOB_EXTRACTION) {
   }
 
   /// \brief Boolean indicating if a dilation and erosion procedure must be
   /// applied to the input image before blob extraction.
-  bool dilate_and_erode_;
+  bool dilate_and_erode;
   /// \brief Number of dilation repetitions to be applied to the image.
-  int num_dilate_reps_;
+  int num_dilate_reps;
   /// \brief Number of erosion repetitions to be applied to the image.
-  int num_erode_reps_;
+  int num_erode_reps;
   /// \brief Filtering parameter determining which blobs are extracted and
   /// which not.
-  BlobSizeFiltering blob_size_filtering_;
+  BlobSizeFiltering blob_size_filtering;
   /// \brief Number of threads to be used for blob extraction.
-  int num_threads_;
+  int num_threads;
 
   /**
    * \brief Computes the minimum number of pixels a blob must have in order
@@ -99,7 +104,7 @@ struct BlobExtractorParams {
    * extracted from the image.
    */
   int minimumBlobSize(const cv::Size& image_size) const {
-    return blob_size_filtering_.minimumBlobSize(image_size);
+    return blob_size_filtering.minimumBlobSize(image_size);
   }
 };
 

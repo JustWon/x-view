@@ -126,8 +126,8 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
       const VertexProperty& v_p_target = query_semantic_graph[v_d_target];
 
       EdgeProperty e_p;
-      e_p.from_ = v_p_source.index_;
-      e_p.to_ = v_p_target.index_;
+      e_p.from = v_p_source.index;
+      e_p.to = v_p_target.index;
       boost::add_edge(v_d_source + num_global_vertices,
                       v_d_target + num_global_vertices,
                       e_p, global_semantic_graph_);
@@ -191,7 +191,7 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
       const auto& vertex_d_j = boost::vertex(j, query_graph);
       const auto& vertex_p_j = query_graph[vertex_d_j];
       // Score is only nonzero if the source vertex has same semantic label.
-      if (vertex_p_i.semantic_label_ == vertex_p_j.semantic_label_) {
+      if (vertex_p_i.semantic_label == vertex_p_j.semantic_label) {
         const auto& mapped_walks_j = query_walk_map_vector[j];
         const float similarity =
             VertexSimilarity::score(mapped_walks_i, mapped_walks_j);

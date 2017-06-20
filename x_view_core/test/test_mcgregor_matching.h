@@ -18,13 +18,13 @@ struct VertexData {
     NON_DEF_VERTEX_LABEL_NAME = -1, A, B, C
   };
 
-  VertexData() : label_(NON_DEF_VERTEX_LABEL_NAME) {}
+  VertexData() : label(NON_DEF_VERTEX_LABEL_NAME) {}
   VertexData(const VertexLabelName label)
-      : label_(label) {}
-  VertexLabelName label_;
+      : label(label) {}
+  VertexLabelName label;
 
   friend std::ostream& operator<<(std::ostream& out, const VertexData& v) {
-    return out << v.label_;
+    return out << v.label;
   }
 };
 
@@ -34,10 +34,10 @@ struct EdgeData {
     NON_DEF_EDGE_LABEL_NAME = -1, CLOSE, DISTANT, VISIBLE
   };
 
-  EdgeData() : label_(NON_DEF_EDGE_LABEL_NAME) {}
+  EdgeData() : label(NON_DEF_EDGE_LABEL_NAME) {}
   EdgeData(const EdgeLabelName label)
-      : label_(label) {}
-  EdgeLabelName label_;
+      : label(label) {}
+  EdgeLabelName label;
 };
 
 /// \brief a Graph is represented as a boost adjacency list.

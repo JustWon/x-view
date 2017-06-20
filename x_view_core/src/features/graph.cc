@@ -12,8 +12,8 @@ bool areVerticesConnectedByIndex(const int v1, const int v2,
   bool edge_exists = false;
   for (auto edge = edges.first; edge != edges.second; ++edge) {
     const EdgeProperty e_p = graph[*edge];
-    if ((e_p.from_ == v1 && e_p.to_ == v2) ||
-        (e_p.from_ == v2 && e_p.to_ == v1)) {
+    if ((e_p.from == v1 && e_p.to == v2) ||
+        (e_p.from == v2 && e_p.to == v1)) {
       // An edge exists linking node with index v1 and node with index v2
       edge_exists = true;
       return edge_exists;
@@ -28,12 +28,12 @@ void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
 
   // Create the new vertex.
   VertexProperty new_vertex;
-  new_vertex.index_ = static_cast<int>(boost::num_vertices(*graph));
+  new_vertex.index = static_cast<int>(boost::num_vertices(*graph));
   // Random semantic label.
-  new_vertex.semantic_label_ =
+  new_vertex.semantic_label =
       static_cast<int>(rng() % global_dataset_ptr->numSemanticClasses());
-  new_vertex.semantic_entity_name_ =
-      "Random vertex " + std::to_string(new_vertex.index_);
+  new_vertex.semantic_entity_name =
+      "Random vertex " + std::to_string(new_vertex.index);
 
   // Define random vertices to be linked with the new vertex.
   std::vector<VertexDescriptor> vertices_to_link;
@@ -48,8 +48,8 @@ void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
   LOG(INFO) << "Added vertex " << (*graph)[new_vertex_d];
   for (const VertexDescriptor& v_d : vertices_to_link) {
     const VertexProperty& v_p = (*graph)[v_d];
-    LOG(INFO) << "--> linked to existing vertex " << v_p.index_ << std::endl;
-    boost::add_edge(v_d, new_vertex_d, {v_p.index_, new_vertex.index_}, *graph);
+    LOG(INFO) << "--> linked to existing vertex " << v_p.index << std::endl;
+    boost::add_edge(v_d, new_vertex_d, {v_p.index, new_vertex.index}, *graph);
   }
 }
 
@@ -66,8 +66,8 @@ void addRandomEdgeToGraph(Graph* graph, std::mt19937& rng) {
       const VertexProperty& v1_p = (*graph)[v1_d];
       const VertexProperty& v2_p = (*graph)[v2_d];
 
-      LOG(INFO) << "Added edge between vertices " << v1_p.index_
-                << ", " << v2_p.index_ << std::endl;
+      LOG(INFO) << "Added edge between vertices " << v1_p.index
+                << ", " << v2_p.index << std::endl;
       edge_added = true;
     }
   }
@@ -85,7 +85,7 @@ bool addEdgeBetweenVertices(const VertexDescriptor& v_1_d,
   } else {
     const VertexProperty& v_1_p = (*graph)[v_1_d];
     const VertexProperty& v_2_p = (*graph)[v_2_d];
-    boost::add_edge(v_1_d, v_2_d, {v_1_p.index_, v_2_p.index_}, *graph);
+    boost::add_edge(v_1_d, v_2_d, {v_1_p.index, v_2_p.index}, *graph);
     return true;
   }
 }
@@ -190,20 +190,20 @@ bool removeEdgeBetweenVertices(const VertexDescriptor& v_1_d,
 std::ostream& operator<<(std::ostream& out, const VertexProperty& v) {
   const static unsigned long max_label_length =
       global_dataset_ptr->largestLabelSize() + 2;
-  out << "(v) " << v.index_
+  out << "(v) " << v.index
       << ", label: " << std::right << std::setw(2) << std::setfill(' ')
-      << v.semantic_label_
+      << v.semantic_label
       << ", name: " << std::right << std::setw(max_label_length) << v
-          .semantic_entity_name_
-      << ", size: " << v.size_ << ", center: " << v.center_;
+          .semantic_entity_name
+      << ", num pixels: " << v.num_pixels << ", center: " << v.center;
 
   return out;
 }
 
 std::ostream& operator<<(std::ostream& out, const EdgeProperty& e) {
   out << std::setfill(' ');
-  out << "(e) " << std::right << std::setw(2) << e.from_ << "--"
-      << std::left << std::setw(2) << e.to_;
+  out << "(e) " << std::right << std::setw(2) << e.from << "--"
+      << std::left << std::setw(2) << e.to;
   return out;
 }
 

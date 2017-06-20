@@ -13,9 +13,9 @@ namespace x_view {
 #endif
 
 RandomWalkerParams::RandomWalkerParams()
-    : random_sampling_type_(RANDOM_SAMPLING_TYPE::UNIFORM),
-      num_walks_(DEFAULT_NUM_RANDOM_WALKS),
-      walk_length_(DEFAULT_RANDOM_WALK_LENGTH) {
+    : random_sampling_type(RANDOM_SAMPLING_TYPE::UNIFORM),
+      num_walks(DEFAULT_NUM_RANDOM_WALKS),
+      walk_length(DEFAULT_RANDOM_WALK_LENGTH) {
 }
 
 #undef DEFAULT_NUM_RANDOM_WALKS
@@ -24,17 +24,17 @@ RandomWalkerParams::RandomWalkerParams()
 RandomWalkerParams::RandomWalkerParams(const RANDOM_SAMPLING_TYPE sampling_type,
                                        const int num_walks,
                                        const int walk_length)
-    : random_sampling_type_(sampling_type),
-      num_walks_(num_walks),
-      walk_length_(walk_length) {
+    : random_sampling_type(sampling_type),
+      num_walks(num_walks),
+      walk_length(walk_length) {
 }
 
 std::ostream& operator<<(std::ostream& out, const RandomWalkerParams& params) {
 
-  out << "Number of random walks:  " << params.num_walks_ << std::endl;
-  out << "Walk length:             " << params.walk_length_ << std::endl;
+  out << "Number of random walks:  " << params.num_walks << std::endl;
+  out << "Walk length:             " << params.walk_length << std::endl;
   out << "Random sampling type:    "
-      << static_cast<int>(params.random_sampling_type_) << std::endl;
+      << static_cast<int>(params.random_sampling_type) << std::endl;
   return out;
 
 }
@@ -85,16 +85,16 @@ void RandomWalker::generateRandomWalks() {
     // Create a walk map object which stores the generated random walks keyed
     // by a unique identifier.
     WalkMap walk_map;
-    walk_map.reserve(params_.num_walks_);
+    walk_map.reserve(params_.num_walks);
 
     // Create params_.num_walks random walks.
-    for (int w = 0; w < params_.num_walks_; ++w) {
-      RandomWalk random_walk(params_.walk_length_);
+    for (int w = 0; w < params_.num_walks; ++w) {
+      RandomWalk random_walk(params_.walk_length);
 
       // Prepare variables for iteration over the random walk.
       VertexDescriptor current_vertex_index = source_vertex_index;;
 
-      for (int step = 0; step < params_.walk_length_; ++step) {
+      for (int step = 0; step < params_.walk_length; ++step) {
 
         VertexDescriptor next_vertex_index = nextVertex(current_vertex_index);
 
@@ -143,13 +143,13 @@ const VertexDescriptor RandomWalker::nextVertex(
   auto neighbors = boost::adjacent_vertices(current_vertex_index, graph_);
 
   bool found_neighbor_with_different_label = true;
-  if (params_.random_sampling_type_ ==
+  if (params_.random_sampling_type ==
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME) {
-    const int current_label = graph_[current_vertex_index].semantic_label_;
+    const int current_label = graph_[current_vertex_index].semantic_label;
     std::vector<VertexDescriptor> different_index_v_d;
     different_index_v_d.reserve(num_neighbor_vertices);
     for (auto iter = neighbors.first; iter != neighbors.second; ++iter) {
-      if (graph_[*iter].semantic_label_ != current_label)
+      if (graph_[*iter].semantic_label != current_label)
         different_index_v_d.push_back(*iter);
     }
     const unsigned long num_neighbors_with_different_label =
@@ -164,7 +164,7 @@ const VertexDescriptor RandomWalker::nextVertex(
       found_neighbor_with_different_label = false;
     }
   }
-  if (params_.random_sampling_type_ ==
+  if (params_.random_sampling_type ==
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM ||
       !found_neighbor_with_different_label) {
     const int advance_step = static_cast<int>(p * num_neighbor_vertices);
@@ -178,7 +178,7 @@ const int RandomWalker::computeRandomWalkKey(const RandomWalk& random_walk) {
   int id = 0;
   int mult = 1;
   for (const auto& val : random_walk) {
-    id += mult * val->semantic_label_;
+    id += mult * val->semantic_label;
     mult *= num_classes;
   }
   return id;

@@ -19,9 +19,9 @@ class SemanticLandmarkFactory {
 
   /**
    * \brief Sets the landmark type the factory is going to generate.
-   * \param cb Function pointer called to create a new landmark.
+   * \param callback Function pointer called to create a new landmark.
    */
-  static void setCreatorFunction(CreateCallBack cb);
+  static void setCreatorFunction(CreateCallBack callback);
 
   /**
    * \brief Function exposed to the user to create new semantic landmark
@@ -37,7 +37,7 @@ class SemanticLandmarkFactory {
  private:
   ///\brief A function pointer to the static function responsible for
   /// creating new semantic landmarks given an image and a pose.
-  static CreateCallBack cb_;
+  static CreateCallBack callback_;
 
 };
 }

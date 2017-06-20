@@ -14,25 +14,25 @@ namespace x_view {
 /// \brief Property associated to a graph vertex.
 struct VertexProperty {
   /// \brief Index of the vertex in the graph, such that
-  /// boost::vertex(i, graph) returns the vertex property with index_ == i.
-  int index_;
+  /// boost::vertex(i, graph) returns the vertex property with index == i.
+  int index;
   /// \brief Semantic label associated to this graph vertex. This label
   /// corresponds to the same specified in the dataset description.
-  int semantic_label_;
+  int semantic_label;
   /// \brief Name of semantic entity associated to this vertex.
-  std::string semantic_entity_name_;
+  std::string semantic_entity_name;
   /// \brief Number of pixels contained in this vertex/blob.
-  int size_;
+  int num_pixels;
   /// \brief Blob center.
-  cv::Point center_;
+  cv::Point center;
 };
 
 /// \brief Property associated to a graph edge.
 struct EdgeProperty {
   /// \brief Index of the first vertex defining this edge.
-  int from_;
+  int from;
   /// \brief Index of the second vertex defining this edge.
-  int to_;
+  int to;
 };
 
 /**
@@ -43,7 +43,7 @@ struct EdgeProperty {
  * the same as edge 2-1.
  * Second parameter: what stl container is used to store the graph vertices.
  * Third parameter: directed or undirected graph type.
- * Fourth parameter: node representation.
+ * Forth parameter: node representation.
  * Fifth parameter: edge representation.
  * \note The second parameter must be boost::vecS such that each vertex can
  * be accessed directly by the program as follows:
