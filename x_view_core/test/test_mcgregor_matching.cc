@@ -1,10 +1,11 @@
-#include "test_graph_matching.h"
+#include "test_mcgregor_matching.h"
 
 #include <chrono>
 
+namespace x_view_test {
 
 void AbstractMaximalSubgraphTest::run() const {
-  std::cout << "Testing " << graph_name_ << std::endl;
+  LOG(INFO) << "Testing " << graph_name_;
 
   for (int i = 0; i < graph_database_.size(); ++i) {
     const int expected_distance = expected_distances_[i];
@@ -12,16 +13,15 @@ void AbstractMaximalSubgraphTest::run() const {
     const int computed_distance = computeMCSDistance(i);
     CHECK_EQ(expected_distance, computed_distance)
       << "Failed test for graph <" << graph_name_
-      << "> for database graph number " << i;
+      << "> for database graph number " << i << ".";
     auto end = std::chrono::high_resolution_clock::now();
     if (computed_distance ==
         boost::num_edges(query_graph_) + boost::num_edges(graph_database_[i]))
-      std::cout << "\tNo correspondences found" << std::endl;
+      LOG(INFO) << "\tNo correspondences found";
     else {
-      std::cout << "Elapsed time for graph " << i << ": "
+      LOG(INFO) << "Elapsed time for graph " << i << ": "
                 << std::chrono::duration_cast<std::chrono::milliseconds>(
-                    end - start).count() << " milliseconds"
-                << std::endl << std::endl;
+                    end - start).count() << " milliseconds.";
     }
   }
 }
@@ -40,12 +40,12 @@ int AbstractMaximalSubgraphTest::computeMCSDistance(int graph_index) const {
   // are equal, false otherwise.
 
   // Edges are equivalent only if their label is the same.
-  auto e_property_map_a = boost::get(&EdgeData::label_, query_graph_);
-  auto e_property_map_b = boost::get(&EdgeData::label_, g);
+  auto e_property_map_a = boost::get(&EdgeData::label, query_graph_);
+  auto e_property_map_b = boost::get(&EdgeData::label, g);
 
   // Vertices are equivalent only it their label is the same.
-  auto v_property_map_a = boost::get(&VertexData::label_, query_graph_);
-  auto v_property_map_b = boost::get(&VertexData::label_, g);
+  auto v_property_map_a = boost::get(&VertexData::label, query_graph_);
+  auto v_property_map_b = boost::get(&VertexData::label, g);
 
 
   // Predicate type required by mcgregor function
@@ -225,6 +225,8 @@ void PaperGraphsTest::buildGraphDatabase() {
   boost::add_edge(v2_8, v2_9, {EdgeData::EdgeLabelName::CLOSE}, g2);
   boost::add_edge(v2_9, v2_10, {EdgeData::EdgeLabelName::DISTANT}, g2);
   boost::add_edge(v2_6, v2_10, {EdgeData::EdgeLabelName::DISTANT}, g2);
+}
+
 }
 
 

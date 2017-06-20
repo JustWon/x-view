@@ -1,6 +1,6 @@
 #include "test_graph_landmark.h"
 
-#include <highgui.h>
+namespace x_view_test {
 
 #define CV_IMAGE_TYPE  CV_8UC3
 
@@ -8,7 +8,7 @@
 
 void testCustomImage() {
 
-  const std::string image_name = "custom image\n";
+  const std::string image_name = "custom image";
 
   // Initialize a fake dataset having num_semantic_classes classes
   int num_semantic_classes = 4;
@@ -22,45 +22,59 @@ void testCustomImage() {
   std::vector<int> sizes = {100, 200, 333, 800, 1500};
 #endif // X_VIEW_DEBUG
 
-  boost::progress_display show_progress(sizes.size(), std::cout, image_name);
   for (auto size : sizes) {
     const int rows = size;
     const int cols = static_cast<int>(size * 1.5);
+    LOG(INFO) << "Testing " << image_name << " for image size: ["
+              << rows << " x " << cols << "]";
 
-    cv::Mat customImage;
-    createCustomImage(rows, cols, customImage);
-    GraphLandmarkPtr customImageLandmarkPtr =
-        CAST(GraphLandmark::create(customImage, SE3()), GraphLandmark);
+    cv::Mat custom_image;
+    createCustomImage(rows, cols, &custom_image);
+    GraphLandmarkPtr graph_landmark_ptr =
+        CAST(GraphLandmark::create(custom_image, SE3()), GraphLandmark);
 
-    testPixelCount(customImageLandmarkPtr, image_name);
-    testInstanceCount(customImageLandmarkPtr, {1, 1, 1, 1}, image_name);
+    CHECK_NOTNULL(graph_landmark_ptr.get());
 
-    ++show_progress;
+    // Display the generated image.
+#ifdef X_VIEW_DEBUG
+    cv::Mat graph_image = GraphDrawer::createImageWithLabels
+        (graph_landmark_ptr->getBlobs(),
+         CAST(graph_landmark_ptr->getDescriptor(), const GraphDescriptor)
+             ->getDescriptor(), custom_image.size());
+    cv::imshow("Current graph landmark", graph_image);
+    cv::waitKey();
+#endif
+
+    // Tests.
+    testPixelCount(graph_landmark_ptr, image_name);
+    testBlobsCount(graph_landmark_ptr, {1, 1, 1, 1}, image_name);
+
+    LOG(INFO) << "Test passed.";
   }
 }
 
 void testDiscImage() {
 
-  const std::string image_name = "disc image\n";
+  const std::string image_name = "disc image";
   // random number generator to generate discs
   cv::RNG rng(2);
 
   std::vector<int> classes = {2, 3, 5, 15};
   std::vector<int> num_discs = {2, 15};
-  boost::progress_display show_progress(classes.size() * num_discs.size(),
-                                        std::cout,
-                                        image_name);
-  for (auto numClasses : classes) {
+
+  for (const int num_classes : classes) {
     global_dataset_ptr =
         std::make_shared<const AbstractDataset>
-            (AbstractDataset(numClasses));
+            (AbstractDataset(num_classes));
 
     const int rows = 500;
     const int cols = static_cast<int>(500 * 1.5);
     const int diag = static_cast<int>(std::sqrt(rows * rows + cols * cols));
-    for (int num_disc : num_discs) {
+    for (const int num_disc : num_discs) {
+      LOG(INFO) << "Testing " << image_name << " for image size: ["
+                << rows << " x " << cols << "] and " << num_disc << " discs.";
 
-      cv::Mat discImage;
+      cv::Mat disc_image;
       std::vector<cv::Point> centers;
       std::vector<int> radii, labels;
 
@@ -68,17 +82,30 @@ void testDiscImage() {
         centers.push_back(cv::Point(rng.uniform(0, cols),
                                     rng.uniform(0, rows)));
         radii.push_back(std::max(15, rng.uniform(diag / 40, diag / 10)));
-        labels.push_back(rng.uniform(1, numClasses));
+        labels.push_back(rng.uniform(1, num_classes));
       }
 
-      createDiscImage(rows, cols, centers, radii, labels, discImage);
+      createDiscImage(rows, cols, centers, radii, labels, &disc_image);
 
-      GraphLandmarkPtr discImageLandmarkPtr =
-          CAST(GraphLandmark::create(discImage, SE3()), GraphLandmark);
+      GraphLandmarkPtr graph_landmark_ptr =
+          CAST(GraphLandmark::create(disc_image, SE3()), GraphLandmark);
 
-      testPixelCount(discImageLandmarkPtr, image_name);
+      CHECK_NOTNULL(graph_landmark_ptr.get());
 
-      ++show_progress;
+      // Display the generated image.
+#ifdef X_VIEW_DEBUG
+      cv::Mat graph_image = GraphDrawer::createImageWithLabels
+          (graph_landmark_ptr->getBlobs(),
+           CAST(graph_landmark_ptr->getDescriptor(), const GraphDescriptor)
+               ->getDescriptor(), disc_image.size());
+      cv::imshow("Current graph landmark", graph_image);
+      cv::waitKey();
+#endif
+
+      // Tests.
+      testPixelCount(graph_landmark_ptr, image_name);
+
+      LOG(INFO) << "Test passed.";
     }
 
   }
@@ -86,82 +113,94 @@ void testDiscImage() {
 }
 
 void countPixelLabelsInImage(const cv::Mat& image,
-                             std::vector<int>& pixelCount) {
-  pixelCount.clear();
-  pixelCount.resize(global_dataset_ptr->numSemanticClasses());
+                             std::vector<int>& pixel_count) {
+  pixel_count.clear();
+  pixel_count.resize(global_dataset_ptr->numSemanticClasses());
   for (int i = 0; i < image.rows; ++i) {
     for (int j = 0; j < image.cols; ++j) {
       int label = static_cast<int>(image.at<cv::Vec3b>(i, j)[0]);
-      pixelCount[label]++;
+      pixel_count[label]++;
     }
   }
 }
 
-void testPixelCount(const GraphLandmarkPtr& graphLandmarkPtr,
+void testPixelCount(const GraphLandmarkPtr& graph_landmark_ptr,
                     const std::string& imageName) {
 
   // vector counting explicitly the number of pixels
-  std::vector<int> expectedPixelCount;
-  countPixelLabelsInImage(graphLandmarkPtr->getSemanticImage(),
-                          expectedPixelCount);
+  std::vector<int> expected_pixel_count;
+  countPixelLabelsInImage(graph_landmark_ptr->getSemanticImage(),
+                          expected_pixel_count);
 
-  for (int i = 0; i < expectedPixelCount.size(); ++i) {
-    int instancePixelCount = 0;
-    auto const& instanceBlobs = graphLandmarkPtr->getBlobs()[i];
-    for (int j = 0; j < instanceBlobs.size(); ++j)
-      instancePixelCount += instanceBlobs[j].num_pixels_;
-    CHECK_EQ(expectedPixelCount[i], instancePixelCount)
-        << "In image " << imageName << ", class instance " << i
-        << " should have " << expectedPixelCount[i] << " pixels, but has "
-        << instancePixelCount;
+  for (int i = 0; i < expected_pixel_count.size(); ++i) {
+    int semantic_class_pixel_count = 0;
+    const auto& semantic_label_blobs = graph_landmark_ptr->getBlobs()[i];
+    for (int j = 0; j < semantic_label_blobs.size(); ++j)
+      semantic_class_pixel_count += semantic_label_blobs[j].num_pixels;
+    CHECK_EQ(expected_pixel_count[i], semantic_class_pixel_count)
+      << "In image " << imageName << ", class instance " << i
+      << " should have " << expected_pixel_count[i] << " pixels, but has "
+      << semantic_class_pixel_count;
   }
 }
 
-void testInstanceCount(const GraphLandmarkPtr& graphLandmarkPtr,
-                       const std::vector<int>& expectedInstanceCount,
-                       const std::string& imageName) {
-  auto const& blobs = graphLandmarkPtr->getBlobs();
-  for (int i = 0; i < expectedInstanceCount.size(); ++i) {
-    CHECK_EQ(expectedInstanceCount[i], blobs[i].size())
-        << "In image " << imageName << ", class " << i << " should have "
-        << expectedInstanceCount[i] << " instances, but has "
-        << blobs[i].size();
+void testBlobsCount(const GraphLandmarkPtr& graph_landmark_ptr,
+                    const std::vector<int>& expected_blob_count,
+                    const std::string& image_name) {
+  const auto& blobs = graph_landmark_ptr->getBlobs();
+  for (int i = 0; i < expected_blob_count.size(); ++i) {
+    CHECK_EQ(expected_blob_count[i], blobs[i].size())
+      << "In image " << image_name << ", class " << i << " should have "
+      << expected_blob_count[i] << " blobs, but has " << blobs[i].size();
   }
 }
 
-void createCustomImage(const int desiredRows, const int desiredCols,
-                       cv::Mat& image) {
+void createCustomImage(const int desired_rows, const int desired_cols,
+                       cv::Mat* image) {
 
-  image.create(desiredRows, desiredCols, CV_IMAGE_TYPE);
-  for (int i = 0; i < desiredRows; ++i) {
-    for (int j = 0; j < desiredCols; ++j) {
-      if (i < desiredRows / 2) {
-        if (j < desiredCols / 2) {
-          image.at<cv::Vec3b>(i, j)[0] = (uchar) 0;
+  CHECK_NOTNULL(image);
+
+  image->create(desired_rows, desired_cols, CV_IMAGE_TYPE);
+  for (int i = 0; i < desired_rows; ++i) {
+    for (int j = 0; j < desired_cols; ++j) {
+      if (i < desired_rows / 2) {
+        if (j < desired_cols / 2) {
+          image->at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(0);
+          image->at<cv::Vec3b>(i, j)[1] = static_cast<unsigned char>(50);
         } else {
-          image.at<cv::Vec3b>(i, j)[0] = (uchar) 1;
+          image->at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(1);
+          image->at<cv::Vec3b>(i, j)[1] = static_cast<unsigned char>(100);
         }
       } else {
-        if (j < desiredCols / 2) {
-          image.at<cv::Vec3b>(i, j)[0] = (uchar) 2;
+        if (j < desired_cols / 2) {
+          image->at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(2);
+          image->at<cv::Vec3b>(i, j)[1] = static_cast<unsigned char>(150);
         } else {
-          image.at<cv::Vec3b>(i, j)[0] = (uchar) 3;
+          image->at<cv::Vec3b>(i, j)[0] = static_cast<unsigned char>(3);
+          image->at<cv::Vec3b>(i, j)[1] = static_cast<unsigned char>(200);
         }
       }
     }
   }
 }
 
-void createDiscImage(const int desiredRows, const int desiredCols,
+void createDiscImage(const int desired_rows, const int desired_cols,
                      const std::vector<cv::Point>& centers,
                      const std::vector<int> radii,
-                     const std::vector<int> labels, cv::Mat& image) {
+                     const std::vector<int> labels, cv::Mat* image) {
 
-  image.create(desiredRows, desiredCols, CV_IMAGE_TYPE);
-  image = cv::Scalar::all(0);
+  CHECK_NOTNULL(image);
 
-  for (int c = 0; c < centers.size(); ++c)
-    cv::circle(image, centers[c], radii[c], cv::Scalar(labels[c], 0, 0),
+  image->create(desired_rows, desired_cols, CV_IMAGE_TYPE);
+  *image = cv::Scalar::all(0);
+
+  for (int c = 0; c < centers.size(); ++c) {
+    const int label = labels[c];
+    const int instance_id = c + 1;
+    cv::circle(*image, centers[c], radii[c], cv::Scalar(label, instance_id, 0),
                -1, 8, 0);
+  }
+
+}
 
 }

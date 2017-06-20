@@ -10,21 +10,22 @@ SynthiaDataset::SynthiaDataset()
     : AbstractDataset(SYNTHIA_NUM_SEMANTIC_CLASSES) {
   // see http://synthia-dataset.net/table-classes/ for class labels
 
-  // initialize the entities as {name, id, is_static, is_to_render}
+  // Initialize the entities as:
+  // {name, id, is_to_include_in_graph, is_static, is_to_render}
   semantic_entities_ = {
-      {"misc", 0, true, false},
-      {"sky", 1, true, false},
-      {"building", 2, true, true},
-      {"road", 3, true, true},
-      {"sidewalk", 4, true, true},
-      {"fence", 5, true, true},
-      {"vegetation", 6, true, true},
-      {"pole", 7, true, true},
-      {"car", 8, false, true},
-      {"sign", 9, true, true},
-      {"pedestrian", 10, false, true},
-      {"cyclist", 11, false, true},
-      {"lanemarking", 12, true, true}
+      {"misc", 0, false, true, false},
+      {"sky", 1, false, true, false},
+      {"building", 2, true, true, true},
+      {"road", 3, true, true, true},
+      {"sidewalk", 4, true, true, true},
+      {"fence", 5, true, true, true},
+      {"vegetation", 6, true, true, true},
+      {"pole", 7, true, true, true},
+      {"car", 8, true, false, true},
+      {"sign", 9, true, true, true},
+      {"pedestrian", 10, false, false, true},
+      {"cyclist", 11, false, false, true},
+      {"lanemarking", 12, true, true, true}
   };
 
   CHECK(semantic_entities_.size() == SYNTHIA_NUM_SEMANTIC_CLASSES)
@@ -40,8 +41,8 @@ cv::Mat SynthiaDataset::convertSemanticImage(
   const int msg_size = static_cast<int>(msg->data.size());
   const int step_size = msg->step;
 
-  CHECK(!bool(msg->is_bigendian)) << "Message passed to SynthiaDataset must be "
-      "little endian";
+  CHECK(!bool(msg->is_bigendian))
+  << "Message passed to SynthiaDataset must be little endian";
 
   const int cols = msg->width;
   const int rows = msg->height;
@@ -51,7 +52,7 @@ cv::Mat SynthiaDataset::convertSemanticImage(
   // associated to each pixel
   // the second channel contains a unique ID associated to dynamic objects
   // the third channel is not used
-  cv::Mat labelImage(rows, cols, CV_8UC3, cv::Scalar(0, 0, 0));
+  cv::Mat labelImage(rows, cols, CV_8UC3, cv::Scalar::all(0));
 
   // loop over the rows of the image implicitly stored into msg
   for (int i = 0; i < rows; ++i) {
@@ -60,16 +61,22 @@ cv::Mat SynthiaDataset::convertSemanticImage(
       // index of the pixel, need to have "6*j" because each pixel value is
       // stored into two consecutive bytes and there are three channels
       int idx = step_size * i + 6 * j;
-      CHECK(idx < msg_size) << "Computed index is larger or equal to message "
-          "size";
+      CHECK(idx < msg_size)
+      << "Computed index is larger or equal to message size";
 
-      // loop over the three channels and extract the semantic classes
       cv::Vec3b values;
-      for (int c = 0; c < 3; ++c) {
-        values[2 - c] = (uchar) (
-            std::max(0, std::min(twoBytesToInt(&(msg->data[idx + 2 * c])),
-                                 numSemanticClasses() - 1)));
-      }
+      values[2] = static_cast<uchar>(0);
+      values[1] = static_cast<uchar>(twoBytesToInt(&(msg->data[idx + 2])));
+      values[0] = static_cast<uchar>(
+          std::max(
+              0,
+              std::min(
+                  twoBytesToInt(&(msg->data[idx + 2 * 2])),
+                  numSemanticClasses() - 1
+              )
+          )
+      );
+
       labelImage.at<cv::Vec3b>(cv::Point(j, i)) = values;
     }
 

@@ -11,10 +11,10 @@ namespace x_view {
  */
 struct GraphBuilderParams {
   GraphBuilderParams()
-      : max_distance_for_neighborhood_(2) {}
+      : max_distance_for_neighborhood(2) {}
 
   /// \brief Threshold for determining if two blobs are neighbors or not.
-  int max_distance_for_neighborhood_;
+  int max_distance_for_neighborhood;
 };
 
 class GraphBuilder {
@@ -29,8 +29,8 @@ class GraphBuilder {
    * \return A graph object containing nodes and edges based on the
    * ImageBlobs datastructure passed as argument.
    */
-  static Graph::GraphType createGraphFromNeighborBlobs(const ImageBlobs&
-  blobs, const GraphBuilderParams& params = GraphBuilderParams());
+  static Graph createGraphFromNeighborBlobs(const ImageBlobs& blobs,
+                                            const GraphBuilderParams& params = GraphBuilderParams());
 
   /**
    * \brief Creates a complete graph whose nodes correspond to the blobs
@@ -39,7 +39,7 @@ class GraphBuilder {
    * \return A complete graph object containing nodes based on the ImageBlobs
    * datastructure passed as argument.
    */
-  static Graph::GraphType createCompleteGraph(const ImageBlobs& blobs);
+  static Graph createCompleteGraph(const ImageBlobs& blobs);
 
  private:
 
@@ -57,17 +57,34 @@ class GraphBuilder {
    * the inserted nodes.
    */
   static void addBlobsToGraph(const ImageBlobs& blobs,
-                              Graph::GraphType* graph,
-                              std::vector<Graph::VertexDescriptor>* vertex_descriptors,
+                              Graph* graph,
+                              std::vector<VertexDescriptor>* vertex_descriptors,
                               std::vector<const Blob*>* blob_vector = &DEFAULT_BLOB_VECTOR);
   /**
    * \brief Generates a graph vertex containing the relevant information
    * extracted from the blob object passed as argument.
+   * \param index Integer representing the index (position) of the blob
+   * transformed into a vertex. This index represents corresponds to the
+   * number of previously inserted blobs, i.e. the first inserted blob will
+   * have index=0, the second index=1 etc.
    * \param blob Blob object to the converted into a graph node.
    * \return A graph node containing the relevant information extracted from
    * the blob passed as argument.
    */
-  static Graph::VertexProperty blobToGraphVertex(const Blob& blob);
+  static VertexProperty blobToGraphVertex(const int index,
+                                          const Blob& blob);
+
+  /**
+   * \brief Given a graph with multiple disconnected components, this
+   * function iterates over all possible pairs of vertices belonging to the
+   * different components and creates an edge between the vertices with
+   * smallest euclidean distance.
+   * \param graph Pointer to graph to be connected.
+   * \param component Vector indicating for each vertex to which component it
+   * belongs.
+   */
+  static void connectClosestVerticesOfDisconnectedGraph(Graph* graph,
+                                                        const std::vector<int>& component);
 
 };
 

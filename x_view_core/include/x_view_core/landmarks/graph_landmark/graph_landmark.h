@@ -20,8 +20,7 @@ class GraphLandmark : public AbstractSemanticLandmark {
 
  public:
   static SemanticLandmarkPtr create(const cv::Mat& image, const SE3& pose) {
-    return std::make_shared<GraphLandmark>(
-        GraphLandmark(image, pose));
+    return std::make_shared<GraphLandmark>(GraphLandmark(image, pose));
   }
 
   /// \brief A blob containing less pixel than 'MINIMUM_BLOB_SIZE' is ignored.

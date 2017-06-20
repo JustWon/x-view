@@ -1,5 +1,5 @@
-#ifndef X_VIEW_TEST_GRAPH_MATCHING_IMPL_H
-#define X_VIEW_TEST_GRAPH_MATCHING_IMPL_H
+#ifndef X_VIEW_TEST_MCGREGOR_MATCHING_H
+#define X_VIEW_TEST_MCGREGOR_MATCHING_H
 
 #include <iostream>
 
@@ -9,6 +9,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/mcgregor_common_subgraphs.hpp>
 
+namespace x_view_test {
 //*************************** Graph specifications ***************************//
 
 /// \brief Object representing a vertex of the graph.
@@ -17,13 +18,13 @@ struct VertexData {
     NON_DEF_VERTEX_LABEL_NAME = -1, A, B, C
   };
 
-  VertexData() : label_(NON_DEF_VERTEX_LABEL_NAME) {}
+  VertexData() : label(NON_DEF_VERTEX_LABEL_NAME) {}
   VertexData(const VertexLabelName label)
-      : label_(label) {}
-  VertexLabelName label_;
+      : label(label) {}
+  VertexLabelName label;
 
   friend std::ostream& operator<<(std::ostream& out, const VertexData& v) {
-    return out << v.label_;
+    return out << v.label;
   }
 };
 
@@ -33,10 +34,10 @@ struct EdgeData {
     NON_DEF_EDGE_LABEL_NAME = -1, CLOSE, DISTANT, VISIBLE
   };
 
-  EdgeData() : label_(NON_DEF_EDGE_LABEL_NAME) {}
+  EdgeData() : label(NON_DEF_EDGE_LABEL_NAME) {}
   EdgeData(const EdgeLabelName label)
-      : label_(label) {}
-  EdgeLabelName label_;
+      : label(label) {}
+  EdgeLabelName label;
 };
 
 /// \brief a Graph is represented as a boost adjacency list.
@@ -117,7 +118,7 @@ class PaperGraphsTest : public AbstractMaximalSubgraphTest {
 /// \details It is ugly to have it global, but it is not possible to store as
 /// a member variable of SubgraphCallback as the callback object is
 /// continuously destroyed and restored by the mcgregor function.
-extern int mc_gregor_maximal_num_edges;
+static int mc_gregor_maximal_num_edges;
 
 /**
  * \brief Each time a subgraph is found by the mcgregor algorithm, the
@@ -137,7 +138,8 @@ struct SubgraphCallback {
                   typename boost::graph_traits<GraphType>::vertices_size_type
                   subgraph_size) {
 
-    std::cout << "Correspondences found by mcgregor:" << std::endl;
+    std::ostringstream log_message;
+    log_message << "Correspondences found by mcgregor:\n";
 
     // print out the vertex correspondences found by the mcgregor algorithm
     auto v_begin = boost::vertices(graph1_).first;
@@ -147,16 +149,14 @@ struct SubgraphCallback {
       // Skip unmapped vertices
       auto correspondence = boost::get(correspondence_map_1_to_2, v);
       if (correspondence != boost::graph_traits<GraphType>::null_vertex()) {
-        std::cout << "\tvertex: \t" << v << ", " << graph1_[v]
-                  << " \t <-> \t "
-                  << "vertex: \t" << correspondence << ", "
-                  << graph2_[correspondence]
-                  << std::endl;
+        log_message << "\tvertex: \t" << v << ", " << graph1_[v]
+                    << " \t <-> \t "
+                    << "vertex: \t" << correspondence << ", "
+                    << graph2_[correspondence] << "\n";
       }
-
     }
 
-    std::cout  << std::endl;
+    LOG(INFO) << log_message.str();
 
     // count the number of edges in the found subgraph used as a distance
     // measure
@@ -180,6 +180,9 @@ struct SubgraphCallback {
 
     mc_gregor_maximal_num_edges =
         std::max(mc_gregor_maximal_num_edges, current_subgraph_edges);
+
+    // Return true as we don't want to terminate the search of MCS.
+    return true;
   }
 
  private:
@@ -188,4 +191,6 @@ struct SubgraphCallback {
 
 };
 
-#endif //X_VIEW_TEST_GRAPH_MATCHING_IMPL_H
+}
+
+#endif //X_VIEW_TEST_MCGREGOR_MATCHING_H

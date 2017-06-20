@@ -2,103 +2,143 @@
 #define X_VIEW_GRAPH_H
 
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <boost/graph/graph_traits.hpp>
-
+#include <boost/graph/breadth_first_search.hpp>
 #include <opencv2/core/core.hpp>
 
+#include <random>
+
 namespace x_view {
-/**
- * \brief Class containing graph structure and functions related to graphs.
- * \note For an explanation see http://blog.hostilefork
- * .com/boost-graph-templates-not-crazy/.
- */
-class Graph {
 
- public:
-
-  /// \brief Property associated to a graph vertex.
-  struct VertexProperty {
-    /// \brief Semantic label associated to this graph vertex. This label
-    /// corresponds to the same specified in the dataset description.
-    int semantic_label_;
-    /// \brief Name of semantic entity associated to this vertex.
-    std::string semantic_entity_name_;
-    /// \brief Number of pixels contained in this vertex/blob.
-    int size_;
-    /// \brief Blob center.
-    cv::Point center_;
-
-    const std::string vertexInfo() const {
-      return std::string("(v) " + std::to_string(semantic_label_) + ": " +
-          semantic_entity_name_ + ", size: " + std::to_string(size_) + ", "
-          "center: [" + std::to_string(center_.x) + ", " + std::to_string
-          (center_.y) + "]");
-    }
-  };
-
-  /// \brief Property associated to a graph edge.
-  struct EdgeProperty {
-    int from_;
-    int to_;
-
-    const std::string edgeInfo() const {
-      return std::string("(e) " + std::to_string(from_) + "->" +
-          std::to_string(to_));
-    }
-  };
-
-  /**
-  * \brief A graph object represented as an adjacency list.
-  * \details First parameter: what stl container is used to store the edges.
-  * Second parameter: what stl container is used to store the graph vertices.
-  * Third parameter: directed or undirected graph type.
-  * Fourth parameter: node representation.
-  * Fifth parameter: edge representation.
-  */
-  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-                                VertexProperty, EdgeProperty> GraphType;
-
-  /// \brief Access to vertices stored in the graph.
-  typedef boost::graph_traits<GraphType>::vertex_descriptor VertexDescriptor;
-  /// \brief Access to edges stored in the graph.
-  typedef boost::graph_traits<GraphType>::edge_descriptor EdgeDescriptor;
-
-  /// \brief Returns the number of vertices stored in the graph.
-  int numVertices() const;
-
-  /**
-   * \brief Prints the vertices (with vertex parameters) in a human readable
-   * way to the stream passed as argument.
-   * \param out Stream to be used to print the vertices.
-   */
-  void printVertices(std::ostream& out = std::cout) const;
-
-  /**
-   * \brief Prints the edges (with edge parameters) in a human readable way
-   * to the stream passed as argument.
-   * \param out Stream to be used to print the vertices
-   */
-  void printEdges(std::ostream& out = std::cout) const;
-
-  /**
-   * \brief Prints the graph structure/topology to the stream passed as argument
-   * \param out Stream to be used to print the vertices
-   */
-  void print(std::ostream& out = std::cout) const;
-
-  const GraphType& graph() const {
-    return graph_;
-  }
-
-  GraphType& graph() {
-    return graph_;
-  }
-
- private:
-  GraphType graph_;
-
+/// \brief Property associated to a graph vertex.
+struct VertexProperty {
+  /// \brief Index of the vertex in the graph, such that
+  /// boost::vertex(i, graph) returns the vertex property with index == i.
+  int index;
+  /// \brief Semantic label associated to this graph vertex. This label
+  /// corresponds to the same specified in the dataset description.
+  int semantic_label;
+  /// \brief Name of semantic entity associated to this vertex.
+  std::string semantic_entity_name;
+  /// \brief Number of pixels contained in this vertex/blob.
+  int num_pixels;
+  /// \brief Blob center.
+  cv::Point center;
 };
+
+/// \brief Property associated to a graph edge.
+struct EdgeProperty {
+  /// \brief Index of the first vertex defining this edge.
+  int from;
+  /// \brief Index of the second vertex defining this edge.
+  int to;
+};
+
+/**
+ * \brief A graph object represented as an adjacency list.
+ * \details
+ * First parameter: what stl container is used to store the edges. Using
+ * setS as edge container to enforce uniqueness of edges, i.e. edge 1-2 is
+ * the same as edge 2-1.
+ * Second parameter: what stl container is used to store the graph vertices.
+ * Third parameter: directed or undirected graph type.
+ * Forth parameter: node representation.
+ * Fifth parameter: edge representation.
+ * \note The second parameter must be boost::vecS such that each vertex can
+ * be accessed directly by the program as follows:
+ * \code{.cpp}
+ * Graph graph = createSomeGraph();
+ * VertexProperty first_vertex = graph[0];
+ * VertexProperty tenth_vertex = graph[9];
+ * \endcode
+ * Otherwise each time one wants to access a vertex it must perform a
+ * linear/logarithmic search on the vertex list:
+ * \code{.cpp}
+ * Graph graph = createSomeGraph();
+ * VertexProperty tenth_vertex;
+ * auto vertex_iter = boost::vertices(graph);
+ * for(int i = 0; vertex_iter.first != vertex_iter.second;
+ *     ++i,++vertex_iter.first) {
+ *     if(i == 9)
+ *         tenth_vertex = graph[*vertex_iter.first];
+ * }
+ *\endcode
+ */
+typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
+                              VertexProperty, EdgeProperty> Graph;
+
+/// \brief Access to vertices stored in the graph. Since vertices are stored
+/// in a boost::vecS container, their VertexDescriptor corresponds to the
+/// index at which they are stored: a VertexDescriptor is an unsigned long type.
+typedef boost::graph_traits<Graph>::vertex_descriptor VertexDescriptor;
+
+/// \brief Access to edges stored in the graph.
+typedef boost::graph_traits<Graph>::edge_descriptor EdgeDescriptor;
+
+/**
+ * \brief Tests if the i-th and the j-th vertex of the graph passed as
+ * parameter are linked by an edge.
+ * \param v1 Index got by graph[v_1_d].index_ of first vertex descriptor.
+ * \param v2 Index got by graph[v_2_d].index_ of second vertex descriptor.
+ * \param graph Graph containing the two vertices passed as argument.
+ * \return True if an edge exists between vertex with index_ = i
+ * and vertex with index_ = j, false otherwise.
+ * \note This approach is inefficient as it uses a member of the
+ * VertexProperty to check the edge existence, consider using
+ * VertexDescriptors whenever possible:
+ * \code{.cpp}
+ * Graph graph = getSomeGraph();
+ * const VertexDescriptor v_1_d = getFirstVertexDescriptor();
+ * const VertexDescriptor v_2_d = getSecondVertexDescriptor();
+ * // Efficient way:
+ * bool vertices_connected_1 = boost.:edge(v_1_d, v_2_d, graph).second;
+ * // Inefficient way:
+ * const VertexProperty v_1_p = graph[v_1 _d];
+ * const VertexProperty v_2_p = graph[v_2 _d];
+ * bool vertices_connected_2 =
+ *    areVerticesConnectedByIndex(v_1_p.index_, v_2_p.index_, graph);
+ *
+ * assert(vertices_connected_1  == vertices_connected_2);
+ * \endcode
+ */
+bool areVerticesConnectedByIndex(const int v1, const int v2,
+                                 const Graph& graph);
+
+
+
+/**
+ * \brief Adds an edge between the VertexDescriptors passed as argument if
+ * the edge does not exist yet.
+ * \param v_1_d VertexDescriptor of first vertex.
+ * \param v_2_d VertexDescriptor of second vertex.
+ * \param graph Pointer to graph an edge is added to.
+ * \return True if the edge has been added, false if the edge was already
+ * present.
+ */
+bool addEdgeBetweenVertices(const VertexDescriptor& v_1_d,
+                            const VertexDescriptor& v_2_d, Graph* graph);
+
+/**
+ * \brief Removes the edge between the vertex descriptors passed as argument
+ * and returns true only if the vertex has been removed correctly.
+ * \param v_1_d First vertex descriptor.
+ * \param v_2_d Second vertex descriptor.
+ * \param graph Pointer to graph to be modified.
+ * \return True if the function succeeded in removing the edge, false
+ * otherwise.
+ */
+bool removeEdgeBetweenVertices(const VertexDescriptor& v_1_d,
+                               const VertexDescriptor& v_2_d, Graph* graph);
+
+
+/// \brief Overloaded operator to print a vertex.
+std::ostream& operator<<(std::ostream& out, const VertexProperty& v);
+
+/// \brief Overloaded operator to print an edge.
+std::ostream& operator<<(std::ostream& out, const EdgeProperty& e);
+
+/// \brief Overloaded operator to print a graph.
+std::ostream& operator<<(std::ostream& out, const Graph& graph);
 
 }
 

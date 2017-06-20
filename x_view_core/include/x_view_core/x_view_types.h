@@ -51,7 +51,7 @@ typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 /// pointer to dataset object
 typedef std::shared_ptr<AbstractDataset> DatasetPtr;
 
-typedef std::shared_ptr<const AbstractDataset> ConstDatasetPrt;
+typedef std::shared_ptr<const AbstractDataset> ConstDatasetPtr;
 
 /// pointer to feature
 typedef std::shared_ptr<AbstractDescriptor> DescriptorPtr;

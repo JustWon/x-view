@@ -13,18 +13,16 @@ namespace x_view {
 class GraphDescriptor : public AbstractDescriptor {
 
  public:
-  // a graph is represented by the Graph class
-  typedef Graph DescriptorRepr;
 
-  GraphDescriptor(const DescriptorRepr& descriptor);
+  GraphDescriptor(const Graph& descriptor);
   virtual ~GraphDescriptor() {}
 
-  const DescriptorRepr& getDescriptor() const {
+  const Graph& getDescriptor() const {
     return descriptor_;
   }
 
  protected:
-  const DescriptorRepr descriptor_;
+  const Graph descriptor_;
 };
 
 }

@@ -11,15 +11,29 @@
 
 #include <gtest/gtest.h>
 
-TEST(XViewSlamTestSuite, test_graphLandmark) {
+using namespace x_view;
+using namespace x_view_test;
+
+TEST(XViewSlamTestSuite, test_graph_landmark) {
+
+  LOG(INFO) << "\n\n====Testing graph landmark====";
+
   // set the minimum blob size to zero because for testing we don't want to
   // ignore any generated blob
   GraphLandmark::MINIMUM_BLOB_SIZE = 0;
   // don't perform dilation and erosion on the input images.
-  GraphLandmark::DILATE_AND_ERODE = true;
+  GraphLandmark::DILATE_AND_ERODE = false;
+
+  LOG(INFO) << "\nGraphLandmark uses:"
+            << "\n\tMinimum blob size: " << GraphLandmark::MINIMUM_BLOB_SIZE
+            << "\n\tDilate and erode:  " << (GraphLandmark::DILATE_AND_ERODE ?
+                                             "true" : "false");
 
   // test different images
   testCustomImage();
   testDiscImage();
+
+  // Close all windows.
+  cv::destroyAllWindows();
 }
 

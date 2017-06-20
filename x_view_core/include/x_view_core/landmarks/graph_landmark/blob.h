@@ -13,27 +13,32 @@ class Blob {
 
  public:
   Blob();
-  Blob(const int semantic_label, const CBlob& c_blob);
+  Blob(const int semantic_label, const int instance, const CBlob& c_blob);
 
   /// \brief Semantic label associated to all pixels contained in this blob.
-  int semantic_label_;
+  int semantic_label;
+
+  /// \brief Instance value associated to the blob. If a blob has no
+  /// instance (e.g. static objects in Synthia dataset), then the value
+  /// associated to this member is instance = -1.
+  int instance;
 
   /// \brief Vector of pixels representing the contour of this blob.
-  std::vector<cv::Point> external_contour_pixels_;
-  std::vector<std::vector<cv::Point>> internal_contour_pixels_;
+  std::vector<cv::Point> external_contour_pixels;
+  std::vector<std::vector<cv::Point>> internal_contour_pixels;
 
   /// \brief Number of pixels in this blob.
-  int num_pixels_;
+  int num_pixels;
 
   /// \brief Pixel representing the center of the blob.
-  cv::Point center_;
+  cv::Point center;
 
   /// \brief Ellipse fitted to external contours of blob.
-  cv::RotatedRect ellipse_;
+  cv::RotatedRect ellipse;
 
   /// \brief Blob axis aligned bounding box used to perform early termination
   /// for blobs overlap test.
-  cv::Rect bounding_box_;
+  cv::Rect bounding_box;
 
   /**
    * \brief Determines if the two blobs passed as argument are neighbors.
@@ -57,7 +62,9 @@ class Blob {
   void computeContours();
 
   /// \brief Computes the number of pixels belonging to the blob.
-  void computeArea() { num_pixels_ = c_blob_.Area(AreaMode::PIXELWISE); }
+  void computeArea() {
+    num_pixels = static_cast<int>(c_blob_.Area(AreaMode::PIXELWISE));
+  }
 
   /// \brief Computes the external bounding boxes of the blob. The bounding
   /// boxes are used for early termination during neighbor check.
@@ -67,6 +74,9 @@ class Blob {
   void computeFittingEllipse();
 
 };
+
+/// \brief Overloaded operator to print a Blob.
+std::ostream& operator<<(std::ostream& out, const Blob& blob);
 
 }
 
