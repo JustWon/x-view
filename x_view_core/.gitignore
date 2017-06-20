@@ -1,3 +1,2 @@
-logs/log_*
-logs/__*
-output
+logs/*
+output/*

@@ -12,7 +12,7 @@ void mergeGraphs(const Graph& g1, const Graph g2, Graph* merged) {
 
   // Define the parameters needed to match the graphs.
   RandomWalkerParams random_walker_params;
-  random_walker_params.num_walks_ = 20;
+  random_walker_params.num_walks_ = 1000;
   random_walker_params.walk_length_ = 3;
   random_walker_params.random_sampling_type_ =
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
@@ -76,14 +76,14 @@ void mergeGraphs(const Graph& g1, const Graph g2, Graph* merged) {
 
   // Fill the queue of still to process vertices.
   std::queue<VertexDescriptor> still_to_process;
-  for(const VertexDescriptor v_d : matched_vertices) {
+  for (const VertexDescriptor v_d : matched_vertices) {
     still_to_process.push(v_d);
   }
 
   // Define start vertex index of newly added vertices to the merged graph.
   int current_vertex_index = std::numeric_limits<int>::min();
   const auto g1_vertices = boost::vertices(g1);
-  for(auto iter = g1_vertices.first; iter != g1_vertices.second; ++iter)
+  for (auto iter = g1_vertices.first; iter != g1_vertices.second; ++iter)
     current_vertex_index = std::max(current_vertex_index, g1[*iter].index_);
   ++current_vertex_index;
 
@@ -119,17 +119,19 @@ void mergeGraphs(const Graph& g1, const Graph g2, Graph* merged) {
         const VertexDescriptor neighbor_in_g1_v_d =
             boost::add_vertex(neighbor_v_p, *merged);
         std::cout << "\t\tWas added to merged graph: " << neighbor_v_p <<
-            " graph with VD: " << neighbor_in_g1_v_d << std::endl;
+                  " graph with VD: " << neighbor_in_g1_v_d << std::endl;
         // Create an edge between source_in_g1 and the newly added vertex.
-        auto edge_d = boost::add_edge(source_in_g1_v_d, neighbor_in_g1_v_d,
-                        {source_v_p.index_, neighbor_v_p.index_}, *merged);
+        auto edge_d = boost::add_edge(source_in_g1_v_d,
+                                      neighbor_in_g1_v_d,
+                                      {source_v_p.index_, neighbor_v_p.index_},
+                                      *merged);
         std::cout << "\t\tadded corresponding edge "
                   << (*merged)[edge_d.first] << std::endl;
 
         CHECK(edge_d.second == true)
-              << "Added an unmatched vertex to the merged graph, but edge "
-                  "between source vertex and neighbor was already existing. "
-                  "This should not happen";
+        << "Added an unmatched vertex to the merged graph, but edge "
+            "between source vertex and neighbor was already existing. "
+            "This should not happen";
         // Set the neighbor as matched.
         matched_vertices.push_back(*neighbor);
         g2_in_g1.insert({*neighbor, neighbor_in_g1_v_d});
@@ -142,7 +144,7 @@ void mergeGraphs(const Graph& g1, const Graph g2, Graph* merged) {
         auto edge_d = boost::add_edge(source_in_g1_v_d, neighbor_in_g1_v_d,
                                       {source_v_p.index_,
                                        neighbor_in_g1_v_p.index_}, *merged);
-        if(edge_d.second == false) {
+        if (edge_d.second == false) {
           std::cout << "\t\tAn edge was already present in the merged graph..."
                     << std::endl;
         } else {
@@ -155,11 +157,11 @@ void mergeGraphs(const Graph& g1, const Graph g2, Graph* merged) {
 
   // Iterate over the matched vertices and add their children to the database
   // graph in a recursive way if they are unmatched.
-  while(!still_to_process.empty()) {
+  while (!still_to_process.empty()) {
     const VertexDescriptor source_in_g2 = still_to_process.front();
     still_to_process.pop();
     std::cout << "Analyzing " << source_in_g2 << "-th vertex of g2" <<
-                                                                    std::endl;
+              std::endl;
     traverseAndAdd(source_in_g2);
   }
 

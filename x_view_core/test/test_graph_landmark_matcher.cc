@@ -128,8 +128,8 @@ void testRandomGraph(const unsigned long seed) {
                                                         modifier_params,
                                                         extraction_radius);
 
-  std::string base_dot_file_name = getOutputDirectory() + "/random_base.dot";
-  std::string sub_dot_file_name = getOutputDirectory() + "/random_sub.dot";
+  std::string base_dot_file_name = getOutputDirectory() + "random_base.dot";
+  std::string sub_dot_file_name = getOutputDirectory() + "random_sub.dot";
   dumpToDotFile(graph_pair_random.base_graph_, base_dot_file_name);
   dumpToDotFile(graph_pair_random.sub_graph_, sub_dot_file_name);
 

@@ -67,7 +67,7 @@ void addRandomEdgeToGraph(Graph* graph, std::mt19937& rng) {
     const VertexDescriptor& v1_d = boost::random_vertex(*graph, rng);
     const VertexDescriptor& v2_d = boost::random_vertex(*graph, rng);
 
-    if (addEdgeBetweenVertices(v1_d, v2_d, graph)) {
+    if (v1_d != v2_d && addEdgeBetweenVertices(v1_d, v2_d, graph)) {
       const VertexProperty& v1_p = (*graph)[v1_d];
       const VertexProperty& v2_p = (*graph)[v2_d];
 
@@ -231,11 +231,12 @@ void dumpToDotFile(Graph& graph, const std::string& filename) {
 
   // Open a stream
   std::ofstream out(filename.c_str());
-  CHECK(out.is_open());
+  CHECK(out.is_open())  << "Impossible to open/create file " << filename << ". "
+  << "Make sure the destination folder exists.";
 
   // Create a property map to be used during writing of the graph.
   boost::dynamic_properties dp;
-  dp.property("label", boost::get(&VertexProperty::semantic_entity_name_, graph));
+  dp.property("label", boost::get(&VertexProperty::semantic_label_, graph));
   dp.property("node_id", boost::get(&VertexProperty::index_, graph));
 
   boost::write_graphviz_dp(out, graph, dp);

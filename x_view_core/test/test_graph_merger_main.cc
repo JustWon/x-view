@@ -4,7 +4,6 @@
 #include "test_common.h"
 
 #include <x_view_core/datasets/abstract_dataset.h>
-#include <x_view_core/features/graph.h>
 #include <x_view_core/x_view_tools.h>
 
 #include <boost/graph/random.hpp>
@@ -35,19 +34,20 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
       global_dataset_ptr->numSemanticClasses();
   graph_construction_params.seed_ = seed;
   graph_construction_params.num_vertices_ = 15;
+  graph_construction_params.edge_probability_ = 0.2;
 
-  Graph g1 = generateChainGraph(graph_construction_params);
+  Graph g1 = generateRandomGraph(graph_construction_params);
 
   // Extract a subgraph.
   std::mt19937 rng(seed);
-  const int radius = 3;
+  const int radius = 2;
   const VertexDescriptor random_v_d = boost::random_vertex(g1, rng);
   Graph g2_original = extractSubgraphAroundVertex(g1, random_v_d, radius);
 
   // Modify the extracted subgraph.
   GraphModifierParams graph_modifier_params;
-  graph_modifier_params.num_vertices_to_add_ = 3;
-  graph_modifier_params.num_links_for_new_vertices_ = 2;
+  graph_modifier_params.num_vertices_to_add_ = 1;
+  graph_modifier_params.num_links_for_new_vertices_ = 1;
   graph_modifier_params.num_vertices_to_remove_ = 0;
   graph_modifier_params.num_edges_to_add_ = 0;
   graph_modifier_params.num_edges_to_remove_ = 0;
@@ -67,9 +67,9 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
   mergeGraphs(g1, g2, &merged_graph);
 
   const std::string output_path = getOutputDirectory();
-  const std::string g1_path = output_path + "/g1.dot";
-  const std::string g2_path = output_path + "/g2.dot";
-  const std::string merged_path = output_path + "/merged.dot";
+  const std::string g1_path = output_path + "g1.dot";
+  const std::string g2_path = output_path + "g2.dot";
+  const std::string merged_path = output_path + "merged.dot";
 
   std::cout << "Merged graph: \n" << merged_graph << std::endl;
   dumpToDotFile(g1, g1_path);
