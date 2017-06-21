@@ -15,7 +15,7 @@ void mergeGraphs(const Graph& g1, const Graph g2, Graph* merged) {
   random_walker_params.random_sampling_type =
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
 
-  VertexSimilarity::SCORE_TYPE score_type = VertexSimilarity::SCORE_TYPE::HARD;
+  VertexSimilarity::SCORE_TYPE score_type = VertexSimilarity::SCORE_TYPE::WEIGHTED;
 
   // Compute the similarities between the graphs via the GraphMatcher.
   GraphMatcher graph_matcher(random_walker_params, score_type);

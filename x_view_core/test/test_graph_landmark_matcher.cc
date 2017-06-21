@@ -52,7 +52,7 @@ void testChainGraph(const unsigned long seed) {
 
   GraphMatcherPtr graph_matcher_ptr =
       CAST(GraphMatcher::create(random_walker_params,
-                                VertexSimilarity::SCORE_TYPE::HARD),
+                                VertexSimilarity::SCORE_TYPE::WEIGHTED),
            GraphMatcher);
 
   CHECK_NOTNULL(graph_matcher_ptr.get());
@@ -143,7 +143,7 @@ void testRandomGraph(const unsigned long seed) {
 
   GraphMatcherPtr graph_matcher_ptr =
       CAST(GraphMatcher::create(random_walker_params,
-                                VertexSimilarity::SCORE_TYPE::HARD),
+                                VertexSimilarity::SCORE_TYPE::WEIGHTED),
            GraphMatcher);
 
   CHECK_NOTNULL(graph_matcher_ptr.get());

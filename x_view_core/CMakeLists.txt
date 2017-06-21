@@ -117,6 +117,8 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_graph_landmark_matcher.cc
         test/test_graph_merger_main.cc
         test/test_graph_merger.cc
+        test/test_vertex_similarity_main.cc
+        test/test_vertex_similarity.cc
         test/test_mcgregor_matching_main.cc
         test/test_mcgregor_matching.cc
 

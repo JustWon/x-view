@@ -175,6 +175,7 @@ class RandomWalker {
    */
   static const int computeRandomWalkKey(const RandomWalk& random_walk);
 
+
  protected:
 
   /**

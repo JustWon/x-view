@@ -98,7 +98,7 @@ class GraphMatcher : public AbstractMatcher {
   void computeSimilarityMatrix(const RandomWalker& random_walker,
                                SimilarityMatrixType* similarity_matrix,
                                const VertexSimilarity::SCORE_TYPE score_type =
-                               VertexSimilarity::SCORE_TYPE::HARD) const;
+                               VertexSimilarity::SCORE_TYPE::WEIGHTED) const;
 
  private:
   Graph global_semantic_graph_;

@@ -7,6 +7,7 @@
 #include <x_view_core/x_view_tools.h>
 
 #include <boost/graph/random.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include <random>
 
@@ -74,5 +75,8 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
   dumpToDotFile(g1, g1_path);
   dumpToDotFile(g2, g2_path);
   dumpToDotFile(merged_graph, merged_path);
+
+  // Close all windows.
+  cv::destroyAllWindows();
 }
 

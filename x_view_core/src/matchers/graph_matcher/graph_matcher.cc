@@ -71,7 +71,7 @@ GraphMatcher::GraphMatchingResult::computeMaxSimilarityRowwise() const {
 
 GraphMatcher::GraphMatcher()
     : random_walker_params_(),
-      vertex_similarity_score_type_(VertexSimilarity::SCORE_TYPE::HARD) {
+      vertex_similarity_score_type_(VertexSimilarity::SCORE_TYPE::WEIGHTED) {
   SimilarityPlotter::setColormap(cv::COLORMAP_OCEAN);
 }
 

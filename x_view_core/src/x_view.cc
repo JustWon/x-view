@@ -184,7 +184,7 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
   random_walker_params.walk_length = 2;
   random_walker_params.random_sampling_type =
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
-  VertexSimilarity::SCORE_TYPE score_type = VertexSimilarity::SCORE_TYPE::HARD;
+  VertexSimilarity::SCORE_TYPE score_type = VertexSimilarity::SCORE_TYPE::WEIGHTED;
   GraphMatcher graph_matcher(random_walker_params, score_type);
 
   // Add the previous graph to the matcher.
