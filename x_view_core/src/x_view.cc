@@ -229,13 +229,13 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
   cv::imshow("Max agree similarity", max_agree_similarity_image);
 
   // Function to create a curved polyline between two points.
-  auto createCurveBetween = [](const cv::Point& start, const cv::Point& end,
+  auto createCurveBetween = [&](const cv::Point& start, const cv::Point& end,
                                const int step) -> std::vector<cv::Point> {
     const int dist = std::abs(end.x - start.x) - 1;
     const int num_steps = dist / step;
     std::vector<cv::Point> line(num_steps);
     cv::Point anchor = (start + end) * 0.5;
-    anchor.y -= 80;
+    anchor.y -= 120;
     float t = 0.f;
     float dt = 1.f / num_steps;
     for (auto& point : line) {
@@ -291,7 +291,7 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
   }
 
   const cv::Scalar link_color = CV_RGB(255, 188, 56);
-  const int link_thickness = 2;
+  const int link_thickness = 1;
   cv::polylines(side_by_side, links, false, link_color, link_thickness);
 
   cv::imshow("Matches between consecutive frames", side_by_side);

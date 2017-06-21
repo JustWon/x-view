@@ -6,7 +6,7 @@
 namespace x_view {
 
 // FIXME: should this parameter be read by the config file?
-int GraphLandmark::MINIMUM_BLOB_SIZE = 500;
+int GraphLandmark::MINIMUM_BLOB_SIZE = 200;
 
 bool GraphLandmark::DILATE_AND_ERODE = true;
 
@@ -30,7 +30,7 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
 
   // *********** Graph generation ********** //
   GraphBuilderParams graph_builder_params;
-  graph_builder_params.max_distance_for_neighborhood = 10;
+  graph_builder_params.max_distance_for_neighborhood = 40;
   descriptor = GraphBuilder::createGraphFromNeighborBlobs(image_blobs_,
                                                           graph_builder_params);
   // create the descriptor stored in this landmark by generating a

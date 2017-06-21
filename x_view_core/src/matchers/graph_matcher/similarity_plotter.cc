@@ -3,7 +3,6 @@
 #include <opencv2/core/eigen.hpp>
 
 namespace x_view {
-
 int SimilarityPlotter::desired_image_size_ = 500;
 
 int SimilarityPlotter::colormap_ = cv::COLORMAP_OCEAN;
@@ -11,16 +10,11 @@ int SimilarityPlotter::colormap_ = cv::COLORMAP_OCEAN;
 cv::Mat SimilarityPlotter::getImageFromSimilarityMatrix(
     const Eigen::MatrixXf& similarity_matrix, bool auto_size) {
 
-  // Normalize score matrix and convert them to opencv image.
-  const float max_score = similarity_matrix.maxCoeff();
-
-  Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic>
-      normalized_similarity =
-  (similarity_matrix / max_score * 255).cast < unsigned
-  char > ();
+  Eigen::MatrixXuc uchar_similarity =
+      (similarity_matrix * 255.f).cast <uchar>();
 
   cv::Mat cv_scores, color_scores;
-  cv::eigen2cv(normalized_similarity, cv_scores);
+  cv::eigen2cv(uchar_similarity, cv_scores);
   if (auto_size)
     cv::resize(cv_scores, cv_scores,
                SimilarityPlotter::computeSize(cv_scores.size()), 0,
@@ -33,8 +27,7 @@ cv::Mat SimilarityPlotter::getImageFromSimilarityMatrix(
 }
 
 cv::Mat SimilarityPlotter::getImageFromSimilarityMatrix(
-    const Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>&
-    max_similarity_matrix, bool auto_size) {
+    const Eigen::MatrixXb& max_similarity_matrix, bool auto_size) {
 
   cv::Mat cv_scores(max_similarity_matrix.rows(),
                     max_similarity_matrix.cols(), CV_8UC1);
