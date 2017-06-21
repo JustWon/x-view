@@ -9,7 +9,7 @@ void VertexSimilarityTest::addWalkMap(const RandomWalker::WalkMap& walk_left,
                                       const float expected_score) {
   vertices_left_.push_back(walk_left);
   vertices_right_.push_back(walk_right);
-  expected_score_.push_back(expected_score);
+  expected_scores_.push_back(expected_score);
 }
 
 void VertexSimilarityTest::run() const {
@@ -20,11 +20,11 @@ void VertexSimilarityTest::run() const {
 void VertexSimilarityTest::checkExpectedSimilarity() const {
   const unsigned long num_mapped_walks = vertices_left_.size();
   CHECK_EQ(vertices_right_.size(), num_mapped_walks);
-  CHECK_EQ(expected_score_.size(), num_mapped_walks);
+  CHECK_EQ(expected_scores_.size(), num_mapped_walks);
   for(int i = 0; i < num_mapped_walks; ++i) {
     const RandomWalker::WalkMap& left = vertices_left_[i];
     const RandomWalker::WalkMap& right = vertices_right_[i];
-    const float expected_score = expected_score_[i];
+    const float expected_score = expected_scores_[i];
 
     // Compute score.
     const float computed_score = VertexSimilarity::score(left, right);
@@ -38,7 +38,7 @@ void VertexSimilarityTest::checkExpectedSimilarity() const {
 void VertexSimilarityTest::checkSymmetry() const {
   const unsigned long num_mapped_walks = vertices_left_.size();
   CHECK_EQ(vertices_right_.size(), num_mapped_walks);
-  CHECK_EQ(expected_score_.size(), num_mapped_walks);
+  CHECK_EQ(expected_scores_.size(), num_mapped_walks);
   for(int i = 0; i < num_mapped_walks; ++i) {
     const RandomWalker::WalkMap& left = vertices_left_[i];
     const RandomWalker::WalkMap& right = vertices_right_[i];
@@ -203,8 +203,6 @@ void testScoreValue() {
   vertex_similarity_test.run();
 
   vertex_similarity_test.clear();
-
-
 }
 
 }

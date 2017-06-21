@@ -2,7 +2,6 @@
 
 #include "test_vertex_similarity.h"
 
-using namespace x_view;
 using namespace x_view_test;
 
 TEST(XViewSlamTestSuite, test_vertex_similarity) {
