@@ -13,6 +13,9 @@ TEST(XViewSlamTestSuite, test_vertex_similarity) {
   // VertexSimilarity class.
   testScoreSymmetry();
 
+  // Test the computed score value for manually designed cases.
+  testScoreValue();
+
 }
 
 

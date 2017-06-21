@@ -155,5 +155,57 @@ void testScoreSymmetry() {
   }
 }
 
+void testScoreValue() {
+  const int num_semantic_classes = 10;
+  x_view::global_dataset_ptr =
+      std::make_shared<AbstractDataset>(AbstractDataset(num_semantic_classes));
+  std::vector<std::vector<int>> left = {
+      {0,0,0},
+      {0,0,0},
+      {1,2,3},
+      {2,1,3},
+      {4,3,1}
+  };
+  std::vector<std::vector<int>> right = {
+      {0,0,0},
+      {5,5,5},
+      {0,0,0},
+      {2,1,3},
+      {2,1,3}
+  };
+
+  auto left_map = VertexSimilarityTest::generateWalkMap(left);
+  auto right_map = VertexSimilarityTest::generateWalkMap(right);
+
+  VertexSimilarityTest vertex_similarity_test;
+
+  vertex_similarity_test.setScoreType(VertexSimilarity::SCORE_TYPE::WEIGHTED);
+  const float expected_score_weighted = 3.f/5.f;
+  vertex_similarity_test.addWalkMap(left_map, right_map,
+                                    expected_score_weighted);
+  vertex_similarity_test.run();
+  vertex_similarity_test.clear();
+
+
+  vertex_similarity_test.setScoreType(VertexSimilarity::SCORE_TYPE::SURFACE);
+  const float expected_score_surface = 7.f/10.f;
+  vertex_similarity_test.addWalkMap(left_map, right_map,
+                                    expected_score_surface);
+  vertex_similarity_test.run();
+  vertex_similarity_test.clear();
+
+  // Identical matches should have score = 1.
+  vertex_similarity_test.addWalkMap(left_map, left_map, 1.f);
+  vertex_similarity_test.addWalkMap(right_map, right_map, 1.f);
+  vertex_similarity_test.setScoreType(VertexSimilarity::SCORE_TYPE::WEIGHTED);
+  vertex_similarity_test.run();
+  vertex_similarity_test.setScoreType(VertexSimilarity::SCORE_TYPE::SURFACE);
+  vertex_similarity_test.run();
+
+  vertex_similarity_test.clear();
+
+
+}
+
 }
 

@@ -19,6 +19,12 @@ class VertexSimilarityTest {
         score_type_(VertexSimilarity::SCORE_TYPE::WEIGHTED) {
   }
 
+  void clear() {
+    vertices_left_.clear();
+    vertices_right_.clear();
+    expected_score_.clear();
+  }
+
   void setScoreType(const VertexSimilarity::SCORE_TYPE score_type) {
     VertexSimilarity::setScoreType(score_type);
     score_type_ = score_type;
@@ -42,6 +48,8 @@ class VertexSimilarityTest {
 };
 
 void testScoreSymmetry();
+
+void testScoreValue();
 
 
 }
