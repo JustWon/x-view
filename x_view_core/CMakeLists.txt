@@ -59,6 +59,9 @@ cs_add_library(${PROJECT_NAME}
         src/matchers/graph_matcher/similarity_plotter.cc
         src/matchers/graph_matcher/vertex_similarity.cc
 
+        # Parameters
+        src/parameters/parameters.cc
+
         #### HEADER FILES ####
 
         include/x_view_core/x_view.h
@@ -98,6 +101,9 @@ cs_add_library(${PROJECT_NAME}
         include/x_view_core/matchers/graph_matcher/random_walker.h
         include/x_view_core/matchers/graph_matcher/similarity_plotter.h
         include/x_view_core/matchers/graph_matcher/vertex_similarity.h
+
+        # Parameters
+        include/x_view_core/parameters/parameters.h
         )
 
 
@@ -115,11 +121,13 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_graph_landmark_matcher.cc
         test/test_mcgregor_matching_main.cc
         test/test_mcgregor_matching.cc
+        test/test_param_tree_main.cc
+        test/test_param_tree.cc
 
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )
 
-target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME} )
 
 # Building from the CLION IDE does not include correctly the directories
 # organized by catkin, so we manually include them assuming the worspace has
