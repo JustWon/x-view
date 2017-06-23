@@ -1,4 +1,5 @@
 #include <x_view_node/x_view_worker.h>
+#include <x_view_parser/parser.h>
 #include <x_view_core/datasets/synthia_dataset.h>
 
 #include <opencv2/highgui/highgui.hpp>
@@ -10,6 +11,10 @@ namespace enc = sensor_msgs::image_encodings;
 namespace x_view_ros {
 
 XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n) {
+
+  std::unique_ptr<x_view::Parameters> root = parseParameters(nh_);
+  std::cout << "Parsed parameters are:\n" << root->toString()<<std::endl;
+
   getParameters();
   semantics_image_sub_ = nh_.subscribe(params_.semantics_image_topic, 1,
                                        &XViewWorker::semanticsImageCallback,

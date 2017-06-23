@@ -1,8 +1,7 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
-
+#include <x_view_parser/parser.h>
 #include <x_view_core/datasets/synthia_dataset.h>
 
-#include <glog/logging.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <highgui.h>
 
@@ -38,6 +37,10 @@ cv::Mat XViewBagReader::RosbagTopicView::getSemanticImageAtFrame(const int frame
 
 XViewBagReader::XViewBagReader(ros::NodeHandle& n)
     : nh_(n) {
+
+  std::unique_ptr<x_view::Parameters> root = parseParameters(nh_);
+  std::cout << "Parsed parameters are:\n" << root->toString() << std::endl;
+
   getParameters();
 
   loadBagFile();

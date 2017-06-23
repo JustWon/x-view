@@ -21,6 +21,7 @@
   <depend>sensor_msgs</depend>
   <depend>tf</depend>
   <depend>x_view_core</depend>
+  <depend>x_view_parser</depend>
   
 </package>
 

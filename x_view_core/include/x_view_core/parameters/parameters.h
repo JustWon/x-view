@@ -14,6 +14,8 @@ class Parameters {
       : indentation(""),
         name_(name) {}
 
+  /// \brief Checks if the Parameters instance contains the key passed as
+  /// parameter.
   bool has(const std::string& name) const {
     return (properties_.find(name) != properties_.end());
   }
@@ -123,19 +125,26 @@ class Parameters {
 
   /// \brief Writes all parameters as a string.
   std::string toString() const;
+
+  /// \brief Returns the name of the Parameters instance.
   const std::string& name() const {
     return name_;
   }
+  /// \brief Indentation to be used for current Parameters instance when
+  /// being written to a string.
   std::string indentation;
 
  private:
   /// \brief  Custom variant data type (stores one of boolean/integer/float/..)
   struct Property {
+    /// \brief Tag storing the type contained in the current property.
     enum {
       Boolean_type, Integer_type, Float_type,
       String_type, PropertyList_type
     } type;
 
+    /// \brief Only one member at the time of the struct is used depending on
+    /// the Property type.
     struct Value {
       Value() : Boolean_value(false) {}
       ~Value() {}

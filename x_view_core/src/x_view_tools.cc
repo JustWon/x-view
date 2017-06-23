@@ -72,7 +72,6 @@ void setupLogging(char** argv) {
   google::InitGoogleLogging(argv[0]);
 
   std::cout << "X-View is logging to <" << log_dir_name << ">" << std::endl;
-
 }
 
 void finalizeLogging() {
@@ -80,6 +79,7 @@ void finalizeLogging() {
   google::FlushLogFiles(google::WARNING);
   google::FlushLogFiles(google::ERROR);
   google::FlushLogFiles(google::FATAL);
+  std::cout << "Logging finalized." << std::endl;
 }
 
 // **************************** Graph modifiers ******************************//

@@ -96,7 +96,7 @@ std::string Parameters::toString() const {
 std::string Parameters::Property::toString() const {
   switch(type) {
     case Property::Boolean_type:
-      return  ((value.Boolean_value == true) ? "True" : "False");
+      return value.Boolean_value ? "True" : "False";
     case Property::Integer_type:
       return std::to_string(value.Integer_value);
     case Property::Float_type:
