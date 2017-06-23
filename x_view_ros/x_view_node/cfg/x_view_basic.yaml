@@ -20,9 +20,10 @@ Matcher: {
     walk_length: 3
 }
 
-# Parameters read exlusively by XViewWorker
+# Parameters read exclusively by XViewWorker
 XViewWorker: {
     semantics_image_topic: "/Stereo_Left/Omni_B/labels",
     sensor_frame: "cam02",
     world_frame: "world"
 }
+
