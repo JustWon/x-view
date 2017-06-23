@@ -80,6 +80,44 @@ class GraphDrawer {
   */
   static void addGraphEdgesToImage(const Graph& graph, cv::Mat* image);
 
+  //===================== Color and line specifications ======================//
+  static void setVertexColor(const cv::Scalar& color) { vertex_color_ = color; }
+  static void setVertexRadius(const int radius) { vertex_radius_ = radius; }
+  static void setEdgeColor(const cv::Scalar& color) { edge_color_ = color; }
+  static void setEdgeThickness(const int thickness) {
+    edge_thickness_ = thickness;
+  }
+  static void setEllipseColorStatic(const cv::Scalar& color) {
+    ellipse_color_static_ = color;
+  }
+  static void setEllipseColorDynamic(const cv::Scalar& color) {
+    ellipse_color_dynamic_ = color;
+  }
+  static void setEllipseThickness(const int thickness) {
+    ellipse_thickness_ = thickness;
+  }
+  static void setLabelColor(const cv::Scalar& color) { label_color_ = color; }
+  static void setLabelScale(const float scale) { label_scale_ = scale; }
+
+  /**
+   * \brief Resets the color and line specifications to their default value.
+   */
+  static void resetProperties();
+
+ private:
+  static cv::Scalar vertex_color_;
+  static int vertex_radius_;
+
+  static cv::Scalar edge_color_;
+  static int edge_thickness_;
+
+  static cv::Scalar ellipse_color_static_;
+  static cv::Scalar ellipse_color_dynamic_;
+  static int ellipse_thickness_;
+
+  static cv::Scalar label_color_;
+  static float label_scale_;
+
 };
 
 }

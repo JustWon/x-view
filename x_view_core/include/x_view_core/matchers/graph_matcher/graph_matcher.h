@@ -22,7 +22,9 @@ class GraphMatcher : public AbstractMatcher {
 
  public:
 
-  typedef Eigen::SparseMatrix<float> SimilarityMatrixType;
+  typedef Eigen::MatrixXf SimilarityMatrixType;
+  typedef Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>
+      MaxSimilarityMatrixType;
 
   GraphMatcher();
   GraphMatcher(const RandomWalkerParams& random_walker_params,
@@ -45,6 +47,9 @@ class GraphMatcher : public AbstractMatcher {
       return similarity_matrix_;
     }
 
+    MaxSimilarityMatrixType computeMaxSimilarityColwise() const;
+    MaxSimilarityMatrixType computeMaxSimilarityRowwise() const;
+
    private:
     SimilarityMatrixType similarity_matrix_;
   };
@@ -61,10 +66,21 @@ class GraphMatcher : public AbstractMatcher {
    */
   MatchingResultPtr match(const Graph& query_semantic_graph);
 
+  virtual void addDescriptor(const ConstDescriptorPtr& descriptor) override;
+
+  /**
+   * \brief Overloaded function that directly adds the passed Graph to the
+   * matcher.
+   * \param graph Graph to be added to the matcher.r
+   * associated to the graph passed as first argument.
+   */
+  void addDescriptor(const Graph& graph);
+
   static LandmarksMatcherPtr create();
 
   static LandmarksMatcherPtr create(const RandomWalkerParams& random_walker_params,
                                     const VertexSimilarity::SCORE_TYPE score_type);
+
 
   /**
    * \brief Computes the similarity matrix between all vertices belonging to
@@ -82,7 +98,7 @@ class GraphMatcher : public AbstractMatcher {
   void computeSimilarityMatrix(const RandomWalker& random_walker,
                                SimilarityMatrixType* similarity_matrix,
                                const VertexSimilarity::SCORE_TYPE score_type =
-                               VertexSimilarity::SCORE_TYPE::HARD) const;
+                               VertexSimilarity::SCORE_TYPE::WEIGHTED) const;
 
  private:
   Graph global_semantic_graph_;

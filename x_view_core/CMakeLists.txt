@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(x_view_core)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -march=native")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -march=native")
 
 # if no build type given, than set the build type to "Release"
 IF (NOT CMAKE_BUILD_TYPE)
@@ -18,6 +18,7 @@ ENDIF ()
 # Flag used by XView to know the path of where it is located.
 add_definitions(-DX_VIEW_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR})
 add_definitions(-DX_VIEW_LOG_DIR=${CMAKE_CURRENT_SOURCE_DIR}/logs/)
+add_definitions(-DX_VIEW_OUT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/output/)
 
 find_package(catkin_simple 0.1.0 REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
@@ -55,6 +56,7 @@ cs_add_library(${PROJECT_NAME}
         # Feature matchers
         src/matchers/vector_matcher.cc
         src/matchers/graph_matcher/graph_matcher.cc
+        src/matchers/graph_matcher/graph_merger.cc
         src/matchers/graph_matcher/random_walker.cc
         src/matchers/graph_matcher/similarity_plotter.cc
         src/matchers/graph_matcher/vertex_similarity.cc
@@ -98,6 +100,7 @@ cs_add_library(${PROJECT_NAME}
         include/x_view_core/matchers/graph_matcher.h
         include/x_view_core/matchers/vector_matcher.h
         include/x_view_core/matchers/graph_matcher/graph_matcher.h
+        include/x_view_core/matchers/graph_matcher/graph_merger.h
         include/x_view_core/matchers/graph_matcher/random_walker.h
         include/x_view_core/matchers/graph_matcher/similarity_plotter.h
         include/x_view_core/matchers/graph_matcher/vertex_similarity.h
@@ -119,6 +122,10 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_random_walk.cc
         test/test_graph_landmark_matcher_main.cc
         test/test_graph_landmark_matcher.cc
+        test/test_graph_merger_main.cc
+        test/test_graph_merger.cc
+        test/test_vertex_similarity_main.cc
+        test/test_vertex_similarity.cc
         test/test_mcgregor_matching_main.cc
         test/test_mcgregor_matching.cc
         test/test_param_tree_main.cc

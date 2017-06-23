@@ -137,6 +137,9 @@ class XView {
   /// \brief Vector of semantic landmarks pointers visited by XView.
   std::vector<SemanticLandmarkPtr> semantics_db_;
 
+  /// \brief Current number of frames processed by XView.
+  unsigned long frame_number_;
+
 }; // XView
 
 }

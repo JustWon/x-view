@@ -1,7 +1,9 @@
 Dataset: {
     name: "SYNTHIA",
     rosbag_path: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/Synthia_3_cams.bag",
-    semantics_image_topic: "/Stereo_Left/Omni_B/labels"
+    semantics_image_topic: "/Stereo_Left/Omni_B/labels",
+    sensor_frame: "cam02",
+    world_frame: "world"
 }
 
 Landmark: {

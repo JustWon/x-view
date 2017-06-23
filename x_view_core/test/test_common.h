@@ -30,6 +30,25 @@ struct GraphConstructionParams {
 };
 
 /**
+ * \brief Parameters used to modify the topology of a graph.
+ */
+struct GraphModifierParams {
+  /// \brief Number of new vertices to add to the graph.
+  int num_vertices_to_add;
+  /// \brief Number of vertices to remove from the graph.
+  int num_vertices_to_remove;
+  /// \brief Number of new edges to add to the graph.
+  int num_edges_to_add;
+  /// \brief Number of edges to remove from the graph.
+  int num_edges_to_remove;
+  /// \brief Number of edges to create between each new vertex and the
+  /// existing ones.
+  int num_links_for_new_vertices = 2;
+  /// \brief Start index to use when adding new vertices.
+  int start_vertex_index = -1;
+};
+
+/**
  * \brief Generates a random graph with num_vertices vertices, where each
  * pair of vertices is linked by an edge with probability edge_probability. A
  * random semantic class is associated to each vertex of the graph.
@@ -88,6 +107,17 @@ class KhopVisitor : public boost::default_bfs_visitor {
 x_view::Graph extractSubgraphAroundVertex(const x_view::Graph& original,
                                           const x_view::VertexDescriptor& source,
                                           const int radius);
+
+/**
+ * \brief Modifies the graph pointed by the passed argument following the
+ * parameters contained in the second argument.
+ * \param graph Pointer pointing to the graph to be modified.
+ * \param params Parameters used for modifying the graph.
+ * \param rng Random number generator used to randomly create/remove
+ * vertices/edges.
+ */
+void modifyGraph(x_view::Graph* graph, const GraphModifierParams& params,
+                 std::mt19937& rng);
 
 }
 

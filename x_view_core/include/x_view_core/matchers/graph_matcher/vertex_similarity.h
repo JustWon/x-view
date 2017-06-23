@@ -18,12 +18,11 @@ class VertexSimilarity {
    * vertices.
    */
   enum class SCORE_TYPE {
-    /// \brief When the score function is HARD, then the score_hard function
-    /// is used to compute the score between graph vertices.
-        HARD = 0,
     /// \brief When the score function is WEIGHTED, then the score_weighted
     /// function is used to compute the score between graph vertices.
-        WEIGHTED
+        WEIGHTED = 0,
+
+        SURFACE
   };
 
   /**
@@ -65,34 +64,24 @@ class VertexSimilarity {
    * \brief Function implementing the ScoreFunctionType signature which
    * computes the similarity between two graph vertices by counting how many
    * exact correspondences exist between the random walks associated to the
-   * graph vertices passed as argument. This function computes an unweighed
-   * inner product between the keys associated to the random walks of the
-   * compared vertices.
+   * graph vertices passed as argument. This function the similarity between
+   * two WalkMaps considering the associated multiplicity.
+   * \details Whenever a match is found between the two WalkMaps passed as
+   * argument, this function considers the respective multiplicity, and
+   * increases the score by the minimum multiplicity of the two matches:
+   *   _______       _______
+   *  | - - - | --> | - - - |
+   *  | - - - | --> | - - - |
+   *  | x x x | --> | x x x |     Total number of matches: 4
+   *  | o o o |     | x x x |     Total number of possible matches: 7
+   *  | o o o |     | \ \ \ |     ==> Similarity score: 4/7
+   *  | \ \ \ | --> | \ \ \ |
+   *   ~~~~~~~       ~~~~~~~
+   *
    * \param node1 Walk map associated to the first node to be compared.
    * \param node2 Walk map associated to the second node to be compared.
-   * \return A floating point score representing the similarity between node1
-   * and node2. The higher the most similar.
-   * \code{.cpp}
-   * RandomWalker random_walker(graph, random_walker_params);
-   * const auto& mapped_walks = random_walker.getMappedWalks();
-   * float similarity_i_j =
-   *    VertexSimilarity::score(mapped_walks[i], mapped_walks[j]);
-   * \endcode
-   */
-  static const float score_hard(const RandomWalker::WalkMap& node1,
-                                const RandomWalker::WalkMap& node2);
-
-  /**
-   * \brief Function implementing the ScoreFunctionType signature which
-   * computes the similarity between two graph vertices by counting how many
-   * exact correspondences exist between the random walks associated to the
-   * graph vertices passed as argument. This function computes a weighed
-   * inner product between the keys associated to the random walks of the
-   * compared vertices.
-   * \param node1 Walk map associated to the first node to be compared.
-   * \param node2 Walk map associated to the second node to be compared.
-   * \return A floating point score representing the similarity between node1
-   * and node2. The higher the most similar.
+   * \return A floating point score in [0,1] representing the similarity
+   * between node1 and node2. The higher the most similar.
    * \code{.cpp}
    * RandomWalker random_walker(graph, random_walker_params);
    * const auto& mapped_walks = random_walker.getMappedWalks();
@@ -102,6 +91,38 @@ class VertexSimilarity {
    */
   static const float score_weighted(const RandomWalker::WalkMap& node1,
                                     const RandomWalker::WalkMap& node2);
+
+  /**
+ * \brief Function implementing the ScoreFunctionType signature which
+ * computes the similarity between two graph vertices by counting how many
+ * exact correspondences exist between the random walks associated to the
+ * graph vertices passed as argument. This function the similarity between
+ * two WalkMaps considering the associated multiplicity.
+ * \details Whenever a match is found between the two WalkMaps passed as
+ * argument, this function considers the respective multiplicity, and
+ * increases the score by the summed multiplicity of the two matches:
+ *   _______         _______
+ *  | - - - | --->  | - - - |
+ *  | - - - | --->  | - - - |
+ *  | x x x | \-->  | x x x |     Total number of matches (surface): 10
+ *  | o o o |  \->  | x x x |     Total surface: 12
+ *  | o o o |  /->  | \ \ \ |     ==> Similarity score: 10/12
+ *  | \ \ \ | /-->  | \ \ \ |
+ *   ~~~~~~~        ~~~~~~~
+ * \param node1 Walk map associated to the first node to be compared.
+ * \param node2 Walk map associated to the second node to be compared.
+ * \return A floating point score in [0,1] representing the similarity
+ * between node1 and node2. The higher the most similar.
+ * \code{.cpp}
+ * RandomWalker random_walker(graph, random_walker_params);
+ * const auto& mapped_walks = random_walker.getMappedWalks();
+ * float similarity_i_j =
+ *    VertexSimilarity::score(mapped_walks[i], mapped_walks[j]);
+ * \endcode
+ */
+  static const float score_surface(const RandomWalker::WalkMap& node1,
+  const RandomWalker::WalkMap& node2);
+
 };
 
 }

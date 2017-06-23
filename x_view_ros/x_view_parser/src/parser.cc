@@ -84,6 +84,8 @@ std::unique_ptr<Parameters> parseDataset(const ros::NodeHandle& nh) {
   addString(nh, "/Dataset/rosbag_path", "rosbag_path", dataset_parameters);
   addString(nh, "/Dataset/semantics_image_topic", "semantics_image_topic",
             dataset_parameters);
+  addString(nh, "/Dataset/sensor_frame", "sensor_frame", dataset_parameters);
+  addString(nh, "/Dataset/world_frame", "world_frame", dataset_parameters);
 
   return std::move(dataset_parameters);
 }

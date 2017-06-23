@@ -104,8 +104,6 @@ typedef boost::graph_traits<Graph>::edge_descriptor EdgeDescriptor;
 bool areVerticesConnectedByIndex(const int v1, const int v2,
                                  const Graph& graph);
 
-
-
 /**
  * \brief Adds an edge between the VertexDescriptors passed as argument if
  * the edge does not exist yet.
@@ -139,6 +137,8 @@ std::ostream& operator<<(std::ostream& out, const EdgeProperty& e);
 
 /// \brief Overloaded operator to print a graph.
 std::ostream& operator<<(std::ostream& out, const Graph& graph);
+
+void dumpToDotFile(Graph& graph, const std::string& filename);
 
 }
 

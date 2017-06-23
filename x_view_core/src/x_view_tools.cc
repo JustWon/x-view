@@ -37,6 +37,11 @@ const std::string& getRootDirectory() {
   return x_view_root;
 }
 
+const std::string& getOutputDirectory() {
+  static std::string x_view_out = std::string(X_VIEW_XSTR(X_VIEW_OUT_DIR));
+  return x_view_out;
+}
+
 const std::string& getLogDirectory() {
   static std::string x_view_log = std::string(X_VIEW_XSTR(X_VIEW_LOG_DIR));
   return x_view_log;
@@ -85,12 +90,15 @@ void finalizeLogging() {
 // **************************** Graph modifiers ******************************//
 
 void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
-                            const int link_to_n_vertices) {
+                            const int index,  const int link_to_n_vertices) {
   CHECK_NOTNULL(graph);
 
   // Create the new vertex.
   VertexProperty new_vertex;
-  new_vertex.index = static_cast<int>(boost::num_vertices(*graph));
+  if(index == -1)
+    new_vertex.index = static_cast<int>(boost::num_vertices(*graph));
+  else
+    new_vertex.index = index;
   // Random semantic label.
   new_vertex.semantic_label =
       static_cast<int>(rng() % global_dataset_ptr->numSemanticClasses());
