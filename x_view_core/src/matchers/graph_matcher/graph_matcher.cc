@@ -4,6 +4,7 @@
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
+#include <x_view_core/x_view_locator.h>
 
 namespace x_view {
 
@@ -69,9 +70,35 @@ GraphMatcher::GraphMatchingResult::computeMaxSimilarityRowwise() const {
   return max_similarity_rowwise;
 }
 
-GraphMatcher::GraphMatcher()
-    : random_walker_params_(),
-      vertex_similarity_score_type_(VertexSimilarity::SCORE_TYPE::WEIGHTED) {
+GraphMatcher::GraphMatcher() {
+  const auto& parameters = Locator::getParameters();
+  const auto& matcher_parameters = parameters->getChildPropertyList("matcher");
+  const std::string score_type =
+      matcher_parameters->getString("vertex_similarity_score");
+  if(score_type == "WEIGHTED")
+    vertex_similarity_score_type_ = VertexSimilarity::SCORE_TYPE::WEIGHTED;
+  else if(score_type == "SURFACE")
+    vertex_similarity_score_type_ = VertexSimilarity::SCORE_TYPE::SURFACE;
+  else
+    LOG(ERROR) << "Unrecognized vertex score type <" << score_type << ">.";
+
+  const std::string random_walk_sampling_type =
+      matcher_parameters->getString("random_walk_sampling_type");
+  if(random_walk_sampling_type == "UNIFORM")
+    random_walker_params_.random_sampling_type =
+        RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM;
+  else if(random_walk_sampling_type == "AVOIDING") {
+    random_walker_params_.random_sampling_type =
+    RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
+  } else
+    LOG(ERROR) << "Unrecognized random walker sampling type <"
+               << random_walk_sampling_type << ">.";
+
+  random_walker_params_.num_walks =
+      matcher_parameters->getInteger("num_walks");
+  random_walker_params_.walk_length =
+      matcher_parameters->getInteger("walk_length");
+
   SimilarityPlotter::setColormap(cv::COLORMAP_OCEAN);
 }
 

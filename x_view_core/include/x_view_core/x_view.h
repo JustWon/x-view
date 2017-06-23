@@ -25,7 +25,6 @@ class XView {
 
  public:
 
-
   /**
    * \brief Constructs the XView object which handles the semantic SLAM problem.
    */

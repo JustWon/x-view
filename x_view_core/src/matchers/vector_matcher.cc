@@ -2,11 +2,16 @@
 
 #include <x_view_core/features/vector_descriptor.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
+#include <x_view_core/x_view_locator.h>
 
 namespace x_view {
 
-VectorMatcher::VectorMatcher()
-    : num_retained_best_matches_(1) {
+VectorMatcher::VectorMatcher() {
+  const auto& parameters = Locator::getParameters();
+  const auto& matcher_parameters = parameters->getChildPropertyList("matcher");
+  num_retained_best_matches_ =
+      matcher_parameters->getInteger("num_retained_matches", 1);
+
   descriptor_matcher_ = std::make_shared<cv::BFMatcher>();
 }
 
@@ -21,9 +26,7 @@ VectorMatcher::match(const SemanticLandmarkPtr& query_landmark) {
       std::dynamic_pointer_cast<const VectorDescriptor>(query_landmark->getDescriptor());
 
   // Perform checks related to the cast
-  CHECK(vector_descriptor != nullptr) << "Impossible to cast descriptor "
-      "associated to queryLandmark to a 'const VectorDescriptor'";
-
+  CHECK_NOTNULL(vector_descriptor.get());
 
   // create a matching result pointer which will be returned by this function
   auto matching_result = std::make_shared<VectorMatchingResult>();

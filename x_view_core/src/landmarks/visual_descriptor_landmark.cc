@@ -8,8 +8,8 @@
 
 namespace x_view {
 
-// TODO: read number of desired features from config file
-int VisualDescriptorLandmark::NUM_VISUAL_FEATURES = 1000;
+int VisualDescriptorLandmark::DEFAULT_NUM_VISUAL_FEATURES = 1000;
+float VisualDescriptorLandmark::DEFAULT_HESSIAN_THRESHOLD = 0.2f;
 
 VisualDescriptorLandmark::VisualDescriptorLandmark(const cv::Mat& image,
                                                    const SE3& pose)
@@ -24,29 +24,35 @@ ORBVisualDescriptorLandmark::ORBVisualDescriptorLandmark(const cv::Mat& image,
     : VisualDescriptorLandmark(image, pose) {
 
   const auto& dataset = Locator::getDataset();
+  const auto& parameters = Locator::getParameters();
+  const auto& landmark_parameters =
+      parameters->getChildPropertyList("landmark");
+
+  const int num_visual_features =
+      landmark_parameters->getInteger("num_visual_features",
+                                      DEFAULT_NUM_VISUAL_FEATURES);
 
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
   cv::Mat gray;
   cv::cvtColor(image, gray, CV_BGR2GRAY);
 
-  features_extractor.reset(new cv::ORB(NUM_VISUAL_FEATURES));
+  features_extractor.reset(new cv::ORB(num_visual_features));
 
   std::vector<cv::KeyPoint> keypoints;
   features_extractor->detect(
       gray * 255. / dataset->numSemanticClasses(), keypoints);
 
   // retains only the desired number of features
-  if (keypoints.size() > NUM_VISUAL_FEATURES)
-    cv::KeyPointsFilter::retainBest(keypoints, NUM_VISUAL_FEATURES);
+  if (keypoints.size() > num_visual_features)
+    cv::KeyPointsFilter::retainBest(keypoints, num_visual_features);
 
   // compute the feature descriptors
   cv::Mat descriptors;
   features_extractor->compute(gray, keypoints, descriptors);
 
-  descriptor_ =
-      std::make_shared<VisualDescriptor>(VisualDescriptor(descriptors,
-                                                          keypoints));
+  descriptor_ = std::make_shared<VisualDescriptor>(
+      VisualDescriptor(descriptors, keypoints));
 }
 
 //*************************** SIFT visual descriptor *************************//
@@ -56,29 +62,35 @@ SIFTVisualDescriptorLandmark::SIFTVisualDescriptorLandmark(const cv::Mat& image,
     : VisualDescriptorLandmark(image, pose) {
 
   const auto& dataset = Locator::getDataset();
+  const auto& parameters = Locator::getParameters();
+  const auto& landmark_parameters =
+      parameters->getChildPropertyList("landmark");
+
+  const int num_visual_features =
+      landmark_parameters->getInteger("num_visual_features",
+                                      DEFAULT_NUM_VISUAL_FEATURES);
 
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
   cv::Mat gray;
   cv::cvtColor(image, gray, CV_BGR2GRAY);
 
-  features_extractor.reset(new cv::SIFT(NUM_VISUAL_FEATURES));
+  features_extractor.reset(new cv::SIFT(num_visual_features));
 
   std::vector<cv::KeyPoint> keypoints;
   features_extractor->detect(
       gray * 255. / dataset->numSemanticClasses(), keypoints);
 
   // retains only the desired number of features
-  if (keypoints.size() > NUM_VISUAL_FEATURES)
-    cv::KeyPointsFilter::retainBest(keypoints, NUM_VISUAL_FEATURES);
+  if (keypoints.size() > num_visual_features)
+    cv::KeyPointsFilter::retainBest(keypoints, num_visual_features);
 
   // compute the feature descriptors
   cv::Mat descriptors;
   features_extractor->compute(gray, keypoints, descriptors);
 
-  descriptor_ =
-      std::make_shared<VisualDescriptor>(VisualDescriptor(descriptors,
-                                                          keypoints));
+  descriptor_ = std::make_shared<VisualDescriptor>(
+      VisualDescriptor(descriptors, keypoints));
 }
 
 //************************** SURF visual descriptor **************************//
@@ -88,13 +100,22 @@ SURFVisualDescriptorLandmark::SURFVisualDescriptorLandmark(const cv::Mat& image,
     : VisualDescriptorLandmark(image, pose) {
 
   const auto& dataset = Locator::getDataset();
+  const auto& parameters = Locator::getParameters();
+  const auto& landmark_parameters =
+      parameters->getChildPropertyList("landmark");
+
+  const int num_visual_features =
+      landmark_parameters->getInteger("num_visual_features",
+                                      DEFAULT_NUM_VISUAL_FEATURES);
+  const float hessian_threshold =
+      landmark_parameters->getFloat("hessian_threshold",
+                                    DEFAULT_HESSIAN_THRESHOLD);
 
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
   cv::Mat gray;
   cv::cvtColor(image, gray, CV_BGR2GRAY);
 
-  const double hessian_threshold = 0.2;
   features_extractor.reset(new cv::SURF(hessian_threshold));
 
   std::vector<cv::KeyPoint> keypoints;
@@ -102,16 +123,15 @@ SURFVisualDescriptorLandmark::SURFVisualDescriptorLandmark(const cv::Mat& image,
       gray * 255. / dataset->numSemanticClasses(), keypoints);
 
   // retains only the desired number of features
-  if (keypoints.size() > NUM_VISUAL_FEATURES)
-    cv::KeyPointsFilter::retainBest(keypoints, NUM_VISUAL_FEATURES);
+  if (keypoints.size() > num_visual_features)
+    cv::KeyPointsFilter::retainBest(keypoints, num_visual_features);
 
   // compute the feature descriptors
   cv::Mat descriptors;
   features_extractor->compute(gray, keypoints, descriptors);
 
-  descriptor_ =
-      std::make_shared<VisualDescriptor>(VisualDescriptor(descriptors,
-                                                          keypoints));
+  descriptor_ = std::make_shared<VisualDescriptor>(
+      VisualDescriptor(descriptors, keypoints));
 }
 
 }
