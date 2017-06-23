@@ -92,6 +92,7 @@ void XViewBagReader::iterateBagForwards(const std::string& image_topic) {
   auto const& view = topic_views_[image_topic];
   for (int i = 0; i < view.size_; ++i) {
     LOG(INFO) << "Processing semantic image at index " << i;
+    parseParameters();
     x_view_->processSemanticImage(view.getSemanticImageAtFrame(i),
                                  x_view::SE3());
   }
@@ -100,6 +101,7 @@ void XViewBagReader::iterateBagBackwards(const std::string& image_topic) {
   auto const& view = topic_views_[image_topic];
   for (int i = view.size_ - 1; i >= 0; --i) {
     LOG(INFO) << "Processing semantic image at index " << i;
+    parseParameters();
     x_view_->processSemanticImage(view.getSemanticImageAtFrame(i),
                                  x_view::SE3());
   }
@@ -110,9 +112,30 @@ void XViewBagReader::iterateBagFromTo(const std::string& image_topic,
   const int step = (from <= to ? +1 : -1);
   for (int i = from; step * i < step * to; i += step) {
     std::cout << "Processing semantic image at index " << i << std::endl;
+    parseParameters();
     x_view_->processSemanticImage(view.getSemanticImageAtFrame(i),
                                  x_view::SE3());
   }
+}
+
+void XViewBagReader::parseParameters() const {
+  // Parse all parameters.
+  std::unique_ptr<x_view::Parameters> parameters = parser_.parseParameters();
+
+  // Register the parameters into the locator.
+  x_view::Locator::registerParameters(std::move(parameters));
+
+  // Set the usage of the specified dataset.
+  const auto& params = x_view::Locator::getParameters();
+  const auto& dataset_params = params->getChildPropertyList("dataset");
+  const std::string dataset_name = dataset_params->getString("name");
+  if (dataset_name == "SYNTHIA") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::SynthiaDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else
+    CHECK(false) << "Dataset '" << dataset_name
+                 << "' is not supported" << std::endl;
 }
 
 void XViewBagReader::getBagReaderParameters() {

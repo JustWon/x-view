@@ -32,6 +32,8 @@ class XViewWorker {
   void tfTransformToSE3(const tf::StampedTransform& tf_transform,
                         x_view::SE3* pose);
 
+  void parseParameters() const;
+
   // Node handle.
   ros::NodeHandle& nh_;
 

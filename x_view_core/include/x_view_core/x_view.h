@@ -40,8 +40,16 @@ class XView {
   void processSemanticImage(const cv::Mat& image, const SE3& pose);
 
  private:
-  // Prints XView info
+  /// \brief Prints XView info.
   void printInfo() const;
+
+  /// \brief If the parameters are changed externally, then the Locator
+  /// contains new data concerning the landmark type which must be considered.
+  void updateLandmarkFactory();
+
+  /// \brief If the parameters are changed externally, then the Locator
+  /// contains new data concerning the matcher type which musht be considered.
+  void updateMatcher();
 
   //=======================================================================//
   //        FUNCTIONS CALLED BY 'processSemanticImage' FUNCTION            //
@@ -74,23 +82,14 @@ class XView {
   /// \brief Clean database by doing full semantics matching.
   void cleanDatabase();
 
-  void updateLandmarkFactory();
-
-  void updateMatcher();
-
-
   //=======================================================================//
   //                        CLASS MEMBER VARIABLES                         //
   //=======================================================================//
 
-  /// \brief Semantic landmark type being used by XView.
-  SemanticLandmarkType semantic_landmark_type_;
   /// \brief Semantic landmark factory which generates instances of semantic
   /// landmarks.
   SemanticLandmarkFactory semantic_landmark_factory_;
 
-  /// \brief Semantic matcher type used by XView.
-  LandmarksMatcherType landmarks_matcher_type_;
   /// \brief Semantic landmark matcher computes a matching between a new
   /// semantic landmark and the ones previously added to it.
   LandmarksMatcherPtr descriptor_matcher_;

@@ -295,25 +295,18 @@ void XView::updateLandmarkFactory() {
   const std::string landmark_type = landmark_parameters->getString("type");
 
   if (landmark_type == "ORB") {
-    semantic_landmark_type_ = SemanticLandmarkType::ORB_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction
         (ORBVisualDescriptorLandmark::create);
   } else if (landmark_type == "SIFT") {
-    semantic_landmark_type_ = SemanticLandmarkType::SIFT_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction
         (SIFTVisualDescriptorLandmark::create);
   } else if (landmark_type == "SURF") {
-    semantic_landmark_type_ = SemanticLandmarkType::SURF_VISUAL_FEATURE;
     semantic_landmark_factory_.setCreatorFunction
         (SURFVisualDescriptorLandmark::create);
   } else if (landmark_type == "HISTOGRAM") {
-    semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_HISTOGRAM;
-    semantic_landmark_factory_.setCreatorFunction
-        (HistogramLandmark::create);
+    semantic_landmark_factory_.setCreatorFunction(HistogramLandmark::create);
   } else if (landmark_type == "GRAPH") {
-    semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_GRAPH;
-    semantic_landmark_factory_.setCreatorFunction
-        (GraphLandmark::create);
+    semantic_landmark_factory_.setCreatorFunction(GraphLandmark::create);
   } else {
     CHECK(false) << "Unrecognized landmark type <" << landmark_type << ">"
                  << std::endl;
@@ -328,10 +321,8 @@ void XView::updateMatcher() {
   const std::string matcher_type = matcher_parameters->getString("type");
 
   if (matcher_type == "VECTOR") {
-    landmarks_matcher_type_ = LandmarksMatcherType::VECTOR_MATCHER;
     descriptor_matcher_ = VectorMatcher::create();
   } else if (matcher_type == "GRAPH") {
-    landmarks_matcher_type_ = LandmarksMatcherType::GRAPH_MATCHER;
     descriptor_matcher_ = GraphMatcher::create();
   } else {
     CHECK(false) << "Unrecognized matcher type <" << matcher_type << ">"

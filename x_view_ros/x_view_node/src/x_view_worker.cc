@@ -47,35 +47,18 @@ XViewWorker::~XViewWorker() {
 
 void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) {
 
-  std::cout << "Called semanticsImageCallback" << std::endl;
-  // Parse all parameters.
-  std::unique_ptr<x_view::Parameters> parameters = parser_.parseParameters();
+  parseParameters();
 
-  // Register the parameters into the locator.
-  x_view::Locator::registerParameters(std::move(parameters));
-  std::cout << "Registered paraemters" << std::endl;
-
-  // Set the usage of the specified dataset.
-  const auto& params = x_view::Locator::getParameters();
-  const auto& dataset_params = params->getChildPropertyList("dataset");
-  const std::string dataset_name = dataset_params->getString("name");
-  if (dataset_name == "SYNTHIA") {
-    std::unique_ptr<x_view::AbstractDataset> dataset(
-        new x_view::SynthiaDataset());
-    x_view::Locator::registerDataset(std::move(dataset));
-    std::cout << "Registered dataset" << std::endl;
-  } else
-    CHECK(false) << "Dataset '" << dataset_name
-                 << "' is not supported" << std::endl;
-
+  const auto& parameters = x_view::Locator::getParameters();
+  const auto& dataset_parameters =
+      parameters->getChildPropertyList("dataset");
   // Preprocess the ros message.
   const auto& dataset = x_view::Locator::getDataset();
   cv::Mat image = dataset->convertSemanticImage(msg);
-  std::cout << "Converted image" << std::endl;
   // Read in pose in world frame.
   tf::StampedTransform tf_transform;
-  const std::string world_frame = dataset_params->getString("world_frame");
-  const std::string sensor_frame = dataset_params->getString("sensor_frame");
+  const std::string world_frame = dataset_parameters->getString("world_frame");
+  const std::string sensor_frame = dataset_parameters->getString("sensor_frame");
   if (tf_listener_.waitForTransform(world_frame, sensor_frame,
                                     msg->header.stamp,
                                     ros::Duration(0.2))) {
@@ -106,4 +89,25 @@ void XViewWorker::tfTransformToSE3(const tf::StampedTransform& tf_transform,
       tf_transform.getRotation().getZ());
   *pose = x_view::SE3(pos, rot);
 }
+
+void XViewWorker::parseParameters() const {
+  // Parse all parameters.
+  std::unique_ptr<x_view::Parameters> parameters = parser_.parseParameters();
+
+  // Register the parameters into the locator.
+  x_view::Locator::registerParameters(std::move(parameters));
+
+  // Set the usage of the specified dataset.
+  const auto& params = x_view::Locator::getParameters();
+  const auto& dataset_params = params->getChildPropertyList("dataset");
+  const std::string dataset_name = dataset_params->getString("name");
+  if (dataset_name == "SYNTHIA") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::SynthiaDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else
+    CHECK(false) << "Dataset '" << dataset_name
+                 << "' is not supported" << std::endl;
+}
+
 }

@@ -105,6 +105,7 @@ class XViewBagReader {
 
  private:
 
+  void parseParameters() const;
   void getBagReaderParameters();
 
   std::unique_ptr<x_view::XView> x_view_;
