@@ -54,12 +54,6 @@ void XView::printInfo() const {
       parameters->getChildPropertyList("matcher");
   const auto& dataset = Locator::getDataset();
 
-  std::cout << "Parameters are: \n" << parameters->toString() << std::endl;
-  std::cout << "Parameters are: \n" << landmark_parameters->toString()
-            << std::endl;
-  std::cout << "Parameters are: \n" << matcher_parameters->toString()
-            << std::endl;
-
   LOG(INFO)
       << "\n==========================================================\n"
       << "                  XView"
@@ -72,6 +66,9 @@ void XView::printInfo() const {
       << "\n\tLandmark type:\t<" + landmark_parameters->getString("type") + ">"
       << "\n\tMatcher type: \t<" + matcher_parameters->getString("type") + ">"
       << "\n==========================================================\n";
+
+  LOG(INFO)
+      << "\nParameter tree:\n" << parameters->toString();
 }
 
 //==========================================================================//

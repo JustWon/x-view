@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 
   x_view_ros::XViewBagReader bag_reader(node_handle);
 
-  bag_reader.iterateBagFromTo("Stereo_Left/Omni_F/labels", 0, 2);
+  bag_reader.iterateBagFromTo("Stereo_Left/Omni_F/labels", 0, 20);
 
   x_view::finalizeLogging();
 

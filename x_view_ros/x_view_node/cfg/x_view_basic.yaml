@@ -1,15 +1,25 @@
-XView: {
-  landmarks: {
-    type: "GRAPH"
-  },
-  matcher: {
-    type: "GRAPH"
-  }
+Dataset: {
+    name: "SYNTHIA",
+    rosbag_path: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/Synthia_3_cams.bag",
+    semantics_image_topic: "/Stereo_Left/Omni_B/labels",
+    sensor_frame: "cam02",
+    world_frame: "world"
 }
 
-XViewWorker: {
-  dataset: "SYNTHIA",
-  semantics_image_topic: "/Stereo_Left/Omni_B/labels",
-  sensor_frame: "cam02",
-  world_frame: "world"
+Landmark: {
+    type : "GRAPH",
+    blob_filter_type: "ABSOLUTE",
+    min_blob_size: 500,
+    dilate_and_erode: true,
+    num_dilate: 5,
+    num_erode: 5,
+    blob_neighbor_distance: 10
+}
+
+Matcher: {
+    type: "GRAPH",
+    vertex_similarity_score: "WEIGHTED",
+    random_walk_sampling_type: "UNIFORM",
+    num_walks: 400,
+    walk_length: 3
 }

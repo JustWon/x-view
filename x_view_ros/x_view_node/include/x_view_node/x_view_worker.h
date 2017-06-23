@@ -42,7 +42,7 @@ class XViewWorker {
   tf::TransformListener tf_listener_;
 
   // X_View core.
-  x_view::XView x_view_;
+  std::unique_ptr<x_view::XView> x_view_;
 
   // Parser object
   Parser parser_;

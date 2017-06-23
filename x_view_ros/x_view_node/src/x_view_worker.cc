@@ -20,7 +20,7 @@ XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n), parser_(nh_) {
 
   // Set the usage of the specified dataset.
   const auto& params = x_view::Locator::getParameters();
-  const auto& dataset_params = params->getChildPropertyList("Dataset");
+  const auto& dataset_params = params->getChildPropertyList("dataset");
   const std::string dataset_name = dataset_params->getString("name");
   if (dataset_name == "SYNTHIA") {
     std::unique_ptr<x_view::AbstractDataset> dataset(
@@ -38,8 +38,7 @@ XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n), parser_(nh_) {
                                        this);
 
   // Create XView object.
-  x_view_ = x_view::XView();
-
+  x_view_ = std::unique_ptr<x_view::XView>(new x_view::XView());
 
 }
 
@@ -48,16 +47,31 @@ XViewWorker::~XViewWorker() {
 
 void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) {
 
-  // Reparse the parameters in case something changed.
+  std::cout << "Called semanticsImageCallback" << std::endl;
+  // Parse all parameters.
   std::unique_ptr<x_view::Parameters> parameters = parser_.parseParameters();
-  x_view::Locator::registerParameters(std::move(parameters));
 
+  // Register the parameters into the locator.
+  x_view::Locator::registerParameters(std::move(parameters));
+  std::cout << "Registered paraemters" << std::endl;
+
+  // Set the usage of the specified dataset.
   const auto& params = x_view::Locator::getParameters();
-  const auto& dataset_params = params->getChildPropertyList("Dataset");
+  const auto& dataset_params = params->getChildPropertyList("dataset");
+  const std::string dataset_name = dataset_params->getString("name");
+  if (dataset_name == "SYNTHIA") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::SynthiaDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+    std::cout << "Registered dataset" << std::endl;
+  } else
+    CHECK(false) << "Dataset '" << dataset_name
+                 << "' is not supported" << std::endl;
 
   // Preprocess the ros message.
-  cv::Mat image = x_view::Locator::getDataset()->convertSemanticImage(msg);
-
+  const auto& dataset = x_view::Locator::getDataset();
+  cv::Mat image = dataset->convertSemanticImage(msg);
+  std::cout << "Converted image" << std::endl;
   // Read in pose in world frame.
   tf::StampedTransform tf_transform;
   const std::string world_frame = dataset_params->getString("world_frame");
@@ -75,7 +89,7 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
   x_view::SE3 pose;
   tf_transform.getRotation().normalize();
   tfTransformToSE3(tf_transform, &pose);
-  x_view_.processSemanticImage(image, pose);
+  x_view_->processSemanticImage(image, pose);
 }
 
 void XViewWorker::tfTransformToSE3(const tf::StampedTransform& tf_transform,
