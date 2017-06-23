@@ -85,7 +85,6 @@ void finalizeLogging() {
   google::FlushLogFiles(google::WARNING);
   google::FlushLogFiles(google::ERROR);
   google::FlushLogFiles(google::FATAL);
-  std::cout << "Logging finalized." << std::endl;
 }
 
 // **************************** Graph modifiers ******************************//

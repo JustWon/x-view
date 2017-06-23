@@ -6,11 +6,6 @@
 
 namespace x_view {
 
-// FIXME: should this parameter be read by the config file?
-int GraphLandmark::MINIMUM_BLOB_SIZE = 200;
-
-bool GraphLandmark::DILATE_AND_ERODE = true;
-
 GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
 

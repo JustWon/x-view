@@ -9,6 +9,8 @@
 
 #include "test_graph_landmark.h"
 
+#include <x_view_core/x_view_locator.h>
+
 #include <gtest/gtest.h>
 
 using namespace x_view;
@@ -18,16 +20,14 @@ TEST(XViewSlamTestSuite, test_graph_landmark) {
 
   LOG(INFO) << "\n\n====Testing graph landmark====";
 
-  // set the minimum blob size to zero because for testing we don't want to
-  // ignore any generated blob
-  GraphLandmark::MINIMUM_BLOB_SIZE = 0;
-  // don't perform dilation and erosion on the input images.
-  GraphLandmark::DILATE_AND_ERODE = false;
+  const auto& parameters = Locator::getParameters();
+  const auto& landmark_parameters =
+      parameters->getChildPropertyList("landmark");
 
-  LOG(INFO) << "\nGraphLandmark uses:"
-            << "\n\tMinimum blob size: " << GraphLandmark::MINIMUM_BLOB_SIZE
-            << "\n\tDilate and erode:  " << (GraphLandmark::DILATE_AND_ERODE ?
-                                             "true" : "false");
+  // Set the minimum blob size to zero because for testing we don't want to
+  // ignore any generated blob.
+  landmark_parameters->setInteger("min_blob_size", 0);
+  landmark_parameters->setBoolean("dilate_and_erode", false);
 
   // test different images
   testCustomImage();

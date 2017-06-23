@@ -10,6 +10,8 @@
 
 namespace x_view_test {
 
+void createParameters();
+
 struct GraphConstructionParams {
 
   GraphConstructionParams()

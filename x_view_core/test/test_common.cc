@@ -7,8 +7,30 @@
 #include <boost/graph/random.hpp>
 #include <boost/random/linear_congruential.hpp>
 #include <glog/logging.h>
+#include <x_view_core/parameters/parameters.h>
+#include <x_view_core/x_view_locator.h>
 
 namespace x_view_test {
+
+void createParameters() {
+  std::unique_ptr<x_view::Parameters> parameters(
+      new x_view::Parameters("Test parameters"));
+  std::unique_ptr<x_view::Parameters> dataset_parameters(
+      new x_view::Parameters("Test Dataset parameters"));
+  dataset_parameters->setString("name", "SYNTHIA");
+
+  std::unique_ptr<x_view::Parameters> landmark_parameters(
+      new x_view::Parameters("Test Landmark parameters"));
+
+  std::unique_ptr<x_view::Parameters> matcher_parameters(
+      new x_view::Parameters("Test Matcher parameters"));
+
+  parameters->addChildPropertyList("dataset", std::move(dataset_parameters));
+  parameters->addChildPropertyList("landmark", std::move(landmark_parameters));
+  parameters->addChildPropertyList("matcher", std::move(matcher_parameters));
+
+  x_view::Locator::registerParameters(std::move(parameters));
+}
 
 x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
 
