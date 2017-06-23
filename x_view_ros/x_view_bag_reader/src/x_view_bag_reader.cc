@@ -39,7 +39,10 @@ cv::Mat XViewBagReader::RosbagTopicView::getSemanticImageAtFrame(const int frame
 XViewBagReader::XViewBagReader(ros::NodeHandle& n)
     : nh_(n), parser_(nh_) {
 
-  // Parse all parameters.
+  // Load parameters used by XViewBagReader.
+  getXViewBagReaderParameters();
+
+  // Parse all parameters used by XView.
   std::unique_ptr<x_view::Parameters> parameters = parser_.parseParameters();
 
   // Register the parameters into the locator.
@@ -57,7 +60,6 @@ XViewBagReader::XViewBagReader(ros::NodeHandle& n)
     CHECK(false) << "Dataset '" << dataset_name
                  << "' is not supported" << std::endl;
 
-  getBagReaderParameters();
   loadBagFile();
 
   // Create x_view only now because it has access to the parser parameters.
@@ -138,19 +140,11 @@ void XViewBagReader::parseParameters() const {
                  << "' is not supported" << std::endl;
 }
 
-void XViewBagReader::getBagReaderParameters() {
-
-  // XViewBagReader parameters.
-  if (!nh_.getParam("/XViewBagReader/dataset", params_.dataset_name)) {
-    LOG(ERROR) << "Failed to get param '/XViewBagReader/dataset'\nUsing "
-        "default <SYNTHIA> dataset.";
-    params_.dataset_name = "SYNTHIA";
-  }
+void XViewBagReader::getXViewBagReaderParameters() {
 
   if (!nh_.getParam("/XViewBagReader/bag_file_name", params_.bag_file_name)) {
     LOG(ERROR) << "Failed to get param '/XViewBagReader/bag_file_name'";
   }
-
   if (!nh_.getParam("/XViewBagReader/semantics_image_topic_back",
                     params_.semantics_image_topic_back)) {
     LOG(ERROR) << "Failed to get param "
@@ -166,15 +160,15 @@ void XViewBagReader::getBagReaderParameters() {
     LOG(ERROR) << "Failed to get param "
         "'/XViewBagReader/semantics_image_topic_right'";
   }
-  if (!nh_.getParam("/XViewBagReader/world_frame",
-                    params_.world_frame)) {
-    LOG(ERROR) << "Failed to get param "
-        "'/XViewBagReader/world_frame'";
-  }
   if (!nh_.getParam("/XViewBagReader/sensor_frame",
                     params_.sensor_frame)) {
     LOG(ERROR) << "Failed to get param "
         "'/XViewBagReader/sensor_frame'";
+  }
+  if (!nh_.getParam("/XViewBagReader/world_frame",
+                    params_.world_frame)) {
+    LOG(ERROR) << "Failed to get param "
+        "'/XViewBagReader/world_frame'";
   }
 }
 

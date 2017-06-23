@@ -82,11 +82,6 @@ std::unique_ptr<Parameters> Parser::parseDataset() const {
       new Parameters("Dataset Parameters"));
 
   addString(nh_, "/Dataset/name", "name", dataset_parameters, "SYNTHIA");
-  addString(nh_, "/Dataset/rosbag_path", "rosbag_path", dataset_parameters);
-  addString(nh_, "/Dataset/semantics_image_topic", "semantics_image_topic",
-            dataset_parameters);
-  addString(nh_, "/Dataset/sensor_frame", "sensor_frame", dataset_parameters);
-  addString(nh_, "/Dataset/world_frame", "world_frame", dataset_parameters);
 
   return std::move(dataset_parameters);
 }

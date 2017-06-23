@@ -17,6 +17,17 @@ namespace x_view_ros {
 
 class XViewWorker {
 
+  /// \brief Parameters needed by XViewWorker.
+  struct XViewWorkerParams {
+
+    /// \brief Topic containing semantic images.
+    std::string semantics_image_topic;
+
+    std::string sensor_frame;
+    std::string world_frame;
+
+  };
+
  public:
   explicit XViewWorker(ros::NodeHandle& n);
 
@@ -33,9 +44,13 @@ class XViewWorker {
                         x_view::SE3* pose);
 
   void parseParameters() const;
+  void getXViewWorkerParameters();
 
   // Node handle.
   ros::NodeHandle& nh_;
+
+  /// \brief Parameters used by XViewWorker.
+  XViewWorkerParams params_;
 
   // Subscribers.
   ros::Subscriber semantics_image_sub_;

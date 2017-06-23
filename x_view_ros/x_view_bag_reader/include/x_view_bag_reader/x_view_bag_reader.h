@@ -30,8 +30,6 @@ class XViewBagReader {
   struct XViewBagReaderParams {
     /// \brief Bag filename of the rosbag file to be read.
     std::string bag_file_name;
-    /// \brief Dataset name of the dataset contained in the rosbagfile.
-    std::string dataset_name;
 
     /// \brief Topic containing semantic images of the 'back' camera.
     std::string semantics_image_topic_back;
@@ -40,8 +38,9 @@ class XViewBagReader {
     /// \brief Topic containing semantic images of the 'right' camera.
     std::string semantics_image_topic_right;
 
-    std::string world_frame;
     std::string sensor_frame;
+    std::string world_frame;
+
   }; // struct XViewBagReaderParams
 
 
@@ -106,7 +105,7 @@ class XViewBagReader {
  private:
 
   void parseParameters() const;
-  void getBagReaderParameters();
+  void getXViewBagReaderParameters();
 
   std::unique_ptr<x_view::XView> x_view_;
 

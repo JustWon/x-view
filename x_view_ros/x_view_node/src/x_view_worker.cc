@@ -12,7 +12,10 @@ namespace x_view_ros {
 
 XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n), parser_(nh_) {
 
-  // Parse all parameters.
+  // Load parameters used by XViewBagReader.
+  getXViewWorkerParameters();
+
+  // Parse all parameters used by XView.
   std::unique_ptr<x_view::Parameters> parameters = parser_.parseParameters();
 
   // Register the parameters into the locator.
@@ -30,10 +33,7 @@ XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n), parser_(nh_) {
     CHECK(false) << "Dataset '" << dataset_name
                  << "' is not supported" << std::endl;
 
-  const std::string semantic_image_topic =
-      dataset_params->getString("semantics_image_topic");
-
-  semantics_image_sub_ = nh_.subscribe(semantic_image_topic, 1,
+  semantics_image_sub_ = nh_.subscribe(params_.semantics_image_topic, 1,
                                        &XViewWorker::semanticsImageCallback,
                                        this);
 
@@ -49,25 +49,20 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
 
   parseParameters();
 
-  const auto& parameters = x_view::Locator::getParameters();
-  const auto& dataset_parameters =
-      parameters->getChildPropertyList("dataset");
   // Preprocess the ros message.
   const auto& dataset = x_view::Locator::getDataset();
   cv::Mat image = dataset->convertSemanticImage(msg);
   // Read in pose in world frame.
   tf::StampedTransform tf_transform;
-  const std::string world_frame = dataset_parameters->getString("world_frame");
-  const std::string sensor_frame = dataset_parameters->getString("sensor_frame");
-  if (tf_listener_.waitForTransform(world_frame, sensor_frame,
+  if (tf_listener_.waitForTransform(params_.world_frame, params_.sensor_frame,
                                     msg->header.stamp,
                                     ros::Duration(0.2))) {
     // Get the tf transform.
-    tf_listener_.lookupTransform(world_frame, sensor_frame,
+    tf_listener_.lookupTransform(params_.world_frame, params_.sensor_frame,
                                  msg->header.stamp, tf_transform);
   } else {
     LOG(ERROR) << "Failed to get transformation between "
-               << world_frame << " and " << sensor_frame;
+               << params_.world_frame << " and " << params_.sensor_frame;
   }
   x_view::SE3 pose;
   tf_transform.getRotation().normalize();
@@ -108,6 +103,23 @@ void XViewWorker::parseParameters() const {
   } else
     CHECK(false) << "Dataset '" << dataset_name
                  << "' is not supported" << std::endl;
+}
+
+void XViewWorker::getXViewWorkerParameters() {
+
+  if (!nh_.getParam("/XViewWorker/semantics_image_topic",
+                    params_.semantics_image_topic)) {
+    LOG(ERROR) << "Failed to get param "
+        "'/XViewWorker/semantics_image_topic'";
+  }
+  if (!nh_.getParam("/XViewWorker/sensor_frame",
+                    params_.sensor_frame)) {
+    LOG(ERROR) << "Failed to get param '/XViewWorker/sensor_frame'";
+  }
+  if (!nh_.getParam("/XViewWorker/world_frame",
+                    params_.world_frame)) {
+    LOG(ERROR) << "Failed to get param '/XViewWorker/world_frame'";
+  }
 }
 
 }
