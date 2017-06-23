@@ -1,32 +1,26 @@
 #include <x_view_core/x_view.h>
 
-#include <x_view_core/datasets/synthia_dataset.h>
-#include <x_view_core/datasets/airsim_dataset.h>
 #include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/landmarks/histogram_landmark.h>
 #include <x_view_core/landmarks/visual_descriptor_landmark.h>
 #include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/matchers/vector_matcher.h>
+#include <x_view_core/x_view_locator.h>
 
 namespace x_view {
 
-// Declaration of global dataset pointer.
-ConstDatasetPtr global_dataset_ptr;
-
-XView::XView(XViewParams& params) : params_(params), frame_number_(0) {
-  // Parse the passed parameters and instantiate concrete classes for all
-  // class members.
-  parseParameters();
-
-  // Print XView parameters and info.
+XView::XView()
+    : frame_number_(0) {
   printInfo();
 }
-
-XView::~XView() {};
 
 void XView::processSemanticImage(const cv::Mat& image, const SE3& pose) {
 
   LOG(INFO) << "XView starts processing frame " << frame_number_ << ".";
+
+  // Update parameters for next frame.
+  updateLandmarkFactory();
+  updateMatcher();
 
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
@@ -53,6 +47,19 @@ void XView::processSemanticImage(const cv::Mat& image, const SE3& pose) {
 }
 
 void XView::printInfo() const {
+  const auto& parameters = Locator::getParameters();
+  const auto& landmark_parameters =
+      parameters->getChildPropertyList("landmark");
+  const auto& matcher_parameters =
+      parameters->getChildPropertyList("matcher");
+  const auto& dataset = Locator::getDataset();
+
+  std::cout << "Parameters are: \n" << parameters->toString() << std::endl;
+  std::cout << "Parameters are: \n" << landmark_parameters->toString()
+            << std::endl;
+  std::cout << "Parameters are: \n" << matcher_parameters->toString()
+            << std::endl;
+
   LOG(INFO)
       << "\n==========================================================\n"
       << "                  XView"
@@ -61,77 +68,10 @@ void XView::printInfo() const {
       #else
       << " (Release)"
       #endif
-      << "\n\n" << dataset_
-      << "\n\tLandmark type:\t<" + params_.semantic_landmark_type_ + ">"
-      << "\n\tMatcher type: \t<" + params_.landmark_matching_type_ + ">"
+      << "\n\n" << dataset
+      << "\n\tLandmark type:\t<" + landmark_parameters->getString("type") + ">"
+      << "\n\tMatcher type: \t<" + matcher_parameters->getString("type") + ">"
       << "\n==========================================================\n";
-}
-
-void XView::parseParameters() {
-  // Define the dataset being used.
-  parseDatasetType();
-
-  // Define landmark type.
-  parseLandmarkType();
-
-  // Define a landmark matcher.
-  parseMatcherType();
-
-}
-
-void XView::parseDatasetType() {
-
-  if (params_.semantic_dataset_name_.compare("SYNTHIA") == 0) {
-    dataset_ = std::make_shared<const SynthiaDataset>();
-  } else if (params_.semantic_dataset_name_.compare("AIRSIM") == 0) {
-    dataset_ = std::make_shared<const AirsimDataset>();
-  } else {
-    CHECK(false) << "Unrecognized dataset type <"
-                 << params_.semantic_dataset_name_ << ">" << std::endl;
-  }
-  global_dataset_ptr = dataset_;
-}
-
-void XView::parseLandmarkType() {
-
-  if (params_.semantic_landmark_type_.compare("ORB") == 0) {
-    semantic_landmark_type_ = SemanticLandmarkType::ORB_VISUAL_FEATURE;
-    semantic_landmark_factory_.setCreatorFunction
-        (ORBVisualDescriptorLandmark::create);
-  } else if (params_.semantic_landmark_type_.compare("SIFT") == 0) {
-    semantic_landmark_type_ = SemanticLandmarkType::SIFT_VISUAL_FEATURE;
-    semantic_landmark_factory_.setCreatorFunction
-        (SIFTVisualDescriptorLandmark::create);
-  } else if (params_.semantic_landmark_type_.compare("SURF") == 0) {
-    semantic_landmark_type_ = SemanticLandmarkType::SURF_VISUAL_FEATURE;
-    semantic_landmark_factory_.setCreatorFunction
-        (SURFVisualDescriptorLandmark::create);
-  } else if (params_.semantic_landmark_type_.compare("HISTOGRAM") == 0) {
-    semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_HISTOGRAM;
-    semantic_landmark_factory_.setCreatorFunction
-        (HistogramLandmark::create);
-  } else if (params_.semantic_landmark_type_.compare("GRAPH") == 0) {
-    semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_GRAPH;
-    semantic_landmark_factory_.setCreatorFunction
-        (GraphLandmark::create);
-  } else {
-    CHECK(false) << "Unrecognized landmark type <"
-                 << params_.semantic_landmark_type_ << ">" << std::endl;
-  }
-
-}
-
-void XView::parseMatcherType() {
-  if (params_.landmark_matching_type_.compare("VECTOR") == 0) {
-    landmarks_matcher_type_ = LandmarksMatcherType::VECTOR_MATCHER;
-    descriptor_matcher_ = VectorMatcher::create();
-  } else if (params_.landmark_matching_type_.compare("GRAPH") == 0) {
-    landmarks_matcher_type_ = LandmarksMatcherType::GRAPH_MATCHER;
-    descriptor_matcher_ = GraphMatcher::create();
-  } else {
-    CHECK(false) << "Unrecognized matcher type <"
-                 << params_.landmark_matching_type_ << ">" << std::endl;
-  }
 }
 
 //==========================================================================//
@@ -184,7 +124,8 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
   random_walker_params.walk_length = 2;
   random_walker_params.random_sampling_type =
       RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
-  VertexSimilarity::SCORE_TYPE score_type = VertexSimilarity::SCORE_TYPE::WEIGHTED;
+  VertexSimilarity::SCORE_TYPE
+      score_type = VertexSimilarity::SCORE_TYPE::WEIGHTED;
   GraphMatcher graph_matcher(random_walker_params, score_type);
 
   // Add the previous graph to the matcher.
@@ -230,7 +171,7 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
 
   // Function to create a curved polyline between two points.
   auto createCurveBetween = [&](const cv::Point& start, const cv::Point& end,
-                               const int step) -> std::vector<cv::Point> {
+                                const int step) -> std::vector<cv::Point> {
     const int dist = std::abs(end.x - start.x) - 1;
     const int num_steps = dist / step;
     std::vector<cv::Point> line(num_steps);
@@ -348,6 +289,58 @@ void XView::mergeSemantics(const SemanticLandmarkPtr& semantics_a,
 void XView::cleanDatabase() {
   // TODO: sweep over semantics_db_ to match and merge unconnected semantics.
   CHECK(false) << "Not implemented.";
+}
+
+void XView::updateLandmarkFactory() {
+  const auto& parameters = Locator::getParameters();
+  const auto& landmark_parameters =
+      parameters->getChildPropertyList("landmark");
+  const std::string landmark_type = landmark_parameters->getString("type");
+
+  if (landmark_type == "ORB") {
+    semantic_landmark_type_ = SemanticLandmarkType::ORB_VISUAL_FEATURE;
+    semantic_landmark_factory_.setCreatorFunction
+        (ORBVisualDescriptorLandmark::create);
+  } else if (landmark_type == "SIFT") {
+    semantic_landmark_type_ = SemanticLandmarkType::SIFT_VISUAL_FEATURE;
+    semantic_landmark_factory_.setCreatorFunction
+        (SIFTVisualDescriptorLandmark::create);
+  } else if (landmark_type == "SURF") {
+    semantic_landmark_type_ = SemanticLandmarkType::SURF_VISUAL_FEATURE;
+    semantic_landmark_factory_.setCreatorFunction
+        (SURFVisualDescriptorLandmark::create);
+  } else if (landmark_type == "HISTOGRAM") {
+    semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_HISTOGRAM;
+    semantic_landmark_factory_.setCreatorFunction
+        (HistogramLandmark::create);
+  } else if (landmark_type == "GRAPH") {
+    semantic_landmark_type_ = SemanticLandmarkType::SEMANTIC_GRAPH;
+    semantic_landmark_factory_.setCreatorFunction
+        (GraphLandmark::create);
+  } else {
+    CHECK(false) << "Unrecognized landmark type <" << landmark_type << ">"
+                 << std::endl;
+  }
+}
+
+void XView::updateMatcher() {
+
+  const auto& parameters = Locator::getParameters();
+  const auto& matcher_parameters =
+      parameters->getChildPropertyList("matcher");
+  const std::string matcher_type = matcher_parameters->getString("type");
+
+  if (matcher_type == "VECTOR") {
+    landmarks_matcher_type_ = LandmarksMatcherType::VECTOR_MATCHER;
+    descriptor_matcher_ = VectorMatcher::create();
+  } else if (matcher_type == "GRAPH") {
+    landmarks_matcher_type_ = LandmarksMatcherType::GRAPH_MATCHER;
+    descriptor_matcher_ = GraphMatcher::create();
+  } else {
+    CHECK(false) << "Unrecognized matcher type <" << matcher_type << ">"
+                 << std::endl;
+  }
+
 }
 
 }

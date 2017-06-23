@@ -2,6 +2,7 @@
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/features/visual_descriptor.h>
+#include <x_view_core/x_view_locator.h>
 
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -22,6 +23,8 @@ ORBVisualDescriptorLandmark::ORBVisualDescriptorLandmark(const cv::Mat& image,
                                                          const SE3& pose)
     : VisualDescriptorLandmark(image, pose) {
 
+  const auto& dataset = Locator::getDataset();
+
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
   cv::Mat gray;
@@ -31,7 +34,7 @@ ORBVisualDescriptorLandmark::ORBVisualDescriptorLandmark(const cv::Mat& image,
 
   std::vector<cv::KeyPoint> keypoints;
   features_extractor->detect(
-      gray * 255. / global_dataset_ptr->numSemanticClasses(), keypoints);
+      gray * 255. / dataset->numSemanticClasses(), keypoints);
 
   // retains only the desired number of features
   if (keypoints.size() > NUM_VISUAL_FEATURES)
@@ -52,6 +55,8 @@ SIFTVisualDescriptorLandmark::SIFTVisualDescriptorLandmark(const cv::Mat& image,
                                                            const SE3& pose)
     : VisualDescriptorLandmark(image, pose) {
 
+  const auto& dataset = Locator::getDataset();
+
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
   cv::Mat gray;
@@ -61,7 +66,7 @@ SIFTVisualDescriptorLandmark::SIFTVisualDescriptorLandmark(const cv::Mat& image,
 
   std::vector<cv::KeyPoint> keypoints;
   features_extractor->detect(
-      gray * 255. / global_dataset_ptr->numSemanticClasses(), keypoints);
+      gray * 255. / dataset->numSemanticClasses(), keypoints);
 
   // retains only the desired number of features
   if (keypoints.size() > NUM_VISUAL_FEATURES)
@@ -82,6 +87,8 @@ SURFVisualDescriptorLandmark::SURFVisualDescriptorLandmark(const cv::Mat& image,
                                                            const SE3& pose)
     : VisualDescriptorLandmark(image, pose) {
 
+  const auto& dataset = Locator::getDataset();
+
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
   cv::Mat gray;
@@ -92,7 +99,7 @@ SURFVisualDescriptorLandmark::SURFVisualDescriptorLandmark(const cv::Mat& image,
 
   std::vector<cv::KeyPoint> keypoints;
   features_extractor->detect(
-      gray * 255. / global_dataset_ptr->numSemanticClasses(), keypoints);
+      gray * 255. / dataset->numSemanticClasses(), keypoints);
 
   // retains only the desired number of features
   if (keypoints.size() > NUM_VISUAL_FEATURES)

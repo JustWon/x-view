@@ -2,6 +2,7 @@
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/matchers/graph_matcher.h>
+#include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 
 #include <boost/graph/connected_components.hpp>
@@ -15,12 +16,13 @@ typedef std::shared_ptr<GraphMatcher> GraphMatcherPtr;
 
 void testChainGraph(const unsigned long seed) {
 
+  const auto& dataset = Locator::getDataset();
 
   // Define parameters for generating the graphs.
   GraphConstructionParams construction_params;
   construction_params.num_vertices = 50;
   construction_params.num_semantic_classes
-      = global_dataset_ptr->numSemanticClasses();
+      = dataset->numSemanticClasses();
   construction_params.seed = seed;
 
   // Define parameters for modifying the graphs.
@@ -107,12 +109,13 @@ void testChainGraph(const unsigned long seed) {
 
 void testRandomGraph(const unsigned long seed) {
 
+  const auto& dataset = Locator::getDataset();
+
   // Define parameter for generating the graphs.
   GraphConstructionParams construction_params;
   construction_params.num_vertices = 500;
   construction_params.edge_probability = 0.001;
-  construction_params.num_semantic_classes
-      = global_dataset_ptr->numSemanticClasses();
+  construction_params.num_semantic_classes = dataset->numSemanticClasses();
   construction_params.seed = seed;
 
   // Define parameters for modifying the graphs.
@@ -123,7 +126,7 @@ void testRandomGraph(const unsigned long seed) {
   modifier_params.num_edges_to_add = 20;
   modifier_params.num_edges_to_remove = 20;
 
-  const int extraction_radius = 2;
+  const int extraction_radius = 3;
 
   GraphPair graph_pair_random = generateRandomGraphPair(construction_params,
                                                         modifier_params,

@@ -1,6 +1,7 @@
 #include <x_view_core/landmarks/graph_landmark/blob_extractor.h>
 
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 
 #include <opencvblobslib/BlobResult.h>
@@ -24,17 +25,19 @@ ImageBlobs BlobExtractor::findBlobsWithContour(const cv::Mat& image,
                                                const BlobExtractorParams&
                                                params) {
 
+  const auto& dataset = Locator::getDataset();
+
   // The pixels in this image indicate the semantic label.
   const cv::Mat all_labels_image = extractChannelFromImage(image, 0);
   // The pixels in this image indicate the instance id associated to the blob.
   const cv::Mat all_instances_image = extractChannelFromImage(image, 1);
 
-  ImageBlobs image_blobs(global_dataset_ptr->numSemanticClasses());
+  ImageBlobs image_blobs(dataset->numSemanticClasses());
 
   // Iterate over the semantic classes which are to be added to the graph and
   // process only the pixels which belong to the semantic class.
   const std::vector<int> labels_to_include_in_graph =
-      global_dataset_ptr->getLabelsToIncludeInGraph();
+      dataset->getLabelsToIncludeInGraph();
   for (const int c : labels_to_include_in_graph) {
     // This image is a binary image, where a pixel is set to 1 only if its
     // corresponding semantic label is equal to c. Otherwise the pixel is set
@@ -73,7 +76,9 @@ void BlobExtractor::extractBlobsWithoutInstances(cv::Mat& current_class_layer,
                                                  const int current_semantic_class,
                                                  const BlobExtractorParams& params) {
 
-  LOG(INFO) << "Class " << global_dataset_ptr->label(current_semantic_class)
+  const auto& dataset = Locator::getDataset();
+
+  LOG(INFO) << "Class " << dataset->label(current_semantic_class)
             << " has no instance information in the first image channel.";
 
   // Since there are no instances, set the blob instance_value to -1.
@@ -97,6 +102,8 @@ void BlobExtractor::extractBlobsConsideringInstances(cv::Mat& instance_layer,
                                                      const int current_semantic_class,
                                                      const BlobExtractorParams& params) {
 
+  const auto& dataset = Locator::getDataset();
+
   // Collect all different instances of the current label.
   std::unordered_set<unsigned char> instance_set;
   BlobExtractor::collectInstancesFromImage(instance_layer, &instance_set);
@@ -109,7 +116,7 @@ void BlobExtractor::extractBlobsConsideringInstances(cv::Mat& instance_layer,
       "elements resulting from the masking with the current_class_layer "
       "image.";
 
-  LOG(INFO) << "Class " << global_dataset_ptr->label(current_semantic_class)
+  LOG(INFO) << "Class " << dataset->label(current_semantic_class)
             << " has " << instance_set.size() << " instances.";
 
   // Iterate over all instance found in the current semantic class.
@@ -138,6 +145,7 @@ void BlobExtractor::extractBlobsAndAddToContainer(cv::Mat& image,
                                                   const int instance_value,
                                                   const int current_semantic_class,
                                                   const BlobExtractorParams& params) {
+
   // Extract the blobs associated to the current instance.
   // Usually there is only one blob per instance, but due to occlusions in
   // the scene, a single instance could also be composed by two blobs.

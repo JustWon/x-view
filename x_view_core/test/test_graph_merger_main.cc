@@ -4,6 +4,7 @@
 #include "test_common.h"
 
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 
 #include <boost/graph/random.hpp>
@@ -22,17 +23,18 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
   LOG(INFO) << "Testing graph landmark merger with " << num_semantic_classes
             << "classes.";
 
-  global_dataset_ptr =
-      std::make_shared<AbstractDataset>(AbstractDataset(num_semantic_classes));
-  CHECK_NOTNULL(global_dataset_ptr.get());
+  std::unique_ptr<AbstractDataset> dataset_(
+      new AbstractDataset(num_semantic_classes));
+  Locator::registerDataset(std::move(dataset_));
+
+  const auto& dataset = Locator::getDataset();
 
   const unsigned long seed = 0;
 
   // Generate a base graph.
 
   GraphConstructionParams graph_construction_params;
-  graph_construction_params.num_semantic_classes =
-      global_dataset_ptr->numSemanticClasses();
+  graph_construction_params.num_semantic_classes = dataset->numSemanticClasses();
   graph_construction_params.seed = seed;
   graph_construction_params.num_vertices = 15;
   graph_construction_params.edge_probability = 0.2;

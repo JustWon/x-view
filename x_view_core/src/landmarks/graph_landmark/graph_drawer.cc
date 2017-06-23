@@ -2,6 +2,7 @@
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
+#include <x_view_core/x_view_locator.h>
 
 namespace x_view {
 
@@ -62,8 +63,10 @@ cv::Mat GraphDrawer::createImageFromBlobs(const ImageBlobs& blobs,
                                           const cv::Size& size) {
   cv::Mat image(size.height, size.width, CV_8UC3, cv::Scalar::all(0));
 
+  const auto& dataset = Locator::getDataset();
+
   const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+      dataset->getLabelsToRender();
 
   // Draw the blobs onto the image
   for (int c = 0; c < blobs.size(); ++c) {
@@ -97,8 +100,10 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
 
   CHECK_NOTNULL(image);
 
+  const auto& dataset = Locator::getDataset();
+
   const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+      dataset->getLabelsToRender();
 
   for (int c = 0; c < blobs.size(); ++c) {
     // only add the blob if the label has not to be ignored, thus if it can
@@ -108,7 +113,7 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
       for (const Blob& blob : blobs[c]) {
         const std::string label = std::to_string(blob.semantic_label);
         const std::string label_descr =
-            global_dataset_ptr->label(blob.semantic_label);
+            dataset->label(blob.semantic_label);
 
         const std::string text = label + ") " + label_descr;
         cv::putText(*image, text, blob.center, cv::FONT_HERSHEY_DUPLEX,
@@ -133,8 +138,10 @@ void GraphDrawer::addEllipsesToImage(const ImageBlobs& blobs, cv::Mat* image) {
 
   CHECK_NOTNULL(image);
 
+  const auto& dataset = Locator::getDataset();
+
   const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+      dataset->getLabelsToRender();
 
   // Draw the blobs onto the image
   for (int c = 0; c < blobs.size(); ++c) {
@@ -144,7 +151,7 @@ void GraphDrawer::addEllipsesToImage(const ImageBlobs& blobs, cv::Mat* image) {
         std::end(labels_to_render))
       for (const Blob& blob : blobs[c]) {
         cv::Scalar ellipse_color;
-        if (global_dataset_ptr->semanticEntities()[c].is_static)
+        if (dataset->semanticEntities()[c].is_static)
           ellipse_color = GraphDrawer::ellipse_color_static_;
         else
           ellipse_color = GraphDrawer::ellipse_color_dynamic_;
@@ -160,8 +167,10 @@ void GraphDrawer::addGraphNodesToImage(const Graph& graph, cv::Mat* image) {
 
   CHECK_NOTNULL(image);
 
+  const auto& dataset = Locator::getDataset();
+
   const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+      dataset->getLabelsToRender();
 
   auto node_iter = boost::vertices(graph);
   for (; node_iter.first != node_iter.second; ++node_iter.first) {
@@ -183,8 +192,10 @@ void GraphDrawer::addGraphEdgesToImage(const Graph& graph, cv::Mat* image) {
 
   CHECK_NOTNULL(image);
 
+  const auto& dataset = Locator::getDataset();
+
   const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+      dataset->getLabelsToRender();
 
   // second, add the edges between the nodes of the graph
   auto edge_iter = boost::edges(graph);

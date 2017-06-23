@@ -14,6 +14,7 @@
 #include <kindr/minimal/quat-transformation.h>
 
 #include <x_view_core/x_view.h>
+#include <x_view_parser/parser.h>
 
 namespace x_view_ros {
 
@@ -41,7 +42,6 @@ class XViewBagReader {
 
     std::string world_frame;
     std::string sensor_frame;
-    x_view::XViewParams x_view_params;
   }; // struct XViewBagReaderParams
 
 
@@ -105,9 +105,9 @@ class XViewBagReader {
 
  private:
 
-  void getParameters();
+  void getBagReaderParameters();
 
-  x_view::XView x_view_;
+  std::unique_ptr<x_view::XView> x_view_;
 
   /// \brief Parameters used by XViewBagReader.
   XViewBagReaderParams params_;
@@ -120,6 +120,8 @@ class XViewBagReader {
 
   /// \brief Object mapping topic strings to the corresponding view objects.
   std::map<std::string, RosbagTopicView> topic_views_;
+
+  Parser parser_;
 };
 
 }

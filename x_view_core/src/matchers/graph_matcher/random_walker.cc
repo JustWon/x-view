@@ -1,6 +1,7 @@
 #include <x_view_core/matchers/graph_matcher/random_walker.h>
 
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/x_view_locator.h>
 
 namespace x_view {
 
@@ -174,7 +175,10 @@ const VertexDescriptor RandomWalker::nextVertex(
 }
 
 const int RandomWalker::computeRandomWalkKey(const RandomWalk& random_walk) {
-  const static int num_classes = global_dataset_ptr->numSemanticClasses();
+
+  const auto& dataset = Locator::getDataset();
+
+  const static int num_classes = dataset->numSemanticClasses();
   int id = 0;
   int mult = 1;
   for (const auto& val : random_walk) {

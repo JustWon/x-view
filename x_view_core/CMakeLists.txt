@@ -29,6 +29,7 @@ cs_add_library(${PROJECT_NAME}
 
         src/x_view.cc
         src/x_view_tools.cc
+        src/x_view_locator.cc
 
         # Datasets
         src/datasets/abstract_dataset.cc
@@ -67,6 +68,7 @@ cs_add_library(${PROJECT_NAME}
         #### HEADER FILES ####
 
         include/x_view_core/x_view.h
+        include/x_view_core/x_view_locator.h
         include/x_view_core/x_view_tools.h
         include/x_view_core/x_view_types.h
 

@@ -1,5 +1,7 @@
 #include "test_graph_landmark.h"
 
+#include <x_view_core/x_view_locator.h>
+
 namespace x_view_test {
 
 #define CV_IMAGE_TYPE  CV_8UC3
@@ -12,9 +14,9 @@ void testCustomImage() {
 
   // Initialize a fake dataset having num_semantic_classes classes
   int num_semantic_classes = 4;
-  global_dataset_ptr =
-      std::make_shared<const AbstractDataset>
-          (AbstractDataset(num_semantic_classes));
+  std::unique_ptr<AbstractDataset> dataset(
+      new AbstractDataset(num_semantic_classes));
+  Locator::registerDataset(std::move(dataset));
 
 #ifdef X_VIEW_DEBUG
   std::vector<int> sizes = {100, 200, 333};
@@ -63,9 +65,9 @@ void testDiscImage() {
   std::vector<int> num_discs = {2, 15};
 
   for (const int num_classes : classes) {
-    global_dataset_ptr =
-        std::make_shared<const AbstractDataset>
-            (AbstractDataset(num_classes));
+    std::unique_ptr<AbstractDataset> dataset(
+        new AbstractDataset(num_classes));
+    Locator::registerDataset(std::move(dataset));
 
     const int rows = 500;
     const int cols = static_cast<int>(500 * 1.5);
@@ -114,8 +116,9 @@ void testDiscImage() {
 
 void countPixelLabelsInImage(const cv::Mat& image,
                              std::vector<int>& pixel_count) {
+  const auto& dataset = Locator::getDataset();
   pixel_count.clear();
-  pixel_count.resize(global_dataset_ptr->numSemanticClasses());
+  pixel_count.resize(dataset->numSemanticClasses());
   for (int i = 0; i < image.rows; ++i) {
     for (int j = 0; j < image.cols; ++j) {
       int label = static_cast<int>(image.at<cv::Vec3b>(i, j)[0]);

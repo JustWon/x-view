@@ -1,5 +1,6 @@
 #include <x_view_core/features/graph.h>
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/x_view_locator.h>
 
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -58,8 +59,11 @@ bool removeEdgeBetweenVertices(const VertexDescriptor& v_1_d,
 }
 
 std::ostream& operator<<(std::ostream& out, const VertexProperty& v) {
+
+  const auto& dataset = Locator::getDataset();
+
   const static unsigned long max_label_length =
-      global_dataset_ptr->largestLabelSize() + 2;
+      dataset->largestLabelSize() + 2;
   out << "(v) " << v.index
       << ", label: " << std::right << std::setw(2) << std::setfill(' ')
       << v.semantic_label

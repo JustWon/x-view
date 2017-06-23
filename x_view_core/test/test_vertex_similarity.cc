@@ -1,6 +1,7 @@
 #include "test_vertex_similarity.h"
 
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/x_view_locator.h>
 
 namespace x_view_test {
 
@@ -60,15 +61,16 @@ void VertexSimilarityTest::checkSymmetry() const {
 RandomWalker::WalkMap VertexSimilarityTest::generateWalkMap(
     const std::vector<std::vector<int>>& random_walks) {
 
+  const auto& dataset = x_view::Locator::getDataset();
+
   //Check that the elements in the random_walks passed as argument are all
   // smaller than the number of semantic classes.
   for(const auto& random_walk : random_walks)
     for(const int val : random_walk)
-      CHECK(val < x_view::global_dataset_ptr->numSemanticClasses() && val >= 0);
+      CHECK(val < dataset->numSemanticClasses() && val >= 0);
 
-  auto computeKey = [](const std::vector<int>& random_walk)-> int {
-    const static int num_classes =
-        x_view::global_dataset_ptr->numSemanticClasses();
+  auto computeKey = [&](const std::vector<int>& random_walk)-> int {
+    const static int num_classes = dataset->numSemanticClasses();
     int id = 0;
     int mult = 1;
     for (const int val : random_walk) {
@@ -99,6 +101,8 @@ RandomWalker::WalkMap VertexSimilarityTest::generateWalkMap(
 }
 
 void testScoreSymmetry() {
+
+
   const unsigned long seed = 0;
   std::mt19937 rng(seed);
 
@@ -118,9 +122,9 @@ void testScoreSymmetry() {
   const int num_vertices = 50;
 
   for (int num_semantic_classes : nums_semantic_classes) {
-    global_dataset_ptr =
-        std::make_shared<AbstractDataset>(AbstractDataset(num_semantic_classes));
-    CHECK_NOTNULL(global_dataset_ptr.get());
+    std::unique_ptr<AbstractDataset> dataset(
+        new AbstractDataset(num_semantic_classes));
+    Locator::registerDataset(std::move(dataset));
     std::uniform_int_distribution<int> dist(0, num_semantic_classes - 1);
     auto gen = std::bind(dist, rng);
     for (const int num_random_walks : nums_random_walks) {
@@ -157,8 +161,10 @@ void testScoreSymmetry() {
 
 void testScoreValue() {
   const int num_semantic_classes = 10;
-  x_view::global_dataset_ptr =
-      std::make_shared<AbstractDataset>(AbstractDataset(num_semantic_classes));
+  std::unique_ptr<AbstractDataset> dataset(
+      new AbstractDataset(num_semantic_classes));
+  Locator::registerDataset(std::move(dataset));
+
   std::vector<std::vector<int>> left = {
       {0,0,0},
       {0,0,0},

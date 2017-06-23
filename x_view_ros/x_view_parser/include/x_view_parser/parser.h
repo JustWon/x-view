@@ -9,40 +9,53 @@
 
 namespace x_view_ros {
 
-void addString(const ros::NodeHandle& nh, const std::string& ros_key,
-               const std::string& param_key,
-               std::unique_ptr<x_view::Parameters>& parameters,
-               const std::string& default_string = "");
+class Parser {
+ public:
 
-void addInt(const ros::NodeHandle& nh, const std::string& ros_key,
-            const std::string& param_key,
-            std::unique_ptr<x_view::Parameters>& parameters,
-            const int default_int = 0);
+  Parser(const ros::NodeHandle& nh)
+      : nh_(nh) {}
 
-void addFloat(const ros::NodeHandle& nh, const std::string& ros_key,
-              const std::string& param_key,
-              std::unique_ptr<x_view::Parameters>& parameters,
-              const float default_float = 0.f);
+  virtual std::unique_ptr<x_view::Parameters> parseParameters() const;
 
-void addBool(const ros::NodeHandle& nh, const std::string& ros_key,
-             const std::string& param_key,
-             std::unique_ptr<x_view::Parameters>& parameters,
-             const bool default_bool = false);
+ protected:
+  const ros::NodeHandle& nh_;
 
-std::unique_ptr<x_view::Parameters> parseParameters(const ros::NodeHandle& nh);
+  static void addString(const ros::NodeHandle& nh, const std::string& ros_key,
+                        const std::string& param_key,
+                        std::unique_ptr<x_view::Parameters>& parameters,
+                        const std::string& default_string = "");
 
-std::unique_ptr<x_view::Parameters> parseDataset(const ros::NodeHandle& nh);
+  static void addInt(const ros::NodeHandle& nh, const std::string& ros_key,
+                     const std::string& param_key,
+                     std::unique_ptr<x_view::Parameters>& parameters,
+                     const int default_int = 0);
 
-std::unique_ptr<x_view::Parameters> parseLandmark(const ros::NodeHandle& nh);
-std::unique_ptr<x_view::Parameters> parseHistogramLandmark(const ros::NodeHandle& nh);
-std::unique_ptr<x_view::Parameters> parseORBLandmark(const ros::NodeHandle& nh);
-std::unique_ptr<x_view::Parameters> parseSIFTLandmark(const ros::NodeHandle& nh);
-std::unique_ptr<x_view::Parameters> parseSURFLandmark(const ros::NodeHandle& nh);
-std::unique_ptr<x_view::Parameters> parseGraphLandmark(const ros::NodeHandle& nh);
+  static void addFloat(const ros::NodeHandle& nh, const std::string& ros_key,
+                       const std::string& param_key,
+                       std::unique_ptr<x_view::Parameters>& parameters,
+                       const float default_float = 0.f);
 
-std::unique_ptr<x_view::Parameters> parseMatcher(const ros::NodeHandle& nh);
-std::unique_ptr<x_view::Parameters> parseGraphMatcher(const ros::NodeHandle& nh);
-std::unique_ptr<x_view::Parameters> parseVectorMatcher(const ros::NodeHandle& nh);
+  static void addBool(const ros::NodeHandle& nh, const std::string& ros_key,
+                      const std::string& param_key,
+                      std::unique_ptr<x_view::Parameters>& parameters,
+                      const bool default_bool = false);
+
+  std::unique_ptr<x_view::Parameters> parseDataset() const;
+  std::unique_ptr<x_view::Parameters> parseLandmark() const;
+  std::unique_ptr<x_view::Parameters> parseMatcher() const;
+
+ private:
+
+  std::unique_ptr<x_view::Parameters> parseHistogramLandmark() const;
+  std::unique_ptr<x_view::Parameters> parseORBLandmark() const;
+  std::unique_ptr<x_view::Parameters> parseSIFTLandmark() const;
+  std::unique_ptr<x_view::Parameters> parseSURFLandmark() const;
+  std::unique_ptr<x_view::Parameters> parseGraphLandmark() const;
+
+  std::unique_ptr<x_view::Parameters> parseGraphMatcher() const;
+  std::unique_ptr<x_view::Parameters> parseVectorMatcher() const;
+
+};
 
 }
 

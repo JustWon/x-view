@@ -1,5 +1,6 @@
 #include <x_view_core/x_view_tools.h>
 
+#include <x_view_core/x_view_locator.h>
 #include <x_view_core/datasets/abstract_dataset.h>
 
 #include <boost/graph/connected_components.hpp>
@@ -93,6 +94,8 @@ void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
                             const int index,  const int link_to_n_vertices) {
   CHECK_NOTNULL(graph);
 
+  const auto& dataset = Locator::getDataset();
+
   // Create the new vertex.
   VertexProperty new_vertex;
   if(index == -1)
@@ -101,7 +104,7 @@ void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
     new_vertex.index = index;
   // Random semantic label.
   new_vertex.semantic_label =
-      static_cast<int>(rng() % global_dataset_ptr->numSemanticClasses());
+      static_cast<int>(rng() % dataset->numSemanticClasses());
   new_vertex.semantic_entity_name =
       "Random vertex " + std::to_string(new_vertex.index);
 
