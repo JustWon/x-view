@@ -165,44 +165,6 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   computeSimilarityMatrix(random_walker, &similarity_matrix,
                           vertex_similarity_score_type_);
 
-  const unsigned long num_global_vertices =
-      boost::num_vertices(global_semantic_graph_);
-
-  const auto query_vertices = boost::vertices(query_semantic_graph);
-  for (auto vertex_iter = query_vertices.first; vertex_iter !=
-      query_vertices.second; ++vertex_iter) {
-    const VertexProperty v_p = query_semantic_graph[*vertex_iter];
-    boost::add_vertex(v_p, global_semantic_graph_);
-  }
-
-  const auto query_edges = boost::edges(query_semantic_graph);
-  for (auto edge_iter = query_edges.first; edge_iter != query_edges.second;
-       ++edge_iter) {
-    const VertexDescriptor v_d_source =
-        boost::source(*edge_iter, query_semantic_graph);
-    const VertexDescriptor v_d_target =
-        boost::target(*edge_iter, query_semantic_graph);
-
-    const VertexProperty& v_p_source = query_semantic_graph[v_d_source];
-    const VertexProperty& v_p_target = query_semantic_graph[v_d_target];
-
-    EdgeProperty e_p;
-    e_p.from = v_p_source.index;
-    e_p.to = v_p_target.index;
-    boost::add_edge(v_d_source + num_global_vertices,
-                    v_d_target + num_global_vertices,
-                    e_p, global_semantic_graph_);
-  }
-
-  // Extract the random walks from the RandomWalker passed as argument.
-  const std::vector<RandomWalker::WalkMap>& query_walk_map_vector =
-      random_walker.getMappedWalks();
-
-  // Add the query random walks to the global map.
-  global_walk_map_vector_.insert(global_walk_map_vector_.end(),
-                                 query_walk_map_vector.begin(),
-                                 query_walk_map_vector.end());
-
   // Return the matching result filled with the matches.
   return matchingResult;
 

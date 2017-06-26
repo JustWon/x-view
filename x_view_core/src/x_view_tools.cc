@@ -7,6 +7,9 @@
 #include <boost/graph/random.hpp>
 #include <glog/logging.h>
 
+#include <iomanip>
+#include <sstream>
+
 namespace x_view {
 
 // ************************* Image manipulation ******************************//
@@ -29,6 +32,32 @@ cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel) {
   std::vector<cv::Mat> image_channels(image.channels());
   cv::split(image, image_channels);
   return image_channels[channel];
+}
+
+// ******************************* Utility ***********************************//
+padded_int::padded_int(const int value, const int pad, const char fill)
+    : value_(value), pad_(pad), fill_(fill) {
+  const std::string value_string = std::to_string(value_);
+  const int num_digits = value_string.length();
+  CHECK(num_digits <= pad)
+  << "You are trying to pad a number with "  << num_digits
+  << " digits with a pad of " << pad;
+
+  std::stringstream ss;
+  ss << std::setfill(fill_);
+  ss << std::setw(pad) << value_string;
+  str_ = ss.str();
+}
+
+const std::string& padded_int::str() const {
+  return str_;
+}
+
+std::string operator + (const std::string& l, const padded_int& r) {
+  return l + r.str();
+}
+std::string operator + (const padded_int& l, const std::string& r) {
+  return l.str() + l;
 }
 
 // ******************************* Logging ***********************************//

@@ -36,6 +36,22 @@ int twoBytesToInt(const unsigned char* b);
  */
 cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel);
 
+// ******************************* Utility ***********************************//
+class padded_int {
+ public:
+  padded_int(const int value, const int pad = 0, const char fill = '0');
+
+  const std::string& str() const;
+
+ private:
+  const int value_;
+  const int pad_;
+  const char fill_;
+  std::string str_;
+};
+
+std::string operator + (const std::string& l, const padded_int& r);
+std::string operator + (const padded_int& l, const std::string& r);
 
 // ******************************* Logging ***********************************//
 /**

@@ -100,6 +100,11 @@ class GraphMatcher : public AbstractMatcher {
                                const VertexSimilarity::SCORE_TYPE score_type =
                                VertexSimilarity::SCORE_TYPE::WEIGHTED) const;
 
+  const Graph& getGlobalGraph() const  { return global_semantic_graph_; }
+  void setGlobalGraph(const Graph& global_graph) {
+    global_semantic_graph_ = global_graph;
+  }
+
  private:
   Graph global_semantic_graph_;
   std::vector<RandomWalker::WalkMap> global_walk_map_vector_;

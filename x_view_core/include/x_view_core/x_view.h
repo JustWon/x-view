@@ -42,13 +42,17 @@ class XView {
   /// \brief Prints XView info.
   void printInfo() const;
 
-  /// \brief If the parameters are changed externally, then the Locator
-  /// contains new data concerning the landmark type which must be considered.
-  void updateLandmarkFactory();
+  /// \brief Initializes all variables based on the parameters located in
+  /// Locator::getParameters().
+  void initialize();
 
-  /// \brief If the parameters are changed externally, then the Locator
-  /// contains new data concerning the matcher type which musht be considered.
-  void updateMatcher();
+  /// \brief Initializes the landmark factory based on the value retrieved
+  /// from Locator::getParameters()->getChildPropertyList("landmark")->getString("type")
+  void initializeLandmarkFactory();
+
+  /// \brief Initializes the matchert based on the value retrieved
+  /// from Locator::getParameters()->getChildPropertyList("matcher")->getString("type")
+  void initializeMatcher();
 
   //=======================================================================//
   //        FUNCTIONS CALLED BY 'processSemanticImage' FUNCTION            //

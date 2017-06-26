@@ -25,7 +25,7 @@ SynthiaDataset::SynthiaDataset()
       {"sign", 9, true, true, true},
       {"pedestrian", 10, false, false, true},
       {"cyclist", 11, false, false, true},
-      {"lanemarking", 12, true, true, true}
+      {"lanemarking", 12, false, true, true}
   };
 
   CHECK(semantic_entities_.size() == SYNTHIA_NUM_SEMANTIC_CLASSES)
