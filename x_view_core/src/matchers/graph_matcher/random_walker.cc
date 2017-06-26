@@ -14,7 +14,7 @@ namespace x_view {
 #endif
 
 RandomWalkerParams::RandomWalkerParams()
-    : random_sampling_type(RANDOM_SAMPLING_TYPE::UNIFORM),
+    : random_sampling_type(SAMPLING_TYPE::UNIFORM),
       num_walks(DEFAULT_NUM_RANDOM_WALKS),
       walk_length(DEFAULT_RANDOM_WALK_LENGTH) {
 }
@@ -22,7 +22,7 @@ RandomWalkerParams::RandomWalkerParams()
 #undef DEFAULT_NUM_RANDOM_WALKS
 #undef DEFAULT_RANDOM_WALK_LENGTH
 
-RandomWalkerParams::RandomWalkerParams(const RANDOM_SAMPLING_TYPE sampling_type,
+RandomWalkerParams::RandomWalkerParams(const SAMPLING_TYPE sampling_type,
                                        const int num_walks,
                                        const int walk_length)
     : random_sampling_type(sampling_type),
@@ -145,7 +145,7 @@ const VertexDescriptor RandomWalker::nextVertex(
 
   bool found_neighbor_with_different_label = true;
   if (params_.random_sampling_type ==
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME) {
+      RandomWalkerParams::SAMPLING_TYPE::AVOIDING) {
     const int current_label = graph_[current_vertex_index].semantic_label;
     std::vector<VertexDescriptor> different_index_v_d;
     different_index_v_d.reserve(num_neighbor_vertices);
@@ -166,7 +166,7 @@ const VertexDescriptor RandomWalker::nextVertex(
     }
   }
   if (params_.random_sampling_type ==
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM ||
+      RandomWalkerParams::SAMPLING_TYPE::UNIFORM ||
       !found_neighbor_with_different_label) {
     const int advance_step = static_cast<int>(p * num_neighbor_vertices);
     std::advance(neighbors.first, advance_step);

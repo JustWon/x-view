@@ -50,7 +50,7 @@ void testChainGraph(const unsigned long seed) {
   random_walker_params.walk_length = 3;
   random_walker_params.num_walks = 200;
   random_walker_params.random_sampling_type =
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
+      RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
 
   GraphMatcherPtr graph_matcher_ptr =
       CAST(GraphMatcher::create(random_walker_params,
@@ -142,7 +142,7 @@ void testRandomGraph(const unsigned long seed) {
   random_walker_params.walk_length = 3;
   random_walker_params.num_walks = 200;
   random_walker_params.random_sampling_type =
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
+      RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
 
   GraphMatcherPtr graph_matcher_ptr =
       CAST(GraphMatcher::create(random_walker_params,

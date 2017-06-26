@@ -13,7 +13,7 @@ void mergeGraphs(const Graph& g1, const Graph g2, Graph* merged) {
   random_walker_params.num_walks = 1000;
   random_walker_params.walk_length = 3;
   random_walker_params.random_sampling_type =
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
+      RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
 
   VertexSimilarity::SCORE_TYPE score_type = VertexSimilarity::SCORE_TYPE::WEIGHTED;
 

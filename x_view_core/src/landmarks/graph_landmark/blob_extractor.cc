@@ -12,7 +12,7 @@ int BlobExtractorParams::BlobSizeFiltering::minimumBlobSize(const cv::Size&
 image_size) const {
   if (type == MIN_BLOB_SIZE_TYPE::ABSOLUTE) {
     return num_min_pixels;
-  } else if (type == MIN_BLOB_SIZE_TYPE::RELATIVE_TO_IMAGE_SIZE) {
+  } else if (type == MIN_BLOB_SIZE_TYPE::RELATIVE) {
     const int num_total_pixels = image_size.width * image_size.height;
     const int  min_blob_size = static_cast<int>(num_total_pixels * fraction_min_pixels);
     return min_blob_size;

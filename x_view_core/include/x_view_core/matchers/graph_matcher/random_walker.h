@@ -19,11 +19,11 @@ struct RandomWalkerParams {
   /// \brief Random walks can be either performed in a complete random way
   /// (i.e. by randomly sampling neighbors around each node belonging to the
   /// random walk) or using other techniques.
-  enum class RANDOM_SAMPLING_TYPE {
+  enum class SAMPLING_TYPE {
     /// \brief True random walk.
         UNIFORM = 0,
     /// \brief Avoid transitions between vertices with same semantic label.
-        AVOID_SAME
+        AVOIDING
   };
 
   /**
@@ -31,11 +31,11 @@ struct RandomWalkerParams {
    */
   RandomWalkerParams();
 
-  RandomWalkerParams(const RANDOM_SAMPLING_TYPE sampling_type,
+  RandomWalkerParams(const SAMPLING_TYPE sampling_type,
                      const int  num_walks, const int walk_length);
 
   /// \brief Determines the type of random walk to be generated.
-  RANDOM_SAMPLING_TYPE random_sampling_type;
+  SAMPLING_TYPE random_sampling_type;
   /// \brief Number or random walks to generate for each node in the graph.
   int num_walks;
   /// \brief Random walk length (i.e. number of steps taken for each walk

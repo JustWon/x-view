@@ -41,7 +41,7 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
     blob_extractor_params.blob_size_filtering.num_min_pixels = min_blob_size;
   } else if(blob_filter_type == "RELATIVE") {
     blob_extractor_params.blob_size_filtering.type =
-    BlobExtractorParams::MIN_BLOB_SIZE_TYPE::RELATIVE_TO_IMAGE_SIZE;
+    BlobExtractorParams::MIN_BLOB_SIZE_TYPE::RELATIVE;
     const float fraction_min_blob =
         landmark_parameters->getFloat("min_blob_size", 0.05f);
     blob_extractor_params.blob_size_filtering.fraction_min_pixels =
