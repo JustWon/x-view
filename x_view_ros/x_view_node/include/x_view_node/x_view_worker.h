@@ -25,7 +25,6 @@ class XViewWorker {
 
     std::string sensor_frame;
     std::string world_frame;
-
   };
 
  public:

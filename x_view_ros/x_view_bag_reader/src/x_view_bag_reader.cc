@@ -1,7 +1,9 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
-#include <x_view_parser/parser.h>
+
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/x_view_locator.h>
+#include <x_view_core/x_view_types.h>
+#include <x_view_parser/parser.h>
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <highgui.h>
@@ -96,7 +98,7 @@ void XViewBagReader::iterateBagForwards(const std::string& image_topic) {
     LOG(INFO) << "Processing semantic image at index " << i;
     parseParameters();
     const cv::Mat semantic_image = view.getSemanticImageAtFrame(i);
-    const cv::Mat depth_image = cv::Mat();
+    const cv::Mat depth_image;
     const x_view::SE3 pose;
     x_view::FrameData frame_data(semantic_image, depth_image, pose);
     x_view_->processFrameData(frame_data);
@@ -108,7 +110,7 @@ void XViewBagReader::iterateBagBackwards(const std::string& image_topic) {
     LOG(INFO) << "Processing semantic image at index " << i;
     parseParameters();
     const cv::Mat semantic_image = view.getSemanticImageAtFrame(i);
-    const cv::Mat depth_image = cv::Mat();
+    const cv::Mat depth_image;
     const x_view::SE3 pose;
     x_view::FrameData frame_data(semantic_image, depth_image, pose);
     x_view_->processFrameData(frame_data);
@@ -122,7 +124,7 @@ void XViewBagReader::iterateBagFromTo(const std::string& image_topic,
     std::cout << "Processing semantic image at index " << i << std::endl;
     parseParameters();
     const cv::Mat semantic_image = view.getSemanticImageAtFrame(i);
-    const cv::Mat depth_image = cv::Mat();
+    const cv::Mat depth_image;
     const x_view::SE3 pose;
     x_view::FrameData frame_data(semantic_image, depth_image, pose);
     x_view_->processFrameData(frame_data);

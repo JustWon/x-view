@@ -51,7 +51,10 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
 
   // Preprocess the ros message.
   const auto& dataset = x_view::Locator::getDataset();
-  cv::Mat image = dataset->convertSemanticImage(msg);
+  cv::Mat semantic_image = dataset->convertSemanticImage(msg);
+
+  const cv::Mat depth_image = cv::Mat();
+
   // Read in pose in world frame.
   tf::StampedTransform tf_transform;
   if (tf_listener_.waitForTransform(params_.world_frame, params_.sensor_frame,
@@ -65,12 +68,10 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
                << params_.world_frame << " and " << params_.sensor_frame;
   }
 
-  const cv::Mat depth_image = cv::Mat();
-
   x_view::SE3 pose;
   tf_transform.getRotation().normalize();
   tfTransformToSE3(tf_transform, &pose);
-  x_view::FrameData frame_data(image, depth_image, pose);
+  x_view::FrameData frame_data(semantic_image, depth_image, pose);
   x_view_->processFrameData(frame_data);
 }
 

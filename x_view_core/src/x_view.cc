@@ -19,7 +19,9 @@ XView::XView()
 void XView::processFrameData(const FrameData& frame_data) {
 
   LOG(INFO) << "XView starts processing frame " << frame_number_ << ".";
+  LOG(INFO) << "Associated robot pose: " << frame_data.getPose();
 
+  /*
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
 
@@ -40,8 +42,10 @@ void XView::processFrameData(const FrameData& frame_data) {
   // Add the semantic landmark to the database.
   semantics_db_.push_back(landmark_ptr);
 
+   */
   LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
   ++frame_number_;
+
 }
 
 void XView::printInfo() const {
