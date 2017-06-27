@@ -14,6 +14,8 @@ namespace x_view {
  * data is given to XView. In particular a semanticLandmark might contain
  * data about the robot's pose and an internal semantic representation of
  * what the robot experiences in that moment.
+ * \note The AbstractSemanticLandmark copies the data from the arguments
+ * passed to the constructor and holds a copy as member variable.
  */
 class AbstractSemanticLandmark {
 
@@ -24,12 +26,16 @@ class AbstractSemanticLandmark {
    * \param image Semantic image associated to the landmark.
    * \param pose Robot's pose.
    */
-  AbstractSemanticLandmark(const cv::Mat& image, const SE3& pose);
+  AbstractSemanticLandmark(const FrameData& frame_data);
   virtual ~AbstractSemanticLandmark();
 
-  /// \brief Returns a const reference to the image associated with this
-  /// landmark.
+  /// \brief Returns a const reference to the semantic image associated with
+  /// this landmark.
   const cv::Mat& getSemanticImage() const;
+
+  /// \brief Returns a const reference to the depth-image associated with
+  /// this landmark.
+  const cv::Mat& getDepthImage() const;
 
   /// \brief Returns a const reference to the robot's pose associated with
   /// this landmark.
@@ -41,6 +47,9 @@ class AbstractSemanticLandmark {
  protected:
   /// \brief Semantic image given as input for the landmark.
   const cv::Mat semantic_image_;
+
+  /// \brief Depth image given as input for the landmark.
+  const cv::Mat depth_image_;
 
   /// \brief Robot's pose associated to this semantic landmark.
   const SE3 pose_;

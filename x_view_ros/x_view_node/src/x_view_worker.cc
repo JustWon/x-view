@@ -64,10 +64,14 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
     LOG(ERROR) << "Failed to get transformation between "
                << params_.world_frame << " and " << params_.sensor_frame;
   }
+
+  const cv::Mat depth_image = cv::Mat();
+
   x_view::SE3 pose;
   tf_transform.getRotation().normalize();
   tfTransformToSE3(tf_transform, &pose);
-  x_view_->processSemanticImage(image, pose);
+  x_view::FrameData frame_data(image, depth_image, pose);
+  x_view_->processFrameData(frame_data);
 }
 
 void XViewWorker::tfTransformToSE3(const tf::StampedTransform& tf_transform,

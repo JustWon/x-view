@@ -18,7 +18,7 @@ namespace x_view {
 class VisualDescriptorLandmark : public AbstractSemanticLandmark {
 
  public:
-  explicit VisualDescriptorLandmark(const cv::Mat& image, const SE3& pose);
+  explicit VisualDescriptorLandmark(const FrameData& frame_data);
 
   /// \brief Number of features to be extracted by the detector in case no
   /// parameter is provided.
@@ -36,12 +36,13 @@ class VisualDescriptorLandmark : public AbstractSemanticLandmark {
 #define DECLARE_VISUAL_FEATURE_CLASS(dName) \
 class dName##VisualDescriptorLandmark : public VisualDescriptorLandmark { \
  public: \
-  static SemanticLandmarkPtr create(const cv::Mat& image, const SE3& pose) {  \
-    return std::make_shared<dName##VisualDescriptorLandmark>(dName##VisualDescriptorLandmark(image, pose)); \
+  static SemanticLandmarkPtr create(const FrameData& frame_data) {  \
+    return std::make_shared<dName##VisualDescriptorLandmark> \
+              (dName##VisualDescriptorLandmark(frame_data)); \
   } \
   \
  protected:  \
-  explicit dName##VisualDescriptorLandmark(const cv::Mat& image, const SE3& pose);\
+  explicit dName##VisualDescriptorLandmark(const FrameData& frame_data);\
   \
 }; \
 

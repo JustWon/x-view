@@ -95,8 +95,11 @@ void XViewBagReader::iterateBagForwards(const std::string& image_topic) {
   for (int i = 0; i < view.size_; ++i) {
     LOG(INFO) << "Processing semantic image at index " << i;
     parseParameters();
-    x_view_->processSemanticImage(view.getSemanticImageAtFrame(i),
-                                 x_view::SE3());
+    const cv::Mat semantic_image = view.getSemanticImageAtFrame(i);
+    const cv::Mat depth_image = cv::Mat();
+    const x_view::SE3 pose;
+    x_view::FrameData frame_data(semantic_image, depth_image, pose);
+    x_view_->processFrameData(frame_data);
   }
 }
 void XViewBagReader::iterateBagBackwards(const std::string& image_topic) {
@@ -104,8 +107,11 @@ void XViewBagReader::iterateBagBackwards(const std::string& image_topic) {
   for (int i = view.size_ - 1; i >= 0; --i) {
     LOG(INFO) << "Processing semantic image at index " << i;
     parseParameters();
-    x_view_->processSemanticImage(view.getSemanticImageAtFrame(i),
-                                 x_view::SE3());
+    const cv::Mat semantic_image = view.getSemanticImageAtFrame(i);
+    const cv::Mat depth_image = cv::Mat();
+    const x_view::SE3 pose;
+    x_view::FrameData frame_data(semantic_image, depth_image, pose);
+    x_view_->processFrameData(frame_data);
   }
 }
 void XViewBagReader::iterateBagFromTo(const std::string& image_topic,
@@ -115,8 +121,11 @@ void XViewBagReader::iterateBagFromTo(const std::string& image_topic,
   for (int i = from; step * i < step * to; i += step) {
     std::cout << "Processing semantic image at index " << i << std::endl;
     parseParameters();
-    x_view_->processSemanticImage(view.getSemanticImageAtFrame(i),
-                                 x_view::SE3());
+    const cv::Mat semantic_image = view.getSemanticImageAtFrame(i);
+    const cv::Mat depth_image = cv::Mat();
+    const x_view::SE3 pose;
+    x_view::FrameData frame_data(semantic_image, depth_image, pose);
+    x_view_->processFrameData(frame_data);
   }
 }
 

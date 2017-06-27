@@ -11,8 +11,6 @@
 
 #include <opencv2/core/core.hpp>
 
-#include <kindr/minimal/quat-transformation.h>
-
 #include <x_view_core/x_view.h>
 #include <x_view_parser/parser.h>
 
@@ -98,9 +96,6 @@ class XViewBagReader {
   void iterateBagBackwards(const std::string& image_topic);
   void iterateBagFromTo(const std::string& image_topic,
                         const int from, const int to);
-
-  // 3D pose (position + orientation)
-  typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 
  private:
 

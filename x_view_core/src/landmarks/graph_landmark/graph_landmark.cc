@@ -6,8 +6,8 @@
 
 namespace x_view {
 
-GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
-    : AbstractSemanticLandmark(image, pose) {
+GraphLandmark::GraphLandmark(const FrameData& frame_data)
+    : AbstractSemanticLandmark(frame_data) {
 
   const auto& parameters = Locator::getParameters();
   const auto& landmark_parameters =
@@ -51,8 +51,8 @@ GraphLandmark::GraphLandmark(const cv::Mat& image, const SE3& pose)
                << "> as 'blob_filter_type' parameter.";
   }
 
-  image_blobs_ =
-      BlobExtractor::findBlobsWithContour(image, blob_extractor_params);
+  image_blobs_ = BlobExtractor::findBlobsWithContour(semantic_image_,
+                                                     blob_extractor_params);
 
   // *********** Graph generation ********** //
 

@@ -11,17 +11,17 @@ namespace x_view {
 int VisualDescriptorLandmark::DEFAULT_NUM_VISUAL_FEATURES = 1000;
 float VisualDescriptorLandmark::DEFAULT_HESSIAN_THRESHOLD = 0.2f;
 
-VisualDescriptorLandmark::VisualDescriptorLandmark(const cv::Mat& image,
-                                                   const SE3& pose)
-    : AbstractSemanticLandmark(image, pose) {
+VisualDescriptorLandmark::VisualDescriptorLandmark(
+    const FrameData& frame_data)
+    : AbstractSemanticLandmark(frame_data) {
 }
 
 
 //*************************** ORB visual descriptor **************************//
 
-ORBVisualDescriptorLandmark::ORBVisualDescriptorLandmark(const cv::Mat& image,
-                                                         const SE3& pose)
-    : VisualDescriptorLandmark(image, pose) {
+ORBVisualDescriptorLandmark::ORBVisualDescriptorLandmark(
+    const FrameData& frame_data)
+    : VisualDescriptorLandmark(frame_data) {
 
   const auto& dataset = Locator::getDataset();
   const auto& parameters = Locator::getParameters();
@@ -35,7 +35,7 @@ ORBVisualDescriptorLandmark::ORBVisualDescriptorLandmark(const cv::Mat& image,
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
   cv::Mat gray;
-  cv::cvtColor(image, gray, CV_BGR2GRAY);
+  cv::cvtColor(semantic_image_, gray, CV_BGR2GRAY);
 
   features_extractor.reset(new cv::ORB(num_visual_features));
 
@@ -57,9 +57,9 @@ ORBVisualDescriptorLandmark::ORBVisualDescriptorLandmark(const cv::Mat& image,
 
 //*************************** SIFT visual descriptor *************************//
 
-SIFTVisualDescriptorLandmark::SIFTVisualDescriptorLandmark(const cv::Mat& image,
-                                                           const SE3& pose)
-    : VisualDescriptorLandmark(image, pose) {
+SIFTVisualDescriptorLandmark::SIFTVisualDescriptorLandmark(
+    const FrameData& frame_data)
+    : VisualDescriptorLandmark(frame_data) {
 
   const auto& dataset = Locator::getDataset();
   const auto& parameters = Locator::getParameters();
@@ -73,7 +73,7 @@ SIFTVisualDescriptorLandmark::SIFTVisualDescriptorLandmark(const cv::Mat& image,
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
   cv::Mat gray;
-  cv::cvtColor(image, gray, CV_BGR2GRAY);
+  cv::cvtColor(semantic_image_, gray, CV_BGR2GRAY);
 
   features_extractor.reset(new cv::SIFT(num_visual_features));
 
@@ -95,9 +95,9 @@ SIFTVisualDescriptorLandmark::SIFTVisualDescriptorLandmark(const cv::Mat& image,
 
 //************************** SURF visual descriptor **************************//
 
-SURFVisualDescriptorLandmark::SURFVisualDescriptorLandmark(const cv::Mat& image,
-                                                           const SE3& pose)
-    : VisualDescriptorLandmark(image, pose) {
+SURFVisualDescriptorLandmark::SURFVisualDescriptorLandmark(
+    const FrameData& frame_data)
+    : VisualDescriptorLandmark(frame_data) {
 
   const auto& dataset = Locator::getDataset();
   const auto& parameters = Locator::getParameters();
@@ -114,7 +114,7 @@ SURFVisualDescriptorLandmark::SURFVisualDescriptorLandmark(const cv::Mat& image,
   // convert RGB image to gray as visual feature detectors only work on
   // single-channel images
   cv::Mat gray;
-  cv::cvtColor(image, gray, CV_BGR2GRAY);
+  cv::cvtColor(semantic_image_, gray, CV_BGR2GRAY);
 
   features_extractor.reset(new cv::SURF(hessian_threshold));
 

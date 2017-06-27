@@ -3,6 +3,7 @@
 
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <kindr/minimal/quat-transformation.h>
+#include <opencv2/core/core.hpp>
 
 #include <memory>
 
@@ -14,61 +15,51 @@ class AbstractDescriptor;
 class AbstractSemanticLandmark;
 class AbstractMatcher;
 
-/// Different types of feature representation used in XView
-enum FeatureType {
-  UNDEFINED_FEATURE_TYPE = -1,
-  VECTOR_FEATURE,
-  GRAPH_FEATURE,
-  NUM_FEATURE_TYPES
-};
-
-/// Different types of semantic landmarks to be used in XView
-enum SemanticLandmarkType {
-  UNDEFINED_SEMANTIC_LANDMARK_TYPE = -1,
-  ORB_VISUAL_FEATURE,
-  SIFT_VISUAL_FEATURE,
-  SURF_VISUAL_FEATURE,
-  SEMANTIC_HISTOGRAM,
-  SEMANTIC_GRAPH,
-  NUM_SEMANTIC_LANDMARK_TYPES
-};
-
-/// Different types of landmarks matchers to be used in XView
-enum LandmarksMatcherType {
-  UNDEFINED_LANDMARKS_MATCHER_TYPE = -1,
-  VECTOR_MATCHER,
-  GRAPH_MATCHER,
-  NUM_LANDMARKS_MATCHER_TYPES
-};
-
-// typedefs
-/// factor graph used for graph optimization
+/// \brief Factor graph used for graph optimization.
 typedef gtsam::NonlinearFactorGraph FactorGraph;
 
-/// 3D pose (position + orientation)
+/// \brief 3D pose (position + orientation).
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 
-/// pointer to dataset object
-typedef std::shared_ptr<AbstractDataset> DatasetPtr;
 
-typedef std::shared_ptr<const AbstractDataset> ConstDatasetPtr;
-
-/// pointer to feature
-typedef std::shared_ptr<AbstractDescriptor> DescriptorPtr;
-
+/// \brief Pointer to feature.
 typedef std::shared_ptr<const AbstractDescriptor> ConstDescriptorPtr;
 
-/// pointer to semantic landmark
+/// \brief Pointer to semantic landmark.
 typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;
 
-typedef std::shared_ptr<const AbstractSemanticLandmark>
-    ConstSemanticLandmarkPtr;
-
-/// pointer to landmark matchers
+/// \brief Pointer to landmark matchers.
 typedef std::shared_ptr<AbstractMatcher> LandmarksMatcherPtr;
 
-typedef std::shared_ptr<const AbstractMatcher>
-    ConstLandmarksMatcherPtr;
+
+/// \brief In each frame XView recieves an instance of FrameData containing
+/// information about semantic segmentation, depth image and robot pose.
+class FrameData {
+ public:
+  FrameData(const cv::Mat& semantic_image, const cv::Mat& depth_image,
+            const SE3& pose)
+      : semantic_image_(semantic_image),
+        depth_image_(depth_image),
+        pose_(pose) {
+  }
+
+  const cv::Mat& getSemanticImage() const {
+    return semantic_image_;
+  }
+
+  const cv::Mat& getDepthImage() const {
+    return depth_image_;
+  }
+
+  const SE3& getPose() const {
+    return pose_;
+  }
+
+ private:
+  const cv::Mat& semantic_image_;
+  const cv::Mat& depth_image_;
+  const SE3& pose_;
+};
 
 }
 

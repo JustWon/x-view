@@ -32,8 +32,9 @@ void testCustomImage() {
 
     cv::Mat custom_image;
     createCustomImage(rows, cols, &custom_image);
+    FrameData frame_data(custom_image, cv::Mat(), SE3());
     GraphLandmarkPtr graph_landmark_ptr =
-        CAST(GraphLandmark::create(custom_image, SE3()), GraphLandmark);
+        CAST(GraphLandmark::create(frame_data), GraphLandmark);
 
     CHECK_NOTNULL(graph_landmark_ptr.get());
 
@@ -88,9 +89,9 @@ void testDiscImage() {
       }
 
       createDiscImage(rows, cols, centers, radii, labels, &disc_image);
-
+      FrameData frame_data(disc_image, cv::Mat(), SE3());
       GraphLandmarkPtr graph_landmark_ptr =
-          CAST(GraphLandmark::create(disc_image, SE3()), GraphLandmark);
+          CAST(GraphLandmark::create(frame_data), GraphLandmark);
 
       CHECK_NOTNULL(graph_landmark_ptr.get());
 

@@ -13,8 +13,8 @@ namespace x_view {
 class HistogramLandmark : public AbstractSemanticLandmark {
 
  public:
-  static SemanticLandmarkPtr create(const cv::Mat& image, const SE3& pose) {
-    return std::make_shared<HistogramLandmark>(HistogramLandmark(image, pose));
+  static SemanticLandmarkPtr create(const FrameData& frame_data) {
+    return std::make_shared<HistogramLandmark>(HistogramLandmark(frame_data));
   }
 
  protected:
@@ -25,7 +25,7 @@ class HistogramLandmark : public AbstractSemanticLandmark {
    * of each pixel.
    * \param pose Robot's pose.
    */
-  explicit HistogramLandmark(const cv::Mat& image, const SE3& pose);
+  explicit HistogramLandmark(const FrameData& frame_data);
 
 };
 

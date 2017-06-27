@@ -16,7 +16,7 @@ XView::XView()
   initialize();
 }
 
-void XView::processSemanticImage(const cv::Mat& image, const SE3& pose) {
+void XView::processFrameData(const FrameData& frame_data) {
 
   LOG(INFO) << "XView starts processing frame " << frame_number_ << ".";
 
@@ -24,7 +24,7 @@ void XView::processSemanticImage(const cv::Mat& image, const SE3& pose) {
   SemanticLandmarkPtr landmark_ptr;
 
   // Extract semantics associated to the semantic image and pose.
-  extractSemanticsFromImage(image, pose, landmark_ptr);
+  createSemanticLandmark(frame_data, landmark_ptr);
 
   // Compute the matches between the new feature and the ones
   // stored in the database.
@@ -117,18 +117,17 @@ void XView::initializeMatcher() {
 }
 
 //==========================================================================//
-//         FUNCTIONS CALLED BY 'processSemanticImage' FUNCTION              //
+//         FUNCTIONS CALLED BY 'processFrameData' FUNCTION                  //
 //==========================================================================//
 
-void XView::extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
-                                      SemanticLandmarkPtr& semantics_out) {
+void XView::createSemanticLandmark(const FrameData& frame_data,
+                                   SemanticLandmarkPtr& semantics_out) {
 
   // TODO: preprocess image and pose
 
   // Create the actual landmark representation whose implementation depends
   // on the parameters passed to XView.
-  semantics_out =
-      semantic_landmark_factory_.createSemanticLandmark(image, pose);
+  semantics_out = semantic_landmark_factory_.createSemanticLandmark(frame_data);
 
   LOG(INFO) << "XView created semantic landmark.";
 }

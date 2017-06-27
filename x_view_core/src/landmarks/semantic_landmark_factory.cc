@@ -8,10 +8,9 @@ void SemanticLandmarkFactory::setCreatorFunction(CreateCallBack callback) {
   callback_ = callback;
 }
 
-SemanticLandmarkPtr SemanticLandmarkFactory::createSemanticLandmark(const cv::Mat& image,
-                                                                    const SE3& pose) {
-
-  return callback_(image, pose);
+SemanticLandmarkPtr SemanticLandmarkFactory::createSemanticLandmark(
+    const FrameData& frame_data) {
+  return callback_(frame_data);
 }
 
 }

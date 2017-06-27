@@ -33,10 +33,10 @@ class XView {
   /**
    * \brief XView processes new landmark associated to a semantic image and
    * a robot's pose.
-   * \param image Semantic image representing landmark.
-   * \param pose Robot's pose.
+   * \param frame_data Data passed to XView in the current frame. This
+   * consists in a semantic segmentation (image), a depth-image and a pose.
    */
-  void processSemanticImage(const cv::Mat& image, const SE3& pose);
+  void processFrameData(const FrameData& frame_data);
 
  private:
   /// \brief Prints XView info.
@@ -55,20 +55,20 @@ class XView {
   void initializeMatcher();
 
   //=======================================================================//
-  //        FUNCTIONS CALLED BY 'processSemanticImage' FUNCTION            //
+  //        FUNCTIONS CALLED BY 'processFrameData' FUNCTION                //
   //=======================================================================//
 
   /**
-   * \brief Extract semantic descriptor from semantics image.
-   * \param image Image containing semantic information in the first channel.
-   * \param pose Current pose of the robot.
+   * \brief Extract semantic descriptor from semantics image and creates a
+   * semantic landamark associated to it.
+   * \param frame_data Data to be processed associated to the current frame.
    * \param semantics_out Generated landmark.
    * \details Depending on the XView parameters passed to the class
    * constructor, the dynamic type of the object pointed by semantics_out
    * will be different.
    */
-  void extractSemanticsFromImage(const cv::Mat& image, const SE3& pose,
-                                 SemanticLandmarkPtr& semantics_out);
+  void createSemanticLandmark(const FrameData& frame_data,
+                              SemanticLandmarkPtr& semantics_out);
 
   /// \brief Match semantics instance to database and return score.
   void matchSemantics(const SemanticLandmarkPtr& semantics_a,

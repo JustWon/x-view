@@ -19,8 +19,8 @@ namespace x_view {
 class GraphLandmark : public AbstractSemanticLandmark {
 
  public:
-  static SemanticLandmarkPtr create(const cv::Mat& image, const SE3& pose) {
-    return std::make_shared<GraphLandmark>(GraphLandmark(image, pose));
+  static SemanticLandmarkPtr create(const FrameData& frame_data) {
+    return std::make_shared<GraphLandmark>(GraphLandmark(frame_data));
   }
 
   /// \brief Returns a const reference to the blob datastructure.
@@ -38,7 +38,7 @@ class GraphLandmark : public AbstractSemanticLandmark {
    * of each pixel.
    * \param pose Robot's pose.
    */
-  explicit GraphLandmark(const cv::Mat& image, const SE3& pose);
+  explicit GraphLandmark(const FrameData& frame_data);
 
  private:
   /**

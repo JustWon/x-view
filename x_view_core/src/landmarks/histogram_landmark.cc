@@ -6,8 +6,8 @@
 #include <x_view_core/x_view_locator.h>
 
 namespace x_view {
-HistogramLandmark::HistogramLandmark(const cv::Mat& image, const SE3& pose)
-    : AbstractSemanticLandmark(image, pose) {
+HistogramLandmark::HistogramLandmark(const FrameData& frame_data)
+    : AbstractSemanticLandmark(frame_data) {
 
   const auto& dataset = Locator::getDataset();
 

@@ -15,7 +15,7 @@ class SemanticLandmarkFactory {
  public:
 
   /// \brief Function pointer passed to the factory to create new landmarks.
-  typedef SemanticLandmarkPtr (* CreateCallBack)(const cv::Mat&, const SE3&);
+  typedef SemanticLandmarkPtr (* CreateCallBack)(const FrameData&);
 
   /**
    * \brief Sets the landmark type the factory is going to generate.
@@ -26,13 +26,12 @@ class SemanticLandmarkFactory {
   /**
    * \brief Function exposed to the user to create new semantic landmark
    * objects.
-   * \param image Image containing semantic information on the first channel.
-   * \param pose  3D pose of the robot associated to the image.
+   * \param frame_data Data associated to the current frame.
    * \return landmark Pointer to abstract base landmark class which is filled
    * up with a concrete landmark instance.
    */
-  static SemanticLandmarkPtr createSemanticLandmark(const cv::Mat& image,
-                                                    const SE3& pose);
+  static SemanticLandmarkPtr createSemanticLandmark(
+      const FrameData& frame_data);
 
  private:
   ///\brief A function pointer to the static function responsible for
