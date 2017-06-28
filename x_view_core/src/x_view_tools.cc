@@ -60,6 +60,25 @@ std::string operator + (const padded_int& l, const std::string& r) {
   return l.str() + l;
 }
 
+
+const std::string formatSE3(const SE3& se3, const std::string& indent,
+                            const int precision) {
+  const Eigen::IOFormat format(precision, 0, ", ",
+                               std::string("\n") + indent, "[", "]");
+  std::string s = "";
+  s += std::string("origin:\n") + indent;
+
+  std::stringstream ss;
+  ss << std::setfill(' ') << Eigen::RowVector3d(se3.getPosition()).format(format);
+  s += ss.str();
+  ss.str(std::string());
+
+  s += std::string("\nrotation:\n") + indent;
+  ss << se3.getRotationMatrix().format(format);
+  s += ss.str();
+  return s;
+}
+
 // ******************************* Logging ***********************************//
 
 const std::string& getRootDirectory() {

@@ -33,9 +33,16 @@ XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n), parser_(nh_) {
     CHECK(false) << "Dataset '" << dataset_name
                  << "' is not supported" << std::endl;
 
+  // Subscribe to semantic image topic.
   semantics_image_sub_ = nh_.subscribe(params_.semantics_image_topic, 1,
                                        &XViewWorker::semanticsImageCallback,
                                        this);
+
+  // And to depth image topic.
+  depth_image_sub_ = nh_.subscribe(params_.depth_image_topic, 1,
+                                   &XViewWorker::depthImageCallback,
+                                   this);
+
 
   // Create XView object.
   x_view_ = std::unique_ptr<x_view::XView>(new x_view::XView());
@@ -47,13 +54,13 @@ XViewWorker::~XViewWorker() {
 
 void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) {
 
-  parseParameters();
-
   // Preprocess the ros message.
   const auto& dataset = x_view::Locator::getDataset();
   cv::Mat semantic_image = dataset->convertSemanticImage(msg);
+  LOG(INFO) << "Semantic image with stamp: " << msg->header.stamp;
 
-  const cv::Mat depth_image = cv::Mat();
+  message_.semantic_image = semantic_image;
+  message_.semantic_set = true;
 
   // Read in pose in world frame.
   tf::StampedTransform tf_transform;
@@ -63,6 +70,7 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
     // Get the tf transform.
     tf_listener_.lookupTransform(params_.world_frame, params_.sensor_frame,
                                  msg->header.stamp, tf_transform);
+    LOG(INFO) << "Transform with stamp: " << tf_transform.stamp_;
   } else {
     LOG(ERROR) << "Failed to get transformation between "
                << params_.world_frame << " and " << params_.sensor_frame;
@@ -71,8 +79,43 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
   x_view::SE3 pose;
   tf_transform.getRotation().normalize();
   tfTransformToSE3(tf_transform, &pose);
-  x_view::FrameData frame_data(semantic_image, depth_image, pose);
+
+  message_.pose = pose;
+  message_.pose_set = true;
+
+  if(message_.isReady())
+    processData();
+}
+
+void XViewWorker::depthImageCallback(const sensor_msgs::ImageConstPtr& msg) {
+
+  try {
+    cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, enc::MONO16);
+    LOG(INFO) << "Depth image with stamp: " << msg->header.stamp;
+
+    message_.depth_image = cv_ptr->image;
+    message_.depth_set = true;
+
+  }
+  catch (cv_bridge::Exception& e) {
+    LOG(FATAL) << "Could not convert from '" << msg->encoding
+               << "' to '" << enc::BGR8 << "'\nError: " << e.what();
+  }
+
+  if(message_.isReady())
+    processData();
+
+}
+
+void XViewWorker::processData() {
+  x_view::FrameData frame_data(message_.semantic_image,
+                               message_.depth_image,
+                               message_.pose);
   x_view_->processFrameData(frame_data);
+  message_.reset();
+
+  // Parse parameters for next frame.
+  parseParameters();
 }
 
 void XViewWorker::tfTransformToSE3(const tf::StampedTransform& tf_transform,
@@ -116,6 +159,11 @@ void XViewWorker::getXViewWorkerParameters() {
                     params_.semantics_image_topic)) {
     LOG(ERROR) << "Failed to get param "
         "'/XViewWorker/semantics_image_topic'";
+  }
+  if (!nh_.getParam("/XViewWorker/depth_image_topic",
+                    params_.depth_image_topic)) {
+    LOG(ERROR) << "Failed to get param "
+        "'/XViewWorker/depth_image_topic'";
   }
   if (!nh_.getParam("/XViewWorker/sensor_frame",
                     params_.sensor_frame)) {

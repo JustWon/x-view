@@ -23,9 +23,22 @@ Matcher: {
 # Parameters read exclusively by XViewBagReader
 XViewBagReader: {
   bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/Synthia_3_cams.bag",
-  semantics_image_topic_back: "/Stereo_Left/Omni_B/labels",
-  semantics_image_topic_front: "/Stereo_Left/Omni_F/labels",
-  semantics_image_topic_right: "/Stereo_Left/Omni_R/labels",
-  sensor_frame: "cam02",
+  back: {
+    semantics_image_topic: "/Stereo_Left/Omni_B/labels",
+    depth_image_topic: "/Stereo_Left/Omni_B/depth",
+    sensor_frame: "cam02"
+  },
+  right: {
+    semantics_image_topic: "/Stereo_Left/Omni_R/labels",
+    depth_image_topic: "/Stereo_Left/Omni_R/depth",
+    sensor_frame: "cam01"
+  },
+  front: {
+    semantics_image_topic: "/Stereo_Left/Omni_F/labels",
+    depth_image_topic: "/Stereo_Left/Omni_F/depth",
+    sensor_frame: "cam00"
+  },
+
+  transform_topic: "/tf",
   world_frame: "world"
 }

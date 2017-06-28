@@ -34,9 +34,7 @@ class GraphLandmark : public AbstractSemanticLandmark {
    * argument to determine how semantic entities are represented in the scene.
    * A graph is built upon this segmentation defining its vertices as the
    * 'center of mass' of each blob of the image.
-   * \param image Semantic image storing semantic class in the first channel
-   * of each pixel.
-   * \param pose Robot's pose.
+   * \param frame_data Data associated to the constructed landmark.
    */
   explicit GraphLandmark(const FrameData& frame_data);
 

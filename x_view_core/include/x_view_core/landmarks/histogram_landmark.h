@@ -21,9 +21,7 @@ class HistogramLandmark : public AbstractSemanticLandmark {
   /**
    * \brief Computes a histogram of semantic label frequencies encoded in the
    * first channel of the image passed as argument.
-   * \param image Semantic image storing semantic class in the first channel
-   * of each pixel.
-   * \param pose Robot's pose.
+   * \param frame_data Data associated to the landmark being constructed.
    */
   explicit HistogramLandmark(const FrameData& frame_data);
 

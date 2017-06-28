@@ -19,9 +19,11 @@ XView::XView()
 void XView::processFrameData(const FrameData& frame_data) {
 
   LOG(INFO) << "XView starts processing frame " << frame_number_ << ".";
-  LOG(INFO) << "Associated robot pose: " << frame_data.getPose();
+  const Eigen::RowVector3d origin = frame_data.getPose().getPosition();
+  const Eigen::Matrix3d rotation = frame_data.getPose().getRotationMatrix();
+  LOG(INFO) << "Associated robot pose:\n" << formatSE3(frame_data.getPose(),
+                                                       "\t\t", 3);
 
-  /*
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
 
@@ -42,7 +44,6 @@ void XView::processFrameData(const FrameData& frame_data) {
   // Add the semantic landmark to the database.
   semantics_db_.push_back(landmark_ptr);
 
-   */
   LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
   ++frame_number_;
 

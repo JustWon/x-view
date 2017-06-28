@@ -16,6 +16,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 
 cs_add_library(${PROJECT_NAME}
         src/x_view_bag_reader.cc
+        src/x_view_topic_view.cc
         )
 
 add_executable(x_view_bag src/x_view_bag_node.cc)

@@ -2,6 +2,7 @@
 #define X_VIEW_X_VIEW_TOOLS_H
 
 #include <x_view_core/features/graph.h>
+#include <x_view_core/x_view_types.h>
 
 #include <opencv2/core/core.hpp>
 
@@ -52,6 +53,9 @@ class padded_int {
 
 std::string operator + (const std::string& l, const padded_int& r);
 std::string operator + (const padded_int& l, const std::string& r);
+
+const std::string formatSE3(const SE3& se3, const std::string& indent = "",
+                            const int precision = Eigen::StreamPrecision);
 
 // ******************************* Logging ***********************************//
 /**

@@ -1,106 +1,79 @@
 #ifndef X_VIEW_BAG_READER_H
 #define X_VIEW_BAG_READER_H
 
-#include<vector>
-#include<map>
-
-#include <ros/node_handle.h>
-
-#include <rosbag/bag.h>
-#include <rosbag/view.h>
-
-#include <opencv2/core/core.hpp>
-
+#include <x_view_bag_reader/x_view_topic_view.h>
 #include <x_view_core/x_view.h>
 #include <x_view_parser/parser.h>
+
+#include <glog/logging.h>
+#include <opencv2/core/core.hpp>
+#include <ros/node_handle.h>
+#include <rosbag/bag.h>
+
+#include <memory>
+#include <vector>
 
 namespace x_view_ros {
 
 /**
- * \brief The XViewBagReader class is an interface to any rosbag file. This
- * class can be used to access data contained in a rosbag file and can be
- * used to test the implementation of XView by accessing the images in the
- * bag file in any order one wants.
+ * \brief The XViewBagReader class is an interface to rosbag files containing
+ * data extracted from the Synthia dataset.
  */
 class XViewBagReader {
 
+ public:
+
   /// \brief Parameters needed by XViewBagReader.
   struct XViewBagReaderParams {
+    XViewBagReaderParams()
+        : front(CAMERA::FRONT),
+          right(CAMERA::RIGHT),
+          back(CAMERA::BACK) {}
+
     /// \brief Bag filename of the rosbag file to be read.
     std::string bag_file_name;
 
-    /// \brief Topic containing semantic images of the 'back' camera.
-    std::string semantics_image_topic_back;
-    /// \brief Topic containing semantic images of the 'front' camera.
-    std::string semantics_image_topic_front;
-    /// \brief Topic containing semantic images of the 'right' camera.
-    std::string semantics_image_topic_right;
+    CameraTopics front;
+    CameraTopics right;
+    CameraTopics back;
 
-    std::string sensor_frame;
+    std::string transform_topic;
     std::string world_frame;
 
-  }; // struct XViewBagReaderParams
-
-
-  /**
-   * \brief Each topic contained in the rosbag file read by the
-   * XViewBagReader class can be accessd through a rosbag::View object. This
-   * struct is a small wrapper around the rosbag::View object which provides
-   * some functionalities to acces the desired data.
-   */
-  struct RosbagTopicView {
-    RosbagTopicView() : topic_name_(""), view_(nullptr), size_(-1) {}
-
-    /**
-     * \brief Constructor which initializes the internal structure used to
-     * access the data related to the topic as if it was in a random access
-     * container.
-     * \param bag Rosbag object.
-     * \param topic String specifying the topic this objects is viewing at.
-     */
-    RosbagTopicView(const rosbag::Bag& bag, const std::string& topic);
-
-    std::string topic_name_;
-    // needed to use a pointer because rosbag::View has a private
-    // copyconstructor, so using a pointer was an easy way to avoid problems
-    rosbag::View* view_;
-
-    /// \brief number of messages contained in the bag file associated with
-    /// the topic.
-    int size_;
-
-    /// \brief internal structure which allows to access any message observed
-    /// by the view as if it where a random access.
-    std::vector<rosbag::View::iterator> iterators_;
-
-    /**
-     * \brief Builds the semantic image associated to a frame for the current
-     * topic.
-     * \param frame_index Integer indicating the desired frame to be queried.
-     * \return Semantic image corresponding to the frame passed as argument
-     * for the topic observed by this object.
-     */
-    cv::Mat getSemanticImageAtFrame(const int frame_index) const;
   };
 
- public:
   explicit XViewBagReader(ros::NodeHandle& n);
 
-  ~XViewBagReader() {};
-
-  /// \brief Loads a bag file by creating views for selected topics.
-  void loadBagFile();
-
   /// \brief predefined functions to iterate over the data related to a topic.
-  void iterateBagForwards(const std::string& image_topic);
-  void iterateBagBackwards(const std::string& image_topic);
-  void iterateBagFromTo(const std::string& image_topic,
+  void iterateBagFromTo(const CAMERA camera_type,
                         const int from, const int to);
 
  private:
 
+  /// \brief Loads a bag file by creating views for current topics.
+  void loadCurrentTopic(const CameraTopics& current_topics);
+
+  /// \brief Returns the topics associated with the camera type passed as
+  /// argument.
+  const CameraTopics& getTopics(const CAMERA camera_type) const {
+    switch(camera_type) {
+      case CAMERA::BACK:
+        return params_.back;
+      case CAMERA::RIGHT:
+        return params_.right;
+      case CAMERA::FRONT:
+        return params_.front;
+      default:
+        LOG(ERROR) << "Unrecognized camera type.";
+    }
+  }
+
   void parseParameters() const;
+
   void getXViewBagReaderParameters();
+
+  void tfTransformToSE3(const tf::StampedTransform& tf_transform,
+                        x_view::SE3* pose);
 
   std::unique_ptr<x_view::XView> x_view_;
 
@@ -113,9 +86,19 @@ class XViewBagReader {
   /// \brief Rosbag file being read by this class.
   rosbag::Bag bag_;
 
-  /// \brief Object mapping topic strings to the corresponding view objects.
-  std::map<std::string, RosbagTopicView> topic_views_;
+  /// \brief Pointer to the View object responsible for extracting semantic
+  /// images from the rosbag file.
+  std::unique_ptr<SemanticImageView> semantic_topic_view_;
 
+  /// \brief Pointer to the View object responsible for extracting depth
+  /// images from the rosbag file.
+  std::unique_ptr<DepthImageView> depth_topic_view_;
+
+  /// \brief Pointer to the View object responsible for extracting transforms
+  /// from the rosbag file.
+  std::unique_ptr<TransformView> transform_view_;
+
+  /// \brief Parser object responsible for parsing the rosparameters.
   Parser parser_;
 };
 

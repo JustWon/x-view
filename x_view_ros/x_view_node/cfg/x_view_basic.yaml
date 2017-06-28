@@ -23,6 +23,7 @@ Matcher: {
 # Parameters read exclusively by XViewWorker
 XViewWorker: {
     semantics_image_topic: "/Stereo_Left/Omni_B/labels",
+    depth_image_topic: "/Stereo_Left/Omni_B/depth",
     sensor_frame: "cam02",
     world_frame: "world"
 }

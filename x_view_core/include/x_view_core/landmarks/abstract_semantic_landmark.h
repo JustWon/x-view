@@ -23,8 +23,7 @@ class AbstractSemanticLandmark {
   /**
    * \brief When a landmark is initialized, it must directly compute its
    * internal representation.
-   * \param image Semantic image associated to the landmark.
-   * \param pose Robot's pose.
+   * \param frame_data Data associated to the landmark being constructed.
    */
   AbstractSemanticLandmark(const FrameData& frame_data);
   virtual ~AbstractSemanticLandmark();
