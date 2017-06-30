@@ -56,8 +56,18 @@ class FrameData {
   }
 
  private:
+  /// \brief Semantic image representing the semantic segmentation of the
+  /// scene being observed. The first channel of this image contains label
+  /// information ranging from 0 to num_semantic_classes -1.
+  /// The second channel contains instance information of the single
+  /// segmented entities.
   const cv::Mat& semantic_image_;
+  /// \brief Depth image representing the depth (in cm) of the scene being
+  /// observed. Each pixel's value is represented as a single unsigned short
+  /// (16 bits) having maximum value of 65535.
   const cv::Mat& depth_image_;
+  /// \brief Pose of the robot associated with this frame expressed in world
+  /// coordinates.
   const SE3& pose_;
 };
 
