@@ -60,6 +60,11 @@ class AbstractDataset {
   ///\brief Returns the number of semantic classes contained in the dataset.
   int numSemanticClasses() const { return num_semantic_classes_; }
 
+  /// \brief Returns a reference to the camera intrinsic parameters.
+  const CameraIntrinsics& getCameraIntrinsics() const  {
+    return camera_intrinsics_;
+  }
+
   ///\brief Returns the semantic entities associated to this dataset.
   const std::vector<SemanticEntity>& semanticEntities() const {
     return semantic_entities_;
@@ -105,6 +110,7 @@ class AbstractDataset {
  protected:
   const int num_semantic_classes_;
   std::vector<SemanticEntity> semantic_entities_;
+  CameraIntrinsics camera_intrinsics_;
 };
 
 /**

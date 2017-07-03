@@ -11,5 +11,6 @@
 #include <x_view_core/landmarks/graph_landmark/graph_drawer.h>
 #include <x_view_core/landmarks/graph_landmark/graph_landmark.h>
 #include <x_view_core/landmarks/graph_landmark/graph_landmark_types.h>
+#include <x_view_core/landmarks/graph_landmark/projector.h>
 
 #endif // X_VIEW_GRAPH_LANDMARK_FOLDER_
