@@ -5,19 +5,21 @@
 
 #include <Eigen/Core>
 
-
 namespace x_view {
 
 class Projector {
  public:
   Projector(const SE3& pose, const CameraIntrinsics& intrinsics);
 
-  Eigen::Vector2i projectWorldToPixel(const Eigen::Vector3d& world_coordinate)
+  Eigen::Vector3d projectWorldToCamera(const Eigen::Vector3d& world_coordinate)
   const;
 
-  Eigen::Vector3d projectPixelToWorld(const Eigen::Vector2i& pixel_coordinates,
-                                      const double depth) const;
+  Eigen::Vector2i projectCameraToPixel(const Eigen::Vector3d& camera_coordinate)
+  const;
 
+  Eigen::Vector3d projectPixelToCamera(const Eigen::Vector2i& pixel_coordinate) const;
+
+  Eigen::Vector3d projectCameraToWorld(const Eigen::Vector3d camera_coordinate) const;
 
  private:
   const SE3 pose_;
@@ -25,8 +27,8 @@ class Projector {
 
   void computeProjectionMatrix();
 
-  Eigen::Matrix<double, 3, 4> projection_matrix_;
-  Eigen::Matrix<double, 4, 4> inverse_projection_matrix_;
+  Eigen::Matrix<double, 3, 4> extrinsic_matrix_;
+  Eigen::Matrix<double, 3, 3> intrinsic_matrix_;
 };
 
 }
