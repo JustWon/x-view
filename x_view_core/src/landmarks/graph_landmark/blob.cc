@@ -116,14 +116,14 @@ void Blob::computeFittingEllipse() {
   ellipse.size.height *= 0.5;
   ellipse.size.width *= 0.5;
 
-  center = ellipse.center;
+  pixel_center = ellipse.center;
 }
 
 std::ostream& operator<<(std::ostream& out, const Blob& blob) {
   out << "label: " << blob.semantic_label
       << ", instance: " << blob.instance
       << ", num pixels: " << blob.num_pixels
-      << ", center: " << blob.center
+      << ", center: " << blob.pixel_center
       << ", bounding box: " << blob.bounding_box;
   return out;
 }

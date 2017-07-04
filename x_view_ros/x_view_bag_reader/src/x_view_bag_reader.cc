@@ -76,6 +76,11 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
     const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
     x_view::SE3 pose;
     tfTransformToSE3(trans, &pose);
+    std::cout << "Robot pose: \n" << pose << std::endl;
+    std::cout << "Robot rot: \n" << pose.getRotationMatrix() << std::endl;
+    std::cout << pose.transform(pose.inverseTransform(Eigen::Vector3d::UnitX
+                                                          ())) <<
+                                                                    std::endl;
     x_view::FrameData frame_data(semantic_image, depth_image, pose);
     x_view_->processFrameData(frame_data);
   }

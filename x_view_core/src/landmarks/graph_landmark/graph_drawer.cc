@@ -42,7 +42,7 @@ void GraphDrawer::printBlobs(const ImageBlobs& blobs) {
     for (int i = 0; i < blobs[c].size(); ++i) {
       LOG(INFO) << "\tInstance " << i << " composed by "
                 << blobs[c][i].num_pixels << " pixels with mean "
-                    "pixel " << blobs[c][i].center;
+                    "pixel " << blobs[c][i].pixel_center;
     }
   }
 }
@@ -55,6 +55,7 @@ cv::Mat GraphDrawer::createImageWithLabels(const ImageBlobs& blobs,
   GraphDrawer::addGraphNodesToImage(graph, &image);
   GraphDrawer::addEllipsesToImage(blobs, &image);
   GraphDrawer::addLabelsToImage(blobs, &image);
+  GraphDrawer::addCoordinatesToImage(graph, &image);
 
   return image;
 }
@@ -116,7 +117,7 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
             dataset->label(blob.semantic_label);
 
         const std::string text = label + ") " + label_descr;
-        cv::putText(*image, text, blob.center, cv::FONT_HERSHEY_DUPLEX,
+        cv::putText(*image, text, blob.pixel_center, cv::FONT_HERSHEY_DUPLEX,
                     GraphDrawer::label_scale_, GraphDrawer::label_color_,
                     1, CV_AA);
         // if the blob has an instance id associated to it, render it on a
@@ -125,7 +126,7 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
         if (blob.instance != -1) {
           const std::string instance =
               "id: " + std::to_string(blob.instance);
-          cv::putText(*image, instance, blob.center + cv::Point(0, 20),
+          cv::putText(*image, instance, blob.pixel_center + cv::Point(0, 20),
                       cv::FONT_HERSHEY_DUPLEX, GraphDrawer::label_scale_,
                       GraphDrawer::label_color_, 1, CV_AA);
 
@@ -225,6 +226,38 @@ void GraphDrawer::addGraphEdgesToImage(const Graph& graph, cv::Mat* image) {
     }
   }
 
+}
+
+
+void GraphDrawer::addCoordinatesToImage(const Graph& graph, cv::Mat* image) {
+
+  CHECK_NOTNULL(image);
+
+  const auto& dataset = Locator::getDataset();
+
+  const std::vector<int>& labels_to_render =
+      dataset->getLabelsToRender();
+
+  auto node_iter = boost::vertices(graph);
+  for (; node_iter.first != node_iter.second; ++node_iter.first) {
+    const VertexDescriptor& node_descriptor = *node_iter.first;
+    const VertexProperty& node = graph[node_descriptor];
+
+    const cv::Point& center = node.center;
+    const Eigen::Vector3d& location_3d = node.location_3d;
+    const int label = node.semantic_label;
+
+    if(location_3d != Eigen::Vector3d::Zero())
+    if (std::find(labels_to_render.begin(), labels_to_render.end(), label) !=
+        std::end(labels_to_render)) {
+      const std::string coord =
+          "coord: [" + std::to_string(location_3d[0]) + ", " + std::to_string
+              (location_3d[1]) + ", " + std::to_string(location_3d[2]) + "]";
+      cv::putText(*image, coord, center + cv::Point(0, 40),
+                  cv::FONT_HERSHEY_DUPLEX, GraphDrawer::label_scale_ * 0.5,
+                  GraphDrawer::label_color_, 1, CV_AA);
+    }
+  }
 }
 
 }

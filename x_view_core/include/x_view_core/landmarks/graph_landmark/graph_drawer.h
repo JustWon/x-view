@@ -80,6 +80,15 @@ class GraphDrawer {
   */
   static void addGraphEdgesToImage(const Graph& graph, cv::Mat* image);
 
+
+  /**
+   * \brief Adds coordinate labels to the vertices of the graph passed as
+   * parameter.
+   * \param graph Graph constaining the nodes to be rendered.
+   * \param image The labels are rendered ontop of the image passed as argument.
+   */
+  static void addCoordinatesToImage(const Graph& graph, cv::Mat* image);
+
   //===================== Color and line specifications ======================//
   static void setVertexColor(const cv::Scalar& color) { vertex_color_ = color; }
   static void setVertexRadius(const int radius) { vertex_radius_ = radius; }

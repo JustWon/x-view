@@ -43,17 +43,6 @@ class Projector {
    */
   cv::Point2i getPixelCoordinates(const Eigen::Vector3d coordinate) const;
 
- private:
-  /// \brief Robot's pose expressed in world frame.
-  const SE3 pose_;
-  /// \brief Intrinsic camera parameters.
-  const CameraIntrinsics intrinsics_;
-
-  void computeProjectionMatrix();
-
-  Eigen::Matrix<double, 3, 4> extrinsic_matrix_;
-  Eigen::Matrix<double, 3, 3> intrinsic_matrix_;
-
   /// \brief Transforms the 3D point given in world coordinate frame into the
   /// camera frame.
   Eigen::Vector3d worldToCamera(const Eigen::Vector3d& world_coordinate)
@@ -71,6 +60,19 @@ class Projector {
 
   /// \brief Transforms the 3D point give in camera frame into the world frame.
   Eigen::Vector3d cameraToWorld(const Eigen::Vector3d& camera_coordinate) const;
+
+ private:
+  /// \brief Robot's pose expressed in world frame.
+  const SE3 pose_;
+  const SE3 inverse_pose_;
+
+  /// \brief Intrinsic camera parameters.
+  const CameraIntrinsics intrinsics_;
+  Eigen::Matrix<double, 3, 3> intrinsic_matrix_;
+  Eigen::Matrix<double, 3, 3> inverse_intrinsic_matrix_;
+
+  /// \brief Computes the intrinsic matrix given the intrinsic parameters.
+  void computeIntrinsicMatrix();
 };
 
 }

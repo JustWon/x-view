@@ -69,7 +69,8 @@ std::ostream& operator<<(std::ostream& out, const VertexProperty& v) {
       << v.semantic_label
       << ", name: " << std::right << std::setw(max_label_length) << v
           .semantic_entity_name
-      << ", num pixels: " << v.num_pixels << ", center: " << v.center;
+      << ", num pixels: " << v.num_pixels << ", center: " << v.center
+      << ", 3D location: " << Eigen::RowVector3d(v.location_3d);
 
   return out;
 }

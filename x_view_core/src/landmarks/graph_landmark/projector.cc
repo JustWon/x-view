@@ -5,8 +5,9 @@ namespace x_view {
 Projector::Projector(const x_view::SE3& pose,
                     const CameraIntrinsics& intrinsics)
     : pose_(pose),
+      inverse_pose_(pose.inverse()),
       intrinsics_(intrinsics) {
-  computeProjectionMatrix();
+  computeIntrinsicMatrix();
 }
 
 Eigen::Vector3d Projector::getWorldCoordinates(const cv::Point2i& pixel,
@@ -30,10 +31,7 @@ cv::Point2i Projector::getPixelCoordinates(const Eigen::Vector3d coordinate) con
 
 Eigen::Vector3d Projector::worldToCamera(
     const Eigen::Vector3d& world_coordinate) const {
-  Eigen::Vector4d world_homo;
-  world_homo << world_coordinate, 1.0;
-
-  return extrinsic_matrix_ * world_homo;
+    return pose_.transform(world_coordinate);
 }
 
 Eigen::Vector2i Projector::cameraToPixel(
@@ -42,8 +40,7 @@ Eigen::Vector2i Projector::cameraToPixel(
   Eigen::Vector3d pixel_homo = intrinsic_matrix_ * camera_coordinate;
 
   return Eigen::Vector2i(pixel_homo[0]/pixel_homo[2],
-  pixel_homo[1] / pixel_homo[2]);
-
+                         pixel_homo[1] / pixel_homo[2]);
 }
 
 Eigen::Vector3d Projector::pixelToCamera(
@@ -52,27 +49,24 @@ Eigen::Vector3d Projector::pixelToCamera(
   pixel_homo << pixel_coordinate[0], pixel_coordinate[1], 1.0;
 
   Eigen::Vector3d camera_direction =
-      (intrinsic_matrix_.inverse() * pixel_homo).normalized();
+      (inverse_intrinsic_matrix_ * pixel_homo).normalized();
 
   return camera_direction * depth;
 }
 
 Eigen::Vector3d Projector::cameraToWorld(
     const Eigen::Vector3d& camera_coordinate) const {
-
-  const Eigen::Vector3d world_coordinate =
-      pose_.getPosition() + pose_.getRotationMatrix() * camera_coordinate;
-
-  return world_coordinate;
+  return pose_.inverse().transform(camera_coordinate);
 }
 
 
-void Projector::computeProjectionMatrix() {
-  extrinsic_matrix_ = pose_.getTransformationMatrix().inverse().block(0,0,3,4);
+void Projector::computeIntrinsicMatrix() {
   intrinsic_matrix_.setIdentity();
   intrinsic_matrix_(0, 0) = intrinsic_matrix_(1, 1) = intrinsics_.focal_length;
   intrinsic_matrix_(0, 2) = intrinsics_.px;
   intrinsic_matrix_(1, 2) = intrinsics_.py;
+
+  inverse_intrinsic_matrix_ = intrinsic_matrix_.inverse();
 
 }
 

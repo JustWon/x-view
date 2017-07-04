@@ -135,6 +135,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_param_tree_main.cc
         test/test_param_tree.cc
         test/test_camera_projection_main.cc
+        test/test_camera_projection.cc
 
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )

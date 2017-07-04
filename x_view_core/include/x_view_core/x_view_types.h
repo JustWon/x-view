@@ -80,6 +80,11 @@ struct CameraIntrinsics {
       : focal_length(focal_length),
         px(px), py(py),
         base_line(base_line) {}
+  CameraIntrinsics(const double focal_length, const Eigen::Vector2i& p,
+                   const double base_line)
+      : focal_length(focal_length),
+        px(p[0]), py(p[1]),
+        base_line(base_line) {}
 
   double focal_length;
   int px;

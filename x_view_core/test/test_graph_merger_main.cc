@@ -32,7 +32,6 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
   const unsigned long seed = 0;
 
   // Generate a base graph.
-
   GraphConstructionParams graph_construction_params;
   graph_construction_params.num_semantic_classes = dataset->numSemanticClasses();
   graph_construction_params.seed = seed;

@@ -40,7 +40,6 @@ void XView::processFrameData(const FrameData& frame_data) {
     AbstractMatcher::MatchingResultPtr matching_result_ptr;
     matchSemantics(landmark_ptr, matching_result_ptr);
   }
-
   // Add the semantic landmark to the database.
   semantics_db_.push_back(landmark_ptr);
 
