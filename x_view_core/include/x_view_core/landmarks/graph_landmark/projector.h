@@ -2,6 +2,7 @@
 #define X_VIEW_PROJECTOR_H
 
 #include <x_view_core/x_view_types.h>
+#include <x_view_core/x_view_locator.h>
 
 #include <Eigen/Core>
 #include <opencv2/core/core.hpp>
@@ -21,7 +22,9 @@ class Projector {
    * \param intrinsics Intrinsic camera parameters needed to transform
    * between camera and pixel frame.
    */
-  Projector(const SE3& pose, const CameraIntrinsics& intrinsics);
+  Projector(const SE3& pose, const CameraIntrinsics& intrinsics,
+            const Eigen::Matrix3d& camera_to_image_rotation =
+            Locator::getDataset()->getCameraToImageRotation());
 
   /**
    * \brief Computes the world coordinates of the pixel passed as parameter.
@@ -64,12 +67,16 @@ class Projector {
  private:
   /// \brief Robot's pose expressed in world frame.
   const SE3 pose_;
-  const SE3 inverse_pose_;
 
   /// \brief Intrinsic camera parameters.
   const CameraIntrinsics intrinsics_;
   Eigen::Matrix<double, 3, 3> intrinsic_matrix_;
   Eigen::Matrix<double, 3, 3> inverse_intrinsic_matrix_;
+
+  /// \brief Rotation matrix between camera frame (the one described by the
+  /// pose_ object) and the image plane.
+  const Eigen::Matrix3d camera_to_image_rotation_;
+  const Eigen::Matrix3d image_to_camera_rotation_;
 
   /// \brief Computes the intrinsic matrix given the intrinsic parameters.
   void computeIntrinsicMatrix();

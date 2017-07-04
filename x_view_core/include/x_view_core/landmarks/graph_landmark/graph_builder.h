@@ -23,6 +23,8 @@ class GraphBuilder {
    * \brief Creates a graph whose nodes correspond to the blobs contained in
    * the ImageBlobs datastructure passed as argument, and whose edges exist
    * between nodes corresponding to neighbor blobs.
+   * \param frame_data Data associated to the current landmark containing
+   * semantic, depth and pose information.
    * \param blobs ImageBlobs datastructure containing all blobs.
    * \param params Parameters used by the graph builder during graph
    * construction.
@@ -41,6 +43,8 @@ class GraphBuilder {
   /**
    * \brief Adds all blobs contained in the ImageBlobs datastructure to the
    * graph object passed as argument
+   * \param frame_data Data associated to the current landmark containing
+   * semantic, depth and pose information.
    * \param blobs Datastructure containing all blobs.
    * \param graph Graph object to be filled up with new nodes.
    * \param vertex_descriptors Vector filled up with references to the

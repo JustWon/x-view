@@ -16,6 +16,9 @@ AbstractDataset::AbstractDataset(const int num_semantic_classes)
 
   // Create intrinsic camera parameters.
   camera_intrinsics_ = CameraIntrinsics(500.0, 400, 300, 1.0);
+
+  // Set up trivial camera-to-image rotation.
+  camera_to_image_rotation_ = Eigen::Matrix3d::Identity();
 }
 
 cv::Mat AbstractDataset::convertSemanticImage(

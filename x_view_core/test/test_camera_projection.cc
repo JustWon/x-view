@@ -8,7 +8,7 @@
 
 namespace x_view_test {
 
-void testTransforms() {
+void transformsExample() {
 
   // Position of robot expressed in world coordinates.
   Eigen::Vector3d robot_position_in_world_frame;
@@ -75,8 +75,8 @@ void testRandomCameraPose() {
         Eigen::AngleAxisd(2 * M_PI * angle_rand(rng), Eigen::Vector3d::UnitZ());
 
     // Pose construction.
-    Eigen::Quaterniond q(robot_in_world_frame.inverse().eval());
-    x_view::SE3 pose(q, -robot_in_world_frame.inverse() * robot_position);
+    Eigen::Quaterniond q(robot_in_world_frame);
+    x_view::SE3 pose(q, robot_position);
 
     const double depth = (object_in_world_coordinates - robot_position).norm();
 
@@ -100,8 +100,8 @@ void testPixelToCamera() {
   const int image_width = 1240;
   const int image_height = 760;
   std::mt19937 rng(seed);
-  std::uniform_int_distribution<int> rand_x(0, image_width);
-  std::uniform_int_distribution<int> rand_y(0, image_height);
+  std::uniform_int_distribution<int> rand_x(0, image_width-1);
+  std::uniform_int_distribution<int> rand_y(0, image_height-1);
 
   const int focal_length = 1000;
   Eigen::Vector2i principal_point;

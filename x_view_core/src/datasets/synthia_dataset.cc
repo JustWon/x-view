@@ -36,6 +36,12 @@ SynthiaDataset::SynthiaDataset()
 
   // Set the intrinsic parameters for the Synthia dataset.
   camera_intrinsics_ = CameraIntrinsics(532.740352,640, 380, 0.8);
+
+  // Set up camera-to-image rotation.
+  // Flipped z-axis and flipped y-axis
+  camera_to_image_rotation_ << 1,  0,  0,
+                               0, -1,  0,
+                               0,  0, -1;
 }
 
 cv::Mat SynthiaDataset::convertSemanticImage(

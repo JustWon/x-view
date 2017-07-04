@@ -4,7 +4,7 @@
 
 namespace x_view_test {
 
-void testTransforms();
+void transformsExample();
 
 /// \brief Tests the process of projecting an object given in world
 /// coordinates to a pixel, and reprojecting that pixel into world

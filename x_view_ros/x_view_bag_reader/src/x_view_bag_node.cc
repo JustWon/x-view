@@ -12,7 +12,8 @@ int main(int argc, char** argv) {
 
   x_view_ros::XViewBagReader bag_reader(node_handle);
 
-  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT, 10, 25);
+  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT, 9, 13);
+  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::BACK, 30, 31);
 
   x_view::finalizeLogging();
 
