@@ -3,6 +3,7 @@
 
 #include <x_view_bag_reader/x_view_topic_view.h>
 #include <x_view_core/x_view.h>
+#include <x_view_graph_publisher/graph_publisher.h>
 #include <x_view_parser/parser.h>
 
 #include <glog/logging.h>
@@ -100,6 +101,9 @@ class XViewBagReader {
 
   /// \brief Parser object responsible for parsing the rosparameters.
   Parser parser_;
+
+  /// \brief Graph publisher object responsible for publishing the graph data.
+  GraphPublisher graph_publisher_;
 };
 
 }

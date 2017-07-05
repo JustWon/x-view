@@ -57,6 +57,9 @@ std::string operator + (const padded_int& l, const std::string& r);
 const std::string formatSE3(const SE3& se3, const std::string& indent = "",
                             const int precision = Eigen::StreamPrecision);
 
+/// \brief Generates different colors for different semantic labels.
+const cv::Scalar getColorFromSemanticLabel(const int semantic_label);
+
 // ******************************* Logging ***********************************//
 /**
  * \brief Stringification macros used to transform preprocessor strings into

@@ -10,6 +10,8 @@
 namespace x_view {
 
 std::vector<const Blob*> GraphBuilder::DEFAULT_BLOB_VECTOR;
+const unsigned long GraphBuilder::INVALID_VERTEX_DESCRIPTOR =
+    std::numeric_limits<unsigned long>::max();
 
 Graph GraphBuilder::createGraphFromNeighborBlobs(const FrameData& frame_data,
                                                  const ImageBlobs& blobs,
@@ -26,16 +28,17 @@ Graph GraphBuilder::createGraphFromNeighborBlobs(const FrameData& frame_data,
   GraphBuilder::addBlobsToGraph(frame_data, blobs, &graph, &vertex_descriptors,
                                 &blob_vector);
 
-
-  // create the edges between nodes sharing an edge
+  // Create the edges between nodes sharing an edge.
   for (int i = 0; i < blob_vector.size(); ++i) {
     for (int j = i + 1; j < blob_vector.size(); ++j) {
 
       const Blob* bi = blob_vector[i];
       const Blob* bj = blob_vector[j];
 
-      // only create an edge between the two blobs if they are neighbors
+      // Only create an edge between the two blobs if they are neighbors.
       if (Blob::areNeighbors(*bi, *bj, params.max_distance_for_neighborhood))
+        if(vertex_descriptors[i] != INVALID_VERTEX_DESCRIPTOR &&
+            vertex_descriptors[j] != INVALID_VERTEX_DESCRIPTOR)
         boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
                         {i, j}, graph);
     }
@@ -89,6 +92,11 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
       // Extract the depth associated to the vertex.
       const unsigned short depth_cm =
         depth_image.at<unsigned short>(vertex.center);
+      // If the projected center of the blob is too distant, set it as invalid.
+      if(depth_cm == std::numeric_limits<unsigned short>::max()) {
+       vertex_descriptors->push_back(INVALID_VERTEX_DESCRIPTOR);
+        continue;
+      }
       const double depth_m = depth_cm * 0.01;
       vertex.location_3d =
           projector.getWorldCoordinates(vertex.center, depth_m);

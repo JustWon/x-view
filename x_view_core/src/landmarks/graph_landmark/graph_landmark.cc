@@ -54,6 +54,7 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
   image_blobs_ = BlobExtractor::findBlobsWithContour(semantic_image_,
                                                      blob_extractor_params);
 
+
   // *********** Graph generation ********** //
 
   const int blob_neighbor_distance =
@@ -65,6 +66,8 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
   descriptor = GraphBuilder::createGraphFromNeighborBlobs(frame_data,
                                                           image_blobs_,
                                                           graph_builder_params);
+
+
   // Create the descriptor stored in this landmark by generating a
   // VectorDescriptor containing the graph data.
   descriptor_ = std::make_shared<GraphDescriptor>(GraphDescriptor(descriptor));

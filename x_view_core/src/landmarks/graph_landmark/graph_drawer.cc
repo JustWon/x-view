@@ -3,6 +3,7 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
 #include <x_view_core/x_view_locator.h>
+#include <x_view_core/x_view_tools.h>
 
 namespace x_view {
 
@@ -77,21 +78,12 @@ cv::Mat GraphDrawer::createImageFromBlobs(const ImageBlobs& blobs,
         std::end(labels_to_render))
       for (const Blob& blob : blobs[c]) {
         const int semantic_label = blob.semantic_label;
-        const uchar intensity =
-            static_cast<uchar>(255. / (semantic_label / 8 + 1));
-
-        cv::Scalar color(0, 0, 0);
-        std::bitset<3> bits(semantic_label);
-
-        color[0] = bits[0] ? intensity : static_cast<uchar>(0);
-        color[1] = bits[1] ? intensity : static_cast<uchar>(0);
-        color[2] = bits[2] ? intensity : static_cast<uchar>(0);
+        const cv::Scalar color = getColorFromSemanticLabel(semantic_label);
 
         std::vector<std::vector<cv::Point>> v_contours;
         v_contours.push_back(blob.external_contour_pixels);
 
         cv::drawContours(image, v_contours, 0, color, CV_FILLED);
-
       }
   }
   return image;

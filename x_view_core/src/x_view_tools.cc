@@ -79,6 +79,20 @@ const std::string formatSE3(const SE3& se3, const std::string& indent,
   return s;
 }
 
+const cv::Scalar getColorFromSemanticLabel(const int semantic_label) {
+  const unsigned char intensity =
+      static_cast<unsigned char>(255. / (semantic_label / 8 + 1));
+
+  cv::Scalar color(0, 0, 0);
+  std::bitset<3> bits(semantic_label);
+
+  color[0] = bits[0] ? intensity : static_cast<uchar>(0);
+  color[1] = bits[1] ? intensity : static_cast<uchar>(0);
+  color[2] = bits[2] ? intensity : static_cast<uchar>(0);
+
+  return color;
+}
+
 // ******************************* Logging ***********************************//
 
 const std::string& getRootDirectory() {

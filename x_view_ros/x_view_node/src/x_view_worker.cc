@@ -10,7 +10,10 @@ namespace enc = sensor_msgs::image_encodings;
 
 namespace x_view_ros {
 
-XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n), parser_(nh_) {
+XViewWorker::XViewWorker(ros::NodeHandle& n)
+    : nh_(n),
+      parser_(nh_),
+      graph_publisher_(nh_) {
 
   // Load parameters used by XViewBagReader.
   getXViewWorkerParameters();
@@ -113,6 +116,9 @@ void XViewWorker::processData() {
                                message_.pose);
   x_view_->processFrameData(frame_data);
   message_.reset();
+
+  // Publish the new global semantic graph.
+  graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
 
   // Parse parameters for next frame.
   parseParameters();

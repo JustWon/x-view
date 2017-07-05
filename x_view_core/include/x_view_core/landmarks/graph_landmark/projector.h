@@ -21,6 +21,8 @@ class Projector {
    * world frame.
    * \param intrinsics Intrinsic camera parameters needed to transform
    * between camera and pixel frame.
+   * \param camera_to_image_rotation Rotation matrix describing the rotation
+   * involved between the camera frame and the image frame.
    */
   Projector(const SE3& pose, const CameraIntrinsics& intrinsics,
             const Eigen::Matrix3d& camera_to_image_rotation =

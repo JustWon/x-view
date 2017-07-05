@@ -9,7 +9,7 @@
 namespace x_view_ros {
 
 XViewBagReader::XViewBagReader(ros::NodeHandle& n)
-    : nh_(n), parser_(nh_) {
+    : nh_(n), parser_(nh_), graph_publisher_(n) {
 
   // Load parameters used by XViewBagReader.
   getXViewBagReaderParameters();
@@ -37,6 +37,8 @@ XViewBagReader::XViewBagReader(ros::NodeHandle& n)
 }
 
 void XViewBagReader::loadCurrentTopic(const CameraTopics& current_topics) {
+  std::cout << "Loading topic " << current_topics.depth_image_topic <<
+                                                                    std::endl;
   bag_.open(params_.bag_file_name, rosbag::bagmode::Read);
 
   // Dataset used to parse the images.
@@ -78,6 +80,8 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
     tfTransformToSE3(trans, &pose);
     x_view::FrameData frame_data(semantic_image, depth_image, pose);
     x_view_->processFrameData(frame_data);
+
+    graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
   }
   bag_.close();
 }

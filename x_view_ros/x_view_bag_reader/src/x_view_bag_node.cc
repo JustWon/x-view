@@ -1,5 +1,6 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
 #include <x_view_core/x_view_tools.h>
+#include <thread>
 
 int main(int argc, char** argv) {
 
@@ -12,8 +13,7 @@ int main(int argc, char** argv) {
 
   x_view_ros::XViewBagReader bag_reader(node_handle);
 
-  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT, 9, 13);
-  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::BACK, 30, 31);
+  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT, 0, 50);
 
   x_view::finalizeLogging();
 

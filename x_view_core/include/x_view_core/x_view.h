@@ -2,6 +2,7 @@
 #define X_VIEW_X_VIEW_H_
 
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/features/graph.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/landmarks/semantic_landmark_factory.h>
 #include <x_view_core/matchers/abstract_matcher.h>
@@ -37,6 +38,12 @@ class XView {
    * consists in a semantic segmentation (image), a depth-image and a pose.
    */
   void processFrameData(const FrameData& frame_data);
+
+  /**
+   * \brief Returns a reference to the current global semantic graph.
+   * \return A reference to the current global semantic graph.
+   */
+  const Graph& getSemanticGraph() const;
 
  private:
   /// \brief Prints XView info.

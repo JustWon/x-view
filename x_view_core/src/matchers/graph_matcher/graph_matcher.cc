@@ -3,6 +3,7 @@
 #include <x_view_core/features/graph_descriptor.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/landmarks/graph_landmark.h>
+#include <x_view_core/matchers/graph_matcher/graph_merger.h>
 #include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
 #include <x_view_core/x_view_locator.h>
 
@@ -165,6 +166,19 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   computeSimilarityMatrix(random_walker, &similarity_matrix,
                           vertex_similarity_score_type_);
 
+  // Merge the query graph to the database graph.
+  GraphMerger graph_merger(global_semantic_graph_, query_semantic_graph,
+                           *matchingResult.get());
+
+
+  // Need to regenerate the random walks of the extended global graph.
+  global_semantic_graph_ = graph_merger.getMergedGraph();
+  // Regenerate the random walks of the new global graph
+  RandomWalker global_random_walker(global_semantic_graph_,
+                                    random_walker_params_);
+  global_random_walker.generateRandomWalks();
+  global_walk_map_vector_ = global_random_walker.getMappedWalks();
+
   // Return the matching result filled with the matches.
   return matchingResult;
 
@@ -238,6 +252,7 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
       }
     }
   }
+
 }
 
 }
