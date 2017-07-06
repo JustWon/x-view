@@ -56,7 +56,6 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
 
 
   // *********** Graph generation ********** //
-
   const int blob_neighbor_distance =
       landmark_parameters->getInteger("blob_neighbor_distance", 10);
 
