@@ -51,8 +51,8 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
                << "> as 'blob_filter_type' parameter.";
   }
 
-  image_blobs_ = BlobExtractor::findBlobsWithContour(semantic_image_,
-                                                     blob_extractor_params);
+  image_blobs_ = BlobExtractor::extractBlobs(semantic_image_,
+                                             blob_extractor_params);
 
 
   // *********** Graph generation ********** //

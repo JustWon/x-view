@@ -126,9 +126,9 @@ class BlobExtractor {
    * \param params Parameters to be used for blob extraction.
    * \return ImageBlobs datastructure containing all detected blobs.
    */
-  static ImageBlobs findBlobsWithContour(const cv::Mat& image,
-                                         const BlobExtractorParams& params =
-                                         BlobExtractorParams());
+  static ImageBlobs extractBlobs(const cv::Mat& image,
+                                 const BlobExtractorParams& params =
+                                 BlobExtractorParams());
 
  private:
 
@@ -168,10 +168,10 @@ class BlobExtractor {
    * the image, a loop is performed over the instances and blobs are
    * extracted for each of them.
    */
-  static void extractBlobsConsideringInstances(cv::Mat& instance_layer,
-                                               ClassBlobs* class_blobs,
-                                               const int current_semantic_class,
-                                               const BlobExtractorParams& params);
+  static void extractBlobsWithInstances(cv::Mat& instance_layer,
+                                        ClassBlobs* class_blobs,
+                                        const int current_semantic_class,
+                                        const BlobExtractorParams& params);
 
   /**
    * \brief Given a binary single channel image, this function extracts the
