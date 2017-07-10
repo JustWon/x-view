@@ -125,7 +125,7 @@ void Blob::computeBlobCenter() {
     }
 
     CHECK(closest_index != -1);
-    // Assign the pixel associated to the closest index to the pixel center
+    // Assign the pixel associated to the closest index to the pixel center.
     pixel_center = ellipse.center = external_contour_pixels[closest_index];
   }
 
