@@ -15,8 +15,6 @@ namespace x_view_test {
 void testLocalization(const int num_tests, const int num_observations,
                       const int seed);
 
-void testLocalizationUnderRotation();
-
 }
 
 #endif //X_VIEW_TEST_LOCALIZATION_H
