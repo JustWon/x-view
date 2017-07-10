@@ -55,6 +55,21 @@ const Graph& XView::getSemanticGraph() const {
   return graph_matcher->getGlobalGraph();
 }
 
+const SE3 XView::localize(const FrameData& frame_data) {
+  LOG(INFO) << "XView tries to localize a robot by its observations.";
+
+  // Generate a new semantic landmark pointer.
+  SemanticLandmarkPtr landmark_ptr;
+
+  // Extract semantics associated to the semantic image and pose.
+  createSemanticLandmark(frame_data, landmark_ptr);
+
+  // Perform full matching.
+  AbstractMatcher::MatchingResultPtr matching_result_ptr;
+  matchSemantics(landmark_ptr, matching_result_ptr);
+
+}
+
 void XView::printInfo() const {
   const auto& parameters = Locator::getParameters();
   const auto& landmark_parameters =
@@ -132,7 +147,7 @@ void XView::initializeMatcher() {
 //==========================================================================//
 
 void XView::createSemanticLandmark(const FrameData& frame_data,
-                                   SemanticLandmarkPtr& semantics_out) {
+                                   SemanticLandmarkPtr& semantics_out) const {
 
   // TODO: preprocess image and pose
 
