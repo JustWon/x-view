@@ -9,10 +9,8 @@
 
 namespace x_view {
 
-GraphLocalizer::GraphLocalizer(const double prior_noise,
-                               const double range_noise)
+GraphLocalizer::GraphLocalizer(const double prior_noise)
     : prior_noise_(prior_noise),
-      range_noise_(range_noise),
       observations_(0) {
 }
 
@@ -48,16 +46,15 @@ const Eigen::Vector3d GraphLocalizer::localize() const {
     initials.insert(gtsam::Symbol('x', i), location);
   }
 
-  // Add observation measurements to the factor graph.
-  gtsam::noiseModel::Diagonal::shared_ptr observation_noise =
-      gtsam::noiseModel::Diagonal::Sigmas(
-          gtsam::Vector1::Ones() * range_noise_);
-
   for(int i = 0; i < observations_.size(); ++i) {
-
+    // Add observation distance to the factor graph.
+    gtsam::noiseModel::Diagonal::shared_ptr observation_noise =
+        gtsam::noiseModel::Diagonal::Sigmas(
+            gtsam::Vector1::Ones() * (
+                1./(0.001 + observations_[i].evidence) - 1.0));
     graph.add(gtsam::RangeFactor<gtsam::Point3>(
         gtsam::Symbol('r', 0), gtsam::Symbol('x', i),
-        observations_[i].measurement, observation_noise));
+        observations_[i].distance, observation_noise));
   }
 
   // Compute initial guess for robot position.
@@ -81,8 +78,9 @@ const Eigen::Vector3d GraphLocalizer::localize() const {
 }
 
 void GraphLocalizer::addObservation(const VertexProperty& vertex_property,
-                                    const double observation) {
-  observations_.push_back(Observation{vertex_property, observation});
+                                    const double distance,
+                                    const double evidence) {
+  observations_.push_back(Observation{vertex_property, distance, evidence});
 }
 
 }

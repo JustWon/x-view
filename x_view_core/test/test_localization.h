@@ -6,7 +6,7 @@ namespace x_view_test {
 /**
  * \brief This function tests the localization accuracy of the
  * x_view::GraphLocalizer class for localizing a robot in 3D space given a
- * list of observations (coordiantes in camera frame) with associated 3D
+ * list of observations (coordinates in camera frame) with associated 3D
  * position.
  * \param num_tests Number of tests to run.
  * \param num_observations Number of observations used in each test.
@@ -14,6 +14,15 @@ namespace x_view_test {
  */
 void testLocalization(const int num_tests, const int num_observations,
                       const int seed);
+
+/**
+ * \brief This function tests the way the x_view::GraphLocalizer deals
+ * evidence information about observations. In particular it tests if the
+ * estimated robot location is robust against outlier observations having
+ * small evidence.
+ * \param seed Seed used for random number generation.
+ */
+void testEvidence(const int seed);
 
 }
 

@@ -13,6 +13,8 @@ TEST(XViewSlamTestSuite, test_localization) {
   const int seed = 0;
   x_view_test::testLocalization(num_tests, num_observations, seed);
 
+  x_view_test::testEvidence(seed);
+
 }
 
 
