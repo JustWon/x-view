@@ -54,7 +54,7 @@ class XView {
    * of the robot to be localized.
    * \return An estimation of the pose of the robot.
    */
-  const SE3 localize(const FrameData& frame_data);
+  const Eigen::Vector3d localize(const FrameData& frame_data);
 
  private:
   /// \brief Prints XView info.

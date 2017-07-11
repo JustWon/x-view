@@ -26,6 +26,9 @@ const Eigen::Vector3d GraphLocalizer::localize() const {
         "data: using " << observations_.size() << " observations.";
   }
 
+  LOG(INFO) << "Localizing robot with " << observations_.size() << " semantic"
+      " observations.";
+
   // Create a factor graph container.
   gtsam::NonlinearFactorGraph graph;
   gtsam::Values initials;

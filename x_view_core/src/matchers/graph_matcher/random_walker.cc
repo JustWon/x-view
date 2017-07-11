@@ -55,6 +55,8 @@ RandomWalker::RandomWalker(const Graph& graph,
                 "Random walker only works with Graphs "
                     "having with 'boost::vecS' vertex list selector "
                     "(second template argument).");
+
+  LOG(INFO) << "Random walker is using parameters:\n" << params_;
 }
 
 void RandomWalker::generateRandomWalks() {
