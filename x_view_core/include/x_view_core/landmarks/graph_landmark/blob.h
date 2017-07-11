@@ -74,8 +74,9 @@ class Blob {
   /// boxes are used for early termination during neighbor check.
   void computeBoundingBox();
 
-  /// \brief Computes the ellipse fitting the external contours of the blob.
-  void computeFittingEllipse();
+  /// \brief Computes the blob center by trying to fit an ellipse to the
+  /// contours and taking its center.
+  void computeBlobCenter();
 
 };
 

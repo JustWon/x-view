@@ -60,6 +60,11 @@ const std::string formatSE3(const SE3& se3, const std::string& indent = "",
 /// \brief Generates different colors for different semantic labels.
 const cv::Scalar getColorFromSemanticLabel(const int semantic_label);
 
+/// \brief Generates a random rotation matrix given three uniformly sampled
+/// numbers between zero and one.
+const Eigen::Matrix3d createRotationMatrix(double r1, double r2, double r3);
+const Eigen::Matrix3d randomRotationMatrix(std::mt19937& rng);
+
 // ******************************* Logging ***********************************//
 /**
  * \brief Stringification macros used to transform preprocessor strings into

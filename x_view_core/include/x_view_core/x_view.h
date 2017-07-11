@@ -45,6 +45,17 @@ class XView {
    */
   const Graph& getSemanticGraph() const;
 
+  /**
+   * \brief Localizes the robot making the observations contained in the
+   * frame_data object passed as parameter by matching the associated
+   * semantic descriptors with the global database graph. The pose_ member of
+   * frame_data is ignored.
+   * \param frame_data Data passed to XView containing the observations
+   * of the robot to be localized.
+   * \return An estimation of the pose of the robot.
+   */
+  const Eigen::Vector3d localize(const FrameData& frame_data);
+
  private:
   /// \brief Prints XView info.
   void printInfo() const;
@@ -75,7 +86,7 @@ class XView {
    * will be different.
    */
   void createSemanticLandmark(const FrameData& frame_data,
-                              SemanticLandmarkPtr& semantics_out);
+                              SemanticLandmarkPtr& semantics_out) const;
 
   /// \brief Match semantics instance to database and return score.
   void matchSemantics(const SemanticLandmarkPtr& semantics_a,

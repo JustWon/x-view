@@ -55,6 +55,76 @@ const Graph& XView::getSemanticGraph() const {
   return graph_matcher->getGlobalGraph();
 }
 
+const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
+  LOG(INFO) << "XView tries to localize a robot by its observations.";
+
+  const cv::Mat& depth_image = frame_data.getDepthImage();
+
+  // Generate a new semantic landmark pointer.
+  SemanticLandmarkPtr landmark_ptr;
+
+  // Extract semantics associated to the semantic image and pose.
+  createSemanticLandmark(frame_data, landmark_ptr);
+
+  const Graph& query_graph = std::dynamic_pointer_cast<const GraphDescriptor>(
+  std::dynamic_pointer_cast<GraphLandmark>
+      (landmark_ptr)->getDescriptor())->getDescriptor();
+
+  // Get the existing global semantic graph before matching.
+  const Graph& global_graph = getSemanticGraph();
+
+  // Perform full matching getting similarity scores between query graph and
+  // existing global semantic graph.
+  GraphMatcher::GraphMatchingResult matching_result;
+
+  // Extract the random walks of the graph.
+  RandomWalkerParams random_walker_params_;
+  random_walker_params_.num_walks = Locator::getParameters()
+      ->getChildPropertyList("matcher")->getInteger("num_walks");
+  random_walker_params_.walk_length = Locator::getParameters()
+      ->getChildPropertyList("matcher")->getInteger("walk_length");
+  RandomWalker random_walker(query_graph, random_walker_params_);
+  random_walker.generateRandomWalks();
+
+  // Create a matching result pointer which will be returned by this
+  // function which stores the similarity matrix.
+
+  GraphMatcher::SimilarityMatrixType& similarity_matrix =
+      matching_result.getSimilarityMatrix();
+
+  std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)->
+      computeSimilarityMatrix(random_walker, &similarity_matrix,
+                              VertexSimilarity::SCORE_TYPE::WEIGHTED);
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
+      matching_result.computeMaxSimilarityRowwise().cwiseProduct(
+          matching_result.computeMaxSimilarityColwise()
+      );
+
+  GraphLocalizer graph_localizer;
+
+  for(int j = 0; j < max_similarity_matrix.cols(); ++j) {
+    int max_i = -1;
+    max_similarity_matrix.col(j).maxCoeff(&max_i);
+    if(max_i == -1)
+      continue;
+    std::cout << "Match between vertex " << j << " in query graph is vertex "
+              <<max_i << " in global graph" << std::endl;
+    const double similarity = similarity_matrix(max_i, j);
+    const VertexProperty& match_v_p = global_graph[max_i];
+
+    const unsigned short depth_cm =
+    depth_image.at<unsigned short>(match_v_p.center);
+    const double depth_m = depth_cm * 0.01;
+
+    graph_localizer.addObservation(match_v_p, depth_m, similarity);
+  }
+
+  const Eigen::Vector3d res = graph_localizer.localize();
+
+  return res;
+}
+
 void XView::printInfo() const {
   const auto& parameters = Locator::getParameters();
   const auto& landmark_parameters =
@@ -132,7 +202,7 @@ void XView::initializeMatcher() {
 //==========================================================================//
 
 void XView::createSemanticLandmark(const FrameData& frame_data,
-                                   SemanticLandmarkPtr& semantics_out) {
+                                   SemanticLandmarkPtr& semantics_out) const {
 
   // TODO: preprocess image and pose
 
