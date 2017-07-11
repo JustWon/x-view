@@ -62,7 +62,7 @@ const cv::Scalar getColorFromSemanticLabel(const int semantic_label);
 
 /// \brief Generates a random rotation matrix given three uniformly sampled
 /// numbers between zero and one.
-const Eigen::Matrix3d randomRotationMatrix(double r1, double r2, double r3);
+const Eigen::Matrix3d createRotationMatrix(double r1, double r2, double r3);
 const Eigen::Matrix3d randomRotationMatrix(std::mt19937& rng);
 
 // ******************************* Logging ***********************************//

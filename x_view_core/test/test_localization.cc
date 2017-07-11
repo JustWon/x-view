@@ -53,7 +53,7 @@ void testLocalization(const int num_tests, const int num_observations,
 
 void testEvidence(const int seed) {
   Eigen::Vector3d robot_position;
-  robot_position << 0,0,0;
+  robot_position << 0.0, 0.0, 0.0;
 
 
 #define ADD_OBSERVATION(x, y, z, deviation, evidence) \
@@ -76,15 +76,15 @@ void testEvidence(const int seed) {
     x_view::GraphLocalizer graph_localizer;
 
     // Add some real observation with large evidence
-    ADD_OBSERVATION(1, 0, 0, dev(rng), evid(rng));
-    ADD_OBSERVATION(0, 1, 0, dev(rng), evid(rng));
-    ADD_OBSERVATION(0, 0, 1, dev(rng), evid(rng));
-    ADD_OBSERVATION(1, 1, 0, dev(rng), evid(rng));
-    ADD_OBSERVATION(-1, 0, -1, dev(rng), evid(rng));
-    ADD_OBSERVATION(0, 1, 1, dev(rng), evid(rng));
-    ADD_OBSERVATION(1, 1, 1, dev(rng), evid(rng));
+    ADD_OBSERVATION(1.0, 0.0, 0.0, dev(rng), evid(rng));
+    ADD_OBSERVATION(0.0, 1.0, 0.0, dev(rng), evid(rng));
+    ADD_OBSERVATION(0.0, 0.0, 1.0, dev(rng), evid(rng));
+    ADD_OBSERVATION(1.0, 1.0, 0.0, dev(rng), evid(rng));
+    ADD_OBSERVATION(-1.0, 0.0, -1.0, dev(rng), evid(rng));
+    ADD_OBSERVATION(0.0, 1.0, 1.0, dev(rng), evid(rng));
+    ADD_OBSERVATION(1.0, 1.0, 1.0, dev(rng), evid(rng));
     // Add an outlier observation with small evidence
-    ADD_OBSERVATION(1, -1, -1, 10, 0.1 * (1 - deviation));
+    ADD_OBSERVATION(1.0, -1.0, -1.0, 10.0, 0.1 * (1.0 - deviation));
 
     Eigen::Vector3d res = graph_localizer.localize();
     const double dist = (res - robot_position).norm();

@@ -111,10 +111,10 @@ void XViewBagReader::localize(const CAMERA camera_type, const int frame_index) {
   std::cout << "True position: "
             << Eigen::RowVector3d(true_position) << std::endl;
 
-  publishPosition(estimated_position, Eigen::Vector3d(1, 0, 0), trans.stamp_,
-                  "estimated_position");
-  publishPosition(true_position, Eigen::Vector3d(0, 1, 0), trans.stamp_,
-                  "true_position");
+  publishPosition(estimated_position, Eigen::Vector3d(1.0, 0.0, 0.0),
+                  trans.stamp_, "estimated_position");
+  publishPosition(true_position, Eigen::Vector3d(0.0, 1.0, 0.0),
+                  trans.stamp_, "true_position");
 
   bag_.close();
 }
@@ -249,9 +249,9 @@ void XViewBagReader::publishPosition(const Eigen::Vector3d& pos,
   marker.scale.z = 2.0;
 
   // Set the color -- be sure to set alpha to something non-zero!
-  marker.color.r = color[0];
-  marker.color.g = color[1];
-  marker.color.b = color[2];
+  marker.color.r = static_cast<float>(color[0]);
+  marker.color.g = static_cast<float>(color[1]);
+  marker.color.b = static_cast<float>(color[2]);
   marker.color.a = 1.0;
 
   marker.lifetime = ros::Duration();

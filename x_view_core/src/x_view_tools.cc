@@ -93,7 +93,7 @@ const cv::Scalar getColorFromSemanticLabel(const int semantic_label) {
   return color;
 }
 
-const Eigen::Matrix3d randomRotationMatrix(double r1, double r2, double r3) {
+const Eigen::Matrix3d createRotationMatrix(double r1, double r2, double r3) {
   r1 = r1 * 2.0*M_PI;
   r2 = r2 * 2.0*M_PI;
   r3 = r3 * 2.0;
@@ -117,7 +117,7 @@ const Eigen::Matrix3d randomRotationMatrix(double r1, double r2, double r3) {
 
 const Eigen::Matrix3d randomRotationMatrix(std::mt19937& rng) {
   std::uniform_real_distribution<double> dist(0,1);
-  return randomRotationMatrix(dist(rng), dist(rng), dist(rng));
+  return createRotationMatrix(dist(rng), dist(rng), dist(rng));
 }
 
 // ******************************* Logging ***********************************//
