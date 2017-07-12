@@ -32,7 +32,7 @@ void mergeGraphs(const Graph& g1, const Graph g2, Graph* merged) {
   CHECK_NOTNULL(matching_result.get());
 
   GraphMerger graph_merger(g1, g2, *(matching_result.get()));
-  *merged = graph_merger.getMergedGraph();
+  *merged = graph_merger.computeMergedGraph();
 }
 
 }

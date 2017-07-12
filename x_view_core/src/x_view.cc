@@ -194,7 +194,6 @@ void XView::initializeMatcher() {
     CHECK(false) << "Unrecognized matcher type <" << matcher_type << ">"
                  << std::endl;
   }
-
 }
 
 //==========================================================================//

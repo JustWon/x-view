@@ -13,7 +13,7 @@ GraphMerger::GraphMerger(const Graph& database_graph,
 
 }
 
-Graph GraphMerger::getMergedGraph() {
+const Graph GraphMerger::computeMergedGraph() {
 
   const unsigned long num_query_vertices = boost::num_vertices(query_graph_);
   const unsigned long num_db_vertices = boost::num_vertices(database_graph_);
@@ -27,6 +27,8 @@ Graph GraphMerger::getMergedGraph() {
   // Initialize the merged graph to contain all vertices of the database_graph.
   merged_graph_ = database_graph_;
 
+  // Only consider possible matches between vertices if their similarity is
+  // large than this threshold.
   const float similarity_threshold = 0.0f;
 
   // This map contains the matches between the vertex descriptors in the
@@ -35,22 +37,21 @@ Graph GraphMerger::getMergedGraph() {
 
   // Loop over the vertices of the query graph.
   for (int j = 0; j < num_query_vertices; ++j) {
-    bool found_match = false;
     // Loop over the vertices of the database graph.
-    for (int i = 0; !found_match && i < num_db_vertices; ++i) {
-      // Check if this was a possible match.
+    for (int i = 0; i < num_db_vertices; ++i) {
+      // Check if the two vertices are possible matches.
       if (max_similarity_agree(i, j) == true
           && similarity_matrix(i, j) >= similarity_threshold) {
         // There is a match between the j-th vertex of the query graph and
         // the i-th vertex of the database graph.
         query_in_db_.insert({j, i});
         matched_vertices_.push_back(j);
-        found_match = true;
+        break;
       }
     }
   }
 
-  // Fill the queue of still to process vertices into the queue.
+  // Push all matched vertices into the queue of 'still to process' vertices.
   still_to_process_ = DescriptorQueue();
   for (const VertexDescriptor v_d : matched_vertices_) {
     still_to_process_.push(v_d);
@@ -65,8 +66,9 @@ Graph GraphMerger::getMergedGraph() {
   ++current_vertex_index_;
 
 
-  // Iterate over the still_to_process vertices and add their children to the
-  // database graph in a recursive way if they are unmatched.
+  // Iterate over the still_to_process vertices and add them to the merged
+  // graph. Also iterate over their neighbors and, in case they have not been
+  // processed yet add them to the still_to_process queue.
   while (!still_to_process_.empty()) {
     const VertexDescriptor source_in_query_graph = still_to_process_.front();
     // Remove the element from the queue.
@@ -108,6 +110,8 @@ GraphMatcher::MaxSimilarityMatrixType GraphMerger::computeAgreementMatrix() cons
 }
 
 void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query_graph) {
+
+  // TODO: start here
   // Get correspondent vertex in database graph.
   const VertexDescriptor
       source_in_db_graph = query_in_db_[source_in_query_graph];
