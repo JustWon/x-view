@@ -31,9 +31,9 @@ class GraphBuilder {
    * \return A graph object containing nodes and edges based on the
    * ImageBlobs datastructure passed as argument.
    */
-  static Graph createGraphFromNeighborBlobs(const FrameData& frame_data,
-                                            const ImageBlobs& blobs,
-                                            const GraphBuilderParams& params = GraphBuilderParams());
+  static Graph createGraphFromImageBlobs(const FrameData& frame_data,
+                                         const ImageBlobs& blobs,
+                                         const GraphBuilderParams& params = GraphBuilderParams());
 
  private:
 

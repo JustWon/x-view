@@ -62,9 +62,9 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
   GraphBuilderParams graph_builder_params;
   graph_builder_params.max_distance_for_neighborhood = blob_neighbor_distance;
 
-  descriptor = GraphBuilder::createGraphFromNeighborBlobs(frame_data,
-                                                          image_blobs_,
-                                                          graph_builder_params);
+  descriptor = GraphBuilder::createGraphFromImageBlobs(frame_data,
+                                                       image_blobs_,
+                                                       graph_builder_params);
 
 
   // Create the descriptor stored in this landmark by generating a

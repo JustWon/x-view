@@ -38,13 +38,13 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
   graph_construction_params.num_vertices = 15;
   graph_construction_params.edge_probability = 0.2;
 
-  Graph g1 = generateRandomGraph(graph_construction_params);
+  const Graph g1 = generateRandomGraph(graph_construction_params);
 
   // Extract a subgraph.
   std::mt19937 rng(seed);
   const int radius = 2;
   const VertexDescriptor random_v_d = boost::random_vertex(g1, rng);
-  Graph g2_original = extractSubgraphAroundVertex(g1, random_v_d, radius);
+  const Graph g2_original = extractSubgraphAroundVertex(g1, random_v_d, radius);
 
   // Modify the extracted subgraph.
   GraphModifierParams graph_modifier_params;

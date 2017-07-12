@@ -1,11 +1,15 @@
 #include <x_view_core/features/graph.h>
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/x_view_locator.h>
+#include <x_view_core/x_view_tools.h>
 
 #include <boost/graph/connected_components.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <boost/graph/random.hpp>
-#include <boost/property_map/dynamic_property_map.hpp>
+#include <glog/logging.h>
+
+#include <fstream>
+#include <iomanip>
+
 
 namespace x_view {
 
@@ -97,20 +101,59 @@ std::ostream& operator<<(std::ostream& out, const Graph& graph) {
   return out;
 }
 
-void writeToFile(Graph& graph, const std::string& filename) {
 
-  // Open a stream
+void writeToFile(const Graph& graph, const std::string& filename) {
+  if(filename.substr(filename.find_last_of(".") + 1) != "dot") {
+    LOG(WARNING) << "Filename <" << filename << "> used to write graph to file "
+                 << "has different extension than <.dot>.";
+  }
+
   std::ofstream out(filename.c_str());
-  CHECK(out.is_open())  << "Impossible to open/create file " << filename << ". "
-  << "Make sure the destination folder exists.";
+  if(!out.is_open()) {
+    LOG(ERROR) << "Impossible to open file <" << filename << ", graph is not "
+        "written to file.";
+    return;
+  }
 
-  // Create a property map to be used during writing of the graph.
-  boost::dynamic_properties dp;
-  dp.property("label", boost::get(&VertexProperty::semantic_label, graph));
-  dp.property("node_id", boost::get(&VertexProperty::index, graph));
+  auto scalarToString = [](const int s) {
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0') << std::setw(2) << s;
+    return ss.str();
+  };
 
-  boost::write_graphviz_dp(out, graph, dp);
+  out << "graph semantic_graph {\n";
 
+  // Iterate over the vertices of the graph.
+  const auto vertices = boost::vertices(graph);
+  for(auto iter = vertices.first; iter != vertices.second; ++iter) {
+    const VertexProperty& v_p = graph[*iter];
+    const cv::Scalar color =
+        x_view::getColorFromSemanticLabel(v_p.semantic_label);
+    out << "\t" << v_p.index << " ["
+        " label=\"" << v_p.semantic_entity_name << "\"," <<
+        " fillcolor=\"#" << scalarToString(color[0])
+                    << scalarToString(color[1])
+                    << scalarToString(color[2]) << "\","
+        " fontcolor=\"#" << scalarToString(255-color[0])
+                         << scalarToString(255-color[1])
+                         << scalarToString(255-color[2]) << "\",";
+    if(v_p.location_3d != Eigen::Vector3d::Zero()) {
+      out << " pos = \"" << v_p.location_3d[0] << ", "
+                  << v_p.location_3d[1] << "!\",";
+    }
+       out << " style=filled ]\n";
+  }
+
+  // Iterate over the edges of the graph.
+  const auto edges = boost::edges(graph);
+  for(auto iter = edges.first; iter != edges.second; ++iter) {
+    const VertexProperty& from = graph[boost::source(*iter, graph)];
+    const VertexProperty& to = graph[boost::target(*iter, graph)];
+
+    out << "\t" << from.index << "--" << to.index << "\n";
+  }
+
+  out << "}";
 }
 
 }

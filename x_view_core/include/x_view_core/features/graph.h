@@ -13,20 +13,29 @@ namespace x_view {
 
 /// \brief Property associated to a graph vertex.
 struct VertexProperty {
+
   /// \brief Index of the vertex in the graph, such that
   /// boost::vertex(i, graph) returns the vertex property with index == i.
   int index;
+
   /// \brief Semantic label associated to this graph vertex. This label
   /// corresponds to the same specified in the dataset description.
   int semantic_label;
+
   /// \brief Name of semantic entity associated to this vertex.
   std::string semantic_entity_name;
+
   /// \brief Number of pixels contained in this vertex/blob.
   int num_pixels;
+
   /// \brief Blob center.
   cv::Point2i center;
+
   /// \brief 3D location of this vertex expressed in world frame.
   Eigen::Vector3d location_3d;
+
+  /// \brief Index referring to the last time this vertex has been observed.
+  unsigned long last_time_seen_;
 };
 
 /// \brief Property associated to a graph edge.
@@ -40,13 +49,18 @@ struct EdgeProperty {
 /**
  * \brief A graph object represented as an adjacency list.
  * \details
- * First parameter: what stl container is used to store the edges. Using
- * setS as edge container to enforce uniqueness of edges, i.e. edge 1-2 is
- * the same as edge 2-1.
- * Second parameter: what stl container is used to store the graph vertices.
- * Third parameter: directed or undirected graph type.
- * Forth parameter: node representation.
- * Fifth parameter: edge representation.
+ * First parameter:
+ *      What stl container is used to store the edges.
+ *      Using setS as edge container to enforce uniqueness of edges, i.e.
+ *      edge 1-2 is the same as edge 2-1.
+ * Second parameter:
+ *      What stl container is used to store the graph vertices.
+ * Third parameter:
+ *      Directed or undirected graph type.
+ * Forth parameter:
+ *      Vertex representation.
+ * Fifth parameter:
+ *      Edge representation.
  * \note The second parameter must be boost::vecS such that each vertex can
  * be accessed directly by the program as follows:
  * \code{.cpp}
@@ -143,7 +157,7 @@ std::ostream& operator<<(std::ostream& out, const Graph& graph);
 
 /// \brief Writes the graph passed as argument to the file specified as
 /// second argument in the '.dot' file format.
-void writeToFile(Graph& graph, const std::string& filename);
+void writeToFile(const Graph& graph, const std::string& filename);
 
 }
 

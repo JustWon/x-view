@@ -238,8 +238,7 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
 
   const std::string filename = getOutputDirectory() + "merged_" +
       padded_int(frame_number_, 5, '0') + ".dot";
-  Graph global_graph = graph_matcher->getGlobalGraph();
-  writeToFile(global_graph, filename);
+  writeToFile(graph_matcher->getGlobalGraph(), filename);
 
   cv::Mat current_image = GraphDrawer::createImageWithLabels
       (current_graph_landmark->getBlobs(), current_graph,
