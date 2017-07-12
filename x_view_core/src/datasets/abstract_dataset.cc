@@ -8,11 +8,17 @@ namespace x_view {
 
 AbstractDataset::AbstractDataset(const int num_semantic_classes)
     : num_semantic_classes_(num_semantic_classes) {
-  // create simple semantic entities
+  // Create simple semantic entities.
   for (int i = 0; i < num_semantic_classes_; ++i) {
-    // Default semantic entities, all static and all to render
+    // Default semantic entities, all static and all to render.
     semantic_entities_.push_back(SemanticEntity(std::to_string(i), i));
   }
+
+  // Create intrinsic camera parameters.
+  camera_intrinsics_ = CameraIntrinsics(500.0, 400, 300, 1.0);
+
+  // Set up trivial camera-to-image rotation.
+  camera_to_image_rotation_ = Eigen::Matrix3d::Identity();
 }
 
 cv::Mat AbstractDataset::convertSemanticImage(

@@ -4,6 +4,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/breadth_first_search.hpp>
+#include <Eigen/Core>
 #include <opencv2/core/core.hpp>
 
 #include <random>
@@ -23,7 +24,9 @@ struct VertexProperty {
   /// \brief Number of pixels contained in this vertex/blob.
   int num_pixels;
   /// \brief Blob center.
-  cv::Point center;
+  cv::Point2i center;
+  /// \brief 3D location of this vertex expressed in world frame.
+  Eigen::Vector3d location_3d;
 };
 
 /// \brief Property associated to a graph edge.

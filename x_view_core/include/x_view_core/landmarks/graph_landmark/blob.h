@@ -1,6 +1,7 @@
 #ifndef X_VIEW_BLOB_H
 #define X_VIEW_BLOB_H
 
+#include <Eigen/Core>
 #include <opencvblobslib/blob.h>
 
 namespace x_view {
@@ -31,7 +32,10 @@ class Blob {
   int num_pixels;
 
   /// \brief Pixel representing the center of the blob.
-  cv::Point center;
+  cv::Point2i pixel_center;
+
+  /// \brief World coordinate associated to the pixel_center.
+  Eigen::Vector3d world_coordinate;
 
   /// \brief Ellipse fitted to external contours of blob.
   cv::RotatedRect ellipse;
@@ -70,8 +74,9 @@ class Blob {
   /// boxes are used for early termination during neighbor check.
   void computeBoundingBox();
 
-  /// \brief Computes the ellipse fitting the external contours of the blob.
-  void computeFittingEllipse();
+  /// \brief Computes the blob center by trying to fit an ellipse to the
+  /// contours and taking its center.
+  void computeBlobCenter();
 
 };
 

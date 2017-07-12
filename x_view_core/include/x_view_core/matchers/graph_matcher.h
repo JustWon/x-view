@@ -5,6 +5,7 @@
 // into a single header/source file is messy, this header file includes all
 // necessary declarations in order to work with a graph matcher object.
 
+#include <x_view_core/matchers/graph_matcher/graph_localizer.h>
 #include <x_view_core/matchers/graph_matcher/graph_matcher.h>
 #include <x_view_core/matchers/graph_matcher/graph_merger.h>
 #include <x_view_core/matchers/graph_matcher/random_walker.h>

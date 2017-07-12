@@ -51,19 +51,22 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
                << "> as 'blob_filter_type' parameter.";
   }
 
-  image_blobs_ = BlobExtractor::findBlobsWithContour(semantic_image_,
-                                                     blob_extractor_params);
+  image_blobs_ = BlobExtractor::extractBlobs(semantic_image_,
+                                             blob_extractor_params);
+
 
   // *********** Graph generation ********** //
-
   const int blob_neighbor_distance =
       landmark_parameters->getInteger("blob_neighbor_distance", 10);
 
   GraphBuilderParams graph_builder_params;
   graph_builder_params.max_distance_for_neighborhood = blob_neighbor_distance;
 
-  descriptor = GraphBuilder::createGraphFromNeighborBlobs(image_blobs_,
+  descriptor = GraphBuilder::createGraphFromNeighborBlobs(frame_data,
+                                                          image_blobs_,
                                                           graph_builder_params);
+
+
   // Create the descriptor stored in this landmark by generating a
   // VectorDescriptor containing the graph data.
   descriptor_ = std::make_shared<GraphDescriptor>(GraphDescriptor(descriptor));

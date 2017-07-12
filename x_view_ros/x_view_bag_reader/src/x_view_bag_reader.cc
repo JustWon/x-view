@@ -9,7 +9,7 @@
 namespace x_view_ros {
 
 XViewBagReader::XViewBagReader(ros::NodeHandle& n)
-    : nh_(n), parser_(nh_) {
+    : nh_(n), parser_(nh_), graph_publisher_(n) {
 
   // Load parameters used by XViewBagReader.
   getXViewBagReaderParameters();
@@ -34,9 +34,16 @@ XViewBagReader::XViewBagReader(ros::NodeHandle& n)
 
   // Create x_view only now because it has access to the parser parameters.
   x_view_ = std::unique_ptr<x_view::XView>(new x_view::XView());
+
+  // Register the vertex publisher.
+  vertex_publisher_ =
+      nh_.advertise<visualization_msgs::Marker>("/localization/position",
+                                                10000);
 }
 
 void XViewBagReader::loadCurrentTopic(const CameraTopics& current_topics) {
+  std::cout << "Loading topic " << current_topics.depth_image_topic <<
+                                                                    std::endl;
   bag_.open(params_.bag_file_name, rosbag::bagmode::Read);
 
   // Dataset used to parse the images.
@@ -78,7 +85,37 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
     tfTransformToSE3(trans, &pose);
     x_view::FrameData frame_data(semantic_image, depth_image, pose);
     x_view_->processFrameData(frame_data);
+
+    graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
   }
+  bag_.close();
+}
+
+void XViewBagReader::localize(const CAMERA camera_type, const int frame_index) {
+  loadCurrentTopic(getTopics(camera_type));
+
+  std::cout << "Localizing robot at frame " << frame_index << std::endl;
+  parseParameters();
+  const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(frame_index);
+  const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(frame_index);
+  const tf::StampedTransform trans = transform_view_->getDataAtFrame(frame_index);
+  x_view::SE3 real_pose, empty_pose;
+  tfTransformToSE3(trans, &real_pose);
+  x_view::FrameData frame_data(semantic_image, depth_image, empty_pose);
+
+  Eigen::Vector3d estimated_position = x_view_->localize(frame_data);
+  Eigen::Vector3d true_position = real_pose.getPosition();
+
+  std::cout << "Localized robot at position: "
+            << Eigen::RowVector3d(estimated_position) <<  std::endl;
+  std::cout << "True position: "
+            << Eigen::RowVector3d(true_position) << std::endl;
+
+  publishPosition(estimated_position, Eigen::Vector3d(1.0, 0.0, 0.0),
+                  trans.stamp_, "estimated_position");
+  publishPosition(true_position, Eigen::Vector3d(0.0, 1.0, 0.0),
+                  trans.stamp_, "true_position");
+
   bag_.close();
 }
 
@@ -177,6 +214,49 @@ void XViewBagReader::tfTransformToSE3(const tf::StampedTransform& tf_transform,
       tf_transform.getRotation().getY(),
       tf_transform.getRotation().getZ());
   *pose = x_view::SE3(pos, rot);
+}
+
+
+void XViewBagReader::publishPosition(const Eigen::Vector3d& pos,
+                                     const Eigen::Vector3d& color,
+                                     const ros::Time& stamp,
+                                     const std::string ns) {
+
+  visualization_msgs::Marker marker;
+
+  marker.header.frame_id = "/world";
+  marker.header.stamp = stamp;
+
+  // Set the namespace and id for this marker.  This serves to create a unique ID
+  // Any marker sent with the same namespace and id will overwrite the old one
+  marker.ns = ns;
+  marker.id = 0;
+
+  marker.type = visualization_msgs::Marker::SPHERE;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.pose.position.x = pos[0];
+  marker.pose.position.y = pos[1];
+  marker.pose.position.z = pos[2];
+  marker.pose.orientation.x = 0.0;
+  marker.pose.orientation.y = 0.0;
+  marker.pose.orientation.z = 0.0;
+  marker.pose.orientation.w = 1.0;
+
+  // Set the scale of the marker -- 1x1x1 here means 1m on a side
+  marker.scale.x = 2.0;
+  marker.scale.y = 2.0;
+  marker.scale.z = 2.0;
+
+  // Set the color -- be sure to set alpha to something non-zero!
+  marker.color.r = static_cast<float>(color[0]);
+  marker.color.g = static_cast<float>(color[1]);
+  marker.color.b = static_cast<float>(color[2]);
+  marker.color.a = 1.0;
+
+  marker.lifetime = ros::Duration();
+  vertex_publisher_.publish(marker);
+
 }
 
 }

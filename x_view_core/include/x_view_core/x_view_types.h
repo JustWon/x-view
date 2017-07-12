@@ -71,6 +71,27 @@ class FrameData {
   const SE3& pose_;
 };
 
+/// \brief Camera intrinsic parameters used to compute the 3D location of a
+/// pixel given robot pose.
+struct CameraIntrinsics {
+  CameraIntrinsics(){}
+  CameraIntrinsics(const double focal_length, const int px, const int py,
+      const double base_line)
+      : focal_length(focal_length),
+        px(px), py(py),
+        base_line(base_line) {}
+  CameraIntrinsics(const double focal_length, const Eigen::Vector2i& p,
+                   const double base_line)
+      : focal_length(focal_length),
+        px(p[0]), py(p[1]),
+        base_line(base_line) {}
+
+  double focal_length;
+  int px;
+  int py;
+  double base_line;
+};
+
 }
 
 #endif //X_VIEW_X_VIEW_TYPES_H

@@ -52,7 +52,8 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
     auto& vertex = graph[*vertex_iter.first];
     vertex.index = vertex_index++;
     vertex.num_pixels = 1;
-    vertex.center = cv::Point(0, 0);
+    vertex.center = cv::Point2i(0, 0);
+    vertex.location_3d = Eigen::Vector3d::Zero();
     // Set a random semantic label to the vertex.
     vertex.semantic_label = dist(rng);
     vertex.semantic_entity_name = std::to_string(vertex.semantic_label);
@@ -112,7 +113,8 @@ x_view::Graph generateChainGraph(const GraphConstructionParams& params) {
   for (int i = 0; i < params.num_vertices; ++i) {
     x_view::VertexProperty v_p;
     v_p.index = i;
-    v_p.center = cv::Point(0, 0);
+    v_p.center = cv::Point2i(0, 0);
+    v_p.location_3d = Eigen::Vector3d::Zero();
     v_p.semantic_label = dist(rng);
     v_p.semantic_entity_name = std::to_string(v_p.semantic_label);
     v_p.num_pixels = 0;

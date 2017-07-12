@@ -2,6 +2,7 @@
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
+#include <x_view_core/landmarks/graph_landmark/projector.h>
 #include <x_view_core/x_view_locator.h>
 
 #include <boost/graph/connected_components.hpp>
@@ -10,30 +11,35 @@ namespace x_view {
 
 std::vector<const Blob*> GraphBuilder::DEFAULT_BLOB_VECTOR;
 
-Graph GraphBuilder::createGraphFromNeighborBlobs(const ImageBlobs& blobs,
+const unsigned long GraphBuilder::INVALID_VERTEX_DESCRIPTOR =
+    std::numeric_limits<unsigned long>::max();
+
+Graph GraphBuilder::createGraphFromNeighborBlobs(const FrameData& frame_data,
+                                                 const ImageBlobs& blobs,
                                                  const GraphBuilderParams& params) {
 
   Graph graph;
 
-  // Vector containing references to the created graph nodes.
+  // Vector containing references to the created graph vertices.
   std::vector<VertexDescriptor> vertex_descriptors;
-  // Vector keeping track of which blob is associated to which graph node.
+  // Vector keeping track of which Blob is associated to which graph node.
   std::vector<const Blob*> blob_vector;
 
   // Add all blobs to the graph.
-  GraphBuilder::addBlobsToGraph(blobs, &graph, &vertex_descriptors,
+  GraphBuilder::addBlobsToGraph(frame_data, blobs, &graph, &vertex_descriptors,
                                 &blob_vector);
 
-
-  // create the edges between nodes sharing an edge
+  // Create the edges between nodes sharing an edge.
   for (int i = 0; i < blob_vector.size(); ++i) {
     for (int j = i + 1; j < blob_vector.size(); ++j) {
 
       const Blob* bi = blob_vector[i];
       const Blob* bj = blob_vector[j];
 
-      // only create an edge between the two blobs if they are neighbors
+      // Only create an edge between the two blobs if they are neighbors.
       if (Blob::areNeighbors(*bi, *bj, params.max_distance_for_neighborhood))
+        if(vertex_descriptors[i] != INVALID_VERTEX_DESCRIPTOR &&
+            vertex_descriptors[j] != INVALID_VERTEX_DESCRIPTOR)
         boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
                         {i, j}, graph);
     }
@@ -57,27 +63,8 @@ Graph GraphBuilder::createGraphFromNeighborBlobs(const ImageBlobs& blobs,
 
 }
 
-Graph GraphBuilder::createCompleteGraph(const ImageBlobs& blobs) {
-
-  Graph graph;
-
-  std::vector<VertexDescriptor> vertex_descriptors;
-
-  GraphBuilder::addBlobsToGraph(blobs, &graph, &vertex_descriptors);
-
-
-  // create the edges between the nodes
-  for (int i = 0; i < vertex_descriptors.size(); ++i) {
-    for (int j = i + 1; j < vertex_descriptors.size(); ++j) {
-      boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
-                      {i, j}, graph);
-    }
-  }
-
-  return graph;
-}
-
-void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
+void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
+                                   const ImageBlobs& blobs,
                                    Graph* graph,
                                    std::vector<VertexDescriptor>* vertex_descriptors,
                                    std::vector<const Blob*>* blob_vector) {
@@ -85,6 +72,18 @@ void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
   CHECK_NOTNULL(graph);
   CHECK_NOTNULL(vertex_descriptors);
   CHECK_NOTNULL(blob_vector);
+
+  const cv::Mat& depth_image = frame_data.getDepthImage();
+  const SE3& pose = frame_data.getPose();
+
+  const float max_depth_m =
+      Locator::getParameters()->getChildPropertyList("landmark")->
+          getFloat("depth_clip",
+                   0.01f * std::numeric_limits<unsigned short>::max());
+
+  // Create a projector object, which projects pixels back to 3D world
+  // coordinates.
+  Projector projector(pose, Locator::getDataset()->getCameraIntrinsics());
 
   vertex_descriptors->clear();
   blob_vector->clear();
@@ -96,6 +95,18 @@ void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
       blob_vector->push_back(&blob);
       VertexProperty vertex =
           GraphBuilder::blobToGraphVertex(blob_count++, blob);
+      // Extract the depth associated to the vertex.
+      const unsigned short depth_cm =
+        depth_image.at<unsigned short>(vertex.center);
+      const double depth_m = depth_cm * 0.01;
+      // If the projected center of the blob is too distant, set it as invalid.
+      if(depth_m >= max_depth_m) {
+       vertex_descriptors->push_back(INVALID_VERTEX_DESCRIPTOR);
+        continue;
+      }
+
+      vertex.location_3d =
+          projector.getWorldCoordinates(vertex.center, depth_m);
       vertex_descriptors->push_back(boost::add_vertex(vertex, *graph));
     }
   }
@@ -109,7 +120,7 @@ VertexProperty GraphBuilder::blobToGraphVertex(const int index,
   const int semantic_label = blob.semantic_label;
   const std::string label = dataset->label(semantic_label);
   const int size = blob.num_pixels;
-  const cv::Point center = blob.center;
+  const cv::Point2i center = blob.pixel_center;
   return VertexProperty{index, semantic_label, label, size, center};
 }
 

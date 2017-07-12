@@ -5,7 +5,6 @@
 #include <x_view_core/landmarks/visual_descriptor_landmark.h>
 #include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/matchers/vector_matcher.h>
-#include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 
 namespace x_view {
@@ -29,7 +28,6 @@ void XView::processFrameData(const FrameData& frame_data) {
 
   // Extract semantics associated to the semantic image and pose.
   createSemanticLandmark(frame_data, landmark_ptr);
-
   // Compute the matches between the new feature and the ones
   // stored in the database.
   if (frame_number_ == 0) {
@@ -40,13 +38,91 @@ void XView::processFrameData(const FrameData& frame_data) {
     AbstractMatcher::MatchingResultPtr matching_result_ptr;
     matchSemantics(landmark_ptr, matching_result_ptr);
   }
-
   // Add the semantic landmark to the database.
   semantics_db_.push_back(landmark_ptr);
 
   LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
   ++frame_number_;
 
+}
+
+const Graph& XView::getSemanticGraph() const {
+  auto graph_matcher =
+      std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_);
+
+  CHECK_NOTNULL(graph_matcher.get());
+
+  return graph_matcher->getGlobalGraph();
+}
+
+const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
+  LOG(INFO) << "XView tries to localize a robot by its observations.";
+
+  const cv::Mat& depth_image = frame_data.getDepthImage();
+
+  // Generate a new semantic landmark pointer.
+  SemanticLandmarkPtr landmark_ptr;
+
+  // Extract semantics associated to the semantic image and pose.
+  createSemanticLandmark(frame_data, landmark_ptr);
+
+  const Graph& query_graph = std::dynamic_pointer_cast<const GraphDescriptor>(
+  std::dynamic_pointer_cast<GraphLandmark>
+      (landmark_ptr)->getDescriptor())->getDescriptor();
+
+  // Get the existing global semantic graph before matching.
+  const Graph& global_graph = getSemanticGraph();
+
+  // Perform full matching getting similarity scores between query graph and
+  // existing global semantic graph.
+  GraphMatcher::GraphMatchingResult matching_result;
+
+  // Extract the random walks of the graph.
+  RandomWalkerParams random_walker_params_;
+  random_walker_params_.num_walks = Locator::getParameters()
+      ->getChildPropertyList("matcher")->getInteger("num_walks");
+  random_walker_params_.walk_length = Locator::getParameters()
+      ->getChildPropertyList("matcher")->getInteger("walk_length");
+  RandomWalker random_walker(query_graph, random_walker_params_);
+  random_walker.generateRandomWalks();
+
+  // Create a matching result pointer which will be returned by this
+  // function which stores the similarity matrix.
+
+  GraphMatcher::SimilarityMatrixType& similarity_matrix =
+      matching_result.getSimilarityMatrix();
+
+  std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)->
+      computeSimilarityMatrix(random_walker, &similarity_matrix,
+                              VertexSimilarity::SCORE_TYPE::WEIGHTED);
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
+      matching_result.computeMaxSimilarityRowwise().cwiseProduct(
+          matching_result.computeMaxSimilarityColwise()
+      );
+
+  GraphLocalizer graph_localizer;
+
+  for(int j = 0; j < max_similarity_matrix.cols(); ++j) {
+    int max_i = -1;
+    max_similarity_matrix.col(j).maxCoeff(&max_i);
+    if(max_i == -1)
+      continue;
+    std::cout << "Match between vertex " << j << " in query graph is vertex "
+              <<max_i << " in global graph" << std::endl;
+    const double similarity = similarity_matrix(max_i, j);
+    const VertexProperty& match_v_p = global_graph[max_i];
+
+    const unsigned short depth_cm =
+    depth_image.at<unsigned short>(match_v_p.center);
+    const double depth_m = depth_cm * 0.01;
+
+    graph_localizer.addObservation(match_v_p, depth_m, similarity);
+  }
+
+  const Eigen::Vector3d res = graph_localizer.localize();
+
+  return res;
 }
 
 void XView::printInfo() const {
@@ -126,7 +202,7 @@ void XView::initializeMatcher() {
 //==========================================================================//
 
 void XView::createSemanticLandmark(const FrameData& frame_data,
-                                   SemanticLandmarkPtr& semantics_out) {
+                                   SemanticLandmarkPtr& semantics_out) const {
 
   // TODO: preprocess image and pose
 
@@ -140,13 +216,10 @@ void XView::createSemanticLandmark(const FrameData& frame_data,
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
                            AbstractMatcher::MatchingResultPtr& matching_result) {
 
-  const auto& old_graph_matcher = std::dynamic_pointer_cast<GraphMatcher>
-      (descriptor_matcher_);
+  matching_result = descriptor_matcher_->match(semantics_a);
 
-  // Peform the merging operation.
-  std::shared_ptr<GraphMatcher> new_graph_matcher(new GraphMatcher);
-  new_graph_matcher->addDescriptor(old_graph_matcher->getGlobalGraph());
-
+  const auto graph_matcher =
+      std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_);
 
   const cv::Mat& current_semantic_image = semantics_a->getSemanticImage();
   const auto& current_graph_landmark =
@@ -157,34 +230,27 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
       std::dynamic_pointer_cast<const GraphDescriptor>
           (current_graph_landmark->getDescriptor());
 
-  const Graph& current_graph = current_graph_descriptor->getDescriptor();
-
-  // Compute a match between the current semantic landmark and the ones
-  // already visited.
-  matching_result =  new_graph_matcher->match(semantics_a);
-
+  const auto& current_graph =
+      current_graph_descriptor->getDescriptor();
 
   const auto& graph_matching_result = std::dynamic_pointer_cast
       <GraphMatcher::GraphMatchingResult>(matching_result);
 
-  GraphMerger graph_merger(new_graph_matcher->getGlobalGraph(),
-                           current_graph,
-                           *(graph_matching_result.get()));
-  Graph merged_graph = graph_merger.getMergedGraph();
-  std::string filename = getOutputDirectory() + "merged_" + padded_int
-      (frame_number_, 5, '0') + ".dot";
-  dumpToDotFile(merged_graph, filename);
-
-  descriptor_matcher_ = new_graph_matcher;
-
-  std::cout << "Matched completed. Current global graph is being damped to "
-      "file" + filename << std::endl;
+  const std::string filename = getOutputDirectory() + "merged_" +
+      padded_int(frame_number_, 5, '0') + ".dot";
+  Graph global_graph = graph_matcher->getGlobalGraph();
+  dumpToDotFile(global_graph, filename);
 
   cv::Mat current_image = GraphDrawer::createImageWithLabels
       (current_graph_landmark->getBlobs(), current_graph,
        semantics_a->getSemanticImage().size());
-  cv::imshow("Semantic image " + padded_int(frame_number_, 2, ' '), current_image);
+#ifdef X_VIEW_DEBUG
+  cv::imshow("Semantic image ", current_image);
+  cv::imshow("Similarity matrix ",
+             SimilarityPlotter::getImageFromSimilarityMatrix(
+                 graph_matching_result->getSimilarityMatrix()));
   cv::waitKey();
+#endif
 
 }
 

@@ -23,32 +23,33 @@ class GraphBuilder {
    * \brief Creates a graph whose nodes correspond to the blobs contained in
    * the ImageBlobs datastructure passed as argument, and whose edges exist
    * between nodes corresponding to neighbor blobs.
+   * \param frame_data Data associated to the current landmark containing
+   * semantic, depth and pose information.
    * \param blobs ImageBlobs datastructure containing all blobs.
    * \param params Parameters used by the graph builder during graph
    * construction.
    * \return A graph object containing nodes and edges based on the
    * ImageBlobs datastructure passed as argument.
    */
-  static Graph createGraphFromNeighborBlobs(const ImageBlobs& blobs,
+  static Graph createGraphFromNeighborBlobs(const FrameData& frame_data,
+                                            const ImageBlobs& blobs,
                                             const GraphBuilderParams& params = GraphBuilderParams());
-
-  /**
-   * \brief Creates a complete graph whose nodes correspond to the blobs
-   * contained in the ImageBlobs datastructure passed as argument.
-   * \param blobs ImageBlobs datastructure containing all blobs.
-   * \return A complete graph object containing nodes based on the ImageBlobs
-   * datastructure passed as argument.
-   */
-  static Graph createCompleteGraph(const ImageBlobs& blobs);
 
  private:
 
   // Dummy vector used as default argument for the the addBlobsToGraph function.
   static std::vector<const Blob*> DEFAULT_BLOB_VECTOR;
 
+  /// \brief A vertex is invalid if its projection in the world frame is too
+  /// distant. This value is used during graph construction to keep track of
+  /// such vertices.
+  static const unsigned long INVALID_VERTEX_DESCRIPTOR;
+
   /**
    * \brief Adds all blobs contained in the ImageBlobs datastructure to the
    * graph object passed as argument
+   * \param frame_data Data associated to the current landmark containing
+   * semantic, depth and pose information.
    * \param blobs Datastructure containing all blobs.
    * \param graph Graph object to be filled up with new nodes.
    * \param vertex_descriptors Vector filled up with references to the
@@ -56,7 +57,8 @@ class GraphBuilder {
    * \param blob_vector Vector containing pointers to the blobs associated to
    * the inserted nodes.
    */
-  static void addBlobsToGraph(const ImageBlobs& blobs,
+  static void addBlobsToGraph(const FrameData& frame_data,
+                              const ImageBlobs& blobs,
                               Graph* graph,
                               std::vector<VertexDescriptor>* vertex_descriptors,
                               std::vector<const Blob*>* blob_vector = &DEFAULT_BLOB_VECTOR);

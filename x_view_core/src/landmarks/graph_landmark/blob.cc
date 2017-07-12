@@ -14,7 +14,7 @@ Blob::Blob(const int semantic_label, const int instance, const CBlob& c_blob)
   computeContours();
   computeArea();
   computeBoundingBox();
-  computeFittingEllipse();
+  computeBlobCenter();
 }
 
 bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
@@ -94,36 +94,53 @@ void Blob::computeBoundingBox() {
   bounding_box = cv::boundingRect(external_contour_pixels);
 }
 
-void Blob::computeFittingEllipse() {
-  if (c_blob_.Area(AreaMode::PIXELWISE) >= 5)
+void Blob::computeBlobCenter() {
+  if (c_blob_.Area(AreaMode::PIXELWISE) >= 5) {
     ellipse = cv::fitEllipse(external_contour_pixels);
-
-  // If the distance of the fitted ellipse's center to the contour of the
-  // blob is larger than 'max_distance_thresh', then simply compute the center
-  // of the blob by fitting a circle to the contour. This threshold is set
-  // empirically and should be adapted in case of different input image
-  // resolution.
-  const int max_distance_thresh = 30;
-  if (cv::pointPolygonTest(external_contour_pixels, ellipse.center,
-  true) < -max_distance_thresh) {
-    LOG(WARNING) << "Computing the center of blob using the minEnclosingCircle"
-                 << " algorithm as the ellipse fitting was not effective.";
+  } else {
     float r;
     cv::minEnclosingCircle(external_contour_pixels, ellipse.center, r);
     ellipse.size = cv::Size(r, r);
   }
+
+  // Make sure the center of the fitted ellipse/circle is contained in the
+  // blob, as this pixel coordinate will be used to compute the 3D position
+  // of the associated semantic entity.
+  // pointPolygonTest returns positive (inside), negative (outside), or zero (on
+  // an edge) value.
+  if(cv::pointPolygonTest(external_contour_pixels, ellipse.center, true) < 0) {
+    LOG(WARNING) << "Computed blob center is not inside blob. Shifting center"
+        " to closest contour point.";
+    int closest_index = -1;
+    int min_distance_squared = std::numeric_limits<int>::max();
+    const cv::Point2i old_center(ellipse.center.x, ellipse.center.y);
+    for(int i = 0; i < external_contour_pixels.size(); ++i) {
+      const cv::Point2i& pixel = external_contour_pixels[i];
+      const cv::Point2i diff = pixel - old_center;
+      const int dist_squared = diff.dot(diff);
+      if(dist_squared < min_distance_squared) {
+        min_distance_squared = dist_squared;
+        closest_index = i;
+      }
+    }
+
+    CHECK(closest_index != -1);
+    // Assign the pixel associated to the closest index to the pixel center.
+    pixel_center = ellipse.center = external_contour_pixels[closest_index];
+  }
+
   // Scale down the ellipse by a factor of two.
   ellipse.size.height *= 0.5;
   ellipse.size.width *= 0.5;
 
-  center = ellipse.center;
+  pixel_center = ellipse.center;
 }
 
 std::ostream& operator<<(std::ostream& out, const Blob& blob) {
   out << "label: " << blob.semantic_label
       << ", instance: " << blob.instance
       << ", num pixels: " << blob.num_pixels
-      << ", center: " << blob.center
+      << ", center: " << blob.pixel_center
       << ", bounding box: " << blob.bounding_box;
   return out;
 }

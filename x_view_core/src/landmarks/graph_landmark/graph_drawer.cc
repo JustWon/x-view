@@ -3,6 +3,7 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
 #include <x_view_core/x_view_locator.h>
+#include <x_view_core/x_view_tools.h>
 
 namespace x_view {
 
@@ -42,7 +43,7 @@ void GraphDrawer::printBlobs(const ImageBlobs& blobs) {
     for (int i = 0; i < blobs[c].size(); ++i) {
       LOG(INFO) << "\tInstance " << i << " composed by "
                 << blobs[c][i].num_pixels << " pixels with mean "
-                    "pixel " << blobs[c][i].center;
+                    "pixel " << blobs[c][i].pixel_center;
     }
   }
 }
@@ -55,6 +56,7 @@ cv::Mat GraphDrawer::createImageWithLabels(const ImageBlobs& blobs,
   GraphDrawer::addGraphNodesToImage(graph, &image);
   GraphDrawer::addEllipsesToImage(blobs, &image);
   GraphDrawer::addLabelsToImage(blobs, &image);
+  GraphDrawer::addCoordinatesToImage(graph, &image);
 
   return image;
 }
@@ -76,21 +78,12 @@ cv::Mat GraphDrawer::createImageFromBlobs(const ImageBlobs& blobs,
         std::end(labels_to_render))
       for (const Blob& blob : blobs[c]) {
         const int semantic_label = blob.semantic_label;
-        const uchar intensity =
-            static_cast<uchar>(255. / (semantic_label / 8 + 1));
-
-        cv::Scalar color(0, 0, 0);
-        std::bitset<3> bits(semantic_label);
-
-        color[0] = bits[0] ? intensity : static_cast<uchar>(0);
-        color[1] = bits[1] ? intensity : static_cast<uchar>(0);
-        color[2] = bits[2] ? intensity : static_cast<uchar>(0);
+        const cv::Scalar color = getColorFromSemanticLabel(semantic_label);
 
         std::vector<std::vector<cv::Point>> v_contours;
         v_contours.push_back(blob.external_contour_pixels);
 
         cv::drawContours(image, v_contours, 0, color, CV_FILLED);
-
       }
   }
   return image;
@@ -116,7 +109,7 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
             dataset->label(blob.semantic_label);
 
         const std::string text = label + ") " + label_descr;
-        cv::putText(*image, text, blob.center, cv::FONT_HERSHEY_DUPLEX,
+        cv::putText(*image, text, blob.pixel_center, cv::FONT_HERSHEY_DUPLEX,
                     GraphDrawer::label_scale_, GraphDrawer::label_color_,
                     1, CV_AA);
         // if the blob has an instance id associated to it, render it on a
@@ -125,7 +118,7 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
         if (blob.instance != -1) {
           const std::string instance =
               "id: " + std::to_string(blob.instance);
-          cv::putText(*image, instance, blob.center + cv::Point(0, 20),
+          cv::putText(*image, instance, blob.pixel_center + cv::Point(0, 20),
                       cv::FONT_HERSHEY_DUPLEX, GraphDrawer::label_scale_,
                       GraphDrawer::label_color_, 1, CV_AA);
 
@@ -225,6 +218,38 @@ void GraphDrawer::addGraphEdgesToImage(const Graph& graph, cv::Mat* image) {
     }
   }
 
+}
+
+
+void GraphDrawer::addCoordinatesToImage(const Graph& graph, cv::Mat* image) {
+
+  CHECK_NOTNULL(image);
+
+  const auto& dataset = Locator::getDataset();
+
+  const std::vector<int>& labels_to_render =
+      dataset->getLabelsToRender();
+
+  auto node_iter = boost::vertices(graph);
+  for (; node_iter.first != node_iter.second; ++node_iter.first) {
+    const VertexDescriptor& node_descriptor = *node_iter.first;
+    const VertexProperty& node = graph[node_descriptor];
+
+    const cv::Point& center = node.center;
+    const Eigen::Vector3d& location_3d = node.location_3d;
+    const int label = node.semantic_label;
+
+    if(location_3d != Eigen::Vector3d::Zero())
+    if (std::find(labels_to_render.begin(), labels_to_render.end(), label) !=
+        std::end(labels_to_render)) {
+      const std::string coord =
+          "coord: [" + std::to_string(location_3d[0]) + ", " + std::to_string
+              (location_3d[1]) + ", " + std::to_string(location_3d[2]) + "]";
+      cv::putText(*image, coord, center + cv::Point(0, 40),
+                  cv::FONT_HERSHEY_DUPLEX, GraphDrawer::label_scale_ * 0.5,
+                  GraphDrawer::label_color_, 1, CV_AA);
+    }
+  }
 }
 
 }

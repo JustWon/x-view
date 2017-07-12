@@ -71,8 +71,8 @@ Graph GraphMerger::getMergedGraph() {
     const VertexDescriptor source_in_query_graph = still_to_process_.front();
     // Remove the element from the queue.
     still_to_process_.pop();
-    std::cout << "Analyzing " << source_in_query_graph
-              << "-th vertex of query graph" << std::endl;
+    LOG(INFO) << "Analyzing " << source_in_query_graph
+              << "-th vertex of query graph.";
     addVertexToMergedGraph(source_in_query_graph);
   }
 
@@ -81,10 +81,12 @@ Graph GraphMerger::getMergedGraph() {
   const cv::Mat agree_similarity_image =
       SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_agree);
 
+#ifdef X_VIEW_DEBUG
   cv::imshow("Similarity", similarity_image);
   cv::imshow("Agreement", agree_similarity_image);
 
   cv::waitKey();
+#endif
 
   return merged_graph_;
 
@@ -111,13 +113,14 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       source_in_db_graph = query_in_db_[source_in_query_graph];
   // Get the associated VertexProperty.
   const VertexProperty source_v_p = merged_graph_[source_in_db_graph];
-  std::cout << "\tCorresponds to " << source_in_db_graph
+  LOG(INFO) << "\tCorresponds to " << source_in_db_graph
             << "-th vertex in g1:"
-            << source_v_p << std::endl;
+            << source_v_p << ".";
 
-  std::cout << "\tIterating over " << boost::degree(source_in_query_graph,
-                                                    query_graph_)
-            << " neighbors in g2" << std::endl;
+  LOG(INFO) << "\tIterating over "
+            << boost::degree(source_in_query_graph, query_graph_)
+            << " neighbors in g2.";
+
   // Get the list of direct neighbors of the source_in_query_graph.
   const auto neighbors_in_query_graph =
       boost::adjacent_vertices(source_in_query_graph, query_graph_);
@@ -127,13 +130,13 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
   for (auto neighbor_in_query_graph = neighbors_in_query_graph.first;
        neighbor_in_query_graph != neighbors_in_query_graph.second;
        ++neighbor_in_query_graph) {
-    std::cout << "\t\t" << num_neighbor++ << "-th neighbor: "
-              << query_graph_[*neighbor_in_query_graph];
+    LOG(INFO) << "\t\t" << num_neighbor++ << "-th neighbor: "
+              << query_graph_[*neighbor_in_query_graph] << ":";
     auto neighbor_pos =
         std::find(matched_vertices_.begin(), matched_vertices_.end(),
                   *neighbor_in_query_graph);
     if (neighbor_pos == matched_vertices_.end()) {
-      std::cout << " is unmatched" << std::endl;
+      LOG(INFO) << " is unmatched.";
       // The neighbor_in_query_graph was unmatched, so we add it to the
       // merged graph.
       VertexProperty neighbor_v_p = query_graph_[*neighbor_in_query_graph];
@@ -141,15 +144,15 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       neighbor_v_p.index = current_vertex_index_++;
       const VertexDescriptor neighbor_in_db_graph =
           boost::add_vertex(neighbor_v_p, merged_graph_);
-      std::cout << "\t\tWas added to merged graph: " << neighbor_v_p <<
-                " graph with VD: " << neighbor_in_db_graph << std::endl;
+     LOG(INFO) << "\t\tWas added to merged graph: " << neighbor_v_p <<
+                " graph with VD: " << neighbor_in_db_graph << ".";
       // Create an edge between source_in_g1 and the newly added vertex.
       auto edge_d = boost::add_edge(source_in_db_graph,
                                     neighbor_in_db_graph,
                                     {source_v_p.index, neighbor_v_p.index},
                                     merged_graph_);
-      std::cout << "\t\tadded corresponding edge "
-                << merged_graph_[edge_d.first] << std::endl;
+      LOG(INFO) << "\t\tadded corresponding edge "
+                << merged_graph_[edge_d.first] << ".";
 
       CHECK(edge_d.second == true)
       << "Added an unmatched vertex to the merged graph, but edge "
@@ -164,16 +167,15 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       const VertexDescriptor
           neighbor_in_db_graph = query_in_db_[*neighbor_in_query_graph];
       const VertexProperty neighbor_v_p = merged_graph_[neighbor_in_db_graph];
-      std::cout << " is already matched" << std::endl;
+      LOG(INFO) << " is already matched.";
       auto edge_d = boost::add_edge(source_in_db_graph, neighbor_in_db_graph,
                                     {source_v_p.index,
                                      neighbor_v_p.index}, merged_graph_);
       if (edge_d.second == false) {
-        std::cout << "\t\tAn edge was already present in the merged graph..."
-                  << std::endl;
+        LOG(INFO) << "\t\tAn edge was already present in the merged graph...";
       } else {
-        std::cout << "\t\tCreated a new edge in the merged graph even though "
-            "the two vertices where already merged." << std::endl;
+        LOG(INFO) << "\t\tCreated a new edge in the merged graph even though "
+            "the two vertices where already merged.";
       }
     }
   }

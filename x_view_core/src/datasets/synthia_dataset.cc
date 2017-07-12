@@ -33,6 +33,15 @@ SynthiaDataset::SynthiaDataset()
   << "specified in the header file:\n\tSYNTHIA_NUM_SEMANTIC_CLASSES = "
   << SYNTHIA_NUM_SEMANTIC_CLASSES << "\n\tdefined entities = "
   << semantic_entities_.size();
+
+  // Set the intrinsic parameters for the Synthia dataset.
+  camera_intrinsics_ = CameraIntrinsics(532.740352,640, 380, 0.8);
+
+  // Set up camera-to-image rotation.
+  // Flipped z-axis and flipped y-axis
+  camera_to_image_rotation_ << 1,  0,  0,
+                               0, -1,  0,
+                               0,  0, -1;
 }
 
 cv::Mat SynthiaDataset::convertSemanticImage(
