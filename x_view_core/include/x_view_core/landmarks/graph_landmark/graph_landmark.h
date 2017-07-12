@@ -23,13 +23,6 @@ class GraphLandmark : public AbstractSemanticLandmark {
     return std::make_shared<GraphLandmark>(GraphLandmark(image, pose));
   }
 
-  /// \brief A blob containing less pixel than 'MINIMUM_BLOB_SIZE' is ignored.
-  static int MINIMUM_BLOB_SIZE;
-
-  /// \brief Should the input image be preprocessed by a dilation and erosion
-  /// procedure or not?
-  static bool DILATE_AND_ERODE;
-
   /// \brief Returns a const reference to the blob datastructure.
   const ImageBlobs& getBlobs() const {
     return image_blobs_;

@@ -1,8 +1,11 @@
 #include <x_view_core/features/graph.h>
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/x_view_locator.h>
 
 #include <boost/graph/connected_components.hpp>
+#include <boost/graph/graphviz.hpp>
 #include <boost/graph/random.hpp>
+#include <boost/property_map/dynamic_property_map.hpp>
 
 namespace x_view {
 
@@ -21,8 +24,6 @@ bool areVerticesConnectedByIndex(const int v1, const int v2,
   }
   return edge_exists;
 }
-
-
 
 bool addEdgeBetweenVertices(const VertexDescriptor& v_1_d,
                             const VertexDescriptor& v_2_d, Graph* graph) {
@@ -58,8 +59,11 @@ bool removeEdgeBetweenVertices(const VertexDescriptor& v_1_d,
 }
 
 std::ostream& operator<<(std::ostream& out, const VertexProperty& v) {
+
+  const auto& dataset = Locator::getDataset();
+
   const static unsigned long max_label_length =
-      global_dataset_ptr->largestLabelSize() + 2;
+      dataset->largestLabelSize() + 2;
   out << "(v) " << v.index
       << ", label: " << std::right << std::setw(2) << std::setfill(' ')
       << v.semantic_label
@@ -90,6 +94,22 @@ std::ostream& operator<<(std::ostream& out, const Graph& graph) {
     out << graph[*edge_iterator.first] << "\n";
   }
   return out;
+}
+
+void dumpToDotFile(Graph& graph, const std::string& filename) {
+
+  // Open a stream
+  std::ofstream out(filename.c_str());
+  CHECK(out.is_open())  << "Impossible to open/create file " << filename << ". "
+  << "Make sure the destination folder exists.";
+
+  // Create a property map to be used during writing of the graph.
+  boost::dynamic_properties dp;
+  dp.property("label", boost::get(&VertexProperty::semantic_label, graph));
+  dp.property("node_id", boost::get(&VertexProperty::index, graph));
+
+  boost::write_graphviz_dp(out, graph, dp);
+
 }
 
 }

@@ -2,6 +2,7 @@
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/matchers/graph_matcher.h>
+#include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 
 #include <boost/graph/connected_components.hpp>
@@ -15,12 +16,13 @@ typedef std::shared_ptr<GraphMatcher> GraphMatcherPtr;
 
 void testChainGraph(const unsigned long seed) {
 
+  const auto& dataset = Locator::getDataset();
 
   // Define parameters for generating the graphs.
   GraphConstructionParams construction_params;
   construction_params.num_vertices = 50;
   construction_params.num_semantic_classes
-      = global_dataset_ptr->numSemanticClasses();
+      = dataset->numSemanticClasses();
   construction_params.seed = seed;
 
   // Define parameters for modifying the graphs.
@@ -38,44 +40,82 @@ void testChainGraph(const unsigned long seed) {
                                                       modifier_params,
                                                       extraction_radius);
 
+  std::string base_dot_file_name = getOutputDirectory() + "/chain_base.dot";
+  std::string sub_dot_file_name = getOutputDirectory() + "/chain_sub.dot";
+  dumpToDotFile(graph_pair_chain.base_graph, base_dot_file_name);
+  dumpToDotFile(graph_pair_chain.sub_graph, sub_dot_file_name);
+
   // Define parameters for random walk extraction.
   RandomWalkerParams random_walker_params;
   random_walker_params.walk_length = 3;
   random_walker_params.num_walks = 200;
   random_walker_params.random_sampling_type =
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
+      RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
 
   GraphMatcherPtr graph_matcher_ptr =
       CAST(GraphMatcher::create(random_walker_params,
-                                VertexSimilarity::SCORE_TYPE::HARD),
+                                VertexSimilarity::SCORE_TYPE::WEIGHTED),
            GraphMatcher);
 
   CHECK_NOTNULL(graph_matcher_ptr.get());
 
   // Add the base graph to the matcher.
-  auto ignore_result = graph_matcher_ptr->match(graph_pair_chain.base_graph);
+  graph_matcher_ptr->addDescriptor(graph_pair_chain.base_graph);
 
   // Match the subgraph to the entire graph.
   auto matching_result = graph_matcher_ptr->match(graph_pair_chain.sub_graph);
 
-  // Retrieve the similarity matrix.
-  Eigen::MatrixXf chain_similarity =
-      CAST(matching_result,
-           GraphMatcher::GraphMatchingResult)->getSimilarityMatrix();
-
-  const float accuracy = similarityAccuracy(graph_pair_chain, chain_similarity);
+  const float accuracy = similarityAccuracy(graph_pair_chain, matching_result);
   std::cout << "Chain matching has accuracy of " << accuracy << std::endl;
+
+#ifdef X_VIEW_DEBUG
+  // Compute similarity matrices.
+  const GraphMatcher::SimilarityMatrixType& similarity_matrix =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->getSimilarityMatrix();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_colwise =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->computeMaxSimilarityColwise();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_rowwise =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->computeMaxSimilarityRowwise();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
+      max_similarity_colwise.cwiseProduct(max_similarity_rowwise);
+
+  // Display the computed similarities.
+  const cv::Mat similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(similarity_matrix);
+  cv::imshow("Vertex similarity", similarity_image);
+
+  const cv::Mat max_col_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_colwise);
+  cv::imshow("Max col similarity", max_col_similarity_image);
+
+  const cv::Mat max_row_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_rowwise);
+  cv::imshow("Max row similarity", max_row_similarity_image);
+
+  const cv::Mat max_agree_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_agree);
+  cv::imshow("Max agree similarity", max_agree_similarity_image);
+
+  cv::waitKey();
+#endif
+
 }
 
 void testRandomGraph(const unsigned long seed) {
 
+  const auto& dataset = Locator::getDataset();
 
   // Define parameter for generating the graphs.
   GraphConstructionParams construction_params;
   construction_params.num_vertices = 500;
   construction_params.edge_probability = 0.001;
-  construction_params.num_semantic_classes
-      = global_dataset_ptr->numSemanticClasses();
+  construction_params.num_semantic_classes = dataset->numSemanticClasses();
   construction_params.seed = seed;
 
   // Define parameters for modifying the graphs.
@@ -92,38 +132,72 @@ void testRandomGraph(const unsigned long seed) {
                                                         modifier_params,
                                                         extraction_radius);
 
+  std::string base_dot_file_name = getOutputDirectory() + "random_base.dot";
+  std::string sub_dot_file_name = getOutputDirectory() + "random_sub.dot";
+  dumpToDotFile(graph_pair_random.base_graph, base_dot_file_name);
+  dumpToDotFile(graph_pair_random.sub_graph, sub_dot_file_name);
+
   // Define parameters for random walk extraction.
   RandomWalkerParams random_walker_params;
   random_walker_params.walk_length = 3;
   random_walker_params.num_walks = 200;
   random_walker_params.random_sampling_type =
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME;
+      RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
 
   GraphMatcherPtr graph_matcher_ptr =
       CAST(GraphMatcher::create(random_walker_params,
-                                VertexSimilarity::SCORE_TYPE::HARD),
+                                VertexSimilarity::SCORE_TYPE::WEIGHTED),
            GraphMatcher);
 
   CHECK_NOTNULL(graph_matcher_ptr.get());
 
   // Add the base graph to the matcher.
-  auto ignore_result =
-      graph_matcher_ptr->match(graph_pair_random.base_graph);
+  graph_matcher_ptr->addDescriptor(graph_pair_random.base_graph);
 
   // Match the subgraph to the entire graph.
-  auto matching_result =
-      graph_matcher_ptr->match(graph_pair_random.sub_graph);
-
-  // Retrieve the similarity matrix.
-  Eigen::MatrixXf random_similarity =
-      CAST(matching_result,
-           GraphMatcher::GraphMatchingResult)->getSimilarityMatrix();
+  auto matching_result = graph_matcher_ptr->match(graph_pair_random.sub_graph);
 
   const float accuracy =
-      similarityAccuracy(graph_pair_random, random_similarity);
+      similarityAccuracy(graph_pair_random, matching_result);
 
   std::cout << "Random matching has accuracy of " << accuracy << std::endl;
 
+#ifdef X_VIEW_DEBUG
+  // Compute similarity matrices.
+  const GraphMatcher::SimilarityMatrixType& similarity_matrix =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->getSimilarityMatrix();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_colwise =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->computeMaxSimilarityColwise();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_rowwise =
+      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
+          (matching_result)->computeMaxSimilarityRowwise();
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
+      max_similarity_colwise.cwiseProduct(max_similarity_rowwise);
+
+  // Display the computed similarities.
+  const cv::Mat similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(similarity_matrix);
+  cv::imshow("Vertex similarity", similarity_image);
+
+  const cv::Mat max_col_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_colwise);
+  cv::imshow("Max col similarity", max_col_similarity_image);
+
+  const cv::Mat max_row_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_rowwise);
+  cv::imshow("Max row similarity", max_row_similarity_image);
+
+  const cv::Mat max_agree_similarity_image =
+      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_agree);
+  cv::imshow("Max agree similarity", max_agree_similarity_image);
+
+  cv::waitKey();
+#endif
 }
 
 GraphPair generateChainGraphPair(const GraphConstructionParams& construction_params,
@@ -143,8 +217,21 @@ GraphPair generateChainGraphPair(const GraphConstructionParams& construction_par
       extractSubgraphAroundVertex(graph_pair.base_graph, source_vertex,
                                   extraction_radius);
 
+  // Need to set the index at which the newly inserted vertices start to
+  // avoid false positive matches between newly inserted vertices and
+  // existing ones: newly existing vertices have indices starting at the
+  // maximal value of the base graph indices. In this way there are no two
+  // vertices with the same index.
+  int max_index = std::numeric_limits<int>::min();
+  const auto vertices = boost::vertices(graph_pair.base_graph);
+  for(auto iter = vertices.first; iter != vertices.second; ++iter) {
+    max_index = std::max(max_index, graph_pair.base_graph[*iter].index);
+  }
+  GraphModifierParams updated_modifier_params = modifier_params;
+  updated_modifier_params.start_vertex_index = max_index + 1;
   // Effectively add and remove vertices and edges from the graph.
-  modifyGraph(&graph_pair.sub_graph, modifier_params, rng);
+  modifyGraph(&graph_pair.sub_graph, updated_modifier_params, rng);
+
 
   LOG(INFO) << "Generated chain graph with "
             << boost::num_vertices(graph_pair.base_graph)
@@ -170,8 +257,22 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
   graph_pair.sub_graph =
       extractSubgraphAroundVertex(graph_pair.base_graph, source_vertex,
                                   extraction_radius);
+
+  // Need to set the index at which the newly inserted vertices start to
+  // avoid false positive matches between newly inserted vertices and
+  // existing ones: newly existing vertices have indices starting at the
+  // maximal value of the base graph indices. In this way there are no two
+  // vertices with the same index.
+  int max_index = std::numeric_limits<int>::min();
+  const auto vertices = boost::vertices(graph_pair.base_graph);
+  for(auto iter = vertices.first; iter != vertices.second; ++iter) {
+    max_index = std::max(max_index, graph_pair.base_graph[*iter].index);
+  }
+  GraphModifierParams updated_modifier_params = modifier_params;
+  updated_modifier_params.start_vertex_index = max_index + 1;
+
   // Effectively add and remove vertices and edges from the graph.
-  modifyGraph(&graph_pair.sub_graph, modifier_params, rng);
+  modifyGraph(&graph_pair.sub_graph, updated_modifier_params, rng);
 
   LOG(INFO) << "Generated random graph with "
             << boost::num_vertices(graph_pair.base_graph)
@@ -182,33 +283,28 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
 }
 
 float similarityAccuracy(const GraphPair& graph_pair,
-                         const Eigen::MatrixXf& similarity_matrix) {
+                         const AbstractMatcher::MatchingResultPtr& matching_result_ptr) {
   const Graph& base_graph = graph_pair.base_graph;
   const Graph& sub_graph = graph_pair.sub_graph;
 
-  // The generated images should be of the exact same size as the similarity
-  // matrix, thus we don't resize them.
-  const bool auto_size = false;
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_colwise =
+      CAST(matching_result_ptr, GraphMatcher::GraphMatchingResult)
+          ->computeMaxSimilarityColwise();
 
-  const cv::Mat max_col_similarity_image =
-      SimilarityPlotter::getMaxColwiseImageFromSimilarityMatrix(
-          similarity_matrix, auto_size);
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_rowwise =
+      CAST(matching_result_ptr, GraphMatcher::GraphMatchingResult)
+          ->computeMaxSimilarityRowwise();
 
-  const cv::Mat max_row_similarity_image =
-      SimilarityPlotter::getMaxRowwiseImageFromSimilarityMatrix(
-          similarity_matrix, auto_size);
-
-  cv::Mat max_agree_similarity_image;
-  cv::bitwise_and(max_col_similarity_image, max_row_similarity_image,
-                  max_agree_similarity_image);
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
+      max_similarity_colwise.cwiseProduct(max_similarity_rowwise);
 
   int correct_matches = 0;
   int num_proposed_matches = 0;
   // Loop over agree similarity matrix and check if the agreed match is a true
   // match.
-  for (int i = 0; i < max_agree_similarity_image.rows; ++i) {
-    for (int j = 0; j < max_agree_similarity_image.cols; ++j) {
-      if (max_agree_similarity_image.at<uchar>(cv::Point(j, i)) != 0) {
+  for (int i = 0; i < max_similarity_agree.rows(); ++i) {
+    for (int j = 0; j < max_similarity_agree.cols(); ++j) {
+      if (max_similarity_agree(i, j) == true) {
         // Retrieve the indices of the i-th and j-th vertices of the
         // base_graph and sub_graph respectively.
         const VertexProperty v_i_base = base_graph[i];
@@ -224,42 +320,6 @@ float similarityAccuracy(const GraphPair& graph_pair,
   }
 
   return static_cast<float>(correct_matches) / num_proposed_matches;
-
-}
-
-void modifyGraph(Graph* graph, const GraphModifierParams& params,
-                 std::mt19937& rng) {
-  CHECK_NOTNULL(graph);
-
-  std::vector<int> component(boost::num_vertices(*graph));
-  int num_connected_components =
-      boost::connected_components(*graph, &component[0]);
-
-  CHECK(num_connected_components == 1)
-  << "Input graph to " << __FUNCTION__ << " has " << num_connected_components
-  << " connected components. Function " << __FUNCTION__
-  << " only works with single components.";
-
-  for (int i = 0; i < params.num_vertices_to_add; ++i)
-    addRandomVertexToGraph(graph, rng, params.num_links_for_new_vertices);
-
-  for (int i = 0; i < params.num_edges_to_add; ++i)
-    addRandomEdgeToGraph(graph, rng);
-
-  for (int i = 0; i < params.num_vertices_to_remove; ++i)
-    removeRandomVertexFromGraph(graph, rng);
-
-  for (int i = 0; i < params.num_edges_to_remove; ++i) {
-    removeRandomEdgeFromGraph(graph, rng);
-  }
-
-  component.resize(boost::num_vertices(*graph));
-  num_connected_components =
-      boost::connected_components(*graph, &component[0]);
-
-  CHECK(num_connected_components == 1)
-  << "After removing and adding vertices/edges to the graph, there are "
-  << "disconnected  components.";
 
 }
 

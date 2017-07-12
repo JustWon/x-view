@@ -3,12 +3,15 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/features/vector_descriptor.h>
 #include <x_view_core/x_view_tools.h>
+#include <x_view_core/x_view_locator.h>
 
 namespace x_view {
 HistogramLandmark::HistogramLandmark(const cv::Mat& image, const SE3& pose)
     : AbstractSemanticLandmark(image, pose) {
 
-  const int dataset_size = global_dataset_ptr->numSemanticClasses();
+  const auto& dataset = Locator::getDataset();
+
+  const int dataset_size = dataset->numSemanticClasses();
   std::vector<int> histogram_count(dataset_size, 0);
 
   // we are only interested in the labels of the image, contained in the

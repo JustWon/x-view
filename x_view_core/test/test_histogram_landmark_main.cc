@@ -11,6 +11,7 @@
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/histogram_landmark.h>
+#include <x_view_core/x_view_locator.h>
 
 using namespace x_view;
 using namespace x_view_test;
@@ -25,9 +26,9 @@ TEST(XViewSlamTestSuite, test_histogram_landmark) {
 
   // Initialize a fake dataset having num_semantic_classes classes
   const int num_semantic_classes = 2;
-  global_dataset_ptr =
-      std::make_shared<const AbstractDataset>
-          (AbstractDataset(num_semantic_classes));
+  std::unique_ptr<AbstractDataset> dataset(
+      new AbstractDataset(num_semantic_classes));
+  Locator::registerDataset(std::move(dataset));
 
   // create various images
   const int ROWS = 50;

@@ -116,11 +116,9 @@ class AbstractDataset {
  */
 std::ostream& operator<<(std::ostream& out, const AbstractDataset& dataset);
 
-/// \brief Overloaded operator to print object pointed by ConstDatasetPtr.
-std::ostream& operator<<(std::ostream& out, const ConstDatasetPtr& ptr);
-
-/// \brief Dataset accessible from everywhere in the x_view project.
-extern ConstDatasetPtr global_dataset_ptr;
+/// \brief Overloaded operator to print using pointer.
+std::ostream& operator<<(std::ostream& out,
+                         const std::unique_ptr<AbstractDataset>& ptr);
 
 }
 

@@ -1,5 +1,6 @@
 #include <x_view_core/x_view_tools.h>
 
+#include <x_view_core/x_view_locator.h>
 #include <x_view_core/datasets/abstract_dataset.h>
 
 #include <boost/graph/connected_components.hpp>
@@ -37,6 +38,11 @@ const std::string& getRootDirectory() {
   return x_view_root;
 }
 
+const std::string& getOutputDirectory() {
+  static std::string x_view_out = std::string(X_VIEW_XSTR(X_VIEW_OUT_DIR));
+  return x_view_out;
+}
+
 const std::string& getLogDirectory() {
   static std::string x_view_log = std::string(X_VIEW_XSTR(X_VIEW_LOG_DIR));
   return x_view_log;
@@ -72,7 +78,6 @@ void setupLogging(char** argv) {
   google::InitGoogleLogging(argv[0]);
 
   std::cout << "X-View is logging to <" << log_dir_name << ">" << std::endl;
-
 }
 
 void finalizeLogging() {
@@ -85,15 +90,20 @@ void finalizeLogging() {
 // **************************** Graph modifiers ******************************//
 
 void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
-                            const int link_to_n_vertices) {
+                            const int index,  const int link_to_n_vertices) {
   CHECK_NOTNULL(graph);
+
+  const auto& dataset = Locator::getDataset();
 
   // Create the new vertex.
   VertexProperty new_vertex;
-  new_vertex.index = static_cast<int>(boost::num_vertices(*graph));
+  if(index == -1)
+    new_vertex.index = static_cast<int>(boost::num_vertices(*graph));
+  else
+    new_vertex.index = index;
   // Random semantic label.
   new_vertex.semantic_label =
-      static_cast<int>(rng() % global_dataset_ptr->numSemanticClasses());
+      static_cast<int>(rng() % dataset->numSemanticClasses());
   new_vertex.semantic_entity_name =
       "Random vertex " + std::to_string(new_vertex.index);
 

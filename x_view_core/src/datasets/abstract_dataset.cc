@@ -101,8 +101,9 @@ std::ostream& operator<<(std::ostream& out, const AbstractDataset& dataset) {
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const ConstDatasetPtr& ptr) {
-  return out << *ptr;
+std::ostream& operator<<(std::ostream& out,
+                         const std::unique_ptr<AbstractDataset>& ptr) {
+  return out << *(ptr.get());
 }
 
 }

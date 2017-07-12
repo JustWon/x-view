@@ -5,6 +5,7 @@
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark.h>
+#include <x_view_core/x_view_locator.h>
 
 #include <chrono>
 
@@ -19,9 +20,9 @@ TEST(XViewSlamTestSuite, test_random_walk) {
   LOG(INFO) << "Testing random walks with " << num_semantic_classes
             << "classes.";
 
-  global_dataset_ptr =
-      std::make_shared<AbstractDataset>(AbstractDataset(num_semantic_classes));
-  CHECK_NOTNULL(global_dataset_ptr.get());
+  std::unique_ptr<AbstractDataset> dataset(
+      new AbstractDataset(num_semantic_classes));
+  Locator::registerDataset(std::move(dataset));
 
   const unsigned long seed = 0;
   const int walk_length = 3;
@@ -37,9 +38,9 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       ,{300, 0.05}
 #endif
   };
-  std::vector<RandomWalkerParams::RANDOM_SAMPLING_TYPE> sampling_types{
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::UNIFORM,
-      RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME
+  std::vector<RandomWalkerParams::SAMPLING_TYPE> sampling_types{
+      RandomWalkerParams::SAMPLING_TYPE::UNIFORM,
+      RandomWalkerParams::SAMPLING_TYPE::AVOIDING
   };
 
   int num_vertices;
@@ -83,7 +84,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       params = random_walker.params();
       testRandomWalkSequence(random_walker, graph, params);
       if (params.random_sampling_type ==
-          RandomWalkerParams::RANDOM_SAMPLING_TYPE::AVOID_SAME)
+          RandomWalkerParams::SAMPLING_TYPE::AVOIDING)
         testAvoidingStrategy(random_walker, graph, params);
 
     }

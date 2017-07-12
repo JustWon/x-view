@@ -30,7 +30,7 @@ struct BlobExtractorParams {
    * number of pixels in the image.
    */
   enum class MIN_BLOB_SIZE_TYPE {
-    RELATIVE_TO_IMAGE_SIZE,
+    RELATIVE,
     ABSOLUTE
   };
 
@@ -45,15 +45,14 @@ struct BlobExtractorParams {
      * pixels smaller than 1% of of the total number of pixels in the image.
      */
     BlobSizeFiltering()
-        : type(MIN_BLOB_SIZE_TYPE::RELATIVE_TO_IMAGE_SIZE),
-          fraction_min_pixels(0.01) {}
+        : type(MIN_BLOB_SIZE_TYPE::RELATIVE),
+          fraction_min_pixels(0.01f) {}
 
     MIN_BLOB_SIZE_TYPE type;
-    /// \brief If type is RELATIVE_TO_IMAGE_SIZE, then the
-    /// fraction_min_pixels part of the union is active, otherwise if
-    /// type is ABSOLUTE, the num_min_pixels is active.
-    /// The first represents the fraction of pixels relative to the total
-    /// number of pixels in the image, the latter represents the minimum
+    /// \brief If type is RELATIVE, then the fraction_min_pixels part of the
+    /// union is active, otherwise if type is ABSOLUTE, the num_min_pixels is
+    /// active. The first represents the fraction of pixels relative to the
+    /// total number of pixels in the image, the latter represents the minimum
     /// number of pixels a blob must have in order to be extracted.
     union {
       float fraction_min_pixels;

@@ -2,8 +2,38 @@
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
+#include <x_view_core/x_view_locator.h>
 
 namespace x_view {
+
+cv::Scalar GraphDrawer::vertex_color_ = CV_RGB(141, 28,216);
+int GraphDrawer::vertex_radius_ = 4;
+
+cv::Scalar GraphDrawer::edge_color_ = CV_RGB(255, 189, 58);
+int GraphDrawer::edge_thickness_ = 2;
+
+cv::Scalar GraphDrawer::ellipse_color_static_ = CV_RGB(0, 40, 255);
+cv::Scalar GraphDrawer::ellipse_color_dynamic_ = CV_RGB(255, 60, 10);
+int GraphDrawer::ellipse_thickness_ = 2;
+
+cv::Scalar GraphDrawer::label_color_ = CV_RGB(255, 255, 255);
+float GraphDrawer::label_scale_ = 0.65f;
+
+
+void GraphDrawer::resetProperties() {
+  GraphDrawer::vertex_color_ = CV_RGB(141, 28,216);
+  GraphDrawer::vertex_radius_ = 4;
+
+  GraphDrawer::edge_color_ = CV_RGB(255, 189, 58);
+  GraphDrawer::edge_thickness_ = 2;
+
+ GraphDrawer::ellipse_color_static_ = CV_RGB(0, 40, 255);
+  GraphDrawer::ellipse_color_dynamic_ = CV_RGB(255, 60, 10);
+  GraphDrawer::ellipse_thickness_ = 2;
+
+  GraphDrawer::label_color_ = CV_RGB(255, 255, 255);
+  GraphDrawer::label_scale_ = 0.65f;
+}
 
 void GraphDrawer::printBlobs(const ImageBlobs& blobs) {
   for (int c = 0; c < blobs.size(); ++c) {
@@ -33,8 +63,10 @@ cv::Mat GraphDrawer::createImageFromBlobs(const ImageBlobs& blobs,
                                           const cv::Size& size) {
   cv::Mat image(size.height, size.width, CV_8UC3, cv::Scalar::all(0));
 
+  const auto& dataset = Locator::getDataset();
+
   const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+      dataset->getLabelsToRender();
 
   // Draw the blobs onto the image
   for (int c = 0; c < blobs.size(); ++c) {
@@ -68,10 +100,11 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
 
   CHECK_NOTNULL(image);
 
-  const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+  const auto& dataset = Locator::getDataset();
 
-  const cv::Scalar font_color = cv::Scalar(255, 255, 255);
+  const std::vector<int>& labels_to_render =
+      dataset->getLabelsToRender();
+
   for (int c = 0; c < blobs.size(); ++c) {
     // only add the blob if the label has not to be ignored, thus if it can
     // not be found in the passed parameter
@@ -80,11 +113,12 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
       for (const Blob& blob : blobs[c]) {
         const std::string label = std::to_string(blob.semantic_label);
         const std::string label_descr =
-            global_dataset_ptr->label(blob.semantic_label);
+            dataset->label(blob.semantic_label);
 
         const std::string text = label + ") " + label_descr;
         cv::putText(*image, text, blob.center, cv::FONT_HERSHEY_DUPLEX,
-                    0.65, font_color, 1, CV_AA);
+                    GraphDrawer::label_scale_, GraphDrawer::label_color_,
+                    1, CV_AA);
         // if the blob has an instance id associated to it, render it on a
         // new line.
         // new line.
@@ -92,7 +126,9 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
           const std::string instance =
               "id: " + std::to_string(blob.instance);
           cv::putText(*image, instance, blob.center + cv::Point(0, 20),
-                      cv::FONT_HERSHEY_DUPLEX, 0.65, font_color, 1, CV_AA);
+                      cv::FONT_HERSHEY_DUPLEX, GraphDrawer::label_scale_,
+                      GraphDrawer::label_color_, 1, CV_AA);
+
         }
       }
   }
@@ -102,8 +138,10 @@ void GraphDrawer::addEllipsesToImage(const ImageBlobs& blobs, cv::Mat* image) {
 
   CHECK_NOTNULL(image);
 
+  const auto& dataset = Locator::getDataset();
+
   const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+      dataset->getLabelsToRender();
 
   // Draw the blobs onto the image
   for (int c = 0; c < blobs.size(); ++c) {
@@ -113,13 +151,14 @@ void GraphDrawer::addEllipsesToImage(const ImageBlobs& blobs, cv::Mat* image) {
         std::end(labels_to_render))
       for (const Blob& blob : blobs[c]) {
         cv::Scalar ellipse_color;
-        if (global_dataset_ptr->semanticEntities()[c].is_static)
-          ellipse_color = cv::Scalar(255, 40, 0); // bluish
+        if (dataset->semanticEntities()[c].is_static)
+          ellipse_color = GraphDrawer::ellipse_color_static_;
         else
-          ellipse_color = cv::Scalar(10, 60, 255); // reddish
+          ellipse_color = GraphDrawer::ellipse_color_dynamic_;
 
-        int ellipse_thickness = 2;
-        cv::ellipse(*image, blob.ellipse, ellipse_color, ellipse_thickness);
+        cv::ellipse(*image, blob.ellipse, ellipse_color,
+                    GraphDrawer::ellipse_thickness_);
+
       }
   }
 }
@@ -128,11 +167,10 @@ void GraphDrawer::addGraphNodesToImage(const Graph& graph, cv::Mat* image) {
 
   CHECK_NOTNULL(image);
 
-  const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+  const auto& dataset = Locator::getDataset();
 
-  const int node_radius = 4;
-  const cv::Scalar node_color(216, 28, 141);
+  const std::vector<int>& labels_to_render =
+      dataset->getLabelsToRender();
 
   auto node_iter = boost::vertices(graph);
   for (; node_iter.first != node_iter.second; ++node_iter.first) {
@@ -144,7 +182,8 @@ void GraphDrawer::addGraphNodesToImage(const Graph& graph, cv::Mat* image) {
 
     if (std::find(labels_to_render.begin(), labels_to_render.end(), label) !=
         std::end(labels_to_render)) {
-      cv::circle(*image, center, node_radius, node_color, CV_FILLED);
+      cv::circle(*image, center, GraphDrawer::vertex_radius_,
+                 GraphDrawer::vertex_color_, CV_FILLED);
     }
   }
 }
@@ -153,11 +192,10 @@ void GraphDrawer::addGraphEdgesToImage(const Graph& graph, cv::Mat* image) {
 
   CHECK_NOTNULL(image);
 
-  const std::vector<int>& labels_to_render =
-      global_dataset_ptr->getLabelsToRender();
+  const auto& dataset = Locator::getDataset();
 
-  const int edge_thickness = 2;
-  const cv::Scalar edge_color(58, 189, 255);
+  const std::vector<int>& labels_to_render =
+      dataset->getLabelsToRender();
 
   // second, add the edges between the nodes of the graph
   auto edge_iter = boost::edges(graph);
@@ -182,7 +220,8 @@ void GraphDrawer::addGraphEdgesToImage(const Graph& graph, cv::Mat* image) {
       const cv::Point& from_center = v_from.center;
       const cv::Point& to_center = v_to.center;
 
-      cv::line(*image, from_center, to_center, edge_color, edge_thickness);
+      cv::line(*image, from_center, to_center, GraphDrawer::edge_color_,
+               GraphDrawer::edge_thickness_);
     }
   }
 

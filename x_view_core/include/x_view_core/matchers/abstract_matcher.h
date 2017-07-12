@@ -55,6 +55,16 @@ class AbstractMatcher {
   virtual MatchingResultPtr match(const SemanticLandmarkPtr& query_landmark)
   = 0;
 
+  /**
+   * \brief Since while processing the first frame in the program we don't have
+   * to match the corresponding descriptor to anything, we simply want to add
+   * the associated descriptor to the internal representation of the matcher.
+   * \param descriptor Pointer pointing to descriptor to add to the matcher.
+   * \note This function should conceptually be only called once per
+   * AbstractMatcher instance.
+   */
+  virtual void addDescriptor(const ConstDescriptorPtr& descriptor) {}
+
 };
 
 }

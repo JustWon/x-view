@@ -3,7 +3,7 @@
 #include "test_common.h"
 
 #include <x_view_core/features/graph.h>
-#include <x_view_core/matchers/graph_matcher/random_walker.h>
+#include <x_view_core/matchers/graph_matcher.h>
 
 #include <Eigen/Core>
 
@@ -25,22 +25,6 @@ void testChainGraph(const unsigned long seed);
  */
 void testRandomGraph(const unsigned long seed);
 
-/**
- * \brief Parameters used to modify the topology of a graph.
- */
-struct GraphModifierParams {
-  /// \brief Number of new vertices to add to the graph.
-  int num_vertices_to_add;
-  /// \brief Number of vertices to remove from the graph.
-  int num_vertices_to_remove;
-  /// \brief Number of new edges to add to the graph.
-  int num_edges_to_add;
-  /// \brief Number of edges to remove from the graph.
-  int num_edges_to_remove;
-  /// \brief Number of edges to create between each new vertex and the
-  /// existing ones.
-  int num_links_for_new_vertices = 2;
-};
 
 /**
  * \brief Small container used to combine a base graph with a new subgraph.
@@ -76,19 +60,19 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
                                   const GraphModifierParams& modifier_params,
                                   const int extraction_radius);
 
-float similarityAccuracy(const GraphPair& graph_pair,
-                         const Eigen::MatrixXf& similarity_matrix);
-
 /**
- * \brief Modifies the graph pointed by the passed argument following the
- * parameters contained in the second argument.
- * \param graph Pointer pointing to the graph to be modified.
- * \param params Parameters used for modifying the graph.
- * \param rng Random number generator used to randomly create/remove
- * vertices/edges.
+ * \brief Computes the accuracy between the matched vertices contained in the
+ * matching_result_ptr passed as argument related to the graphs contained in
+ * the graph_pair parameter.
+ * \param graph_pair Struct containing the two graphs being matched.
+ * \param matching_result_ptr Pointer pointing to the GraphMatchingResult
+ * containing the similarity matrix computed between the graphs contained in
+ * the first parameter.
+ * \return Accuracy of the matching.
  */
-void modifyGraph(Graph* graph, const GraphModifierParams& params,
-                 std::mt19937& rng);
+float similarityAccuracy(const GraphPair& graph_pair,
+                         const AbstractMatcher::MatchingResultPtr&
+                         matching_result_ptr);
 
 }
 

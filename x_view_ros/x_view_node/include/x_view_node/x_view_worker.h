@@ -3,6 +3,7 @@
 
 #include <x_view_core/x_view.h>
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_parser/parser.h>
 
 //#include <gtsam/nonlinear/NonlinearFactorGraph.h>
 //#include <kindr/minimal/quat-transformation.h>
@@ -16,14 +17,16 @@ namespace x_view_ros {
 
 class XViewWorker {
 
+  /// \brief Parameters needed by XViewWorker.
   struct XViewWorkerParams {
-    std::string dataset_name;
+
+    /// \brief Topic containing semantic images.
     std::string semantics_image_topic;
 
-    std::string world_frame;
     std::string sensor_frame;
-    x_view::XViewParams x_view_params;
-  }; // struct XViewWorkerParams
+    std::string world_frame;
+
+  };
 
  public:
   explicit XViewWorker(ros::NodeHandle& n);
@@ -36,14 +39,18 @@ class XViewWorker {
   void semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg);
 
  private:
-  /// \brief Get ROS parameters.
-  void getParameters();
 
   void tfTransformToSE3(const tf::StampedTransform& tf_transform,
                         x_view::SE3* pose);
 
+  void parseParameters() const;
+  void getXViewWorkerParameters();
+
   // Node handle.
   ros::NodeHandle& nh_;
+
+  /// \brief Parameters used by XViewWorker.
+  XViewWorkerParams params_;
 
   // Subscribers.
   ros::Subscriber semantics_image_sub_;
@@ -51,14 +58,11 @@ class XViewWorker {
   // Transform communication.
   tf::TransformListener tf_listener_;
 
-  // Parameters.
-  XViewWorkerParams params_;
-
   // X_View core.
-  x_view::XView x_view_;
+  std::unique_ptr<x_view::XView> x_view_;
 
-  // Dataset handler
-  std::shared_ptr<x_view::AbstractDataset> dataset_;
+  // Parser object
+  Parser parser_;
 
 }; // XViewNode
 

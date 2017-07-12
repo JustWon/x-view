@@ -2,6 +2,7 @@
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
+#include <x_view_core/x_view_locator.h>
 
 #include <boost/graph/connected_components.hpp>
 
@@ -103,8 +104,10 @@ void GraphBuilder::addBlobsToGraph(const ImageBlobs& blobs,
 
 VertexProperty GraphBuilder::blobToGraphVertex(const int index,
                                                const Blob& blob) {
+  const auto& dataset = Locator::getDataset();
+
   const int semantic_label = blob.semantic_label;
-  const std::string label = global_dataset_ptr->label(semantic_label);
+  const std::string label = dataset->label(semantic_label);
   const int size = blob.num_pixels;
   const cv::Point center = blob.center;
   return VertexProperty{index, semantic_label, label, size, center};

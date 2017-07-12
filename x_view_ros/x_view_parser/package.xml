@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>x_view_parser</name>
+  <version>0.0.1</version>
+  <description>x_view_parser</description>
+
+  <maintainer email="deldonc@student.ethz.ch">Carlo Del Don</maintainer>
+  
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <depend>glog_catkin</depend>
+  <depend>message_generation</depend>
+  <depend>message_runtime</depend>
+  <depend>roscpp</depend>
+  <depend>tf</depend>
+  <depend>x_view_core</depend>
+  
+</package>
+

@@ -1,8 +1,8 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
-
+#include <x_view_parser/parser.h>
 #include <x_view_core/datasets/synthia_dataset.h>
+#include <x_view_core/x_view_locator.h>
 
-#include <glog/logging.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <highgui.h>
 
@@ -37,12 +37,33 @@ cv::Mat XViewBagReader::RosbagTopicView::getSemanticImageAtFrame(const int frame
 }
 
 XViewBagReader::XViewBagReader(ros::NodeHandle& n)
-    : nh_(n) {
-  getParameters();
+    : nh_(n), parser_(nh_) {
+
+  // Load parameters used by XViewBagReader.
+  getXViewBagReaderParameters();
+
+  // Parse all parameters used by XView.
+  std::unique_ptr<x_view::Parameters> parameters = parser_.parseParameters();
+
+  // Register the parameters into the locator.
+  x_view::Locator::registerParameters(std::move(parameters));
+
+  // Set the usage of the specified dataset.
+  const auto& params = x_view::Locator::getParameters();
+  const auto& dataset_params = params->getChildPropertyList("dataset");
+  const std::string dataset_name = dataset_params->getString("name");
+  if (dataset_name == "SYNTHIA") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::SynthiaDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else
+    CHECK(false) << "Dataset '" << dataset_name
+                 << "' is not supported" << std::endl;
 
   loadBagFile();
 
-  x_view_ = x_view::XView(params_.x_view_params);
+  // Create x_view only now because it has access to the parser parameters.
+  x_view_ = std::unique_ptr<x_view::XView>(new x_view::XView());
 }
 
 void XViewBagReader::loadBagFile() {
@@ -73,7 +94,8 @@ void XViewBagReader::iterateBagForwards(const std::string& image_topic) {
   auto const& view = topic_views_[image_topic];
   for (int i = 0; i < view.size_; ++i) {
     LOG(INFO) << "Processing semantic image at index " << i;
-    x_view_.processSemanticImage(view.getSemanticImageAtFrame(i),
+    parseParameters();
+    x_view_->processSemanticImage(view.getSemanticImageAtFrame(i),
                                  x_view::SE3());
   }
 }
@@ -81,7 +103,8 @@ void XViewBagReader::iterateBagBackwards(const std::string& image_topic) {
   auto const& view = topic_views_[image_topic];
   for (int i = view.size_ - 1; i >= 0; --i) {
     LOG(INFO) << "Processing semantic image at index " << i;
-    x_view_.processSemanticImage(view.getSemanticImageAtFrame(i),
+    parseParameters();
+    x_view_->processSemanticImage(view.getSemanticImageAtFrame(i),
                                  x_view::SE3());
   }
 }
@@ -91,41 +114,37 @@ void XViewBagReader::iterateBagFromTo(const std::string& image_topic,
   const int step = (from <= to ? +1 : -1);
   for (int i = from; step * i < step * to; i += step) {
     std::cout << "Processing semantic image at index " << i << std::endl;
-    x_view_.processSemanticImage(view.getSemanticImageAtFrame(i),
+    parseParameters();
+    x_view_->processSemanticImage(view.getSemanticImageAtFrame(i),
                                  x_view::SE3());
   }
 }
 
-void XViewBagReader::getParameters() {
+void XViewBagReader::parseParameters() const {
+  // Parse all parameters.
+  std::unique_ptr<x_view::Parameters> parameters = parser_.parseParameters();
 
-  // XView parameters.
-  if (!nh_.getParam("/XView/landmarks/type", params_
-      .x_view_params.semantic_landmark_type_)) {
-    LOG(ERROR) << "Failed to get param '/XView/landmarks/type'\nUsing "
-        "default <SURF> landmark type.";
-    params_.x_view_params.semantic_landmark_type_ = "SURF";
-  }
+  // Register the parameters into the locator.
+  x_view::Locator::registerParameters(std::move(parameters));
 
-  if (!nh_.getParam("/XView/matcher/type", params_
-      .x_view_params.landmark_matching_type_)) {
-    LOG(ERROR) << "Failed to get param '/XView/matcher/type'\nUsing "
-        "default <VISUAL> landmark matcher.";
-    params_.x_view_params.landmark_matching_type_ = "VECTOR";
-  }
+  // Set the usage of the specified dataset.
+  const auto& params = x_view::Locator::getParameters();
+  const auto& dataset_params = params->getChildPropertyList("dataset");
+  const std::string dataset_name = dataset_params->getString("name");
+  if (dataset_name == "SYNTHIA") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::SynthiaDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else
+    CHECK(false) << "Dataset '" << dataset_name
+                 << "' is not supported" << std::endl;
+}
 
-
-  // XViewBagReader parameters.
-  if (!nh_.getParam("/XViewBagReader/dataset", params_.dataset_name)) {
-    LOG(ERROR) << "Failed to get param '/XViewBagReader/dataset'\nUsing "
-        "default <SYNTHIA> dataset.";
-    params_.dataset_name = "SYNTHIA";
-  }
-  params_.x_view_params.semantic_dataset_name_ = params_.dataset_name;
+void XViewBagReader::getXViewBagReaderParameters() {
 
   if (!nh_.getParam("/XViewBagReader/bag_file_name", params_.bag_file_name)) {
     LOG(ERROR) << "Failed to get param '/XViewBagReader/bag_file_name'";
   }
-
   if (!nh_.getParam("/XViewBagReader/semantics_image_topic_back",
                     params_.semantics_image_topic_back)) {
     LOG(ERROR) << "Failed to get param "
@@ -141,15 +160,15 @@ void XViewBagReader::getParameters() {
     LOG(ERROR) << "Failed to get param "
         "'/XViewBagReader/semantics_image_topic_right'";
   }
-  if (!nh_.getParam("/XViewBagReader/world_frame",
-                    params_.world_frame)) {
-    LOG(ERROR) << "Failed to get param "
-        "'/XViewBagReader/world_frame'";
-  }
   if (!nh_.getParam("/XViewBagReader/sensor_frame",
                     params_.sensor_frame)) {
     LOG(ERROR) << "Failed to get param "
         "'/XViewBagReader/sensor_frame'";
+  }
+  if (!nh_.getParam("/XViewBagReader/world_frame",
+                    params_.world_frame)) {
+    LOG(ERROR) << "Failed to get param "
+        "'/XViewBagReader/world_frame'";
   }
 }
 

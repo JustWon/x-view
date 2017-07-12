@@ -40,7 +40,7 @@ class VectorMatcher : public AbstractMatcher {
 
  protected:
   std::shared_ptr<cv::DescriptorMatcher> descriptor_matcher_;
-  const int num_retained_best_matches_;
+  int num_retained_best_matches_;
 
 };
 

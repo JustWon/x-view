@@ -1,5 +1,6 @@
 #include <x_view_node/x_view_worker.h>
 #include <x_view_core/datasets/synthia_dataset.h>
+#include <x_view_core/x_view_locator.h>
 
 #include <opencv2/highgui/highgui.hpp>
 
@@ -9,20 +10,36 @@ namespace enc = sensor_msgs::image_encodings;
 
 namespace x_view_ros {
 
-XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n) {
-  getParameters();
+XViewWorker::XViewWorker(ros::NodeHandle& n) : nh_(n), parser_(nh_) {
+
+  // Load parameters used by XViewBagReader.
+  getXViewWorkerParameters();
+
+  // Parse all parameters used by XView.
+  std::unique_ptr<x_view::Parameters> parameters = parser_.parseParameters();
+
+  // Register the parameters into the locator.
+  x_view::Locator::registerParameters(std::move(parameters));
+
+  // Set the usage of the specified dataset.
+  const auto& params = x_view::Locator::getParameters();
+  const auto& dataset_params = params->getChildPropertyList("dataset");
+  const std::string dataset_name = dataset_params->getString("name");
+  if (dataset_name == "SYNTHIA") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::SynthiaDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else
+    CHECK(false) << "Dataset '" << dataset_name
+                 << "' is not supported" << std::endl;
+
   semantics_image_sub_ = nh_.subscribe(params_.semantics_image_topic, 1,
                                        &XViewWorker::semanticsImageCallback,
                                        this);
 
-  x_view_ = x_view::XView(params_.x_view_params);
+  // Create XView object.
+  x_view_ = std::unique_ptr<x_view::XView>(new x_view::XView());
 
-  // set the usage of the specified dataset
-  if (params_.dataset_name.compare("SYNTHIA") == 0)
-    dataset_.reset(new x_view::SynthiaDataset);
-  else
-    CHECK(false) << "Dataset '" << params_.dataset_name
-                 << "' is not supported" << std::endl;
 }
 
 XViewWorker::~XViewWorker() {
@@ -30,9 +47,11 @@ XViewWorker::~XViewWorker() {
 
 void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) {
 
-  // Preprocess the ros message.
-  cv::Mat image = dataset_->convertSemanticImage(msg);
+  parseParameters();
 
+  // Preprocess the ros message.
+  const auto& dataset = x_view::Locator::getDataset();
+  cv::Mat image = dataset->convertSemanticImage(msg);
   // Read in pose in world frame.
   tf::StampedTransform tf_transform;
   if (tf_listener_.waitForTransform(params_.world_frame, params_.sensor_frame,
@@ -48,47 +67,7 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
   x_view::SE3 pose;
   tf_transform.getRotation().normalize();
   tfTransformToSE3(tf_transform, &pose);
-  x_view_.processSemanticImage(image, pose);
-}
-
-void XViewWorker::getParameters() {
-
-  // XView parameters.
-  if (!nh_.getParam("/XView/landmarks/type", params_
-      .x_view_params.semantic_landmark_type_)) {
-    LOG(ERROR) << "Failed to get param '/XView/landmarks/type'\n"
-        "Using default <SURF> landmark type.";
-    params_.x_view_params.semantic_landmark_type_ = "SURF";
-  }
-
-  if (!nh_.getParam("/XView/matcher/type", params_
-      .x_view_params.landmark_matching_type_)) {
-    LOG(ERROR) << "Failed to get param '/XView/matcher/type'\n"
-        "Using default <VISUAL> landmark matcher.";
-    params_.x_view_params.landmark_matching_type_ = "VECTOR";
-  }
-
-
-  // XViewWorker parameters.
-  if (!nh_.getParam("/XViewWorker/dataset", params_.dataset_name)) {
-    LOG(ERROR) << "Failed to get param '/XViewWorker/dataset'\n"
-        "Using default <SYNTHIA> dataset.";
-    params_.dataset_name = "SYNTHIA";
-  }
-  params_.x_view_params.semantic_dataset_name_ = params_.dataset_name;
-
-  if (!nh_.getParam("/XViewWorker/semantics_image_topic",
-                    params_.semantics_image_topic)) {
-    LOG(ERROR) << "Failed to get param '/XViewWorker/semantics_image_topic'";
-  }
-  if (!nh_.getParam("/XViewWorker/world_frame",
-                    params_.world_frame)) {
-    LOG(ERROR) << "Failed to get param '/XViewWorker/world_frame'";
-  }
-  if (!nh_.getParam("/XViewWorker/sensor_frame",
-                    params_.sensor_frame)) {
-    LOG(ERROR) << "Failed to get param '/XViewWorker/sensor_frame'";
-  }
+  x_view_->processSemanticImage(image, pose);
 }
 
 void XViewWorker::tfTransformToSE3(const tf::StampedTransform& tf_transform,
@@ -105,4 +84,42 @@ void XViewWorker::tfTransformToSE3(const tf::StampedTransform& tf_transform,
       tf_transform.getRotation().getZ());
   *pose = x_view::SE3(pos, rot);
 }
+
+void XViewWorker::parseParameters() const {
+  // Parse all parameters.
+  std::unique_ptr<x_view::Parameters> parameters = parser_.parseParameters();
+
+  // Register the parameters into the locator.
+  x_view::Locator::registerParameters(std::move(parameters));
+
+  // Set the usage of the specified dataset.
+  const auto& params = x_view::Locator::getParameters();
+  const auto& dataset_params = params->getChildPropertyList("dataset");
+  const std::string dataset_name = dataset_params->getString("name");
+  if (dataset_name == "SYNTHIA") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::SynthiaDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else
+    CHECK(false) << "Dataset '" << dataset_name
+                 << "' is not supported" << std::endl;
+}
+
+void XViewWorker::getXViewWorkerParameters() {
+
+  if (!nh_.getParam("/XViewWorker/semantics_image_topic",
+                    params_.semantics_image_topic)) {
+    LOG(ERROR) << "Failed to get param "
+        "'/XViewWorker/semantics_image_topic'";
+  }
+  if (!nh_.getParam("/XViewWorker/sensor_frame",
+                    params_.sensor_frame)) {
+    LOG(ERROR) << "Failed to get param '/XViewWorker/sensor_frame'";
+  }
+  if (!nh_.getParam("/XViewWorker/world_frame",
+                    params_.world_frame)) {
+    LOG(ERROR) << "Failed to get param '/XViewWorker/world_frame'";
+  }
+}
+
 }

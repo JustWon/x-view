@@ -20,8 +20,12 @@ class VisualDescriptorLandmark : public AbstractSemanticLandmark {
  public:
   explicit VisualDescriptorLandmark(const cv::Mat& image, const SE3& pose);
 
-  /// \brief Number of features to be extracted by the detector.
-  static int NUM_VISUAL_FEATURES;
+  /// \brief Number of features to be extracted by the detector in case no
+  /// parameter is provided.
+  static int DEFAULT_NUM_VISUAL_FEATURES;
+  /// \brief Hessian threshold value to use by the detector in case no
+  /// parameter is provided.
+  static float DEFAULT_HESSIAN_THRESHOLD;
 
   /// \brief Class responsible for extracting visual features.
   std::unique_ptr<cv::Feature2D> features_extractor;
