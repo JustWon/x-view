@@ -2,6 +2,7 @@
 #define X_VIEW_X_VIEW_H_
 
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core/features/graph.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/landmarks/semantic_landmark_factory.h>
 #include <x_view_core/matchers/abstract_matcher.h>
@@ -38,6 +39,23 @@ class XView {
    */
   void processFrameData(const FrameData& frame_data);
 
+  /**
+   * \brief Returns a reference to the current global semantic graph.
+   * \return A reference to the current global semantic graph.
+   */
+  const Graph& getSemanticGraph() const;
+
+  /**
+   * \brief Localizes the robot making the observations contained in the
+   * frame_data object passed as parameter by matching the associated
+   * semantic descriptors with the global database graph. The pose_ member of
+   * frame_data is ignored.
+   * \param frame_data Data passed to XView containing the observations
+   * of the robot to be localized.
+   * \return An estimation of the pose of the robot.
+   */
+  const Eigen::Vector3d localize(const FrameData& frame_data);
+
  private:
   /// \brief Prints XView info.
   void printInfo() const;
@@ -68,7 +86,7 @@ class XView {
    * will be different.
    */
   void createSemanticLandmark(const FrameData& frame_data,
-                              SemanticLandmarkPtr& semantics_out);
+                              SemanticLandmarkPtr& semantics_out) const;
 
   /// \brief Match semantics instance to database and return score.
   void matchSemantics(const SemanticLandmarkPtr& semantics_a,

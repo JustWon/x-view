@@ -21,9 +21,9 @@ image_size) const {
   }
 }
 
-ImageBlobs BlobExtractor::findBlobsWithContour(const cv::Mat& image,
-                                               const BlobExtractorParams&
-                                               params) {
+ImageBlobs BlobExtractor::extractBlobs(const cv::Mat& image,
+                                       const BlobExtractorParams&
+                                       params) {
 
   const auto& dataset = Locator::getDataset();
 
@@ -63,9 +63,9 @@ ImageBlobs BlobExtractor::findBlobsWithContour(const cv::Mat& image,
       // Otherwise the pixels associated to the current semantic label have
       // instance information and each instance has to be extracted separately.
     else {
-      BlobExtractor::extractBlobsConsideringInstances(instance_layer,
-                                                      &(image_blobs[c]),
-                                                      c, params);
+      BlobExtractor::extractBlobsWithInstances(instance_layer,
+                                               &(image_blobs[c]),
+                                               c, params);
     }
   }
   return image_blobs;
@@ -97,10 +97,10 @@ void BlobExtractor::extractBlobsWithoutInstances(cv::Mat& current_class_layer,
 
 }
 
-void BlobExtractor::extractBlobsConsideringInstances(cv::Mat& instance_layer,
-                                                     ClassBlobs* class_blobs,
-                                                     const int current_semantic_class,
-                                                     const BlobExtractorParams& params) {
+void BlobExtractor::extractBlobsWithInstances(cv::Mat& instance_layer,
+                                              ClassBlobs* class_blobs,
+                                              const int current_semantic_class,
+                                              const BlobExtractorParams& params) {
 
   const auto& dataset = Locator::getDataset();
 

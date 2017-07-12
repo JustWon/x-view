@@ -206,6 +206,8 @@ std::unique_ptr<Parameters> Parser::parseGraphLandmark() const {
   addInt(nh_, "/Landmark/blob_neighbor_distance", "blob_neighbor_distance",
          graph_landmark_parameters, 10);
 
+  addFloat(nh_, "/Landmark/depth_clip", "depth_clip", graph_landmark_parameters);
+
   return std::move(graph_landmark_parameters);
 }
 

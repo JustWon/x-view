@@ -9,7 +9,8 @@ Landmark: {
     dilate_and_erode: true,
     num_dilate: 5,
     num_erode: 5,
-    blob_neighbor_distance: 10
+    blob_neighbor_distance: 10,
+    depth_clip: 50.0
 }
 
 Matcher: {
@@ -22,9 +23,9 @@ Matcher: {
 
 # Parameters read exclusively by XViewWorker
 XViewWorker: {
-    semantics_image_topic: "/Stereo_Left/Omni_B/labels",
-    depth_image_topic: "/Stereo_Left/Omni_B/depth",
-    sensor_frame: "cam02",
+    semantics_image_topic: "/Stereo_Left/Omni_F/labels",
+    depth_image_topic: "/Stereo_Left/Omni_F/depth",
+    sensor_frame: "cam00",
     world_frame: "world"
 }
 

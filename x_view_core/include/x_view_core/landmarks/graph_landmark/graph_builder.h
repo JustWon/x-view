@@ -40,6 +40,11 @@ class GraphBuilder {
   // Dummy vector used as default argument for the the addBlobsToGraph function.
   static std::vector<const Blob*> DEFAULT_BLOB_VECTOR;
 
+  /// \brief A vertex is invalid if its projection in the world frame is too
+  /// distant. This value is used during graph construction to keep track of
+  /// such vertices.
+  static const unsigned long INVALID_VERTEX_DESCRIPTOR;
+
   /**
    * \brief Adds all blobs contained in the ImageBlobs datastructure to the
    * graph object passed as argument

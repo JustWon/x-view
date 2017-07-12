@@ -3,6 +3,7 @@
 
 #include <x_view_core/x_view.h>
 #include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_graph_publisher/graph_publisher.h>
 #include <x_view_parser/parser.h>
 
 //#include <gtsam/nonlinear/NonlinearFactorGraph.h>
@@ -122,6 +123,9 @@ class XViewWorker {
 
   /// \brief Buffer object used to store the data received through callbacks.
   XViewWorkerMessage message_;
+
+  /// \brief Graph publisher object responsible for publishing the graph data.
+  GraphPublisher graph_publisher_;
 
 }; // XViewNode
 

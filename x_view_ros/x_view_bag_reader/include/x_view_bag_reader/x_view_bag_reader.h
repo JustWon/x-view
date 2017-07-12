@@ -3,6 +3,7 @@
 
 #include <x_view_bag_reader/x_view_topic_view.h>
 #include <x_view_core/x_view.h>
+#include <x_view_graph_publisher/graph_publisher.h>
 #include <x_view_parser/parser.h>
 
 #include <glog/logging.h>
@@ -44,9 +45,13 @@ class XViewBagReader {
 
   explicit XViewBagReader(ros::NodeHandle& n);
 
-  /// \brief predefined functions to iterate over the data related to a topic.
+  /// \brief Predefined functions to iterate over the data related to a topic.
   void iterateBagFromTo(const CAMERA camera_type,
                         const int from, const int to);
+
+  /// \brief Localizes the robot seeing the scene at frame_index through the
+  /// camera camera_type.
+  void localize(const CAMERA camera_type, const int frame_index);
 
  private:
 
@@ -75,6 +80,11 @@ class XViewBagReader {
   void tfTransformToSE3(const tf::StampedTransform& tf_transform,
                         x_view::SE3* pose);
 
+  void publishPosition(const Eigen::Vector3d& pos,
+                       const Eigen::Vector3d& color,
+                       const ros::Time& stamp,
+                       const std::string ns);
+
   std::unique_ptr<x_view::XView> x_view_;
 
   /// \brief Parameters used by XViewBagReader.
@@ -100,6 +110,12 @@ class XViewBagReader {
 
   /// \brief Parser object responsible for parsing the rosparameters.
   Parser parser_;
+
+  /// \brief Graph publisher object responsible for publishing the graph data.
+  GraphPublisher graph_publisher_;
+
+  /// \brief Vertex publisher used to publish position of localized robot.
+  ros::Publisher vertex_publisher_;
 };
 
 }

@@ -57,6 +57,7 @@ cs_add_library(${PROJECT_NAME}
 
         # Feature matchers
         src/matchers/vector_matcher.cc
+        src/matchers/graph_matcher/graph_localizer.cc
         src/matchers/graph_matcher/graph_matcher.cc
         src/matchers/graph_matcher/graph_merger.cc
         src/matchers/graph_matcher/random_walker.cc
@@ -103,6 +104,7 @@ cs_add_library(${PROJECT_NAME}
         include/x_view_core/matchers/abstract_matcher.h
         include/x_view_core/matchers/graph_matcher.h
         include/x_view_core/matchers/vector_matcher.h
+        include/x_view_core/matchers/graph_matcher/graph_localizer.h
         include/x_view_core/matchers/graph_matcher/graph_matcher.h
         include/x_view_core/matchers/graph_matcher/graph_merger.h
         include/x_view_core/matchers/graph_matcher/random_walker.h
@@ -136,6 +138,8 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_param_tree.cc
         test/test_camera_projection_main.cc
         test/test_camera_projection.cc
+        test/test_localization_main.cc
+        test/test_localization.cc
 
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )
