@@ -42,8 +42,8 @@ void testChainGraph(const unsigned long seed) {
 
   std::string base_dot_file_name = getOutputDirectory() + "/chain_base.dot";
   std::string sub_dot_file_name = getOutputDirectory() + "/chain_sub.dot";
-  dumpToDotFile(graph_pair_chain.base_graph, base_dot_file_name);
-  dumpToDotFile(graph_pair_chain.sub_graph, sub_dot_file_name);
+  writeToFile(graph_pair_chain.base_graph, base_dot_file_name);
+  writeToFile(graph_pair_chain.sub_graph, sub_dot_file_name);
 
   // Define parameters for random walk extraction.
   RandomWalkerParams random_walker_params;
@@ -134,8 +134,8 @@ void testRandomGraph(const unsigned long seed) {
 
   std::string base_dot_file_name = getOutputDirectory() + "random_base.dot";
   std::string sub_dot_file_name = getOutputDirectory() + "random_sub.dot";
-  dumpToDotFile(graph_pair_random.base_graph, base_dot_file_name);
-  dumpToDotFile(graph_pair_random.sub_graph, sub_dot_file_name);
+  writeToFile(graph_pair_random.base_graph, base_dot_file_name);
+  writeToFile(graph_pair_random.sub_graph, sub_dot_file_name);
 
   // Define parameters for random walk extraction.
   RandomWalkerParams random_walker_params;

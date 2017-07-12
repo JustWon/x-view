@@ -73,10 +73,28 @@ class VertexSimilarity {
    *  | - - - | --> | - - - |
    *  | - - - | --> | - - - |
    *  | x x x | --> | x x x |     Total number of matches: 4
-   *  | o o o |     | x x x |     Total number of possible matches: 7
-   *  | o o o |     | \ \ \ |     ==> Similarity score: 4/7
+   *  | o o o |     | x x x |     Total number of possible matches: 6
+   *  | o o o |     | \ \ \ |     ==> Similarity score: 4/6
    *  | \ \ \ | --> | \ \ \ |
    *   ~~~~~~~       ~~~~~~~
+   *
+   * In the example depicted above, the computation of the similarity score
+   * follows these steps:
+   *   1) random walk [---] has multiplicity 2 in left walkmap. It has also
+   *      multiplicity 2 in right walkmap, thus increase score by 2/6, where 6
+   *      is the total multiplicity of left walkmap.
+   *   2) random walk [xxx] has multiplicity 1 in left walkmap. It has
+   *      multiplicity 2 in right walkmap, thus only one random walk is matched.
+   *      The score increases by 1/6, where 6 is the total multiplicity of left
+   *      walkmap.
+   *   3) random walk [ooo] has multiplicity 2 in left walkmap, but does not
+   *      appear in right walkmap. There is no increase in score.
+   *   4) random walk [\\\] has multiplicity 1 in left walkmap. It has
+   *      multiplicity 2 in right walkmap, thus only one random walk is matched.
+   *      The score increases by 1/6, where 6 is the total multiplicity of
+   *      left walkmap.
+   *
+   * The above score computation results in a total score of (2+1+1)/6 = 4/6.
    *
    * \param node1 Walk map associated to the first node to be compared.
    * \param node2 Walk map associated to the second node to be compared.
@@ -93,33 +111,53 @@ class VertexSimilarity {
                                     const RandomWalker::WalkMap& node2);
 
   /**
- * \brief Function implementing the ScoreFunctionType signature which
- * computes the similarity between two graph vertices by counting how many
- * exact correspondences exist between the random walks associated to the
- * graph vertices passed as argument. This function the similarity between
- * two WalkMaps considering the associated multiplicity.
- * \details Whenever a match is found between the two WalkMaps passed as
- * argument, this function considers the respective multiplicity, and
- * increases the score by the summed multiplicity of the two matches:
- *   _______         _______
- *  | - - - | --->  | - - - |
- *  | - - - | --->  | - - - |
- *  | x x x | \-->  | x x x |     Total number of matches (surface): 10
- *  | o o o |  \->  | x x x |     Total surface: 12
- *  | o o o |  /->  | \ \ \ |     ==> Similarity score: 10/12
- *  | \ \ \ | /-->  | \ \ \ |
- *   ~~~~~~~        ~~~~~~~
- * \param node1 Walk map associated to the first node to be compared.
- * \param node2 Walk map associated to the second node to be compared.
- * \return A floating point score in [0,1] representing the similarity
- * between node1 and node2. The higher the most similar.
- * \code{.cpp}
- * RandomWalker random_walker(graph, random_walker_params);
- * const auto& mapped_walks = random_walker.getMappedWalks();
- * float similarity_i_j =
- *    VertexSimilarity::score(mapped_walks[i], mapped_walks[j]);
- * \endcode
- */
+   * \brief Function implementing the ScoreFunctionType signature which
+   * computes the similarity between two graph vertices by counting how many
+   * exact correspondences exist between the random walks associated to the
+   * graph vertices passed as argument. This function the similarity between
+   * two WalkMaps considering the associated multiplicity.
+   * \details Whenever a match is found between the two WalkMaps passed as
+   * argument, this function considers the respective multiplicity, and
+   * increases the score by the summed multiplicity of the two matches:
+   *   _______         _______
+   *  | - - - | --->  | - - - |
+   *  | - - - | --->  | - - - |
+   *  | x x x | --->  | x x x |     Total number of matches (surface): 10
+   *  | o o o |  \->  | x x x |     Total surface: 12
+   *  | o o o |  /->  | \ \ \ |     ==> Similarity score: 10/12
+   *  | \ \ \ | --->  | \ \ \ |
+   *   ~~~~~~~         ~~~~~~~
+   * In the example depicted above, the computation of the similarity score
+   * follows these steps:
+   *   1) random walk [---] has multiplicity 2 in left walkmap. It has also
+   *      multiplicity 2 in right walkmap, thus increase score by 4/12, where
+   *      12 is the total multiplicity of both walkmaps, and 4 is the number
+   *      of random walks of that type present in the walkmaps combined.
+   *   2) random walk [xxx] has multiplicity 1 in left walkmap. It has
+   *      multiplicity 2 in right walkmap, thus increase score by 3/12, where
+   *      12 is the total multiplicity of both walkmaps, and 3 is the number
+   *      of random walks of that type present in the walkmaps combined.
+   *   3) random walk [ooo] has multiplicity 2 in left walkmap, but does not
+   *      appear in right walkmap. There is no increase in score since there
+   *      is no match.
+   *   4) random walk [\\\] has multiplicity 1 in left walkmap. It has
+   *      multiplicity 2 in right walkmap, thus increase score by 3/12, where
+   *      12 is the total multiplicity of both walkmaps, and 3 is the number
+   *      of random walks of that type present in the walkmaps combined.
+   *
+   * The above score computation results in a total score of (4+3+3)/12 = 10/12.
+   *
+   * \param node1 Walk map associated to the first node to be compared.
+   * \param node2 Walk map associated to the second node to be compared.
+   * \return A floating point score in [0, 1] representing the similarity
+   * between node1 and node2. The higher the most similar.
+   * \code{.cpp}
+   * RandomWalker random_walker(graph, random_walker_params);
+   * const auto& mapped_walks = random_walker.getMappedWalks();
+   * float similarity_i_j =
+   *    VertexSimilarity::score(mapped_walks[i], mapped_walks[j]);
+   * \endcode
+   */
   static const float score_surface(const RandomWalker::WalkMap& node1,
   const RandomWalker::WalkMap& node2);
 

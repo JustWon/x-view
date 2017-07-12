@@ -97,7 +97,7 @@ std::ostream& operator<<(std::ostream& out, const Graph& graph) {
   return out;
 }
 
-void dumpToDotFile(Graph& graph, const std::string& filename) {
+void writeToFile(Graph& graph, const std::string& filename) {
 
   // Open a stream
   std::ofstream out(filename.c_str());

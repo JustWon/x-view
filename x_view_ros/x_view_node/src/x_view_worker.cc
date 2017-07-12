@@ -13,7 +13,8 @@ namespace x_view_ros {
 XViewWorker::XViewWorker(ros::NodeHandle& n)
     : nh_(n),
       parser_(nh_),
-      graph_publisher_(nh_) {
+      graph_publisher_(nh_),
+      frame_id_(0) {
 
   // Load parameters used by XViewBagReader.
   getXViewWorkerParameters();
@@ -113,7 +114,7 @@ void XViewWorker::depthImageCallback(const sensor_msgs::ImageConstPtr& msg) {
 void XViewWorker::processData() {
   x_view::FrameData frame_data(message_.semantic_image,
                                message_.depth_image,
-                               message_.pose);
+                               message_.pose, frame_id_++);
   x_view_->processFrameData(frame_data);
   message_.reset();
 

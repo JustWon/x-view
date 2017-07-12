@@ -83,7 +83,7 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
     const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
     x_view::SE3 pose;
     tfTransformToSE3(trans, &pose);
-    x_view::FrameData frame_data(semantic_image, depth_image, pose);
+    x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
     x_view_->processFrameData(frame_data);
 
     graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
@@ -101,7 +101,8 @@ void XViewBagReader::localize(const CAMERA camera_type, const int frame_index) {
   const tf::StampedTransform trans = transform_view_->getDataAtFrame(frame_index);
   x_view::SE3 real_pose, empty_pose;
   tfTransformToSE3(trans, &real_pose);
-  x_view::FrameData frame_data(semantic_image, depth_image, empty_pose);
+  x_view::FrameData frame_data(semantic_image, depth_image,
+                               empty_pose, frame_index);
 
   Eigen::Vector3d estimated_position = x_view_->localize(frame_data);
   Eigen::Vector3d true_position = real_pose.getPosition();

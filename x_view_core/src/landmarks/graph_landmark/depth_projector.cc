@@ -1,19 +1,18 @@
-#include <x_view_core/landmarks/graph_landmark/projector.h>
+#include <x_view_core/landmarks/graph_landmark/depth_projector.h>
 
 namespace x_view {
 
-Projector::Projector(const x_view::SE3& pose,
+DepthProjector::DepthProjector(const x_view::SE3& pose,
                      const CameraIntrinsics& intrinsics,
                      const Eigen::Matrix3d& camera_to_image_rotation)
     : pose_(pose),
-      intrinsics_(intrinsics),
+      intrinsic_matrix_(intrinsics.getCameraMatrix()),
+      inverse_intrinsic_matrix_(intrinsics.getCameraMatrix().inverse()),
       camera_to_image_rotation_(camera_to_image_rotation),
-      image_to_camera_rotation_(camera_to_image_rotation_.inverse())
-{
-  computeIntrinsicMatrix();
+      image_to_camera_rotation_(camera_to_image_rotation_.inverse()) {
 }
 
-Eigen::Vector3d Projector::getWorldCoordinates(const cv::Point2i& pixel,
+Eigen::Vector3d DepthProjector::getWorldCoordinates(const cv::Point2i& pixel,
     const double depth) const {
   const Eigen::Vector3d new_camera_coord =
       pixelToCamera(Eigen::Vector2i(pixel.x, pixel.y), depth);
@@ -24,7 +23,7 @@ Eigen::Vector3d Projector::getWorldCoordinates(const cv::Point2i& pixel,
   return new_world_coord;
 }
 
-cv::Point2i Projector::getPixelCoordinates(const Eigen::Vector3d coordinate) const {
+cv::Point2i DepthProjector::getPixelCoordinates(const Eigen::Vector3d coordinate) const {
   const Eigen::Vector3d camera_coords =  worldToCamera(coordinate);
 
   const Eigen::Vector2i pixel_coords = cameraToPixel(camera_coords);
@@ -32,12 +31,12 @@ cv::Point2i Projector::getPixelCoordinates(const Eigen::Vector3d coordinate) con
   return cv::Point2i(pixel_coords[0], pixel_coords[1]);
 }
 
-Eigen::Vector3d Projector::worldToCamera(
+Eigen::Vector3d DepthProjector::worldToCamera(
     const Eigen::Vector3d& world_coordinate) const {
     return pose_.inverseTransform(world_coordinate);
 }
 
-Eigen::Vector2i Projector::cameraToPixel(
+Eigen::Vector2i DepthProjector::cameraToPixel(
     const Eigen::Vector3d& camera_coordinate) const {
 
   Eigen::Vector3d image_coordinate =
@@ -48,7 +47,7 @@ Eigen::Vector2i Projector::cameraToPixel(
                          pixel_homo[1] / pixel_homo[2]);
 }
 
-Eigen::Vector3d Projector::pixelToCamera(
+Eigen::Vector3d DepthProjector::pixelToCamera(
     const Eigen::Vector2i& pixel_coordinate, const double depth) const {
   Eigen::Vector3d pixel_homo;
   pixel_homo << pixel_coordinate[0], pixel_coordinate[1], 1.0;
@@ -59,22 +58,10 @@ Eigen::Vector3d Projector::pixelToCamera(
   return image_to_camera_rotation_ * camera_direction * depth;
 }
 
-Eigen::Vector3d Projector::cameraToWorld(
+Eigen::Vector3d DepthProjector::cameraToWorld(
     const Eigen::Vector3d& camera_coordinate) const {
   return pose_.transform(camera_coordinate);
 }
-
-
-void Projector::computeIntrinsicMatrix() {
-  intrinsic_matrix_.setIdentity();
-  intrinsic_matrix_(0, 0) = intrinsic_matrix_(1, 1) = intrinsics_.focal_length;
-  intrinsic_matrix_(0, 2) = intrinsics_.px;
-  intrinsic_matrix_(1, 2) = intrinsics_.py;
-
-  inverse_intrinsic_matrix_ = intrinsic_matrix_.inverse();
-}
-
-
 
 }
 

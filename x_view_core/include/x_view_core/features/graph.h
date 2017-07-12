@@ -141,7 +141,9 @@ std::ostream& operator<<(std::ostream& out, const EdgeProperty& e);
 /// \brief Overloaded operator to print a graph.
 std::ostream& operator<<(std::ostream& out, const Graph& graph);
 
-void dumpToDotFile(Graph& graph, const std::string& filename);
+/// \brief Writes the graph passed as argument to the file specified as
+/// second argument in the '.dot' file format.
+void writeToFile(Graph& graph, const std::string& filename);
 
 }
 

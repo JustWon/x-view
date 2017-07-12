@@ -127,6 +127,9 @@ class XViewWorker {
   /// \brief Graph publisher object responsible for publishing the graph data.
   GraphPublisher graph_publisher_;
 
+  /// \brief A counter for the frames being processed.
+  unsigned long frame_id_;
+
 }; // XViewNode
 
 }

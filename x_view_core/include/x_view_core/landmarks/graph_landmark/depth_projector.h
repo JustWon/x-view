@@ -1,5 +1,5 @@
-#ifndef X_VIEW_PROJECTOR_H
-#define X_VIEW_PROJECTOR_H
+#ifndef X_VIEW_DEPTH_PROJECTOR_H
+#define X_VIEW_DEPTH_PROJECTOR_H
 
 #include <x_view_core/x_view_types.h>
 #include <x_view_core/x_view_locator.h>
@@ -13,7 +13,7 @@ namespace x_view {
  * \brief Class responsible for computing the 3D location of a pixel in world
  * space given its depth value and its pixel coordinates.
  */
-class Projector {
+class DepthProjector {
  public:
   /**
    * \brief Constructor of projector object.
@@ -24,9 +24,9 @@ class Projector {
    * \param camera_to_image_rotation Rotation matrix describing the rotation
    * involved between the camera frame and the image frame.
    */
-  Projector(const SE3& pose, const CameraIntrinsics& intrinsics,
-            const Eigen::Matrix3d& camera_to_image_rotation =
-            Locator::getDataset()->getCameraToImageRotation());
+  DepthProjector(const SE3& pose, const CameraIntrinsics& intrinsics,
+                 const Eigen::Matrix3d& camera_to_image_rotation =
+                 Locator::getDataset()->getCameraToImageRotation());
 
   /**
    * \brief Computes the world coordinates of the pixel passed as parameter.
@@ -71,19 +71,15 @@ class Projector {
   const SE3 pose_;
 
   /// \brief Intrinsic camera parameters.
-  const CameraIntrinsics intrinsics_;
-  Eigen::Matrix<double, 3, 3> intrinsic_matrix_;
-  Eigen::Matrix<double, 3, 3> inverse_intrinsic_matrix_;
+  const Eigen::Matrix3d intrinsic_matrix_;
+  const Eigen::Matrix3d inverse_intrinsic_matrix_;
 
   /// \brief Rotation matrix between camera frame (the one described by the
   /// pose_ object) and the image plane.
   const Eigen::Matrix3d camera_to_image_rotation_;
   const Eigen::Matrix3d image_to_camera_rotation_;
-
-  /// \brief Computes the intrinsic matrix given the intrinsic parameters.
-  void computeIntrinsicMatrix();
 };
 
 }
 
-#endif //X_VIEW_PROJECTOR_H
+#endif //X_VIEW_DEPTH_PROJECTOR_H

@@ -35,7 +35,11 @@ SynthiaDataset::SynthiaDataset()
   << semantic_entities_.size();
 
   // Set the intrinsic parameters for the Synthia dataset.
-  camera_intrinsics_ = CameraIntrinsics(532.740352,640, 380, 0.8);
+  const double synthia_focal_length = 532.740352;
+  const int synthia_px = 640;
+  const int synthia_py = 380;
+  camera_intrinsics_ = CameraIntrinsics(synthia_focal_length,
+                                        synthia_px, synthia_py);
 
   // Set up camera-to-image rotation.
   // Flipped z-axis and flipped y-axis

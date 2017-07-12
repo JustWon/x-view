@@ -73,9 +73,9 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
   const std::string g2_path = output_path + "g2.dot";
   const std::string merged_path = output_path + "merged.dot";
 
-  dumpToDotFile(g1, g1_path);
-  dumpToDotFile(g2, g2_path);
-  dumpToDotFile(merged_graph, merged_path);
+  writeToFile(g1, g1_path);
+  writeToFile(g2, g2_path);
+  writeToFile(merged_graph, merged_path);
 
   // Close all windows.
   cv::destroyAllWindows();

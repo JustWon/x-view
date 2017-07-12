@@ -53,7 +53,7 @@ cs_add_library(${PROJECT_NAME}
         src/landmarks/graph_landmark/blob_extractor.cc
         src/landmarks/graph_landmark/graph_builder.cc
         src/landmarks/graph_landmark/graph_drawer.cc
-        src/landmarks/graph_landmark/projector.cc
+        src/landmarks/graph_landmark/depth_projector.cc
 
         # Feature matchers
         src/matchers/vector_matcher.cc
@@ -98,7 +98,7 @@ cs_add_library(${PROJECT_NAME}
         include/x_view_core/landmarks/graph_landmark/graph_drawer.h
         include/x_view_core/landmarks/graph_landmark/graph_landmark.h
         include/x_view_core/landmarks/graph_landmark/graph_landmark_types.h
-        include/x_view_core/landmarks/graph_landmark/projector.h
+        include/x_view_core/landmarks/graph_landmark/depth_projector.h
 
         # Feature matchers
         include/x_view_core/matchers/abstract_matcher.h

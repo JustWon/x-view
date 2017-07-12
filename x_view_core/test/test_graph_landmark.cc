@@ -35,7 +35,8 @@ void testCustomImage() {
     cv::Mat depth_image =
         cv::Mat(custom_image.size(), CV_16U, cv::Scalar::all(0));
     SE3 pose;
-    FrameData frame_data(custom_image, depth_image, pose);
+    unsigned long frame_index = 0;
+    FrameData frame_data(custom_image, depth_image, pose, frame_index);
     GraphLandmarkPtr graph_landmark_ptr =
         CAST(GraphLandmark::create(frame_data), GraphLandmark);
 
@@ -95,7 +96,8 @@ void testDiscImage() {
       cv::Mat depth_image =
           cv::Mat(disc_image.size(), CV_16U, cv::Scalar::all(0));
       SE3 pose;
-      FrameData frame_data(disc_image, depth_image, pose);
+      unsigned long frame_index = 0;
+      FrameData frame_data(disc_image, depth_image, pose, frame_index);
       GraphLandmarkPtr graph_landmark_ptr =
           CAST(GraphLandmark::create(frame_data), GraphLandmark);
 

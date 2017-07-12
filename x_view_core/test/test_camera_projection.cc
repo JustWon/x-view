@@ -1,6 +1,6 @@
 #include "test_camera_projection.h"
 
-#include <x_view_core/landmarks/graph_landmark/projector.h>
+#include <x_view_core/landmarks/graph_landmark/depth_projector.h>
 
 #include <glog/logging.h>
 
@@ -56,7 +56,7 @@ void testRandomCameraPose() {
   Eigen::Vector2i principal_point;
   principal_point << image_width / 2, image_height / 2;
   const double focal_length = 400;
-  x_view::CameraIntrinsics intrinsics(focal_length, principal_point, 1);
+  x_view::CameraIntrinsics intrinsics(focal_length, principal_point);
 
   const int num_reps = 1000;
   for (int i = 0; i < num_reps; ++i) {
@@ -80,7 +80,7 @@ void testRandomCameraPose() {
 
     const double depth = (object_in_world_coordinates - robot_position).norm();
 
-    x_view::Projector projector(pose, intrinsics);
+    x_view::DepthProjector projector(pose, intrinsics);
 
     const cv::Point2i pixel_coord =
         projector.getPixelCoordinates(object_in_world_coordinates);
@@ -107,7 +107,7 @@ void testPixelToCamera() {
   Eigen::Vector2i principal_point;
   principal_point << image_width / 2, image_height / 2;
   const double depth = 1.0;
-  x_view::CameraIntrinsics intrinsics(focal_length, principal_point, 1);
+  x_view::CameraIntrinsics intrinsics(focal_length, principal_point);
 
   const int num_reps = 1000;
   for (int i = 0; i < num_reps; ++i) {
@@ -123,7 +123,7 @@ void testPixelToCamera() {
     const double expected_x = diff.x() / l_x * depth;
     const double expected_y = diff.y() / l_y * depth;
 
-    x_view::Projector newProjector(x_view::SE3(), intrinsics);
+    x_view::DepthProjector newProjector(x_view::SE3(), intrinsics);
     Eigen::Vector3d proj = newProjector.pixelToCamera(pixel, depth);
 
     CHECK_NEAR(proj[0], expected_x, 0.05);

@@ -37,10 +37,11 @@ typedef std::shared_ptr<AbstractMatcher> LandmarksMatcherPtr;
 class FrameData {
  public:
   FrameData(const cv::Mat& semantic_image, const cv::Mat& depth_image,
-            const SE3& pose)
+            const SE3& pose, const unsigned long id)
       : semantic_image_(semantic_image),
         depth_image_(depth_image),
-        pose_(pose) {
+        pose_(pose),
+        id_(id) {
   }
 
   const cv::Mat& getSemanticImage() const {
@@ -55,6 +56,10 @@ class FrameData {
     return pose_;
   }
 
+  const unsigned long getID() const {
+    return id_;
+  }
+
  private:
   /// \brief Semantic image representing the semantic segmentation of the
   /// scene being observed. The first channel of this image contains label
@@ -62,34 +67,41 @@ class FrameData {
   /// The second channel contains instance information of the single
   /// segmented entities.
   const cv::Mat& semantic_image_;
+
   /// \brief Depth image representing the depth (in cm) of the scene being
   /// observed. Each pixel's value is represented as a single unsigned short
   /// (16 bits) having maximum value of 65535.
   const cv::Mat& depth_image_;
+
   /// \brief Pose of the robot associated with this frame expressed in world
   /// coordinates.
   const SE3& pose_;
+
+  /// \brief Unique identifier associated with the index of the frame
+  /// represented by this instance.
+  const unsigned long id_;
 };
 
 /// \brief Camera intrinsic parameters used to compute the 3D location of a
 /// pixel given robot pose.
-struct CameraIntrinsics {
-  CameraIntrinsics(){}
-  CameraIntrinsics(const double focal_length, const int px, const int py,
-      const double base_line)
-      : focal_length(focal_length),
-        px(px), py(py),
-        base_line(base_line) {}
-  CameraIntrinsics(const double focal_length, const Eigen::Vector2i& p,
-                   const double base_line)
-      : focal_length(focal_length),
-        px(p[0]), py(p[1]),
-        base_line(base_line) {}
+class CameraIntrinsics {
+ public:
+  CameraIntrinsics(const double focal_length, const int px, const int py) {
+    intrinsics_ = Eigen::Matrix3d::Identity();
+    intrinsics_(0, 0) = intrinsics_(1, 1) = focal_length;
+    intrinsics_(0, 2) = px;
+    intrinsics_(1, 2) = py;
+  }
 
-  double focal_length;
-  int px;
-  int py;
-  double base_line;
+  CameraIntrinsics(const double focal_length, const Eigen::Vector2i& p)
+      : CameraIntrinsics(focal_length, p[0], p[1]) {}
+
+  const Eigen::Matrix3d& getCameraMatrix() const {
+    return intrinsics_;
+  }
+
+ private:
+  Eigen::Matrix3d intrinsics_;
 };
 
 }

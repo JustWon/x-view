@@ -2,7 +2,7 @@
 
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
-#include <x_view_core/landmarks/graph_landmark/projector.h>
+#include <x_view_core/landmarks/graph_landmark/depth_projector.h>
 #include <x_view_core/x_view_locator.h>
 
 #include <boost/graph/connected_components.hpp>
@@ -83,7 +83,7 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
 
   // Create a projector object, which projects pixels back to 3D world
   // coordinates.
-  Projector projector(pose, Locator::getDataset()->getCameraIntrinsics());
+  DepthProjector projector(pose, Locator::getDataset()->getCameraIntrinsics());
 
   vertex_descriptors->clear();
   blob_vector->clear();
