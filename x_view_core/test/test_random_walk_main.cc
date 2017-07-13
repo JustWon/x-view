@@ -24,7 +24,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       new AbstractDataset(num_semantic_classes));
   Locator::registerDataset(std::move(dataset));
 
-  const unsigned long seed = 0;
+  const uint64_t seed = 0;
   const int walk_length = 3;
   const int num_walks_per_vertex = 20;
 

@@ -14,7 +14,7 @@ typedef std::shared_ptr<GraphMatcher> GraphMatcherPtr;
 
 #define CAST(from, to) std::dynamic_pointer_cast<to>(from)
 
-void testChainGraph(const unsigned long seed) {
+void testChainGraph(const uint64_t seed) {
 
   const auto& dataset = Locator::getDataset();
 
@@ -107,7 +107,7 @@ void testChainGraph(const unsigned long seed) {
 
 }
 
-void testRandomGraph(const unsigned long seed) {
+void testRandomGraph(const uint64_t seed) {
 
   const auto& dataset = Locator::getDataset();
 
@@ -231,7 +231,7 @@ GraphPair generateChainGraphPair(const GraphConstructionParams& construction_par
   updated_modifier_params.start_vertex_index = max_index + 1;
   // Effectively add and remove vertices and edges from the graph.
   modifyGraph(&graph_pair.sub_graph, updated_modifier_params, rng);
-  const unsigned long new_last_time_seen = 1;
+  const uint64_t new_last_time_seen = 1;
   setLastTimeSeen(&graph_pair.sub_graph, new_last_time_seen);
 
 
@@ -275,7 +275,7 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
 
   // Effectively add and remove vertices and edges from the graph.
   modifyGraph(&graph_pair.sub_graph, updated_modifier_params, rng);
-  const unsigned long new_last_time_seen = 1;
+  const uint64_t new_last_time_seen = 1;
   setLastTimeSeen(&graph_pair.sub_graph, new_last_time_seen);
 
   LOG(INFO) << "Generated random graph with "

@@ -10,8 +10,8 @@ namespace x_view {
 
 std::vector<const Blob*> GraphBuilder::DEFAULT_BLOB_VECTOR;
 
-const unsigned long GraphBuilder::INVALID_VERTEX_DESCRIPTOR =
-    std::numeric_limits<unsigned long>::max();
+const uint64_t GraphBuilder::INVALID_VERTEX_DESCRIPTOR =
+    std::numeric_limits<uint64_t>::max();
 
 Graph GraphBuilder::createGraphFromImageBlobs(const FrameData& frame_data,
                                               const ImageBlobs& blobs,
@@ -139,7 +139,7 @@ void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(Graph* graph,
                                       unique_components.end()),
                           unique_components.end());
 
-  const unsigned long num_vertices = boost::num_vertices(*graph);
+  const uint64_t num_vertices = boost::num_vertices(*graph);
 
   auto dist_square = [](const cv::Point& p1, const cv::Point& p2) {
     cv::Point d(p1 - p2);

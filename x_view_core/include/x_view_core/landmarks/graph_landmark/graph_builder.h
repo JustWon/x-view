@@ -43,7 +43,7 @@ class GraphBuilder {
   /// \brief A vertex is invalid if its projection in the world frame is too
   /// distant. This value is used during graph construction to keep track of
   /// such vertices.
-  static const unsigned long INVALID_VERTEX_DESCRIPTOR;
+  static const uint64_t INVALID_VERTEX_DESCRIPTOR;
 
   /**
    * \brief Adds all blobs contained in the ImageBlobs datastructure to the

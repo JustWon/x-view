@@ -15,8 +15,8 @@ GraphMerger::GraphMerger(const Graph& database_graph,
 
 const Graph GraphMerger::computeMergedGraph() {
 
-  const unsigned long num_query_vertices = boost::num_vertices(query_graph_);
-  const unsigned long num_db_vertices = boost::num_vertices(database_graph_);
+  const uint64_t num_query_vertices = boost::num_vertices(query_graph_);
+  const uint64_t num_db_vertices = boost::num_vertices(database_graph_);
 
   const GraphMatcher::SimilarityMatrixType& similarity_matrix =
       matching_result_.getSimilarityMatrix();
@@ -120,9 +120,9 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
   LOG(INFO) << "\tCorresponds to " << source_in_db_graph
             << "-th vertex in database graph:" << source_v_p << ".";
 
-  const unsigned long new_time_stamp =
+  const uint64_t new_time_stamp =
       query_graph_[source_in_query_graph].last_time_seen_;
-  const unsigned long old_time_stamp =
+  const uint64_t old_time_stamp =
       source_v_p.last_time_seen_;
 
   LOG(INFO) << "\tSetting last_time_seen_ property of database vertex from "

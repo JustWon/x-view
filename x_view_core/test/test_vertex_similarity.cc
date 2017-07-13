@@ -19,7 +19,7 @@ void VertexSimilarityTest::run() const {
 }
 
 void VertexSimilarityTest::checkExpectedSimilarity() const {
-  const unsigned long num_mapped_walks = vertices_left_.size();
+  const uint64_t num_mapped_walks = vertices_left_.size();
   CHECK_EQ(vertices_right_.size(), num_mapped_walks);
   CHECK_EQ(expected_scores_.size(), num_mapped_walks);
   for(int i = 0; i < num_mapped_walks; ++i) {
@@ -37,7 +37,7 @@ void VertexSimilarityTest::checkExpectedSimilarity() const {
 }
 
 void VertexSimilarityTest::checkSymmetry() const {
-  const unsigned long num_mapped_walks = vertices_left_.size();
+  const uint64_t num_mapped_walks = vertices_left_.size();
   CHECK_EQ(vertices_right_.size(), num_mapped_walks);
   CHECK_EQ(expected_scores_.size(), num_mapped_walks);
   for(int i = 0; i < num_mapped_walks; ++i) {
@@ -103,7 +103,7 @@ RandomWalker::WalkMap VertexSimilarityTest::generateWalkMap(
 void testScoreSymmetry() {
 
 
-  const unsigned long seed = 0;
+  const uint64_t seed = 0;
   std::mt19937 rng(seed);
 
   // Test for a different number of semantic classes.

@@ -35,7 +35,7 @@ struct VertexProperty {
   Eigen::Vector3d location_3d;
 
   /// \brief Index referring to the last time this vertex has been observed.
-  unsigned long last_time_seen_;
+  uint64_t last_time_seen_;
 };
 
 /// \brief Property associated to a graph edge.
@@ -86,7 +86,7 @@ typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
 
 /// \brief Access to vertices stored in the graph. Since vertices are stored
 /// in a boost::vecS container, their VertexDescriptor corresponds to the
-/// index at which they are stored: a VertexDescriptor is an unsigned long type.
+/// index at which they are stored: a VertexDescriptor is an uint64_t type.
 typedef boost::graph_traits<Graph>::vertex_descriptor VertexDescriptor;
 
 /// \brief Access to edges stored in the graph.

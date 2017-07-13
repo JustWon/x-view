@@ -33,7 +33,7 @@ TEST(XViewSlamTestSuite, test_histogram_landmark) {
   // create various images
   const int ROWS = 50;
   const int COLS = 30;
-  const unsigned long frame_index = 0;
+  const uint64_t frame_index = 0;
 
   // Black image
   cv::Mat black(ROWS, COLS, CV_IMAGE_TYPE, cv::Scalar(0, 0, 0));
