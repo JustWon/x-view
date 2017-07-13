@@ -1,4 +1,5 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
+#include <x_view_bag_reader/x_view_pause.h>
 #include <x_view_core/x_view_tools.h>
 #include <thread>
 
@@ -19,11 +20,14 @@ int main(int argc, char** argv) {
 
   // Try to localize the following views inside the previously constructed
   // semantic graph.
-  for(int i = 0; i< 40; ++i) {
-    bag_reader.localize(x_view_ros::CAMERA::BACK, i);
-    // Sleep for 500ms to give time to see the localization in RViz.
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  x_view_ros::Pause pause;
+  for(int i = 0; i< 40; ) {
+    if(!pause.isPaused()) {
+      bag_reader.localize(x_view_ros::CAMERA::BACK, i);
+      ++i;
+    }
   }
+  pause.terminate();
 
   x_view::finalizeLogging();
 

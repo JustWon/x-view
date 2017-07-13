@@ -56,7 +56,16 @@ void GraphPublisher::publishVertices(const x_view::Graph& graph,
     marker.header.stamp = time;
     marker.ns = semantic_name;
     marker.id = v_p.index;
+    marker.type = visualization_msgs::Marker::SPHERE;
+    marker.action = visualization_msgs::Marker::ADD;
 
+    marker.pose.position.x = position[0];
+    marker.pose.position.y = position[1];
+    marker.pose.position.z = position[2];
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
     marker.scale.x = 0.8;
     marker.scale.y = 0.8;
     marker.scale.z = 0.8;
@@ -66,27 +75,12 @@ void GraphPublisher::publishVertices(const x_view::Graph& graph,
     marker.color.b = static_cast<float>(color[0] / 255);
 
     if(v_p.last_time_seen_ == last_time_index) {
-      marker.type = visualization_msgs::Marker::CUBE;
-      marker.action = visualization_msgs::Marker::ADD;
-      marker.pose.position.x = position[0];
-      marker.pose.position.y = position[1];
-      marker.pose.position.z = position[2];
+      marker.type = visualization_msgs::Marker::SPHERE;
       marker.scale.x *= 2;
       marker.scale.y *= 2;
       marker.scale.z *= 2;
-    } else if (v_p.last_time_seen_ == last_time_index - 1) {
+    } else if(v_p.last_time_seen_ == last_time_index - 1) {
       marker.action = visualization_msgs::Marker::DELETE;
-    } else {
-      marker.type = visualization_msgs::Marker::POINTS;
-      marker.action = visualization_msgs::Marker::ADD;
-
-      geometry_msgs::Point point;
-
-      point.x = position[0];
-      point.y = position[1];
-      point.z = position[2];
-
-      marker.points.push_back(point);
     }
 
     vertex_publisher_.publish(marker);
