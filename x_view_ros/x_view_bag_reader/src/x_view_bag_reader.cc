@@ -85,6 +85,7 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
     tfTransformToSE3(trans, &pose);
     x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
     x_view_->processFrameData(frame_data);
+    x_view_->writeGraphToFile();
 
     graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
   }

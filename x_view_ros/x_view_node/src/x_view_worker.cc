@@ -116,6 +116,8 @@ void XViewWorker::processData() {
                                message_.depth_image,
                                message_.pose, frame_id_++);
   x_view_->processFrameData(frame_data);
+  x_view_->writeGraphToFile();
+
   message_.reset();
 
   // Publish the new global semantic graph.

@@ -46,6 +46,11 @@ class XView {
   const Graph& getSemanticGraph() const;
 
   /**
+   * \brief Writes the current global semantic graph to a file.
+   */
+  void writeGraphToFile() const;
+
+  /**
    * \brief Localizes the robot making the observations contained in the
    * frame_data object passed as parameter by matching the associated
    * semantic descriptors with the global database graph. The pose_ member of
@@ -119,7 +124,7 @@ class XView {
   std::vector<SemanticLandmarkPtr> semantics_db_;
 
   /// \brief Current number of frames processed by XView.
-  unsigned long frame_number_;
+  int64_t frame_number_;
 
 }; // XView
 

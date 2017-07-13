@@ -38,43 +38,46 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
   graph_construction_params.num_vertices = 15;
   graph_construction_params.edge_probability = 0.2;
 
-  const Graph g1 = generateRandomGraph(graph_construction_params);
+  const Graph database_graph = generateRandomGraph(graph_construction_params);
 
   // Extract a subgraph.
   std::mt19937 rng(seed);
   const int radius = 2;
-  const VertexDescriptor random_v_d = boost::random_vertex(g1, rng);
-  const Graph g2_original = extractSubgraphAroundVertex(g1, random_v_d, radius);
+  const VertexDescriptor random_v_d = boost::random_vertex(database_graph, rng);
+  const Graph query_graph_orig =
+      extractSubgraphAroundVertex(database_graph, random_v_d, radius);
 
   // Modify the extracted subgraph.
   GraphModifierParams graph_modifier_params;
-  graph_modifier_params.num_vertices_to_add = 0;
-  graph_modifier_params.num_links_for_new_vertices = 0;
-  graph_modifier_params.num_vertices_to_remove = 0;
-  graph_modifier_params.num_edges_to_add = 0;
-  graph_modifier_params.num_edges_to_remove = 0;
+  graph_modifier_params.num_vertices_to_add = 1;
+  graph_modifier_params.num_links_for_new_vertices = 1;
+  graph_modifier_params.num_vertices_to_remove = 1;
+  graph_modifier_params.num_edges_to_add = 1;
+  graph_modifier_params.num_edges_to_remove = 1;
   // Set the index at which the newly inserted vertices start.
   int max_index = std::numeric_limits<int>::min();
-  const auto vertices = boost::vertices(g1);
+  const auto vertices = boost::vertices(database_graph);
   for(auto iter = vertices.first; iter != vertices.second; ++iter) {
-    max_index = std::max(max_index, g1[*iter].index);
+    max_index = std::max(max_index, database_graph[*iter].index);
   }
   graph_modifier_params.start_vertex_index = max_index + 1;
 
-  Graph g2 = g2_original;
-  modifyGraph(&g2, graph_modifier_params, rng);
+  Graph query_graph = query_graph_orig;
+  modifyGraph(&query_graph, graph_modifier_params, rng);
+  const unsigned long new_last_time_seen = 1;
+  setLastTimeSeen(&query_graph, new_last_time_seen);
 
   // Perform the matching
   Graph merged_graph;
-  mergeGraphs(g1, g2, &merged_graph);
+  mergeGraphs(database_graph, query_graph, &merged_graph);
 
   const std::string output_path = getOutputDirectory();
-  const std::string g1_path = output_path + "g1.dot";
-  const std::string g2_path = output_path + "g2.dot";
+  const std::string g1_path = output_path + "database_graph.dot";
+  const std::string g2_path = output_path + "query_graph.dot";
   const std::string merged_path = output_path + "merged.dot";
 
-  writeToFile(g1, g1_path);
-  writeToFile(g2, g2_path);
+  writeToFile(database_graph, g1_path);
+  writeToFile(query_graph, g2_path);
   writeToFile(merged_graph, merged_path);
 
   // Close all windows.
