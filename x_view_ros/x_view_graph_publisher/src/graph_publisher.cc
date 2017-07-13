@@ -35,6 +35,64 @@ void GraphPublisher::publish(const x_view::Graph& graph,
 void GraphPublisher::publishVertices(const x_view::Graph& graph,
                                      const ros::Time& time) const {
 
+  const auto vertices = boost::vertices(graph);
+  // Get the last time index.
+  unsigned long last_time_index = 0;
+  for (auto iter = vertices.first; iter != vertices.second; ++iter) {
+    last_time_index = std::max(last_time_index, graph[*iter].last_time_seen_);
+  }
+
+  for (auto iter = vertices.first; iter != vertices.second; ++iter) {
+
+    visualization_msgs::Marker marker;
+    const x_view::VertexProperty& v_p = graph[*iter];
+    const int semantic_label = v_p.semantic_label;
+    const cv::Scalar color = x_view::getColorFromSemanticLabel(semantic_label);
+    const std::string semantic_name =
+        x_view::Locator::getDataset()->label(semantic_label);
+    const Eigen::Vector3d& position = v_p.location_3d;
+
+    marker.header.frame_id = "/world";
+    marker.header.stamp = time;
+    marker.ns = semantic_name;
+    marker.id = v_p.index;
+
+    marker.scale.x = 0.8;
+    marker.scale.y = 0.8;
+    marker.scale.z = 0.8;
+    marker.color.a = 1.0; // Don't forget to set the alpha!
+    marker.color.r = static_cast<float>(color[2] / 255);
+    marker.color.g = static_cast<float>(color[1] / 255);
+    marker.color.b = static_cast<float>(color[0] / 255);
+
+    if(v_p.last_time_seen_ == last_time_index) {
+      marker.type = visualization_msgs::Marker::CUBE;
+      marker.action = visualization_msgs::Marker::ADD;
+      marker.pose.position.x = position[0];
+      marker.pose.position.y = position[1];
+      marker.pose.position.z = position[2];
+      marker.scale.x *= 2;
+      marker.scale.y *= 2;
+      marker.scale.z *= 2;
+    } else if (v_p.last_time_seen_ == last_time_index - 1) {
+      marker.action = visualization_msgs::Marker::DELETE;
+    } else {
+      marker.type = visualization_msgs::Marker::POINTS;
+      marker.action = visualization_msgs::Marker::ADD;
+
+      geometry_msgs::Point point;
+
+      point.x = position[0];
+      point.y = position[1];
+      point.z = position[2];
+
+      marker.points.push_back(point);
+    }
+
+    vertex_publisher_.publish(marker);
+  }
+
+  /*
   // A container keyed by the semantic label referencing a list of all
   // vertices with the given semantic label. This separation is useful as it
   // allows to show only vertices of a given type in RViz.
@@ -91,6 +149,8 @@ void GraphPublisher::publishVertices(const x_view::Graph& graph,
   // Publish all lists separately.
   for(const auto& v : vertices_of_semantic_label)
     vertex_publisher_.publish(v.second);
+
+  */
 
 }
 
