@@ -122,7 +122,12 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
 
   const Eigen::Vector3d res = graph_localizer.localize();
 
-  return res;
+  // Localize using geometric consistency.
+  SE3 transformation;
+  bool transform_success = graph_localizer.estimateTransformation(
+      matching_result, query_graph, global_graph, &transformation);
+  const Eigen::Vector3d res2 = transformation.getPosition();
+  return res2;
 }
 
 void XView::printInfo() const {
