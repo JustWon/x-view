@@ -12,7 +12,7 @@ void testCustomImage() {
 
   const std::string image_name = "custom image";
 
-  // Initialize a fake dataset having num_semantic_classes classes
+  // Initialize a fake dataset having num_semantic_classes classes.
   int num_semantic_classes = 4;
   std::unique_ptr<AbstractDataset> dataset(
       new AbstractDataset(num_semantic_classes));
@@ -35,7 +35,7 @@ void testCustomImage() {
     cv::Mat depth_image =
         cv::Mat(custom_image.size(), CV_16U, cv::Scalar::all(0));
     SE3 pose;
-    unsigned long frame_index = 0;
+    uint64_t frame_index = 0;
     FrameData frame_data(custom_image, depth_image, pose, frame_index);
     GraphLandmarkPtr graph_landmark_ptr =
         CAST(GraphLandmark::create(frame_data), GraphLandmark);
@@ -96,7 +96,7 @@ void testDiscImage() {
       cv::Mat depth_image =
           cv::Mat(disc_image.size(), CV_16U, cv::Scalar::all(0));
       SE3 pose;
-      unsigned long frame_index = 0;
+      uint64_t frame_index = 0;
       FrameData frame_data(disc_image, depth_image, pose, frame_index);
       GraphLandmarkPtr graph_landmark_ptr =
           CAST(GraphLandmark::create(frame_data), GraphLandmark);

@@ -63,7 +63,7 @@ std::ostream& operator<<(std::ostream& out, const VertexProperty& v) {
 
   const auto& dataset = Locator::getDataset();
 
-  const static unsigned long max_label_length =
+  const static uint64_t max_label_length =
       dataset->largestLabelSize() + 2;
   out << "(v) " << v.index
       << ", label: " << std::right << std::setw(2) << std::setfill(' ')

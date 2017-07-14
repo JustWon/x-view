@@ -28,7 +28,7 @@ struct GraphConstructionParams {
   /// random semantic class (random integer in {0, .., num_semantic_classes-1}
   int num_semantic_classes;
   /// \brief Seed to be used for graph generation.
-  unsigned long seed;
+  uint64_t seed;
 };
 
 /**
@@ -128,7 +128,7 @@ void modifyGraph(x_view::Graph* graph, const GraphModifierParams& params,
  * \param last_time_seen New index to set on all vertices of the graph passed
  * as argument.
  */
-void setLastTimeSeen(x_view::Graph* graph, const unsigned long last_time_seen);
+void setLastTimeSeen(x_view::Graph* graph, const uint64_t last_time_seen);
 
 }
 

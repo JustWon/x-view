@@ -110,7 +110,7 @@ void BlobExtractor::extractBlobsWithInstances(cv::Mat& instance_layer,
 
   // Remove the instance '0' as it is not a real instance, but rather it
   // comes from the bit-masking operation when creating instance_layer.
-  const unsigned long removed_zero =
+  const uint64_t removed_zero =
       instance_set.erase(static_cast<unsigned char>(0));
   CHECK(removed_zero > 0) << "instance_layer image should contain zero "
       "elements resulting from the masking with the current_class_layer "

@@ -43,7 +43,7 @@ void testRandomCameraPose() {
   const double tol = 0.1;
 
   // Random number generator
-  const unsigned long seed = 0;
+  const uint64_t seed = 0;
   std::mt19937 rng(seed);
   std::uniform_real_distribution<double> pos_rand(-5, 5);
   std::uniform_real_distribution<double> angle_rand(0.0, 1.0);
@@ -96,7 +96,7 @@ void testRandomCameraPose() {
 
 void testPixelToCamera() {
   // Random number generator
-  const unsigned long seed = 0;
+  const uint64_t seed = 0;
   const int image_width = 1240;
   const int image_height = 760;
   std::mt19937 rng(seed);

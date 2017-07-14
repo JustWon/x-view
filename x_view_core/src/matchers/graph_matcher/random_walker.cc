@@ -60,7 +60,7 @@ RandomWalker::RandomWalker(const Graph& graph,
 }
 
 void RandomWalker::generateRandomWalks() {
-  const unsigned long num_vertices = boost::num_vertices(graph_);
+  const uint64_t num_vertices = boost::num_vertices(graph_);
   random_walks_.clear();
   random_walks_.resize(num_vertices);
 
@@ -135,7 +135,7 @@ const VertexDescriptor RandomWalker::nextVertex(
     const VertexDescriptor current_vertex_index) const {
   const float p = random_distribution_(random_engine_);
 
-  const unsigned long num_neighbor_vertices =
+  const uint64_t num_neighbor_vertices =
       boost::degree(current_vertex_index, graph_);
   if (num_neighbor_vertices == 0) {
     LOG(WARNING) << "Vertex " << current_vertex_index << " has no neighbors. "
@@ -155,7 +155,7 @@ const VertexDescriptor RandomWalker::nextVertex(
       if (graph_[*iter].semantic_label != current_label)
         different_index_v_d.push_back(*iter);
     }
-    const unsigned long num_neighbors_with_different_label =
+    const uint64_t num_neighbors_with_different_label =
         different_index_v_d.size();
     if (num_neighbors_with_different_label > 0) {
       const int advance_step =

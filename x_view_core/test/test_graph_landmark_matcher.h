@@ -17,13 +17,13 @@ namespace x_view_test {
  * \brief Tests a chain-like graph.
  * \param seed Seed used to randomly generate the chain-like graph.
  */
-void testChainGraph(const unsigned long seed);
+void testChainGraph(const uint64_t seed);
 
 /**
  * \brief Tests a graph with random topology.
  * \param seed Seed used to randomly generate the random graph.
  */
-void testRandomGraph(const unsigned long seed);
+void testRandomGraph(const uint64_t seed);
 
 
 /**

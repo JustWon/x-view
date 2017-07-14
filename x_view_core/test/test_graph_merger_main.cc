@@ -29,7 +29,7 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
 
   const auto& dataset = Locator::getDataset();
 
-  const unsigned long seed = 0;
+  const uint64_t seed = 0;
 
   // Generate a base graph.
   GraphConstructionParams graph_construction_params;
@@ -64,7 +64,7 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
 
   Graph query_graph = query_graph_orig;
   modifyGraph(&query_graph, graph_modifier_params, rng);
-  const unsigned long new_last_time_seen = 1;
+  const uint64_t new_last_time_seen = 1;
   setLastTimeSeen(&query_graph, new_last_time_seen);
 
   // Perform the matching

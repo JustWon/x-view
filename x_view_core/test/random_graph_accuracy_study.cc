@@ -19,7 +19,7 @@ typedef std::shared_ptr<GraphMatcher> GraphMatcherPtr;
  * and studies the accuracy of vertex match using random walks.
  * \param seed Seed used for random graph extraction.
  */
-void randomGraphAccuracyStudy(const unsigned long seed) {
+void randomGraphAccuracyStudy(const uint64_tseed) {
 
   const int runs_per_settings = 10;
 
