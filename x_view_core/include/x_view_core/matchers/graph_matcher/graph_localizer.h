@@ -2,6 +2,7 @@
 #define X_VIEW_GRAPH_LOCALIZER_H
 
 #include <x_view_core/features/graph.h>
+#include <x_view_core/matchers/graph_matcher/graph_matcher.h>
 #include <x_view_core/x_view_types.h>
 
 namespace x_view {
@@ -26,6 +27,23 @@ class GraphLocalizer {
    */
   void addObservation(const VertexProperty& vertex_property,
                       const double distance, const double evidence = 1.0);
+
+  /**
+   * \brief Function that estimates a transformation based on the
+   * result of the descriptor matching. The estimation is based on a RANSAC
+   * consensus.
+   * \param matching_result Const reference to the observations.
+   * \param query_semantic_graph Const reference to the (local) query
+   * semantic graph
+   * \param database_semantic_graph Const reference to the (global) database
+   * semantic graph
+   * \param transformation Return value of the transformation.
+   * \return Indicator if transformation estimation succeeded.
+   */
+  bool estimateTransformation(
+      const GraphMatcher::GraphMatchingResult& matching_result,
+      const Graph& query_semantic_graph, const Graph& database_semantic_graph,
+      SE3* transformation);
 
   /**
    * \brief Localizes the robot in the world coordinate frame by optimizing

@@ -184,11 +184,6 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
 
 }
 
-bool GraphMatcher::estimateTransformation(
-    const MatchingResultPtr matching_result, SE3* transformation) {
-  return false;
-}
-
 void GraphMatcher::addDescriptor(const ConstDescriptorPtr& descriptor) {
   const Graph& graph = std::dynamic_pointer_cast<const GraphDescriptor>
       (descriptor)->getDescriptor();

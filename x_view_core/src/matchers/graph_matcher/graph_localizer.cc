@@ -6,6 +6,7 @@
 #include <gtsam/slam/PriorFactor.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/sam/RangeFactor.h>
+#include <pcl/recognition/cg/geometric_consistency.h>
 
 namespace x_view {
 
@@ -84,6 +85,26 @@ void GraphLocalizer::addObservation(const VertexProperty& vertex_property,
                                     const double distance,
                                     const double evidence) {
   observations_.push_back(Observation{vertex_property, distance, evidence});
+}
+
+bool GraphLocalizer::estimateTransformation(
+    const GraphMatcher::GraphMatchingResult& matching_result,
+    const Graph& query_semantic_graph, const Graph& database_semantic_graph,
+    SE3* transformation) {
+  CHECK_NOTNULL(transformation);
+
+  // Retrieve locations of matching node pairs.
+  GraphMatcher::MaxSimilarityMatrixType similarities = matching_result
+      .computeMaxSimilarityColwise();
+
+  for (size_t i = 0u; i < similarities.cols(); ++i) {
+    GraphMatcher::MaxSimilarityMatrixType::Index maxIndex;
+    similarities.col(i).maxCoeff(&maxIndex);
+    Eigen::Vector3d query_location = query_semantic_graph[i].location_3d;
+    Eigen::Vector3d database_location = database_semantic_graph[maxIndex].location_3d;
+  }
+
+  return false;
 }
 
 }

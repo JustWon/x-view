@@ -66,17 +66,6 @@ class GraphMatcher : public AbstractMatcher {
    */
   MatchingResultPtr match(const Graph& query_semantic_graph);
 
-  /**
-   * \brief Overloaded function that estimates a transformation based on the
-   * result of the descriptor matching. The estimation is based on a RANSAC
-   * consensus.
-   * \param matching_result Const reference to the matching result.
-   * \param transformation Return value of the transformation.
-   * \return Indicator if transformation estimation succeeded.
-   */
-  bool estimateTransformation(const MatchingResultPtr matching_result,
-                              SE3* transformation);
-
   virtual void addDescriptor(const ConstDescriptorPtr& descriptor) override;
 
   /**

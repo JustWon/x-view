@@ -56,16 +56,6 @@ class AbstractMatcher {
   = 0;
 
   /**
-   * \brief Estimates a transformation based on the result of the descriptor
-   * matching. The estimation is based on a RANSAC consensus.
-   * \param matching_result Const reference to the matching result.
-   * \param transformation Return value of the transformation.
-   * \return Indicator if transformation estimation succeeded.
-   */
-  virtual bool estimateTransformation(const MatchingResultPtr matching_result,
-                                      SE3* transformation) = 0;
-
-  /**
    * \brief Since while processing the first frame in the program we don't have
    * to match the corresponding descriptor to anything, we simply want to add
    * the associated descriptor to the internal representation of the matcher.
