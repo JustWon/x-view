@@ -47,6 +47,11 @@ VectorMatcher::match(const SemanticLandmarkPtr& query_landmark) {
 
 }
 
+bool VectorMatcher::estimateTransformation(
+    const MatchingResultPtr matching_result, SE3* transformation) {
+  return false;
+}
+
 LandmarksMatcherPtr VectorMatcher::create() {
   return std::make_shared<VectorMatcher>();
 }
