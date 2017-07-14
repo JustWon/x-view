@@ -111,7 +111,7 @@ class AbstractDataset {
 
   /// \brief Returns the length of the longest label in the dataset. This
   /// function is used for formatting the output.
-  const unsigned long largestLabelSize() const;
+  const uint64_t largestLabelSize() const;
 
  protected:
   const int num_semantic_classes_;

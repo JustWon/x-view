@@ -22,8 +22,8 @@ GraphPublisher::GraphPublisher(ros::NodeHandle& nh,
 void GraphPublisher::publish(const x_view::Graph& graph,
                              const ros::Time& time) const {
 
-  const unsigned long num_vertices = boost::num_vertices(graph);
-  const unsigned long num_edges = boost::num_edges(graph);
+  const uint64_t num_vertices = boost::num_vertices(graph);
+  const uint64_t num_edges = boost::num_edges(graph);
 
   LOG(INFO) << "Publishing " << num_vertices << " vertices and "
             << num_edges << " edges.";
@@ -37,7 +37,7 @@ void GraphPublisher::publishVertices(const x_view::Graph& graph,
 
   const auto vertices = boost::vertices(graph);
   // Get the last time index.
-  unsigned long last_time_index = 0;
+  uint64_t last_time_index = 0;
   for (auto iter = vertices.first; iter != vertices.second; ++iter) {
     last_time_index = std::max(last_time_index, graph[*iter].last_time_seen_);
   }

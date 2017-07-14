@@ -74,7 +74,7 @@ const std::vector<int> AbstractDataset::getLabelsToIncludeInGraph() const {
   return labels_to_include_in_graph;
 }
 
-const unsigned long AbstractDataset::largestLabelSize() const {
+const uint64_t AbstractDataset::largestLabelSize() const {
   return std::max_element(semantic_entities_.begin(), semantic_entities_.end(),
                           [](const SemanticEntity& s1,
                              const SemanticEntity& s2) {
@@ -85,7 +85,7 @@ const unsigned long AbstractDataset::largestLabelSize() const {
 
 std::ostream& operator<<(std::ostream& out, const AbstractDataset& dataset) {
   out << "Dataset name: " << dataset.datasetName() << std::endl << std::endl;
-  const unsigned long max_label_length = dataset.largestLabelSize() + 1;
+  const uint64_t max_label_length = dataset.largestLabelSize() + 1;
   out << std::setfill(' ');
   out << std::left << std::setw(4) << "id:"
       << std::left << std::setw(max_label_length) << "label:"

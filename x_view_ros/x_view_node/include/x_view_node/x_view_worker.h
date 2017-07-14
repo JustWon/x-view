@@ -128,7 +128,7 @@ class XViewWorker {
   GraphPublisher graph_publisher_;
 
   /// \brief A counter for the frames being processed.
-  unsigned long frame_id_;
+  uint64_t frame_id_;
 
 }; // XViewNode
 

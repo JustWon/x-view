@@ -256,7 +256,7 @@ void modifyGraph(x_view::Graph* graph, const GraphModifierParams& params,
 
 }
 
-void setLastTimeSeen(x_view::Graph* graph, const unsigned long last_time_seen) {
+void setLastTimeSeen(x_view::Graph* graph, const uint64_t last_time_seen) {
   const auto vertices = boost::vertices(*graph);
   for (auto iter = vertices.first; iter != vertices.second; ++iter) {
     (*graph)[*iter].last_time_seen_ = last_time_seen;
