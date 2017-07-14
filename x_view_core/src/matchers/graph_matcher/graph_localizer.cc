@@ -6,9 +6,14 @@
 #include <gtsam/slam/PriorFactor.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/sam/RangeFactor.h>
+#include <pcl/correspondence.h>
+#include <pcl/point_types.h>
 #include <pcl/recognition/cg/geometric_consistency.h>
 
 namespace x_view {
+
+typedef std::vector<Eigen::Matrix4f, Eigen::aligned_allocator<Eigen::Matrix4f>>
+    TransformationVector;
 
 GraphLocalizer::GraphLocalizer(const double prior_noise)
     : prior_noise_(prior_noise),
@@ -87,6 +92,41 @@ void GraphLocalizer::addObservation(const VertexProperty& vertex_property,
   observations_.push_back(Observation{vertex_property, distance, evidence});
 }
 
+// Function extracted from ethz-asl modelify repository.
+void sortCorrespondenceClusters(
+    std::vector<pcl::Correspondences>* clustered_correspondences,
+    TransformationVector* transforms) {
+  CHECK_NOTNULL(clustered_correspondences);
+  CHECK_NOTNULL(transforms);
+  CHECK_EQ(clustered_correspondences->size(), transforms->size());
+
+  typedef std::pair<pcl::Correspondences, Eigen::Matrix4f> ClusterTransformPair;
+  std::vector<ClusterTransformPair> cluster_transform_pairs;
+  cluster_transform_pairs.reserve(clustered_correspondences->size());
+  std::transform(clustered_correspondences->begin(),
+                 clustered_correspondences->end(), transforms->begin(),
+                 std::back_inserter(cluster_transform_pairs),
+                 [](pcl::Correspondences a, Eigen::Matrix4f b) {
+    return std::make_pair(a, b);
+  });
+
+  std::sort(cluster_transform_pairs.begin(), cluster_transform_pairs.end(),
+            [](const ClusterTransformPair& a, const ClusterTransformPair& b) {
+    return a.first.size() > b.first.size();
+  });
+
+  // Clean up old vectors.
+  transforms->clear();
+  clustered_correspondences->clear();
+
+  for (auto it = std::make_move_iterator(cluster_transform_pairs.begin()),
+      end = std::make_move_iterator(cluster_transform_pairs.end());
+      it != end; ++it) {
+    clustered_correspondences->push_back(std::move(it->first));
+    transforms->push_back(std::move(it->second));
+  }
+}
+
 bool GraphLocalizer::estimateTransformation(
     const GraphMatcher::GraphMatchingResult& matching_result,
     const Graph& query_semantic_graph, const Graph& database_semantic_graph,
@@ -97,14 +137,48 @@ bool GraphLocalizer::estimateTransformation(
   GraphMatcher::MaxSimilarityMatrixType similarities = matching_result
       .computeMaxSimilarityColwise();
 
+  // todo(gawela): Should we generally use PCL types for points /
+  // correspondences?
+  pcl::PointCloud<pcl::PointXYZ>::Ptr query_cloud(
+      new pcl::PointCloud<pcl::PointXYZ>());
+  pcl::PointCloud<pcl::PointXYZ>::Ptr database_cloud(
+      new pcl::PointCloud<pcl::PointXYZ>());
+  query_cloud->points.resize(similarities.cols());
+  database_cloud->points.resize(similarities.cols());
+  pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
+  correspondences->resize(similarities.cols());
+
   for (size_t i = 0u; i < similarities.cols(); ++i) {
     GraphMatcher::MaxSimilarityMatrixType::Index maxIndex;
     similarities.col(i).maxCoeff(&maxIndex);
-    Eigen::Vector3d query_location = query_semantic_graph[i].location_3d;
-    Eigen::Vector3d database_location = database_semantic_graph[maxIndex].location_3d;
+    query_cloud->points[i].getVector3fMap() = query_semantic_graph[i]
+        .location_3d.cast<float>();
+    database_cloud->points[i].getVector3fMap() =
+        database_semantic_graph[maxIndex].location_3d.cast<float>();
+    (*correspondences)[i].index_query = i;
+    (*correspondences)[i].index_match = i;
   }
 
-  return false;
+  pcl::GeometricConsistencyGrouping<pcl::PointXYZ, pcl::PointXYZ> grouping;
+  grouping.setSceneCloud(database_cloud);
+  grouping.setInputCloud(query_cloud);
+  grouping.setModelSceneCorrespondences(correspondences);
+  // todo(gawela) Make parametric.
+  grouping.setGCThreshold(5.0);
+  grouping.setGCSize(2.0);
+
+  TransformationVector transformations;
+  std::vector<pcl::Correspondences> clustered_correspondences;
+  if (!grouping.recognize(transformations, clustered_correspondences)) {
+    return false;
+  }
+
+  if (transformations.size() == 0) {
+    return false;
+  }
+  sortCorrespondenceClusters(&clustered_correspondences, &transformations);
+  (*transformation) = SE3(Eigen::Matrix4d(transformations[0].cast<double>()));
+  return true;
 }
 
 }
