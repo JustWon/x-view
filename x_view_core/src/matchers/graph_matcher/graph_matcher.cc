@@ -172,7 +172,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
 
 
   // Need to regenerate the random walks of the extended global graph.
-  global_semantic_graph_ = graph_merger.getMergedGraph();
+  global_semantic_graph_ = graph_merger.computeMergedGraph();
   // Regenerate the random walks of the new global graph
   RandomWalker global_random_walker(global_semantic_graph_,
                                     random_walker_params_);

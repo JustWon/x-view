@@ -231,6 +231,8 @@ GraphPair generateChainGraphPair(const GraphConstructionParams& construction_par
   updated_modifier_params.start_vertex_index = max_index + 1;
   // Effectively add and remove vertices and edges from the graph.
   modifyGraph(&graph_pair.sub_graph, updated_modifier_params, rng);
+  const unsigned long new_last_time_seen = 1;
+  setLastTimeSeen(&graph_pair.sub_graph, new_last_time_seen);
 
 
   LOG(INFO) << "Generated chain graph with "
@@ -273,6 +275,8 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
 
   // Effectively add and remove vertices and edges from the graph.
   modifyGraph(&graph_pair.sub_graph, updated_modifier_params, rng);
+  const unsigned long new_last_time_seen = 1;
+  setLastTimeSeen(&graph_pair.sub_graph, new_last_time_seen);
 
   LOG(INFO) << "Generated random graph with "
             << boost::num_vertices(graph_pair.base_graph)
@@ -312,15 +316,11 @@ float similarityAccuracy(const GraphPair& graph_pair,
 
         if (v_i_base.index == v_j_sub.index)
           ++correct_matches;
-
         ++num_proposed_matches;
-
       }
     }
   }
-
   return static_cast<float>(correct_matches) / num_proposed_matches;
-
 }
 
 }

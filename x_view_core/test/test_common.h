@@ -121,6 +121,15 @@ x_view::Graph extractSubgraphAroundVertex(const x_view::Graph& original,
 void modifyGraph(x_view::Graph* graph, const GraphModifierParams& params,
                  std::mt19937& rng);
 
+/**
+ * \brief Changes the 'last_time_seen' property of all vertices of the graph
+ * passed as argument.
+ * \param graph Pointer to the graph being modified.
+ * \param last_time_seen New index to set on all vertices of the graph passed
+ * as argument.
+ */
+void setLastTimeSeen(x_view::Graph* graph, const unsigned long last_time_seen);
+
 }
 
 #endif //X_VIEW_TEST_COMMON_H
