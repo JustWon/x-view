@@ -19,3 +19,6 @@
 - git:
    local-name: opencv_blobs_catkin
    uri: https://github.com/ethz-asl/opencv_blobs_catkin.git
+- git:
+   local-name: pcl_catkin
+   uri: https://github.com/ethz-asl/pcl_catkin.git
