@@ -155,8 +155,27 @@ std::ostream& operator<<(std::ostream& out, const EdgeProperty& e);
 /// \brief Overloaded operator to print a graph.
 std::ostream& operator<<(std::ostream& out, const Graph& graph);
 
-/// \brief Writes the graph passed as argument to the file specified as
-/// second argument in the '.dot' file format.
+/**
+ * \brief Writes the graph passed as argument to the file specified as second
+ * argument in the '.dot' file format.
+ * \details The file written by this function contains the following
+ * information about the graph passed as argument:
+ *   - Graph name (same for all graphs: 'semantic_graph')
+ *   - An unordered list of vertices with the following properties:
+ *     - Vertex identifier encoded through the vertex index proeprty.
+ *     - A text label reflecting the semantic entity name of the vertex.
+ *     - Fill color: color associated to the semantic entity (see
+ *       getColorFromSemanticLabel()).
+ *     - Font color: color used for the label (computed such that it is
+ *       visible overlayed with the fill color).
+ *     - 2D coordinates to be used when rendering the graph (coordinates are
+ *       associated to the x and y coordinate of the 3D world coordinate of the
+ *       vertex.)
+ *     - A comment on the real 3D location of the vertex.
+ *   - An unordered list of undirected edges defined by the vertex identifiers
+ *     composing the edge (e.g '3 -- 4' refers to edge between vertex with
+ *     identifier '3' and vertex with identifier '4').
+ */
 void writeToFile(const Graph& graph, const std::string& filename);
 
 }

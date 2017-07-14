@@ -123,8 +123,7 @@ void writeToFile(const Graph& graph, const std::string& filename) {
   const auto vertices = boost::vertices(graph);
   for (auto iter = vertices.first; iter != vertices.second; ++iter) {
     const VertexProperty& v_p = graph[*iter];
-    const cv::Scalar color =
-        x_view::getColorFromSemanticLabel(v_p.semantic_label);
+    const cv::Scalar color = getColorFromSemanticLabel(v_p.semantic_label);
     const std::string label =
         std::to_string(v_p.index) + ": " + v_p.semantic_entity_name +
             " (T: " + std::to_string(v_p.last_time_seen_) + ")";
