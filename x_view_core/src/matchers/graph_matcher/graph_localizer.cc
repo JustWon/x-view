@@ -9,6 +9,7 @@
 #include <pcl/correspondence.h>
 #include <pcl/point_types.h>
 #include <pcl/recognition/cg/geometric_consistency.h>
+#include <pcl/registration/transformation_estimation_svd.h>
 
 namespace x_view {
 
@@ -159,25 +160,36 @@ bool GraphLocalizer::estimateTransformation(
     (*correspondences)[i].index_match = i;
   }
 
-  pcl::GeometricConsistencyGrouping<pcl::PointXYZ, pcl::PointXYZ> grouping;
-  grouping.setSceneCloud(database_cloud);
-  grouping.setInputCloud(query_cloud);
-  grouping.setModelSceneCorrespondences(correspondences);
-  // todo(gawela) Make parametric.
-  grouping.setGCThreshold(5.0);
-  grouping.setGCSize(2.0);
+  pcl::registration::TransformationEstimation<pcl::PointXYZ, pcl::PointXYZ>::Ptr
+  transformation_estimation(
+      new pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,
+          pcl::PointXYZ>);
 
-  TransformationVector transformations;
-  std::vector<pcl::Correspondences> clustered_correspondences;
-  if (!grouping.recognize(transformations, clustered_correspondences)) {
-    return false;
-  }
+  Eigen::Matrix4f transform;
+  transformation_estimation->estimateRigidTransformation(
+      *query_cloud, *database_cloud, *correspondences, transform);
 
-  if (transformations.size() == 0) {
-    return false;
-  }
-  sortCorrespondenceClusters(&clustered_correspondences, &transformations);
-  (*transformation) = SE3(Eigen::Matrix4d(transformations[0].cast<double>()));
+  (*transformation) = SE3(Eigen::Matrix4d(transform.cast<double>()));
+
+//  pcl::GeometricConsistencyGrouping<pcl::PointXYZ, pcl::PointXYZ> grouping;
+//  grouping.setSceneCloud(database_cloud);
+//  grouping.setInputCloud(query_cloud);
+//  grouping.setModelSceneCorrespondences(correspondences);
+//  // todo(gawela) Make parametric.
+//  grouping.setGCThreshold(5.0);
+//  grouping.setGCSize(2.0);
+//
+//  TransformationVector transformations;
+//  std::vector<pcl::Correspondences> clustered_correspondences;
+//  if (!grouping.recognize(transformations, clustered_correspondences)) {
+//    return false;
+//  }
+//
+//  if (transformations.size() == 0) {
+//    return false;
+//  }
+//  sortCorrespondenceClusters(&clustered_correspondences, &transformations);
+//  (*transformation) = SE3(Eigen::Matrix4d(transformations[0].cast<double>()));
   return true;
 }
 
