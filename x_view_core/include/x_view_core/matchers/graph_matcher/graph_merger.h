@@ -29,9 +29,14 @@ class GraphMerger {
    * query and the database graph. The similarity matrix contained in this
    * structure is used as mean for deciding which vertex of the query graph
    * is associated with which vertex of the database graph.
+   * \param time_window Integer referring to time window allowed to perform
+   * merges. In particular, if time_window == 0, no candidate merge is
+   * discarded. In the other hand, given time_window > 0, only candidate
+   * merges between vertices tagged at most time_windows far apart are merged.
    */
   GraphMerger(const Graph& database_graph, const Graph& query_graph,
-              const GraphMatcher::GraphMatchingResult& matching_result);
+              const GraphMatcher::GraphMatchingResult& matching_result,
+              const uint64_t time_window = 0);
 
   /**
    * \brief Performs the merging operation between the query and the database
@@ -46,9 +51,23 @@ class GraphMerger {
   const Graph computeMergedGraph();
 
  private:
+  /// \brief Const reference to the database graph.
   const Graph& database_graph_;
+
+  /// \brief Const reference to the query graph to be merged into the
+  /// database graph.
   const Graph& query_graph_;
+
+  /// \brief Structure containing information about the similarities between
+  /// the vertices in the query and in the database graph.
   const GraphMatcher::GraphMatchingResult& matching_result_;
+
+  /// \brief Time window used to select which candidate matching vertices
+  /// should be merged together. In particular, if a vertex is candidate to
+  /// be merged with another, the merge only takes place if the time-distance
+  /// between the two vertices is smaller or equal to the allowed time window
+  /// defind by time_window_.
+  const uint64_t time_window_;
 
   /// \brief Graph resulting from the merging operation.
   Graph merged_graph_;
@@ -71,6 +90,30 @@ class GraphMerger {
   GraphMatcher::MaxSimilarityMatrixType computeAgreementMatrix() const;
 
   void addVertexToMergedGraph(const VertexDescriptor& source_in_query_graph);
+
+  /**
+   * \brief Computes the temporal distance between the i-th vertex of the
+   * database graph and the j-th vertex of the query graph.
+   * \param i Index of the database vertex to be considered.
+   * \param j Index of the query vertex to be considered.
+   * \return The temporal distance between the two vertices indicated by the
+   * indices passed as argument. This value is computed by subtracting the
+   * 'last_time_seen' value of the database vertex from the 'last_time_seen'
+   * value of the query vertex.
+   */
+  const uint64_t temporalDistance(const uint64_t i, const uint64_t j) const;
+
+  /**
+   * \brief Computes the euclidean distance between the i-th vertex of the
+   * database graph and the j-th vertex of the query graph.
+   * \param i Index of the database vertex to be considered.
+   * \param j Index of the query vertex to be considered.
+   * \return The euclidean distance between the two vertices indicated by the
+   * indices passed as argument. This value is computed by subtracting the
+   * 'location_3d' property of the database vertex from the 'location_3d'
+   * value of the query vertex and by taking its norm.
+   */
+  const double spatialDistance(const uint64_t i, const uint64_t j) const;
 
 };
 

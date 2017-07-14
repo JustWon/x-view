@@ -6,10 +6,13 @@ namespace x_view {
 
 GraphMerger::GraphMerger(const Graph& database_graph,
                          const Graph& query_graph,
-                         const GraphMatcher::GraphMatchingResult& matching_result)
+                         const GraphMatcher::GraphMatchingResult& matching_result,
+                         const uint64_t time_window)
     : database_graph_(database_graph),
       query_graph_(query_graph),
-      matching_result_(matching_result) {
+      matching_result_(matching_result),
+      time_window_((time_window > 0 ? time_window :
+          std::numeric_limits<uint64_t>::max())) {
 
 }
 
@@ -29,19 +32,23 @@ const Graph GraphMerger::computeMergedGraph() {
 
   // Only consider possible matches between vertices if their similarity is
   // large than this threshold.
-  const float similarity_threshold = 0.0f;
+  const float similarity_threshold = 0.3f;
 
   // This map contains the matches between the vertex descriptors in the
   // query graph to the corresponding vertex descriptor in the database_graph.
   query_in_db_.clear();
 
+  const double space_distance = 5.0;
+
   // Loop over the vertices of the query graph.
-  for (int j = 0; j < num_query_vertices; ++j) {
+  for(int j = 0; j < num_query_vertices; ++j) {
     // Loop over the vertices of the database graph.
-    for (int i = 0; i < num_db_vertices; ++i) {
+    for(int i = 0; i < num_db_vertices; ++i) {
       // Check if the two vertices are possible matches.
-      if (max_similarity_agree(i, j) == true
-          && similarity_matrix(i, j) >= similarity_threshold) {
+      if(max_similarity_agree(i, j) == true
+          && similarity_matrix(i, j) >= similarity_threshold &&
+          temporalDistance(i, j) <= time_window_ &&
+          spatialDistance(i, j) <= space_distance) {
         // There is a match between the j-th vertex of the query graph and
         // the i-th vertex of the database graph.
         query_in_db_.insert({j, i});
@@ -94,7 +101,6 @@ const Graph GraphMerger::computeMergedGraph() {
   return merged_graph_;
 
 }
-
 
 GraphMatcher::MaxSimilarityMatrixType GraphMerger::computeAgreementMatrix() const {
 
@@ -158,7 +164,7 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       neighbor_v_p.index = current_vertex_index_++;
       const VertexDescriptor neighbor_in_db_graph =
           boost::add_vertex(neighbor_v_p, merged_graph_);
-     LOG(INFO) << "\t\tWas added to merged graph: " << neighbor_v_p <<
+      LOG(INFO) << "\t\tWas added to merged graph: " << neighbor_v_p <<
                 " graph with VD: " << neighbor_in_db_graph << ".";
       // Create an edge between source_in_db_graph and the newly added vertex.
       auto edge_d = boost::add_edge(source_in_db_graph,
@@ -194,6 +200,23 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       }
     }
   }
+}
+
+const uint64_t GraphMerger::temporalDistance(const uint64_t i,
+                                             const uint64_t j) const {
+  const VertexProperty& v_i_database = database_graph_[i];
+  const VertexProperty& v_j_query = query_graph_[j];
+
+  return v_j_query.last_time_seen_ - v_i_database.last_time_seen_;
+}
+
+
+const double GraphMerger::spatialDistance(const uint64_t i, const uint64_t j)
+const {
+  const VertexProperty& v_i_database = database_graph_[i];
+  const VertexProperty& v_j_query = query_graph_[j];
+
+  return (v_j_query.location_3d - v_i_database.location_3d).norm();
 }
 
 }

@@ -40,7 +40,7 @@ padded_int::padded_int(const int64_t value, const int pad, const char fill)
   const std::string value_string = std::to_string(value_);
   const int num_digits = value_string.length();
   CHECK(num_digits <= pad)
-  << "You are trying to pad a number with "  << num_digits
+  << "You are trying to pad a number with " << num_digits
   << " digits with a pad of " << pad;
 
   std::stringstream ss;
@@ -53,13 +53,12 @@ const std::string& padded_int::str() const {
   return str_;
 }
 
-std::string operator + (const std::string& l, const padded_int& r) {
+std::string operator+(const std::string& l, const padded_int& r) {
   return l + r.str();
 }
-std::string operator + (const padded_int& l, const std::string& r) {
+std::string operator+(const padded_int& l, const std::string& r) {
   return l.str() + l;
 }
-
 
 const std::string formatSE3(const SE3& se3, const std::string& indent,
                             const int precision) {
@@ -69,7 +68,8 @@ const std::string formatSE3(const SE3& se3, const std::string& indent,
   s += std::string("origin:\n") + indent;
 
   std::stringstream ss;
-  ss << std::setfill(' ') << Eigen::RowVector3d(se3.getPosition()).format(format);
+  ss << std::setfill(' ')
+     << Eigen::RowVector3d(se3.getPosition()).format(format);
   s += ss.str();
   ss.str(std::string());
 
@@ -94,8 +94,8 @@ const cv::Scalar getColorFromSemanticLabel(const int semantic_label) {
 }
 
 const Eigen::Matrix3d createRotationMatrix(double r1, double r2, double r3) {
-  r1 = r1 * 2.0*M_PI;
-  r2 = r2 * 2.0*M_PI;
+  r1 = r1 * 2.0 * M_PI;
+  r2 = r2 * 2.0 * M_PI;
   r3 = r3 * 2.0;
 
   double r = std::sqrt(r3);
@@ -107,16 +107,16 @@ const Eigen::Matrix3d createRotationMatrix(double r1, double r2, double r3) {
   double ct = std::cos(r1);
 
   Eigen::Matrix3d R;
-  R << ct, st, 0,-st, ct, 0, 0, 0, 1;
+  R << ct, st, 0, -st, ct, 0, 0, 0, 1;
 
   Eigen::Matrix3d M =
       (Eigen::Vector3d(vx, vy, vz) * Eigen::RowVector3d(vx, vy, vz)
-          -Eigen::Matrix3d::Identity()) * R;
+          - Eigen::Matrix3d::Identity()) * R;
   return M;
 }
 
 const Eigen::Matrix3d randomRotationMatrix(std::mt19937& rng) {
-  std::uniform_real_distribution<double> dist(0,1);
+  std::uniform_real_distribution<double> dist(0, 1);
   return createRotationMatrix(dist(rng), dist(rng), dist(rng));
 }
 
@@ -179,14 +179,14 @@ void finalizeLogging() {
 // **************************** Graph modifiers ******************************//
 
 void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
-                            const int index,  const int link_to_n_vertices) {
+                            const int index, const int link_to_n_vertices) {
   CHECK_NOTNULL(graph);
 
   const auto& dataset = Locator::getDataset();
 
   // Create the new vertex.
   VertexProperty new_vertex;
-  if(index == -1)
+  if (index == -1)
     new_vertex.index = static_cast<int>(boost::num_vertices(*graph));
   else
     new_vertex.index = index;
@@ -233,7 +233,6 @@ void addRandomEdgeToGraph(Graph* graph, std::mt19937& rng) {
     }
   }
 }
-
 
 void removeRandomVertexFromGraph(Graph* graph, std::mt19937& rng) {
   CHECK_NOTNULL(graph);
@@ -315,8 +314,5 @@ void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng) {
     }
   }
 }
-
-
-
 
 };

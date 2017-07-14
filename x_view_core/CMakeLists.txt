@@ -144,7 +144,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )
 
-target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME} )
+target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
 
 # Building from the CLION IDE does not include correctly the directories
 # organized by catkin, so we manually include them assuming the worspace has

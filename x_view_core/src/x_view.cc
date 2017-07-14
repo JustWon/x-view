@@ -44,7 +44,6 @@ void XView::processFrameData(const FrameData& frame_data) {
 
   LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
 
-
 }
 
 const Graph& XView::getSemanticGraph() const {
@@ -77,8 +76,8 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
   createSemanticLandmark(frame_data, landmark_ptr);
 
   const Graph& query_graph = std::dynamic_pointer_cast<const GraphDescriptor>(
-  std::dynamic_pointer_cast<GraphLandmark>
-      (landmark_ptr)->getDescriptor())->getDescriptor();
+      std::dynamic_pointer_cast<GraphLandmark>
+          (landmark_ptr)->getDescriptor())->getDescriptor();
 
   // Get the existing global semantic graph before matching.
   const Graph& global_graph = getSemanticGraph();
@@ -113,18 +112,19 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
 
   GraphLocalizer graph_localizer;
 
-  for(int j = 0; j < max_similarity_matrix.cols(); ++j) {
+  for (int j = 0; j < max_similarity_matrix.cols(); ++j) {
     int max_i = -1;
     max_similarity_matrix.col(j).maxCoeff(&max_i);
-    if(max_i == -1)
+    if (max_i == -1)
       continue;
     std::cout << "Match between vertex " << j << " in query graph is vertex "
-              <<max_i << " in global graph" << std::endl;
+              << max_i << " in global graph" << std::endl;
     const double similarity = similarity_matrix(max_i, j);
     const VertexProperty& match_v_p = global_graph[max_i];
 
     const unsigned short depth_cm =
-    depth_image.at<unsigned short>(match_v_p.center);
+    depth_image.at < unsigned
+    short > (match_v_p.center);
     const double depth_m = depth_cm * 0.01;
 
     graph_localizer.addObservation(match_v_p, depth_m, similarity);
