@@ -25,6 +25,7 @@ class GraphMatcher : public AbstractMatcher {
   typedef Eigen::MatrixXf SimilarityMatrixType;
   typedef Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>
       MaxSimilarityMatrixType;
+  typedef Eigen::Matrix<bool, 1, Eigen::Dynamic> VectorXb;
 
   GraphMatcher();
   GraphMatcher(const RandomWalkerParams& random_walker_params,
@@ -36,7 +37,7 @@ class GraphMatcher : public AbstractMatcher {
    public:
     GraphMatchingResult()
         : AbstractMatchingResult(),
-          similarity_matrix_() {
+          similarity_matrix_(), invalid_matches_() {
     }
 
     const SimilarityMatrixType& getSimilarityMatrix() const {
@@ -47,11 +48,20 @@ class GraphMatcher : public AbstractMatcher {
       return similarity_matrix_;
     }
 
+    const VectorXb& getInvalidMatches() const {
+      return invalid_matches_;
+    }
+
+    VectorXb& getInvalidMatches() {
+      return invalid_matches_;
+    }
+
     MaxSimilarityMatrixType computeMaxSimilarityColwise() const;
     MaxSimilarityMatrixType computeMaxSimilarityRowwise() const;
 
    private:
     SimilarityMatrixType similarity_matrix_;
+    VectorXb invalid_matches_;
   };
 
   virtual MatchingResultPtr match(const SemanticLandmarkPtr& query_landmark)
@@ -65,6 +75,19 @@ class GraphMatcher : public AbstractMatcher {
    * \return MatchingResultPtr containing the result of the matching.
    */
   MatchingResultPtr match(const Graph& query_semantic_graph);
+
+  /**
+   * \brief Function that filters the Matches between graphs for geometric
+   * consistency.
+   * \param query_semantic_graph Semantic graph that was matched against the
+   * global_semantic_graph_.
+   * \param matches the initially established matches.
+   * \param filtered matches the geometrically filtered matches.
+   * \return bool indication of successful filtering.
+   */
+  bool filter_matches(const Graph& query_semantic_graph,
+                      const MatchingResultPtr& matches,
+                      MatchingResultPtr filtered_matches);
 
   virtual void addDescriptor(const ConstDescriptorPtr& descriptor) override;
 
@@ -97,6 +120,7 @@ class GraphMatcher : public AbstractMatcher {
    */
   void computeSimilarityMatrix(const RandomWalker& random_walker,
                                SimilarityMatrixType* similarity_matrix,
+                               VectorXb* invalid_matches,
                                const VertexSimilarity::SCORE_TYPE score_type =
                                VertexSimilarity::SCORE_TYPE::WEIGHTED) const;
 
