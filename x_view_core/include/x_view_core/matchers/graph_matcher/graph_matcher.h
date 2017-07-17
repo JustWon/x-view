@@ -15,6 +15,9 @@
 
 namespace x_view {
 
+typedef std::vector<Eigen::Matrix4f, Eigen::aligned_allocator<Eigen::Matrix4f>>
+    TransformationVector;
+
 /**
  * \brief A class that matches graph landmarks with the database semantic graph.
  */
@@ -86,8 +89,8 @@ class GraphMatcher : public AbstractMatcher {
    * \return bool indication of successful filtering.
    */
   bool filter_matches(const Graph& query_semantic_graph,
-                      const MatchingResultPtr& matches,
-                      MatchingResultPtr filtered_matches);
+                      const GraphMatchingResult& matches,
+                      VectorXb* invalid_matches);
 
   virtual void addDescriptor(const ConstDescriptorPtr& descriptor) override;
 

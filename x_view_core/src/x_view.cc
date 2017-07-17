@@ -91,10 +91,13 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
 
   GraphMatcher::SimilarityMatrixType& similarity_matrix =
       matching_result.getSimilarityMatrix();
+  GraphMatcher::VectorXb& invalid_matches =
+        matching_result.getInvalidMatches();
 
-  std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)->
-      computeSimilarityMatrix(random_walker, &similarity_matrix,
-                              VertexSimilarity::SCORE_TYPE::WEIGHTED);
+  std::dynamic_pointer_cast <GraphMatcher> (descriptor_matcher_)
+          ->computeSimilarityMatrix(
+          random_walker, &similarity_matrix, &invalid_matches,
+          VertexSimilarity::SCORE_TYPE::WEIGHTED);
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
       matching_result.computeMaxSimilarityRowwise().cwiseProduct(
