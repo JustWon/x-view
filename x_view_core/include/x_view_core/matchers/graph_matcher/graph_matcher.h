@@ -113,7 +113,6 @@ class GraphMatcher : public AbstractMatcher {
   VertexSimilarity::SCORE_TYPE vertex_similarity_score_type_;
 
 
-  void mergeDuplicates();
 };
 
 }

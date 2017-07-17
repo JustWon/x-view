@@ -140,6 +140,8 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_camera_projection.cc
         test/test_localization_main.cc
         test/test_localization.cc
+        test/test_graph_duplicate_removal_main.cc
+        test/test_graph_duplicate_removal.cc
 
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )

@@ -5,7 +5,6 @@
 #include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/matchers/graph_matcher/graph_merger.h>
 #include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
-#include <x_view_core/x_view_locator.h>
 
 namespace x_view {
 
@@ -76,21 +75,21 @@ GraphMatcher::GraphMatcher() {
   const auto& matcher_parameters = parameters->getChildPropertyList("matcher");
   const std::string score_type =
       matcher_parameters->getString("vertex_similarity_score");
-  if(score_type == "WEIGHTED")
+  if (score_type == "WEIGHTED" )
     vertex_similarity_score_type_ = VertexSimilarity::SCORE_TYPE::WEIGHTED;
-  else if(score_type == "SURFACE")
+  else if (score_type == "SURFACE")
     vertex_similarity_score_type_ = VertexSimilarity::SCORE_TYPE::SURFACE;
   else
     LOG(ERROR) << "Unrecognized vertex score type <" << score_type << ">.";
 
   const std::string random_walk_sampling_type =
       matcher_parameters->getString("random_walk_sampling_type");
-  if(random_walk_sampling_type == "UNIFORM")
+  if (random_walk_sampling_type == "UNIFORM")
     random_walker_params_.random_sampling_type =
         RandomWalkerParams::SAMPLING_TYPE::UNIFORM;
-  else if(random_walk_sampling_type == "AVOIDING") {
+  else if (random_walk_sampling_type == "AVOIDING") {
     random_walker_params_.random_sampling_type =
-    RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
+        RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
   } else
     LOG(ERROR) << "Unrecognized random walker sampling type <"
                << random_walk_sampling_type << ">.";
@@ -174,8 +173,9 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   // Need to regenerate the random walks of the extended global graph.
   global_semantic_graph_ = graph_merger.computeMergedGraph();
 
-  // Clean the newly generated global semantic graph.
-  mergeDuplicates();
+  // Clean the newly generated global semantic graph by removing duplicate
+  // vertices.
+  GraphMerger::mergeDuplicates(&global_semantic_graph_);
 
   // Regenerate the random walks of the new global graph
   RandomWalker global_random_walker(global_semantic_graph_,
@@ -257,60 +257,6 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
     }
   }
 
-}
-
-void GraphMatcher::mergeDuplicates() {
-
-  class CandidateMerge {
-   public:
-    CandidateMerge()
-    : original_(0), duplicate_(0){
-    }
-
-    CandidateMerge(const uint64_t original, const uint64_t duplicate)
-    : original_(original), duplicate_(duplicate){
-      CHECK(original < duplicate) << "The original vertex descriptor must "
-          "have smaller value than the duplicate!";
-    }
-   private:
-    const uint64_t original_;
-    const uint64_t duplicate_;
-  };
-  std::vector<CandidateMerge> candidates;
-
-  const double distance_thresh = 2.0;
-
-  const uint64_t num_vertices = boost::num_vertices(global_semantic_graph_);
-  std::vector<bool> taken(num_vertices, false);
-
-  // Traverse the vertices in backward order.
-  for(uint64_t i_ = 0; i_ < num_vertices; ++i_ ) {
-    const uint64_t i = num_vertices - i_ - 1;
-    if(taken[i] == true)
-      continue;
-    // Get the last vertex property.
-    const VertexProperty& last_v_p = global_semantic_graph_[i];
-    const int last_semantic_label = last_v_p.semantic_label;
-    const Eigen::Vector3d& last_position = last_v_p.location_3d;
-
-    // Iterate over the remaining elements and create a candidate merge if
-    // they are too close and of the same semantic label.
-    for(uint64_t j_ = 0; j_ < i; ++j_) {
-      const uint64_t j = i - j_ - 1;
-      if(taken[j] == true)
-        continue;
-      const VertexProperty& v_p = global_semantic_graph_[j];
-      const int semantic_label = v_p.semantic_label;
-      const Eigen::Vector3d& position = v_p.location_3d;
-
-      const double distance = (last_position - position).norm();
-
-      if(last_semantic_label == semantic_label && distance < distance_thresh) {
-        // There is a merge here.
-        candidates.push_back({j, i});
-      }
-    }
-  }
 }
 
 }

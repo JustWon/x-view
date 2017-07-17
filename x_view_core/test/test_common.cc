@@ -112,13 +112,15 @@ x_view::Graph generateChainGraph(const GraphConstructionParams& params) {
 
   x_view::Graph graph;
   std::vector<x_view::VertexDescriptor> vertex_descriptors;
+  double theta = 0;
+  const double d_theta = 2 * M_PI / params.num_vertices;
   // Create the vertices of the graph in sequence.
-  for (int i = 0; i < params.num_vertices; ++i) {
+  for (int i = 0; i < params.num_vertices; ++i, theta += d_theta) {
     x_view::VertexProperty vertex;
     vertex.index = i;
     vertex.num_pixels = 1;
     vertex.center = cv::Point2i(0, 0);
-    vertex.location_3d = Eigen::Vector3d::Zero();
+    vertex.location_3d << std::cos(theta), std::sin(theta), 0.0;
     vertex.last_time_seen_ = 0;
     // Set a random semantic label to the vertex.
     vertex.semantic_label = dist(rng);

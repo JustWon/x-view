@@ -50,7 +50,40 @@ class GraphMerger {
    */
   const Graph computeMergedGraph();
 
+  /**
+   * \brief This function cleans the graph passed as argument by merging
+   * together all pairs of vertices which fulfill proximity/similarity
+   * properties.
+   * \param graph Graph to be cleaned.
+   * \details Given two vertices v_1 and v_2, if their euclidean distance is
+   * small enough, and their semantic label is identical, this function
+   * merges them together. The resulting vertex v_m is a vertex whose edges
+   * correspond to the union of the edges of v_1 and v_2.
+   */
+  static void mergeDuplicates(Graph* graph);
+
+  /**
+   * \brief Function to test if the vertices associated to the vertex
+   * descriptors passed as argument should be merged into a unique vertex or
+   * not.
+   * \param v_d_1 VertexDescriptor associated to the first vertex being
+   * queried for merging.
+   * \param v_d_2 VertexDescriptor associated to the second vertex being
+   * queried for merging.
+   * \param graph Const reference to the graph structure containing the
+   * vertices passed as argument.
+   * \return True if the vertices associated with the passed parameters
+   * should be merged together, false otherwise.
+   * \details Two vertices should be merged together only if their semantic
+   * label is identical, and if their euclidean distance in world space is
+   * smaller than a fixed threshold.
+   */
+  static const bool verticesShouldBeMerged(const VertexDescriptor v_d_1,
+                                           const VertexDescriptor v_d_2,
+                                           const Graph& graph);
+
  private:
+
   /// \brief Const reference to the database graph.
   const Graph& database_graph_;
 
