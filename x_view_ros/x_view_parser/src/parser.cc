@@ -12,10 +12,12 @@ std::unique_ptr<Parameters> Parser::parseParameters() const {
   auto dataset_parameters = parseDataset();
   auto landmark_parameters = parseLandmark();
   auto matcher_parameters = parseMatcher();
+  auto localizer_parameters = parseLocalizer();
 
   parameters->addChildPropertyList("dataset", std::move(dataset_parameters));
   parameters->addChildPropertyList("landmark", std::move(landmark_parameters));
   parameters->addChildPropertyList("matcher", std::move(matcher_parameters));
+  parameters->addChildPropertyList("localizer", std::move(localizer_parameters));
 
   return std::move(parameters);
 }
@@ -268,6 +270,23 @@ std::unique_ptr<Parameters> Parser::parseVectorMatcher() const {
          vector_matcher_parameters, 1);
 
   return std::move(vector_matcher_parameters);
+}
+
+std::unique_ptr<Parameters> Parser::parseLocalizer() const {
+
+  std::unique_ptr<Parameters> localizer_parameters(
+      new Parameters("Localizer Parameters"));
+
+  // Set localizer type.
+  std::string localizer_type;
+  if (!nh_.getParam("/Localizer/type", localizer_type)) {
+    LOG(WARNING) << "Could not parse parameter </Localizer/type>.\n"
+        << "Setting localizer type to <OPTIMIZATION>.";
+    localizer_type = "OPTIMIZATION";
+  }
+  localizer_parameters->setString("type", localizer_type);
+
+  return std::move(localizer_parameters);
 }
 
 }

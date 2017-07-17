@@ -101,33 +101,44 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
           matching_result.computeMaxSimilarityColwise()
       );
 
+  // Estimate transformation between graphs (Loclaization).
+  const auto& parameters = Locator::getParameters();
+  const auto& localizer_parameters =
+      parameters->getChildPropertyList("localizer");
+  const std::string localizer_type = localizer_parameters->getString("type");
+
   GraphLocalizer graph_localizer;
+  if (localizer_type == "OPTIMIZATION") {
 
-  for(int j = 0; j < max_similarity_matrix.cols(); ++j) {
-    int max_i = -1;
-    max_similarity_matrix.col(j).maxCoeff(&max_i);
-    if(max_i == -1)
-      continue;
-    std::cout << "Match between vertex " << j << " in query graph is vertex "
-              <<max_i << " in global graph" << std::endl;
-    const double similarity = similarity_matrix(max_i, j);
-    const VertexProperty& match_v_p = global_graph[max_i];
+    for(int j = 0; j < max_similarity_matrix.cols(); ++j) {
+      int max_i = -1;
+      max_similarity_matrix.col(j).maxCoeff(&max_i);
+      if(max_i == -1)
+        continue;
+      std::cout << "Match between vertex " << j << " in query graph is vertex "
+          <<max_i << " in global graph" << std::endl;
+      const double similarity = similarity_matrix(max_i, j);
+      const VertexProperty& match_v_p = global_graph[max_i];
 
-    const unsigned short depth_cm =
-    depth_image.at<unsigned short>(match_v_p.center);
-    const double depth_m = depth_cm * 0.01;
+      const unsigned short depth_cm =
+          depth_image.at<unsigned short>(match_v_p.center);
+      const double depth_m = depth_cm * 0.01;
 
-    graph_localizer.addObservation(match_v_p, depth_m, similarity);
+      graph_localizer.addObservation(match_v_p, depth_m, similarity);
+    }
+
+    return graph_localizer.localize();
+  } else if (localizer_type == "CONSISTENCY") {
+
+    // Localize using geometric consistency.
+    SE3 transformation;
+    bool transform_success = graph_localizer.estimateTransformation(
+        matching_result, query_graph, global_graph, &transformation);
+    return transformation.getPosition();
+  } else {
+    CHECK(false) << "Unrecognized localizer type <" << localizer_type << ">"
+        << std::endl;
   }
-
-  const Eigen::Vector3d res = graph_localizer.localize();
-
-  // Localize using geometric consistency.
-  SE3 transformation;
-  bool transform_success = graph_localizer.estimateTransformation(
-      matching_result, query_graph, global_graph, &transformation);
-  const Eigen::Vector3d res2 = transformation.getPosition();
-  return res2;
 }
 
 void XView::printInfo() const {
@@ -136,6 +147,8 @@ void XView::printInfo() const {
       parameters->getChildPropertyList("landmark");
   const auto& matcher_parameters =
       parameters->getChildPropertyList("matcher");
+  const auto& localizer_parameters =
+      parameters->getChildPropertyList("localizer");
   const auto& dataset = Locator::getDataset();
 
   LOG(INFO)
@@ -149,6 +162,7 @@ void XView::printInfo() const {
       << "\n\n" << dataset
       << "\n\tLandmark type:\t<" + landmark_parameters->getString("type") + ">"
       << "\n\tMatcher type: \t<" + matcher_parameters->getString("type") + ">"
+      << "\n\tLocalizer type: \t<" + localizer_parameters->getString("type") + ">"
       << "\n==========================================================\n";
 
   LOG(INFO)

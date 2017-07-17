@@ -21,6 +21,10 @@ Matcher: {
     walk_length: 3
 }
 
+Localizer: {
+    type: "CONSISTENCY" # OPTIMIZATION or CONSISTENCY
+}
+
 # Parameters read exclusively by XViewWorker
 XViewWorker: {
     semantics_image_topic: "/Stereo_Left/Omni_F/labels",

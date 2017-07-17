@@ -21,6 +21,10 @@ Matcher: {
     walk_length: 3
 }
 
+Localizer: {
+    type: "OPTIMIZATION" # OPTIMIZATION or CONSISTENCY
+}
+
 # Parameters read exclusively by XViewBagReader
 XViewBagReader: {
   bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/Synthia_3_cams.bag",
