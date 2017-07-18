@@ -187,7 +187,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   // Clean the newly generated global semantic graph by removing duplicate
   // vertices.
   const float merge_distance =
-      matching_parameters->getFloat("merge_distance", 2.0);
+      matching_parameters->getFloat("merge_distance", 1.5);
   GraphMerger::mergeDuplicates(&global_semantic_graph_, merge_distance);
 
   // Regenerate the random walks of the new global graph

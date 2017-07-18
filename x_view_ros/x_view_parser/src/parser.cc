@@ -260,7 +260,7 @@ std::unique_ptr<Parameters> Parser::parseGraphMatcher() const {
            graph_matcher_parameters, 0.f);
   addFloat(nh_, "/Matcher/distance_threshold", "distance_threshold",
            graph_matcher_parameters, std::numeric_limits<float>::max());
-  addFloat(nh_, "Matcher/merge_distance", "merge_distance",
+  addFloat(nh_, "/Matcher/merge_distance", "merge_distance",
            graph_matcher_parameters, 2.f);
 
   return std::move(graph_matcher_parameters);

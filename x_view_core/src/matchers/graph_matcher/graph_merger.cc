@@ -129,6 +129,7 @@ void GraphMerger::mergeDuplicates(Graph* graph, const float merge_distance) {
     const VertexDescriptor mergeable() const { return mergeable_; }
 
    private:
+
     /// \brief Vertex descriptor associated to the 'anchor' vertex, i.e. the
     /// vertex which will absorbe the mergeable_ vertex.
     const VertexDescriptor anchor_;
