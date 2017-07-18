@@ -50,7 +50,10 @@ class GraphLocalizer {
    * the nonlinear factor graph associated to the observations.
    * \return Estimated 3D position of the robot.
    */
-  const Eigen::Vector3d localize() const;
+  bool localize(const GraphMatcher::GraphMatchingResult& matching_result,
+                const Graph& query_semantic_graph,
+                const Graph& database_semantic_graph,
+                SE3* transformation);
 
  private:
   struct Observation {

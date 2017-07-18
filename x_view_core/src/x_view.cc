@@ -65,7 +65,8 @@ void XView::writeGraphToFile() const {
   writeToFile(graph_matcher->getGlobalGraph(), filename);
 }
 
-const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
+bool XView::localize(const FrameData& frame_data,
+                     Eigen::Vector3d* position) {
   LOG(INFO) << "XView tries to localize a robot by its observations.";
 
   const cv::Mat& depth_image = frame_data.getDepthImage();
@@ -104,9 +105,9 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
   VectorXb& invalid_matches = matching_result.getInvalidMatches();
 
   std::dynamic_pointer_cast <GraphMatcher> (descriptor_matcher_)
-          ->computeSimilarityMatrix(
-          random_walker, &similarity_matrix, &invalid_matches,
-          VertexSimilarity::SCORE_TYPE::WEIGHTED);
+              ->computeSimilarityMatrix(
+                  random_walker, &similarity_matrix, &invalid_matches,
+                  VertexSimilarity::SCORE_TYPE::WEIGHTED);
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
       matching_result.computeMaxSimilarityRowwise().cwiseProduct(
@@ -114,7 +115,7 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
       );
 
   // Filter matches with geometric consistency.
-  if (Locator::getParameters()->getChildPropertyList("matcher")->getInteger(
+  if (Locator::getParameters()->getChildPropertyList("matcher")->getBoolean(
       "outlier_rejection")) {
     bool filter_success = std::dynamic_pointer_cast < GraphMatcher
         > (descriptor_matcher_)->filter_matches(query_graph, global_graph,
@@ -123,45 +124,31 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
   }
 
   // Estimate transformation between graphs (Localization).
-  const auto& parameters = Locator::getParameters();
-  const auto& localizer_parameters =
-      parameters->getChildPropertyList("localizer");
-  const std::string localizer_type = localizer_parameters->getString("type");
-
   GraphLocalizer graph_localizer;
-  if (localizer_type == "OPTIMIZATION") {
 
-    for(int j = 0; j < max_similarity_matrix.cols(); ++j) {
-      int max_i = -1;
-      max_similarity_matrix.col(j).maxCoeff(&max_i);
-      if(max_i == -1)
-        continue;
-      if (!invalid_matches(j)) {
-        std::cout << "Match between vertex " << j << " in query graph is vertex "
-            <<max_i << " in global graph" << std::endl;
-        const double similarity = similarity_matrix(max_i, j);
-        const VertexProperty& match_v_p = global_graph[max_i];
+  for(int j = 0; j < max_similarity_matrix.cols(); ++j) {
+    int max_i = -1;
+    max_similarity_matrix.col(j).maxCoeff(&max_i);
+    if(max_i == -1)
+      continue;
+    if (!invalid_matches(j)) {
+      std::cout << "Match between vertex " << j << " in query graph is vertex "
+          <<max_i << " in global graph" << std::endl;
+      const double similarity = similarity_matrix(max_i, j);
+      const VertexProperty& match_v_p = global_graph[max_i];
 
-        const unsigned short depth_cm =
-            depth_image.at<unsigned short>(match_v_p.center);
-        const double depth_m = depth_cm * 0.01;
+      const unsigned short depth_cm =
+          depth_image.at<unsigned short>(match_v_p.center);
+      const double depth_m = depth_cm * 0.01;
 
-        graph_localizer.addObservation(match_v_p, depth_m, similarity);
-      }
+      graph_localizer.addObservation(match_v_p, depth_m, similarity);
     }
-
-    return graph_localizer.localize();
-  } else if (localizer_type == "CONSISTENCY") {
-
-    // Localize using geometric consistency.
-    SE3 transformation;
-    bool transform_success = graph_localizer.estimateTransformation(
-        matching_result, query_graph, global_graph, &transformation);
-    return transformation.getPosition();
-  } else {
-    CHECK(false) << "Unrecognized localizer type <" << localizer_type << ">"
-        << std::endl;
   }
+
+  SE3 transformation;
+  bool localized = graph_localizer.localize(matching_result, query_graph, global_graph, &transformation);
+  (*position) = transformation.getPosition();
+  return localized;
 }
 
 void XView::printInfo() const {

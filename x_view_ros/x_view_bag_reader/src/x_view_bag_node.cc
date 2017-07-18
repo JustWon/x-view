@@ -16,12 +16,12 @@ int main(int argc, char** argv) {
 
   // Build the semantic graph associated to the path specified in the
   // parameters passed to the iteration function.
-  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT, 0, 150);
+  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT, 0, 40);
 
   // Try to localize the following views inside the previously constructed
   // semantic graph.
   x_view_ros::Pause pause;
-  for(int i = 0; i< 150; ) {
+  for(int i = 0; i< 40; ) {
     if(!pause.isPaused()) {
       bag_reader.localize(x_view_ros::CAMERA::FRONT, i);
       ++i;

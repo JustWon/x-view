@@ -57,9 +57,10 @@ class XView {
    * frame_data is ignored.
    * \param frame_data Data passed to XView containing the observations
    * of the robot to be localized.
-   * \return An estimation of the pose of the robot.
+   * \param position An estimation of the pose of the robot.
+   * \return Success in localization.
    */
-  const Eigen::Vector3d localize(const FrameData& frame_data);
+  bool localize(const FrameData& frame_data, Eigen::Vector3d* position);
 
  private:
   /// \brief Prints XView info.
