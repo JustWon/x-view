@@ -207,6 +207,7 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
 
   // todo(gawela): Should we generally use PCL types for points /
   // correspondences?
+  // Prepare PCL containers with corresponding 3D points.
   pcl::PointCloud<pcl::PointXYZ>::Ptr query_cloud(
       new pcl::PointCloud<pcl::PointXYZ>());
   pcl::PointCloud<pcl::PointXYZ>::Ptr database_cloud(
@@ -227,6 +228,7 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
     (*correspondences)[i].index_match = i;
   }
 
+  // Perform geometric consistency filtering.
   pcl::GeometricConsistencyGrouping<pcl::PointXYZ, pcl::PointXYZ> grouping;
   grouping.setSceneCloud(database_cloud);
   grouping.setInputCloud(query_cloud);
@@ -244,7 +246,6 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
 
   // Update vector of invalid matches.
   for (size_t i = 0u; i < clustered_correspondences[0].size(); ++i) {
-
     (*invalid_matches)((clustered_correspondences[0])[i].index_query, 0) = false;
   }
 
@@ -253,6 +254,7 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
       << query_size << " matches.";
 
   if (transformations.size() == 0) {
+    LOG(WARNING) << "Geometric consistency filtering failed.";
     return false;
   }
 

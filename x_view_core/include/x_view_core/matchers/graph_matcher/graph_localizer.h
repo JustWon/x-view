@@ -29,26 +29,16 @@ class GraphLocalizer {
                       const double distance, const double evidence = 1.0);
 
   /**
-   * \brief Function that estimates a transformation based on the
-   * result of the descriptor matching. The estimation is based on a RANSAC
-   * consensus.
+   * \brief Localizes the robot in the world coordinate frame by optimizing
+   * the nonlinear factor graph associated to the observations or based on a
+   * geometric estimation.
    * \param matching_result Const reference to the observations.
    * \param query_semantic_graph Const reference to the (local) query
    * semantic graph
    * \param database_semantic_graph Const reference to the (global) database
    * semantic graph
    * \param transformation Return value of the transformation.
-   * \return Indicator if transformation estimation succeeded.
-   */
-  bool estimateTransformation(
-      const GraphMatcher::GraphMatchingResult& matching_result,
-      const Graph& query_semantic_graph, const Graph& database_semantic_graph,
-      SE3* transformation);
-
-  /**
-   * \brief Localizes the robot in the world coordinate frame by optimizing
-   * the nonlinear factor graph associated to the observations.
-   * \return Estimated 3D position of the robot.
+   * \return Indicator if localization succeeded.
    */
   bool localize(const GraphMatcher::GraphMatchingResult& matching_result,
                 const Graph& query_semantic_graph,
