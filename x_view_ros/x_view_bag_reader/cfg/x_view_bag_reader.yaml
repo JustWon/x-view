@@ -30,7 +30,7 @@ Localizer: {
 
 # Parameters read exclusively by XViewBagReader
 XViewBagReader: {
-  bag_file_name: "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/SYNTHIA/Video_sequences/SYNTHIA-SEQS-04-SUMMER/Synthia_3_cams.bag",
+  bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/Synthia_3_cams.bag",
   back: {
     semantics_image_topic: "/Stereo_Left/Omni_B/labels",
     depth_image_topic: "/Stereo_Left/Omni_B/depth",
