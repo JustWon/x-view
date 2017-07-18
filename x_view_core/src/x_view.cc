@@ -114,9 +114,13 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
       );
 
   // Filter matches with geometric consistency.
-  bool filter_success = std::dynamic_pointer_cast < GraphMatcher > (descriptor_matcher_)
-          ->filter_matches(query_graph, global_graph, matching_result,
-                           &invalid_matches);
+  if (Locator::getParameters()->getChildPropertyList("matcher")->getInteger(
+      "outlier_rejection")) {
+    bool filter_success = std::dynamic_pointer_cast < GraphMatcher
+        > (descriptor_matcher_)->filter_matches(query_graph, global_graph,
+                                                matching_result,
+                                                &invalid_matches);
+  }
 
   // Estimate transformation between graphs (Localization).
   const auto& parameters = Locator::getParameters();

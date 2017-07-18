@@ -199,6 +199,9 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
 
   CHECK_NOTNULL(invalid_matches);
 
+  const auto& parameters = Locator::getParameters();
+  const auto& matcher_parameters = parameters->getChildPropertyList("matcher");
+
   GraphMatcher::MaxSimilarityMatrixType similarities = matches
       .computeMaxSimilarityColwise();
 
@@ -228,9 +231,8 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
   grouping.setSceneCloud(database_cloud);
   grouping.setInputCloud(query_cloud);
   grouping.setModelSceneCorrespondences(correspondences);
-  // todo(gawela) Add to parameters.
-  grouping.setGCThreshold(5.0);
-  grouping.setGCSize(2.0);
+  grouping.setGCThreshold(matcher_parameters->getFloat("consistency_threshold"));
+  grouping.setGCSize(matcher_parameters->getFloat("consistency_size"));
 
   size_t query_size = similarities.cols();
   (*invalid_matches) = VectorXb::Constant(query_size, true);

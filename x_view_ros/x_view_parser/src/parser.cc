@@ -254,6 +254,12 @@ std::unique_ptr<Parameters> Parser::parseGraphMatcher() const {
   addInt(nh_, "/Matcher/num_walks", "num_walks", graph_matcher_parameters, 200);
   addInt(nh_, "/Matcher/walk_length", "walk_length",
          graph_matcher_parameters, 3);
+  addBool(nh_, "/Matcher/outlier_rejection", "outlier_rejection",
+          graph_matcher_parameters, false);
+  addFloat(nh_, "/Matcher/consistency_threshold", "consistency_threshold",
+           graph_matcher_parameters, 5.0);
+  addFloat(nh_, "/Matcher/consistency_size", "consistency_size",
+           graph_matcher_parameters, 2.0);
 
   return std::move(graph_matcher_parameters);
 }
