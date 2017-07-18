@@ -1,4 +1,5 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
+#include <x_view_bag_reader/x_view_pause.h>
 
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/x_view_locator.h>
@@ -75,20 +76,26 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
                                       const int from, const int to) {
   loadCurrentTopic(getTopics(camera_type));
   const int step = (from <= to ? +1 : -1);
-  for (int i = from; step * i < step * to; i += step) {
-    std::cout << "Processing semantic image at index " << i << std::endl;
-    parseParameters();
-    const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
-    const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
-    const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
-    x_view::SE3 pose;
-    tfTransformToSE3(trans, &pose);
-    x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
-    x_view_->processFrameData(frame_data);
+  Pause pause;
+  for (int i = from; step * i < step * to; ) {
+    if(!pause.isPaused()) {
+      std::cout << "Processing semantic image at index " << i << std::endl;
+      parseParameters();
+      const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
+      const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
+      const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
+      x_view::SE3 pose;
+      tfTransformToSE3(trans, &pose);
+      x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
+      x_view_->processFrameData(frame_data);
+      x_view_->writeGraphToFile();
 
-    graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
+      graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
+      i += step;
+    }
   }
   bag_.close();
+  pause.terminate();
 }
 
 void XViewBagReader::localize(const CAMERA camera_type, const int frame_index) {

@@ -6,7 +6,6 @@
 #include <boost/graph/erdos_renyi_generator.hpp>
 #include <boost/graph/random.hpp>
 #include <boost/random/linear_congruential.hpp>
-#include <glog/logging.h>
 #include <x_view_core/parameters/parameters.h>
 #include <x_view_core/x_view_locator.h>
 
@@ -40,6 +39,8 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
   boost::minstd_rand gen(params.seed);
   std::mt19937 rng(params.seed);
   std::uniform_int_distribution<int> dist(0, params.num_semantic_classes - 1);
+  std::uniform_real_distribution<double> step(-1, 1);
+
   // Create random graph.
   x_view::Graph graph(ERGen(gen, params.num_vertices, params.edge_probability),
                       ERGen(), params.num_vertices);
@@ -53,11 +54,13 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
     vertex.index = vertex_index++;
     vertex.num_pixels = 1;
     vertex.center = cv::Point2i(0, 0);
-    vertex.location_3d = Eigen::Vector3d::Zero();
+    vertex.location_3d << step(rng), step(rng), 0.0;
+    vertex.last_time_seen_ = 0;
     // Set a random semantic label to the vertex.
     vertex.semantic_label = dist(rng);
     vertex.semantic_entity_name = std::to_string(vertex.semantic_label);
   }
+
 
   // Add edge properties.
   auto edges_iter = boost::edges(graph);
@@ -111,15 +114,17 @@ x_view::Graph generateChainGraph(const GraphConstructionParams& params) {
   std::vector<x_view::VertexDescriptor> vertex_descriptors;
   // Create the vertices of the graph in sequence.
   for (int i = 0; i < params.num_vertices; ++i) {
-    x_view::VertexProperty v_p;
-    v_p.index = i;
-    v_p.center = cv::Point2i(0, 0);
-    v_p.location_3d = Eigen::Vector3d::Zero();
-    v_p.semantic_label = dist(rng);
-    v_p.semantic_entity_name = std::to_string(v_p.semantic_label);
-    v_p.num_pixels = 0;
+    x_view::VertexProperty vertex;
+    vertex.index = i;
+    vertex.num_pixels = 1;
+    vertex.center = cv::Point2i(0, 0);
+    vertex.location_3d = Eigen::Vector3d::Zero();
+    vertex.last_time_seen_ = 0;
+    // Set a random semantic label to the vertex.
+    vertex.semantic_label = dist(rng);
+    vertex.semantic_entity_name = std::to_string(vertex.semantic_label);
 
-    vertex_descriptors.push_back(boost::add_vertex(v_p, graph));
+    vertex_descriptors.push_back(boost::add_vertex(vertex, graph));
   }
   // Add edges between each pair of consequent vertices.
   for (int i = 0; i < params.num_vertices - 1; ++i) {
@@ -203,14 +208,14 @@ void modifyGraph(x_view::Graph* graph, const GraphModifierParams& params,
   CHECK_NOTNULL(graph);
 
   LOG_IF(WARNING, params.start_vertex_index == -1)
-         << "The modifier function is used with 'params.start_vertex_index_' "
-             "= -1, this means that all vertices added to the graph being "
-             "modified have 'VertexProperty::index_' = -1. To avoid this "
-             "behaviour please set the start vertex index accordingly. "
-             "(Usually the start vertex index corresponds to the max vertex "
-             "index of the graph being modified, or to the max vertex index "
-             "of the base graph associated from which the modified graph is "
-             "extracted)";
+  << "The modifier function is used with 'params.start_vertex_index_' "
+      "= -1, this means that all vertices added to the graph being "
+      "modified have 'VertexProperty::index_' = -1. To avoid this "
+      "behaviour please set the start vertex index accordingly. "
+      "(Usually the start vertex index corresponds to the max vertex "
+      "index of the graph being modified, or to the max vertex index "
+      "of the base graph associated from which the modified graph is "
+      "extracted)";
 
   std::vector<int> component(boost::num_vertices(*graph));
   int num_connected_components =
@@ -224,6 +229,10 @@ void modifyGraph(x_view::Graph* graph, const GraphModifierParams& params,
   for (int i = 0; i < params.num_vertices_to_add; ++i) {
     int new_vertex_index = (params.start_vertex_index == -1) ?
                            -1 : params.start_vertex_index + i;
+    if(params.num_links_for_new_vertices == 0)
+      LOG(WARNING) << "You are trying to add a new vertex to a graph without "
+          "linking it to any existing vertex. This is going to create two "
+          "disconnected components.";
     addRandomVertexToGraph(graph, rng, new_vertex_index,
                            params.num_links_for_new_vertices);
   }
@@ -245,6 +254,13 @@ void modifyGraph(x_view::Graph* graph, const GraphModifierParams& params,
   << "After removing and adding vertices/edges to the graph, there are "
   << "disconnected  components.";
 
+}
+
+void setLastTimeSeen(x_view::Graph* graph, const uint64_t last_time_seen) {
+  const auto vertices = boost::vertices(*graph);
+  for (auto iter = vertices.first; iter != vertices.second; ++iter) {
+    (*graph)[*iter].last_time_seen_ = last_time_seen;
+  }
 }
 
 }

@@ -37,7 +37,7 @@ typedef std::shared_ptr<AbstractMatcher> LandmarksMatcherPtr;
 class FrameData {
  public:
   FrameData(const cv::Mat& semantic_image, const cv::Mat& depth_image,
-            const SE3& pose, const unsigned long id)
+            const SE3& pose, const uint64_t id)
       : semantic_image_(semantic_image),
         depth_image_(depth_image),
         pose_(pose),
@@ -56,7 +56,7 @@ class FrameData {
     return pose_;
   }
 
-  const unsigned long getID() const {
+  const uint64_t getID() const {
     return id_;
   }
 
@@ -79,7 +79,7 @@ class FrameData {
 
   /// \brief Unique identifier associated with the index of the frame
   /// represented by this instance.
-  const unsigned long id_;
+  const uint64_t id_;
 };
 
 /// \brief Camera intrinsic parameters used to compute the 3D location of a

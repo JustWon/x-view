@@ -21,7 +21,7 @@ TEST(XViewSlamTestSuite, test_graph_landmark_matcher) {
       new AbstractDataset(num_semantic_classes));
   Locator::registerDataset(std::move(dataset));
 
-  const unsigned long seed = 0;
+  const uint64_t seed = 0;
 
   testChainGraph(seed);
   testRandomGraph(seed);

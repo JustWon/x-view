@@ -39,7 +39,7 @@ class GraphPublisher {
   /// \brief Topic to which edges are published.
   const std::string edge_topic_;
 
-  /// \brief Vertex publisher object used for publishing vertex coortinates.
+  /// \brief Vertex publisher object used for publishing vertex coordinates.
   ros::Publisher vertex_publisher_;
   /// \brief Edges publisher object used for publishing edges.
   ros::Publisher edge_publisher_;
@@ -51,6 +51,7 @@ class GraphPublisher {
   /// \brief Routine used internally to publish all edges of the graph passed
   /// as argument.
   void publishEdges(const x_view::Graph& graph, const ros::Time& time) const;
+
 
 
 };

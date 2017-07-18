@@ -13,20 +13,29 @@ namespace x_view {
 
 /// \brief Property associated to a graph vertex.
 struct VertexProperty {
+
   /// \brief Index of the vertex in the graph, such that
   /// boost::vertex(i, graph) returns the vertex property with index == i.
   int index;
+
   /// \brief Semantic label associated to this graph vertex. This label
   /// corresponds to the same specified in the dataset description.
   int semantic_label;
+
   /// \brief Name of semantic entity associated to this vertex.
   std::string semantic_entity_name;
+
   /// \brief Number of pixels contained in this vertex/blob.
   int num_pixels;
+
   /// \brief Blob center.
   cv::Point2i center;
+
   /// \brief 3D location of this vertex expressed in world frame.
   Eigen::Vector3d location_3d;
+
+  /// \brief Index referring to the last time this vertex has been observed.
+  uint64_t last_time_seen_;
 };
 
 /// \brief Property associated to a graph edge.
@@ -40,13 +49,18 @@ struct EdgeProperty {
 /**
  * \brief A graph object represented as an adjacency list.
  * \details
- * First parameter: what stl container is used to store the edges. Using
- * setS as edge container to enforce uniqueness of edges, i.e. edge 1-2 is
- * the same as edge 2-1.
- * Second parameter: what stl container is used to store the graph vertices.
- * Third parameter: directed or undirected graph type.
- * Forth parameter: node representation.
- * Fifth parameter: edge representation.
+ * First parameter:
+ *      What stl container is used to store the edges.
+ *      Using setS as edge container to enforce uniqueness of edges, i.e.
+ *      edge 1-2 is the same as edge 2-1.
+ * Second parameter:
+ *      What stl container is used to store the graph vertices.
+ * Third parameter:
+ *      Directed or undirected graph type.
+ * Forth parameter:
+ *      Vertex representation.
+ * Fifth parameter:
+ *      Edge representation.
  * \note The second parameter must be boost::vecS such that each vertex can
  * be accessed directly by the program as follows:
  * \code{.cpp}
@@ -72,7 +86,7 @@ typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
 
 /// \brief Access to vertices stored in the graph. Since vertices are stored
 /// in a boost::vecS container, their VertexDescriptor corresponds to the
-/// index at which they are stored: a VertexDescriptor is an unsigned long type.
+/// index at which they are stored: a VertexDescriptor is an uint64_t type.
 typedef boost::graph_traits<Graph>::vertex_descriptor VertexDescriptor;
 
 /// \brief Access to edges stored in the graph.
@@ -141,9 +155,28 @@ std::ostream& operator<<(std::ostream& out, const EdgeProperty& e);
 /// \brief Overloaded operator to print a graph.
 std::ostream& operator<<(std::ostream& out, const Graph& graph);
 
-/// \brief Writes the graph passed as argument to the file specified as
-/// second argument in the '.dot' file format.
-void writeToFile(Graph& graph, const std::string& filename);
+/**
+ * \brief Writes the graph passed as argument to the file specified as second
+ * argument in the '.dot' file format.
+ * \details The file written by this function contains the following
+ * information about the graph passed as argument:
+ *   - Graph name (same for all graphs: 'semantic_graph')
+ *   - An unordered list of vertices with the following properties:
+ *     - Vertex identifier encoded through the vertex index proeprty.
+ *     - A text label reflecting the semantic entity name of the vertex.
+ *     - Fill color: color associated to the semantic entity (see
+ *       getColorFromSemanticLabel()).
+ *     - Font color: color used for the label (computed such that it is
+ *       visible overlayed with the fill color).
+ *     - 2D coordinates to be used when rendering the graph (coordinates are
+ *       associated to the x and y coordinate of the 3D world coordinate of the
+ *       vertex.)
+ *     - A comment on the real 3D location of the vertex.
+ *   - An unordered list of undirected edges defined by the vertex identifiers
+ *     composing the edge (e.g '3 -- 4' refers to edge between vertex with
+ *     identifier '3' and vertex with identifier '4').
+ */
+void writeToFile(const Graph& graph, const std::string& filename);
 
 }
 

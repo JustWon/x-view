@@ -10,13 +10,14 @@
 namespace x_view {
 
 XView::XView()
-    : frame_number_(0) {
+    : frame_number_(-1) {
   printInfo();
   initialize();
 }
 
 void XView::processFrameData(const FrameData& frame_data) {
 
+  ++frame_number_;
   LOG(INFO) << "XView starts processing frame " << frame_number_ << ".";
   const Eigen::RowVector3d origin = frame_data.getPose().getPosition();
   const Eigen::Matrix3d rotation = frame_data.getPose().getRotationMatrix();
@@ -42,7 +43,7 @@ void XView::processFrameData(const FrameData& frame_data) {
   semantics_db_.push_back(landmark_ptr);
 
   LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
-  ++frame_number_;
+
 
 }
 
@@ -53,6 +54,15 @@ const Graph& XView::getSemanticGraph() const {
   CHECK_NOTNULL(graph_matcher.get());
 
   return graph_matcher->getGlobalGraph();
+}
+
+void XView::writeGraphToFile() const {
+  const std::string filename = getOutputDirectory() + "merged_" +
+      padded_int(frame_number_, 5, '0') + ".dot";
+  const auto& graph_matcher =
+      std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_);
+  CHECK_NOTNULL(graph_matcher.get());
+  writeToFile(graph_matcher->getGlobalGraph(), filename);
 }
 
 const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
@@ -222,7 +232,6 @@ void XView::initializeMatcher() {
     CHECK(false) << "Unrecognized matcher type <" << matcher_type << ">"
                  << std::endl;
   }
-
 }
 
 //==========================================================================//
@@ -264,15 +273,11 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
   const auto& graph_matching_result = std::dynamic_pointer_cast
       <GraphMatcher::GraphMatchingResult>(matching_result);
 
-  const std::string filename = getOutputDirectory() + "merged_" +
-      padded_int(frame_number_, 5, '0') + ".dot";
-  Graph global_graph = graph_matcher->getGlobalGraph();
-  writeToFile(global_graph, filename);
-
+#ifdef X_VIEW_DEBUG
   cv::Mat current_image = GraphDrawer::createImageWithLabels
       (current_graph_landmark->getBlobs(), current_graph,
        semantics_a->getSemanticImage().size());
-#ifdef X_VIEW_DEBUG
+
   cv::imshow("Semantic image ", current_image);
   cv::imshow("Similarity matrix ",
              SimilarityPlotter::getImageFromSimilarityMatrix(

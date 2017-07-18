@@ -35,7 +35,7 @@ cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel) {
 }
 
 // ******************************* Utility ***********************************//
-padded_int::padded_int(const int value, const int pad, const char fill)
+padded_int::padded_int(const int64_t value, const int pad, const char fill)
     : value_(value), pad_(pad), fill_(fill) {
   const std::string value_string = std::to_string(value_);
   const int num_digits = value_string.length();

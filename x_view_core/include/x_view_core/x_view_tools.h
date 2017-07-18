@@ -40,12 +40,12 @@ cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel);
 // ******************************* Utility ***********************************//
 class padded_int {
  public:
-  padded_int(const int value, const int pad = 0, const char fill = '0');
+  padded_int(const int64_t value, const int pad = 0, const char fill = '0');
 
   const std::string& str() const;
 
  private:
-  const int value_;
+  const int64_t value_;
   const int pad_;
   const char fill_;
   std::string str_;

@@ -3,7 +3,6 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
 #include <x_view_core/landmarks/graph_landmark/depth_projector.h>
-#include <x_view_core/x_view_locator.h>
 
 #include <boost/graph/connected_components.hpp>
 
@@ -11,12 +10,12 @@ namespace x_view {
 
 std::vector<const Blob*> GraphBuilder::DEFAULT_BLOB_VECTOR;
 
-const unsigned long GraphBuilder::INVALID_VERTEX_DESCRIPTOR =
-    std::numeric_limits<unsigned long>::max();
+const uint64_t GraphBuilder::INVALID_VERTEX_DESCRIPTOR =
+    std::numeric_limits<uint64_t>::max();
 
-Graph GraphBuilder::createGraphFromNeighborBlobs(const FrameData& frame_data,
-                                                 const ImageBlobs& blobs,
-                                                 const GraphBuilderParams& params) {
+Graph GraphBuilder::createGraphFromImageBlobs(const FrameData& frame_data,
+                                              const ImageBlobs& blobs,
+                                              const GraphBuilderParams& params) {
 
   Graph graph;
 
@@ -38,10 +37,10 @@ Graph GraphBuilder::createGraphFromNeighborBlobs(const FrameData& frame_data,
 
       // Only create an edge between the two blobs if they are neighbors.
       if (Blob::areNeighbors(*bi, *bj, params.max_distance_for_neighborhood))
-        if(vertex_descriptors[i] != INVALID_VERTEX_DESCRIPTOR &&
+        if (vertex_descriptors[i] != INVALID_VERTEX_DESCRIPTOR &&
             vertex_descriptors[j] != INVALID_VERTEX_DESCRIPTOR)
-        boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
-                        {i, j}, graph);
+          boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
+                          {i, j}, graph);
     }
   }
 
@@ -77,12 +76,12 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
   const SE3& pose = frame_data.getPose();
 
   const float max_depth_m =
-      Locator::getParameters()->getChildPropertyList("landmark")->
-          getFloat("depth_clip",
-                   0.01f * std::numeric_limits<unsigned short>::max());
+      Locator::getParameters()->getChildPropertyList("landmark")->getFloat(
+          "depth_clip", 0.01f * std::numeric_limits<unsigned short>::max()
+      );
 
-  // Create a projector object, which projects pixels back to 3D world
-  // coordinates.
+  // Create a projector object, which projects pixels back to 3D coordinates
+  // expressed in world frame.
   DepthProjector projector(pose, Locator::getDataset()->getCameraIntrinsics());
 
   vertex_descriptors->clear();
@@ -97,16 +96,23 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
           GraphBuilder::blobToGraphVertex(blob_count++, blob);
       // Extract the depth associated to the vertex.
       const unsigned short depth_cm =
-        depth_image.at<unsigned short>(vertex.center);
+          depth_image.at<unsigned short>(vertex.center);
       const double depth_m = depth_cm * 0.01;
       // If the projected center of the blob is too distant, set it as invalid.
-      if(depth_m >= max_depth_m) {
-       vertex_descriptors->push_back(INVALID_VERTEX_DESCRIPTOR);
+      if (depth_m >= max_depth_m) {
+        vertex_descriptors->push_back(INVALID_VERTEX_DESCRIPTOR);
         continue;
       }
-
+      // Compute the 3D location of the current vertex by projecting the
+      // pixel associated to its center into the world.
       vertex.location_3d =
           projector.getWorldCoordinates(vertex.center, depth_m);
+
+      // Set the last_time_seen_ property of the newly created vertex to be
+      // the current frame.
+      vertex.last_time_seen_ = frame_data.getID();
+
+      // Add the newly generated vertex to the graph.
       vertex_descriptors->push_back(boost::add_vertex(vertex, *graph));
     }
   }
@@ -133,7 +139,7 @@ void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(Graph* graph,
                                       unique_components.end()),
                           unique_components.end());
 
-  const unsigned long num_vertices = boost::num_vertices(*graph);
+  const uint64_t num_vertices = boost::num_vertices(*graph);
 
   auto dist_square = [](const cv::Point& p1, const cv::Point& p2) {
     cv::Point d(p1 - p2);

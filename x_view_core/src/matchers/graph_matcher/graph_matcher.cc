@@ -17,8 +17,8 @@ namespace x_view {
 GraphMatcher::MaxSimilarityMatrixType
 GraphMatcher::GraphMatchingResult::computeMaxSimilarityColwise() const {
   // Compute the index of max element per col of similarity matrix.
-  const long cols = similarity_matrix_.cols();
-  const long rows = similarity_matrix_.rows();
+  const uint64_t cols = similarity_matrix_.cols();
+  const uint64_t rows = similarity_matrix_.rows();
 
   MaxSimilarityMatrixType max_similarity_colwise(rows, cols);
   max_similarity_colwise.setZero();
@@ -48,8 +48,8 @@ GraphMatcher::GraphMatchingResult::computeMaxSimilarityColwise() const {
 GraphMatcher::MaxSimilarityMatrixType
 GraphMatcher::GraphMatchingResult::computeMaxSimilarityRowwise() const {
   // Compute the index of max element per row of similarity matrix.
-  const long cols = similarity_matrix_.cols();
-  const long rows = similarity_matrix_.rows();
+  const uint64_t cols = similarity_matrix_.cols();
+  const uint64_t rows = similarity_matrix_.rows();
 
   MaxSimilarityMatrixType max_similarity_rowwise(rows, cols);
   max_similarity_rowwise.setZero();
@@ -180,7 +180,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
 
 
   // Need to regenerate the random walks of the extended global graph.
-  global_semantic_graph_ = graph_merger.getMergedGraph();
+  global_semantic_graph_ = graph_merger.computeMergedGraph();
   // Regenerate the random walks of the new global graph
   RandomWalker global_random_walker(global_semantic_graph_,
                                     random_walker_params_);
@@ -303,9 +303,9 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
   // Set the similarity score type to be used.
   VertexSimilarity::setScoreType(score_type);
 
-  const unsigned long num_global_vertices =
+  const uint64_t num_global_vertices =
       boost::num_vertices(global_semantic_graph_);
-  const unsigned long num_query_vertices = boost::num_vertices(query_graph);
+  const uint64_t num_query_vertices = boost::num_vertices(query_graph);
 
   similarity_matrix->resize(num_global_vertices, num_query_vertices);
   similarity_matrix->setZero();
@@ -314,11 +314,11 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
   (*invalid_matches) = VectorXb::Constant(num_query_vertices, false);
 
   // Fill up dense similarity matrix.
-  for (unsigned long i = 0; i < num_global_vertices; ++i) {
+  for (uint64_t i = 0; i < num_global_vertices; ++i) {
     const auto& vertex_d_i = boost::vertex(i, global_semantic_graph_);
     const auto& vertex_p_i = global_semantic_graph_[vertex_d_i];
     const auto& mapped_walks_i = global_walk_map_vector_[i];
-    for (unsigned long j = 0; j < num_query_vertices; ++j) {
+    for (uint64_t j = 0; j < num_query_vertices; ++j) {
       const auto& vertex_d_j = boost::vertex(j, query_graph);
       const auto& vertex_p_j = query_graph[vertex_d_j];
       // Score is only nonzero if the source vertex has same semantic label.
