@@ -17,6 +17,7 @@ namespace x_view {
 
 typedef std::vector<Eigen::Matrix4f, Eigen::aligned_allocator<Eigen::Matrix4f>>
     TransformationVector;
+typedef Eigen::Matrix<bool, Eigen::Dynamic, 1> VectorXb;
 
 /**
  * \brief A class that matches graph landmarks with the database semantic graph.
@@ -28,7 +29,6 @@ class GraphMatcher : public AbstractMatcher {
   typedef Eigen::MatrixXf SimilarityMatrixType;
   typedef Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>
       MaxSimilarityMatrixType;
-  typedef Eigen::Matrix<bool, 1, Eigen::Dynamic> VectorXb;
 
   GraphMatcher();
   GraphMatcher(const RandomWalkerParams& random_walker_params,
@@ -89,6 +89,7 @@ class GraphMatcher : public AbstractMatcher {
    * \return bool indication of successful filtering.
    */
   bool filter_matches(const Graph& query_semantic_graph,
+                      const Graph& database_semantic_graph,
                       const GraphMatchingResult& matches,
                       VectorXb* invalid_matches);
 

@@ -91,8 +91,7 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
 
   GraphMatcher::SimilarityMatrixType& similarity_matrix =
       matching_result.getSimilarityMatrix();
-  GraphMatcher::VectorXb& invalid_matches =
-        matching_result.getInvalidMatches();
+  VectorXb& invalid_matches = matching_result.getInvalidMatches();
 
   std::dynamic_pointer_cast <GraphMatcher> (descriptor_matcher_)
           ->computeSimilarityMatrix(
@@ -104,7 +103,12 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
           matching_result.computeMaxSimilarityColwise()
       );
 
-  // Estimate transformation between graphs (Loclaization).
+  // Filter matches with geometric consistency.
+  bool filter_success = std::dynamic_pointer_cast < GraphMatcher > (descriptor_matcher_)
+          ->filter_matches(query_graph, global_graph, matching_result,
+                           &invalid_matches);
+
+  // Estimate transformation between graphs (Localization).
   const auto& parameters = Locator::getParameters();
   const auto& localizer_parameters =
       parameters->getChildPropertyList("localizer");
@@ -118,16 +122,18 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
       max_similarity_matrix.col(j).maxCoeff(&max_i);
       if(max_i == -1)
         continue;
-      std::cout << "Match between vertex " << j << " in query graph is vertex "
-          <<max_i << " in global graph" << std::endl;
-      const double similarity = similarity_matrix(max_i, j);
-      const VertexProperty& match_v_p = global_graph[max_i];
+      if (!invalid_matches(j)) {
+        std::cout << "Match between vertex " << j << " in query graph is vertex "
+            <<max_i << " in global graph" << std::endl;
+        const double similarity = similarity_matrix(max_i, j);
+        const VertexProperty& match_v_p = global_graph[max_i];
 
-      const unsigned short depth_cm =
-          depth_image.at<unsigned short>(match_v_p.center);
-      const double depth_m = depth_cm * 0.01;
+        const unsigned short depth_cm =
+            depth_image.at<unsigned short>(match_v_p.center);
+        const double depth_m = depth_cm * 0.01;
 
-      graph_localizer.addObservation(match_v_p, depth_m, similarity);
+        graph_localizer.addObservation(match_v_p, depth_m, similarity);
+      }
     }
 
     return graph_localizer.localize();

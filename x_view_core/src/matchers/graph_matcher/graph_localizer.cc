@@ -102,7 +102,12 @@ bool GraphLocalizer::estimateTransformation(
 
   // Retrieve invalid matches.
   VectorXb invalid_matches = matching_result.getInvalidMatches();
-  size_t num_invalids = invalid_matches.count();
+  size_t num_valids = similarities.cols() - invalid_matches.count();
+
+  if (num_valids == 0) {
+    LOG(WARNING) << "Unable to estimate transformation, only invalid matches.";
+    return false;
+  }
 
   // todo(gawela): Should we generally use PCL types for points /
   // correspondences?
@@ -110,58 +115,37 @@ bool GraphLocalizer::estimateTransformation(
       new pcl::PointCloud<pcl::PointXYZ>());
   pcl::PointCloud<pcl::PointXYZ>::Ptr database_cloud(
       new pcl::PointCloud<pcl::PointXYZ>());
-  query_cloud->points.resize(similarities.cols());
-  database_cloud->points.resize(similarities.cols());
+  query_cloud->points.resize(num_valids);
+  database_cloud->points.resize(num_valids);
   pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
-  correspondences->resize(similarities.cols());
+  correspondences->resize(num_valids);
 
+  size_t valid = 0u;
   for (size_t i = 0u; i < similarities.cols(); ++i) {
-    GraphMatcher::MaxSimilarityMatrixType::Index maxIndex;
-    similarities.col(i).maxCoeff(&maxIndex);
-    query_cloud->points[i].getVector3fMap() = query_semantic_graph[i]
-        .location_3d.cast<float>();
-    database_cloud->points[i].getVector3fMap() =
-        database_semantic_graph[maxIndex].location_3d.cast<float>();
-    (*correspondences)[i].index_query = i;
-    (*correspondences)[i].index_match = i;
+    // Only add matches if they are valid.
+    if (!invalid_matches(i)) {
+      GraphMatcher::MaxSimilarityMatrixType::Index maxIndex;
+      similarities.col(i).maxCoeff(&maxIndex);
+      query_cloud->points[valid].getVector3fMap() = query_semantic_graph[i]
+          .location_3d.cast<float>();
+      database_cloud->points[valid].getVector3fMap() =
+          database_semantic_graph[maxIndex].location_3d.cast<float>();
+      (*correspondences)[valid].index_query = valid;
+      (*correspondences)[valid].index_match = valid;
+      ++valid;
+    }
   }
 
-  pcl::GeometricConsistencyGrouping<pcl::PointXYZ, pcl::PointXYZ> grouping;
-  grouping.setSceneCloud(database_cloud);
-  grouping.setInputCloud(query_cloud);
-  grouping.setModelSceneCorrespondences(correspondences);
-  grouping.setGCThreshold(5.0);
-  grouping.setGCSize(2.0);
+  pcl::registration::TransformationEstimation<pcl::PointXYZ, pcl::PointXYZ>::Ptr
+  transformation_estimation(
+      new pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,
+      pcl::PointXYZ>);
 
-  TransformationVector transformations;
-  std::vector<pcl::Correspondences> clustered_correspondences;
-  if (!grouping.recognize(transformations, clustered_correspondences)) {
-    return false;
-  }
+  Eigen::Matrix4f transform;
+  transformation_estimation->estimateRigidTransformation(
+      *query_cloud, *database_cloud, *correspondences, transform);
 
-  if (transformations.size() == 0) {
-    return false;
-  }
-
-  size_t query_size = similarities.cols();
-
-  LOG(INFO) << "Filtered out "
-      << query_size - clustered_correspondences[0].size() << " of "
-      << query_size << " matches.";
-
-//  sortCorrespondenceClusters(&clustered_correspondences, &transformations);
-  (*transformation) = SE3(Eigen::Matrix4d(transformations[0].cast<double>()));
-
-//  pcl::registration::TransformationEstimation<pcl::PointXYZ, pcl::PointXYZ>::Ptr
-//  transformation_estimation(
-//      new pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,
-//          pcl::PointXYZ>);
-//
-//  Eigen::Matrix4f transform;
-//  transformation_estimation->estimateRigidTransformation(
-//      *query_cloud, *database_cloud, *correspondences, transform);
-//
-//  (*transformation) = SE3(Eigen::Matrix4d(transform.cast<double>()));
+  (*transformation) = SE3(Eigen::Matrix4d(transform.cast<double>()));
   return true;
 }
 

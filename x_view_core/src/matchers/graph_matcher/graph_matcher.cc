@@ -7,8 +7,10 @@
 #include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
 #include <x_view_core/x_view_locator.h>
 
+#include <pcl/correspondence.h>
 #include <pcl/point_types.h>
 #include <pcl/recognition/cg/geometric_consistency.h>
+#include <pcl/registration/transformation_estimation_svd.h>
 
 namespace x_view {
 
@@ -191,6 +193,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
 }
 
 bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
+                                  const Graph& database_semantic_graph,
                                   const GraphMatchingResult& matches,
                                   VectorXb* invalid_matches) {
 
@@ -216,7 +219,7 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
     query_cloud->points[i].getVector3fMap() = query_semantic_graph[i]
                                                                    .location_3d.cast<float>();
     database_cloud->points[i].getVector3fMap() =
-        global_semantic_graph_[maxIndex].location_3d.cast<float>();
+        database_semantic_graph[maxIndex].location_3d.cast<float>();
     (*correspondences)[i].index_query = i;
     (*correspondences)[i].index_match = i;
   }
@@ -229,27 +232,27 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
   grouping.setGCThreshold(5.0);
   grouping.setGCSize(2.0);
 
-  TransformationVector transformations;
-  std::vector<pcl::Correspondences> clustered_correspondences;
-
-  // Update vector of invalid matches.
   size_t query_size = similarities.cols();
   (*invalid_matches) = VectorXb::Constant(query_size, true);
-  for (size_t i = 0u; i < clustered_correspondences.size(); ++i) {
-    (*invalid_matches)((clustered_correspondences[0])[i].index_query) = false;
-  }
-
+  TransformationVector transformations;
+  std::vector<pcl::Correspondences> clustered_correspondences(1);
   if (!grouping.recognize(transformations, clustered_correspondences)) {
     return false;
   }
 
-  if (transformations.size() == 0) {
-    return false;
+  // Update vector of invalid matches.
+  for (size_t i = 0u; i < clustered_correspondences[0].size(); ++i) {
+
+    (*invalid_matches)((clustered_correspondences[0])[i].index_query, 0) = false;
   }
 
   LOG(INFO) << "Filtered out "
-      << clustered_correspondences[0].size() - query_size << " of "
+      << query_size - clustered_correspondences[0].size() << " of "
       << query_size << " matches.";
+
+  if (transformations.size() == 0) {
+    return false;
+  }
 
   return true;
 }
