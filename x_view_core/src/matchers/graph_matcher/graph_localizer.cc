@@ -13,9 +13,6 @@
 
 namespace x_view {
 
-typedef std::vector<Eigen::Matrix4f, Eigen::aligned_allocator<Eigen::Matrix4f>>
-    TransformationVector;
-
 GraphLocalizer::GraphLocalizer(const double prior_noise)
     : prior_noise_(prior_noise),
       observations_(0) {
@@ -93,41 +90,6 @@ void GraphLocalizer::addObservation(const VertexProperty& vertex_property,
   observations_.push_back(Observation{vertex_property, distance, evidence});
 }
 
-// Function extracted from ethz-asl modelify repository.
-void sortCorrespondenceClusters(
-    std::vector<pcl::Correspondences>* clustered_correspondences,
-    TransformationVector* transforms) {
-  CHECK_NOTNULL(clustered_correspondences);
-  CHECK_NOTNULL(transforms);
-  CHECK_EQ(clustered_correspondences->size(), transforms->size());
-
-  typedef std::pair<pcl::Correspondences, Eigen::Matrix4f> ClusterTransformPair;
-  std::vector<ClusterTransformPair> cluster_transform_pairs;
-  cluster_transform_pairs.reserve(clustered_correspondences->size());
-  std::transform(clustered_correspondences->begin(),
-                 clustered_correspondences->end(), transforms->begin(),
-                 std::back_inserter(cluster_transform_pairs),
-                 [](pcl::Correspondences a, Eigen::Matrix4f b) {
-    return std::make_pair(a, b);
-  });
-
-  std::sort(cluster_transform_pairs.begin(), cluster_transform_pairs.end(),
-            [](const ClusterTransformPair& a, const ClusterTransformPair& b) {
-    return a.first.size() > b.first.size();
-  });
-
-  // Clean up old vectors.
-  transforms->clear();
-  clustered_correspondences->clear();
-
-  for (auto it = std::make_move_iterator(cluster_transform_pairs.begin()),
-      end = std::make_move_iterator(cluster_transform_pairs.end());
-      it != end; ++it) {
-    clustered_correspondences->push_back(std::move(it->first));
-    transforms->push_back(std::move(it->second));
-  }
-}
-
 bool GraphLocalizer::estimateTransformation(
     const GraphMatcher::GraphMatchingResult& matching_result,
     const Graph& query_semantic_graph, const Graph& database_semantic_graph,
@@ -137,6 +99,10 @@ bool GraphLocalizer::estimateTransformation(
   // Retrieve locations of matching node pairs.
   GraphMatcher::MaxSimilarityMatrixType similarities = matching_result
       .computeMaxSimilarityColwise();
+
+  // Retrieve invalid matches.
+  VectorXb invalid_matches = matching_result.getInvalidMatches();
+  size_t num_invalids = invalid_matches.count();
 
   // todo(gawela): Should we generally use PCL types for points /
   // correspondences?
@@ -160,16 +126,42 @@ bool GraphLocalizer::estimateTransformation(
     (*correspondences)[i].index_match = i;
   }
 
-  pcl::registration::TransformationEstimation<pcl::PointXYZ, pcl::PointXYZ>::Ptr
-  transformation_estimation(
-      new pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,
-          pcl::PointXYZ>);
+  pcl::GeometricConsistencyGrouping<pcl::PointXYZ, pcl::PointXYZ> grouping;
+  grouping.setSceneCloud(database_cloud);
+  grouping.setInputCloud(query_cloud);
+  grouping.setModelSceneCorrespondences(correspondences);
+  grouping.setGCThreshold(5.0);
+  grouping.setGCSize(2.0);
 
-  Eigen::Matrix4f transform;
-  transformation_estimation->estimateRigidTransformation(
-      *query_cloud, *database_cloud, *correspondences, transform);
+  TransformationVector transformations;
+  std::vector<pcl::Correspondences> clustered_correspondences;
+  if (!grouping.recognize(transformations, clustered_correspondences)) {
+    return false;
+  }
 
-  (*transformation) = SE3(Eigen::Matrix4d(transform.cast<double>()));
+  if (transformations.size() == 0) {
+    return false;
+  }
+
+  size_t query_size = similarities.cols();
+
+  LOG(INFO) << "Filtered out "
+      << query_size - clustered_correspondences[0].size() << " of "
+      << query_size << " matches.";
+
+//  sortCorrespondenceClusters(&clustered_correspondences, &transformations);
+  (*transformation) = SE3(Eigen::Matrix4d(transformations[0].cast<double>()));
+
+//  pcl::registration::TransformationEstimation<pcl::PointXYZ, pcl::PointXYZ>::Ptr
+//  transformation_estimation(
+//      new pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,
+//          pcl::PointXYZ>);
+//
+//  Eigen::Matrix4f transform;
+//  transformation_estimation->estimateRigidTransformation(
+//      *query_cloud, *database_cloud, *correspondences, transform);
+//
+//  (*transformation) = SE3(Eigen::Matrix4d(transform.cast<double>()));
   return true;
 }
 
