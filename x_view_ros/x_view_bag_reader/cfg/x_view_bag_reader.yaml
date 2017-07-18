@@ -18,12 +18,14 @@ Matcher: {
     vertex_similarity_score: "SURFACE",
     random_walk_sampling_type: "UNIFORM",
     num_walks: 200,
-    walk_length: 3
+    walk_length: 3,
+    outlier_rejection: true,
+    consistency_threshold: 5.0,
+    consistency_size: 2.0
 }
 
 Localizer: {
     type: "CONSISTENCY", # OPTIMIZATION or CONSISTENCY
-    outlier_rejection: true
 }
 
 # Parameters read exclusively by XViewBagReader
