@@ -9,6 +9,39 @@
 namespace x_view {
 
 /**
+ * \brief Parameters used by the GraphMerger class.
+ */
+struct GraphMergerParameters {
+  GraphMergerParameters()
+    : time_window(std::numeric_limits<uint64_t>::max()),
+      similarity_threshold(0.f),
+      distance_threshold(std::numeric_limits<float>::max())
+  {}
+
+  GraphMergerParameters(const uint64_t time_window,
+                        const float similarity_threshold,
+                        const float distance_threshold)
+      : time_window(time_window),
+        similarity_threshold(similarity_threshold),
+        distance_threshold(distance_threshold) {}
+
+  /// \brief Time window used to select which candidate matching vertices
+  /// should be merged together. In particular, if a vertex is candidate to
+  /// be merged with another, the merge only takes place if the time-distance
+  /// between the two vertices is smaller or equal to the allowed time window
+  /// defind by time_window_.
+  uint64_t time_window;
+
+  /// \brief Only vertices whose semantic similarity is greater than this
+  /// parameter are considered in the routine merging two graphs together.
+  float similarity_threshold;
+
+  /// \brief Only allow to match vertices if their euclidean distance is
+  /// smaller than this threshold.
+  float distance_threshold;
+};
+
+/**
  * \brief This class implements the routine for merging two semantic graphs
  * based on the semantic similarity between the graph vertices.
  */
@@ -29,14 +62,12 @@ class GraphMerger {
    * query and the database graph. The similarity matrix contained in this
    * structure is used as mean for deciding which vertex of the query graph
    * is associated with which vertex of the database graph.
-   * \param time_window Integer referring to time window allowed to perform
-   * merges. In particular, if time_window == 0, no candidate merge is
-   * discarded. In the other hand, given time_window > 0, only candidate
-   * merges between vertices tagged at most time_windows far apart are merged.
+   * \param graph_merger_parameters Parameters used for merging two graphs
+   * together.
    */
   GraphMerger(const Graph& database_graph, const Graph& query_graph,
               const GraphMatcher::GraphMatchingResult& matching_result,
-              const uint64_t time_window = 0);
+              const GraphMergerParameters& graph_merger_parameters);
 
   /**
    * \brief Performs the merging operation between the query and the database
@@ -55,12 +86,14 @@ class GraphMerger {
    * together all pairs of vertices which fulfill proximity/similarity
    * properties.
    * \param graph Graph to be cleaned.
+   * \param merge_distance Vertices whose Euclidean distance is larger than
+   * this parameter are not merged together.
    * \details Given two vertices v_1 and v_2, if their euclidean distance is
    * small enough, and their semantic label is identical, this function
    * merges them together. The resulting vertex v_m is a vertex whose edges
    * correspond to the union of the edges of v_1 and v_2.
    */
-  static void mergeDuplicates(Graph* graph);
+  static void mergeDuplicates(Graph* graph, const float merge_distance);
 
   /**
    * \brief Function to test if the vertices associated to the vertex
@@ -72,6 +105,8 @@ class GraphMerger {
    * queried for merging.
    * \param graph Const reference to the graph structure containing the
    * vertices passed as argument.
+   * \param merge_distance Vertices whose euclidean distance is larget than
+   * this parameter are not merged together.
    * \return True if the vertices associated with the passed parameters
    * should be merged together, false otherwise.
    * \details Two vertices should be merged together only if their semantic
@@ -80,7 +115,8 @@ class GraphMerger {
    */
   static const bool verticesShouldBeMerged(const VertexDescriptor v_d_1,
                                            const VertexDescriptor v_d_2,
-                                           const Graph& graph);
+                                           const Graph& graph,
+                                           const float merge_distance);
 
  private:
 
@@ -91,19 +127,14 @@ class GraphMerger {
   /// database graph.
   const Graph& query_graph_;
 
+  /// \brief Graph resulting from the merging operation.
+  Graph merged_graph_;
+
+
   /// \brief Structure containing information about the similarities between
   /// the vertices in the query and in the database graph.
   const GraphMatcher::GraphMatchingResult& matching_result_;
 
-  /// \brief Time window used to select which candidate matching vertices
-  /// should be merged together. In particular, if a vertex is candidate to
-  /// be merged with another, the merge only takes place if the time-distance
-  /// between the two vertices is smaller or equal to the allowed time window
-  /// defind by time_window_.
-  const uint64_t time_window_;
-
-  /// \brief Graph resulting from the merging operation.
-  Graph merged_graph_;
 
   /// \brief Queue containing all vertex descriptors of the query graph which
   /// still need to be merged into the database graph.
@@ -119,6 +150,11 @@ class GraphMerger {
   /// \brief Vector containign references to vertices belonging to the query
   /// graph which have been matched to a vertex of the database graph.
   std::vector<VertexDescriptor> matched_vertices_;
+
+
+  /// \brief Parameters used during graph merging.
+  const GraphMergerParameters& graph_merger_parameters_;
+
 
   GraphMatcher::MaxSimilarityMatrixType computeAgreementMatrix() const;
 

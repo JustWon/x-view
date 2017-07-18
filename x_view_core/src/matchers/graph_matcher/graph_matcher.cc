@@ -166,8 +166,19 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
                           vertex_similarity_score_type_);
 
   // Merge the query graph to the database graph.
+  const auto& parameters = Locator::getParameters();
+  const auto& matching_parameters = parameters->getChildPropertyList("matcher");
+  GraphMergerParameters graph_merger_parameters;
+  graph_merger_parameters.time_window =
+      matching_parameters->getInteger("time_window",
+                                      std::numeric_limits<int>::max());
+  graph_merger_parameters.similarity_threshold =
+      matching_parameters->getFloat("similarity_threshold", 0.f);
+  graph_merger_parameters.distance_threshold =
+      matching_parameters->getFloat("distance_threshold",
+                                    std::numeric_limits<float>::max());
   GraphMerger graph_merger(global_semantic_graph_, query_semantic_graph,
-                           *matchingResult.get(), 3);
+                           *matchingResult.get(), graph_merger_parameters);
 
 
   // Need to regenerate the random walks of the extended global graph.
@@ -175,7 +186,9 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
 
   // Clean the newly generated global semantic graph by removing duplicate
   // vertices.
-  GraphMerger::mergeDuplicates(&global_semantic_graph_);
+  const float merge_distance =
+      matching_parameters->getFloat("merge_distance", 2.0);
+  GraphMerger::mergeDuplicates(&global_semantic_graph_, merge_distance);
 
   // Regenerate the random walks of the new global graph
   RandomWalker global_random_walker(global_semantic_graph_,

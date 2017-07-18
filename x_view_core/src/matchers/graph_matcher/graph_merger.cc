@@ -7,12 +7,19 @@ namespace x_view {
 GraphMerger::GraphMerger(const Graph& database_graph,
                          const Graph& query_graph,
                          const GraphMatcher::GraphMatchingResult& matching_result,
-                         const uint64_t time_window)
+                         const GraphMergerParameters& graph_merger_parameters)
     : database_graph_(database_graph),
       query_graph_(query_graph),
       matching_result_(matching_result),
-      time_window_((time_window > 0 ? time_window :
-          std::numeric_limits<uint64_t>::max())) {
+      graph_merger_parameters_(graph_merger_parameters) {
+
+  LOG(INFO) << "Using graph merger with following parameters:"
+      << "\n\tTime window:          "
+      << graph_merger_parameters_.time_window
+      << "\n\tSimilarity threshold: "
+      << graph_merger_parameters_.similarity_threshold
+      << "\n\tDistance threshold:   "
+      << graph_merger_parameters_.distance_threshold << ".";
 
 }
 
@@ -30,16 +37,6 @@ const Graph GraphMerger::computeMergedGraph() {
   // Initialize the merged graph to contain all vertices of the database_graph.
   merged_graph_ = database_graph_;
 
-  // Only consider possible matches between vertices if their similarity is
-  // large than this threshold.
-  // FIXME: this parameter should not be hardcoded!
-  const float similarity_threshold = 0.3f;
-
-  // Only allow to match vertices if their euclidean distance is smaller than
-  // the following threshold.
-  // FIXME: this parameter should not be hardcoded!
-  const double distance_threshold = 5.0;
-
   // This map contains the matches between the vertex descriptors in the
   // query graph to the corresponding vertex descriptor in the database_graph.
   query_in_db_.clear();
@@ -50,9 +47,9 @@ const Graph GraphMerger::computeMergedGraph() {
     for(int i = 0; i < num_db_vertices; ++i) {
       // Check if the two vertices are possible matches.
       if(max_similarity_agree(i, j) == true
-          && similarity_matrix(i, j) >= similarity_threshold &&
-          temporalDistance(i, j) <= time_window_ &&
-          spatialDistance(i, j) <= distance_threshold) {
+          && similarity_matrix(i, j) >= graph_merger_parameters_.similarity_threshold &&
+          temporalDistance(i, j) <= graph_merger_parameters_.time_window &&
+          spatialDistance(i, j) <= graph_merger_parameters_.distance_threshold) {
         // There is a match between the j-th vertex of the query graph and
         // the i-th vertex of the database graph.
         query_in_db_.insert({j, i});
@@ -60,6 +57,11 @@ const Graph GraphMerger::computeMergedGraph() {
         break;
       }
     }
+  }
+
+  // Keep two disconnected graphs??
+  if(matched_vertices_.size() == 0) {
+    LOG(ERROR) << "Zero matched vertices!";
   }
 
   // Push all matched vertices into the queue of 'still to process' vertices.
@@ -105,7 +107,10 @@ const Graph GraphMerger::computeMergedGraph() {
   return merged_graph_;
 }
 
-void GraphMerger::mergeDuplicates(Graph* graph) {
+void GraphMerger::mergeDuplicates(Graph* graph, const float merge_distance) {
+
+  LOG(INFO) << "Merging all vertices with same semantic label whose euclidean "
+            << "distance is smaller than " << merge_distance << ".";
 
   // Utility class used to store a possible merge between vertices.
   class CandidateMerge {
@@ -160,7 +165,7 @@ void GraphMerger::mergeDuplicates(Graph* graph) {
       if (taken[j] == true)
         continue;
 
-      if (GraphMerger::verticesShouldBeMerged(i, j, *graph)) {
+      if (GraphMerger::verticesShouldBeMerged(i, j, *graph, merge_distance)) {
         // There is a merge between v_p_i and v_p_j.
         candidates.push_back({j, i});
         taken[i] = taken[j] = true;
@@ -209,8 +214,9 @@ void GraphMerger::mergeDuplicates(Graph* graph) {
 }
 
 const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
-                                         const VertexDescriptor v_d_2,
-                                         const Graph& graph) {
+                                               const VertexDescriptor v_d_2,
+                                               const Graph& graph,
+                                               const float merge_distance) {
 
   // Query the vertex properties associated to the vertex descriptors passed
   // as argument.
@@ -222,12 +228,10 @@ const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
   if(v_p_1.semantic_label != v_p_2.semantic_label)
     return false;
 
-  // Spatial consistency: only merge vertices if their eucliden distance is
-  // smaller than the following threshold.
-  // FIXME: this parameter should not be hardcoded!
-  const double space_threshold = 1.5;
+  // Spatial consistency: only merge vertices if their Eucliden distance is
+  // smaller than the merge_distance parameter passed as argument.
   const Eigen::Vector3d diff = v_p_1.location_3d - v_p_2.location_3d;
-  if(diff.norm() > space_threshold)
+  if(diff.norm() > merge_distance)
     return false;
 
   // Since all tests are fulfilled, the two vertices should be merged.

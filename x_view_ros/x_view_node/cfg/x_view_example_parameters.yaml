@@ -37,7 +37,11 @@ Matcher: {
     vertex_similarity_score: "WEIGHTED",  # or "SURFACE"
     random_walk_sampling_type: "UNIFORM", # or "AVOIDING"
     num_walks: 400,
-    walk_length: 3
+    walk_length: 3,
+    time_window: 10,
+    similarity_threshold: 0.2,
+    distance_threshold: 5.0,
+    merge_distance: 2.0
 }
 
 Matcher: {

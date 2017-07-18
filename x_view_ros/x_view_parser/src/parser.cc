@@ -253,6 +253,16 @@ std::unique_ptr<Parameters> Parser::parseGraphMatcher() const {
   addInt(nh_, "/Matcher/walk_length", "walk_length",
          graph_matcher_parameters, 3);
 
+  // Parameters related to graph merger.
+  addInt(nh_, "/Matcher/time_window", "time_window",
+         graph_matcher_parameters, std::numeric_limits<int>::max());
+  addFloat(nh_, "/Matcher/similarity_threshold", "similarity_threshold",
+           graph_matcher_parameters, 0.f);
+  addFloat(nh_, "/Matcher/distance_threshold", "distance_threshold",
+           graph_matcher_parameters, std::numeric_limits<float>::max());
+  addFloat(nh_, "Matcher/merge_distance", "merge_distance",
+           graph_matcher_parameters, 2.f);
+
   return std::move(graph_matcher_parameters);
 }
 

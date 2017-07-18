@@ -30,7 +30,6 @@ void testDuplicatesChain() {
   // similar coordinates as an existing vertex.
   for(int c = 0; c < 2; ++c) {
     const uint64_t anchor_vertex = boost::random_vertex(database_graph, rng);
-    std::cout << "Anchor vertex: " << anchor_vertex << std::endl;
     const x_view::VertexProperty& anchor_v_p = database_graph[anchor_vertex];
     const auto anchor_neighbors =
         boost::adjacent_vertices(anchor_vertex, database_graph);
@@ -42,7 +41,6 @@ void testDuplicatesChain() {
     mergeable_v_p.location_3d[0] += 0.1;
     // Increase the index of the newly added vertex.
     mergeable_v_p.index = boost::num_vertices(database_graph);
-    std::cout << "Mergeable vertex: " << mergeable_v_p << std::endl;
 
     const uint64_t new_v_d = boost::add_vertex(mergeable_v_p, database_graph);
 
@@ -54,11 +52,9 @@ void testDuplicatesChain() {
       if(new_v_d != linked_v_d && boost::edge(new_v_d, linked_v_d,
                                               database_graph).second == false) {
         boost::add_edge(new_v_d, linked_v_d, linked_e_p, database_graph);
-        std::cout << "Added edge between " << linked_e_p << std::endl;
         ++i;
       }
     }
-    std::cout << std::endl;
   }
 
   boost::add_edge(20, 21, {20, 21}, database_graph);
@@ -68,7 +64,8 @@ void testDuplicatesChain() {
   const std::string output_path = x_view::getOutputDirectory();
   x_view::writeToFile(database_graph, output_path + "removal_before.dot");
 
-  x_view::GraphMerger::mergeDuplicates(&database_graph);
+  const float merge_distance = 0.2f;
+  x_view::GraphMerger::mergeDuplicates(&database_graph, merge_distance);
   x_view::writeToFile(database_graph, output_path + "removal_after.dot");
 }
 
