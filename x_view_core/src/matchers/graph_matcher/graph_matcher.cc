@@ -7,6 +7,11 @@
 #include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
 #include <x_view_core/x_view_locator.h>
 
+#include <pcl/correspondence.h>
+#include <pcl/point_types.h>
+#include <pcl/recognition/cg/geometric_consistency.h>
+#include <pcl/registration/transformation_estimation_svd.h>
+
 namespace x_view {
 
 GraphMatcher::MaxSimilarityMatrixType
@@ -90,10 +95,10 @@ GraphMatcher::GraphMatcher() {
         RandomWalkerParams::SAMPLING_TYPE::UNIFORM;
   else if(random_walk_sampling_type == "AVOIDING") {
     random_walker_params_.random_sampling_type =
-    RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
+        RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
   } else
     LOG(ERROR) << "Unrecognized random walker sampling type <"
-               << random_walk_sampling_type << ">.";
+    << random_walk_sampling_type << ">.";
 
   random_walker_params_.num_walks =
       matcher_parameters->getInteger("num_walks");
@@ -105,8 +110,8 @@ GraphMatcher::GraphMatcher() {
 
 GraphMatcher::GraphMatcher(const RandomWalkerParams& random_walker_params,
                            const VertexSimilarity::SCORE_TYPE score_type)
-    : random_walker_params_(random_walker_params),
-      vertex_similarity_score_type_(score_type) {
+: random_walker_params_(random_walker_params),
+  vertex_similarity_score_type_(score_type) {
   SimilarityPlotter::setColormap(cv::COLORMAP_OCEAN);
 }
 
@@ -145,12 +150,12 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
     const Graph& query_semantic_graph) {
 
   CHECK(boost::num_vertices(global_semantic_graph_) > 0)
-  << "You are trying to match a graph landmark using an uninitialized "
-  << "graph matcher: the global_semantic_graph_ has 0 vertices, thus a "
-  << "match is not possible. "
-  << "Make sure to call 'GraphMatcher::addDescriptor' during the first "
-  << "frame to simply add the first graph to the descriptor without "
-  << "performing any match.";
+      << "You are trying to match a graph landmark using an uninitialized "
+      << "graph matcher: the global_semantic_graph_ has 0 vertices, thus a "
+      << "match is not possible. "
+      << "Make sure to call 'GraphMatcher::addDescriptor' during the first "
+      << "frame to simply add the first graph to the descriptor without "
+      << "performing any match.";
 
   // Extract the random walks of the graph.
   RandomWalker random_walker(query_semantic_graph, random_walker_params_);
@@ -163,7 +168,10 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   SimilarityMatrixType& similarity_matrix =
       matchingResult->getSimilarityMatrix();
 
-  computeSimilarityMatrix(random_walker, &similarity_matrix,
+  VectorXb& invalid_matches=
+      matchingResult->getInvalidMatches();
+
+  computeSimilarityMatrix(random_walker, &similarity_matrix, &invalid_matches,
                           vertex_similarity_score_type_);
 
   // Merge the query graph to the database graph.
@@ -184,15 +192,85 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
 
 }
 
+bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
+                                  const Graph& database_semantic_graph,
+                                  const GraphMatchingResult& matches,
+                                  VectorXb* invalid_matches) {
+
+  CHECK_NOTNULL(invalid_matches);
+
+  const auto& parameters = Locator::getParameters();
+  const auto& matcher_parameters = parameters->getChildPropertyList("matcher");
+
+  GraphMatcher::MaxSimilarityMatrixType similarities = matches
+      .computeMaxSimilarityColwise();
+
+  // todo(gawela): Should we generally use PCL types for points /
+  // correspondences?
+  // Prepare PCL containers with corresponding 3D points.
+  pcl::PointCloud<pcl::PointXYZ>::Ptr query_cloud(
+      new pcl::PointCloud<pcl::PointXYZ>());
+  pcl::PointCloud<pcl::PointXYZ>::Ptr database_cloud(
+      new pcl::PointCloud<pcl::PointXYZ>());
+  query_cloud->points.resize(similarities.cols());
+  database_cloud->points.resize(similarities.cols());
+  pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
+  correspondences->resize(similarities.cols());
+
+  for (size_t i = 0u; i < similarities.cols(); ++i) {
+    GraphMatcher::MaxSimilarityMatrixType::Index maxIndex;
+    similarities.col(i).maxCoeff(&maxIndex);
+    query_cloud->points[i].getVector3fMap() = query_semantic_graph[i]
+                                                                   .location_3d.cast<float>();
+    database_cloud->points[i].getVector3fMap() =
+        database_semantic_graph[maxIndex].location_3d.cast<float>();
+    (*correspondences)[i].index_query = i;
+    (*correspondences)[i].index_match = i;
+  }
+
+  // Perform geometric consistency filtering.
+  pcl::GeometricConsistencyGrouping<pcl::PointXYZ, pcl::PointXYZ> grouping;
+  grouping.setSceneCloud(database_cloud);
+  grouping.setInputCloud(query_cloud);
+  grouping.setModelSceneCorrespondences(correspondences);
+  grouping.setGCThreshold(matcher_parameters->getFloat("consistency_threshold"));
+  grouping.setGCSize(matcher_parameters->getFloat("consistency_size"));
+
+  size_t query_size = similarities.cols();
+  invalid_matches->resize(query_size);
+  invalid_matches->setConstant(true);
+  TransformationVector transformations;
+  std::vector<pcl::Correspondences> clustered_correspondences(1);
+  if (!grouping.recognize(transformations, clustered_correspondences)) {
+    return false;
+  }
+
+  // Update vector of invalid matches.
+  for (size_t i = 0u; i < clustered_correspondences[0].size(); ++i) {
+    (*invalid_matches)((clustered_correspondences[0])[i].index_query) = false;
+  }
+
+  LOG(INFO) << "Filtered out "
+      << query_size - clustered_correspondences[0].size() << " of "
+      << query_size << " matches.";
+
+  if (transformations.size() == 0) {
+    LOG(WARNING) << "Geometric consistency filtering failed.";
+    return false;
+  }
+
+  return true;
+}
+
 void GraphMatcher::addDescriptor(const ConstDescriptorPtr& descriptor) {
   const Graph& graph = std::dynamic_pointer_cast<const GraphDescriptor>
-      (descriptor)->getDescriptor();
+  (descriptor)->getDescriptor();
   addDescriptor(graph);
 }
 
 void GraphMatcher::addDescriptor(const Graph& graph) {
   CHECK(boost::num_vertices(graph) > 0)
-  << "You are adding a graph with 0 vertices to the GraphMatcher.";
+      << "You are adding a graph with 0 vertices to the GraphMatcher.";
   RandomWalker random_walker(graph, random_walker_params_);
   random_walker.generateRandomWalks();
 
@@ -215,8 +293,10 @@ LandmarksMatcherPtr GraphMatcher::create(const RandomWalkerParams& random_walker
 
 void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
                                            Eigen::MatrixXf* similarity_matrix,
+                                           VectorXb* invalid_matches,
                                            const VertexSimilarity::SCORE_TYPE score_type) const {
   CHECK_NOTNULL(similarity_matrix);
+  CHECK_NOTNULL(invalid_matches);
 
   // Extract the random walks from the RandomWalker passed as argument.
   const std::vector<RandomWalker::WalkMap>& query_walk_map_vector =
@@ -234,6 +314,10 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
 
   similarity_matrix->resize(num_global_vertices, num_query_vertices);
   similarity_matrix->setZero();
+
+  // Setting all invalids to false. These will be modified in the filtering.
+  invalid_matches->resize(num_query_vertices);
+  invalid_matches->setConstant(false);
 
   // Fill up dense similarity matrix.
   for (uint64_t i = 0; i < num_global_vertices; ++i) {

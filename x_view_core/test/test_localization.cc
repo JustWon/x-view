@@ -44,8 +44,13 @@ void testLocalization(const int num_tests, const int num_observations,
 
     // Localize the robot via its observations and check if it fulfills the
     // test requirements.
-    const Eigen::Vector3d res = graph_localizer.localize();
-    const double d = (res - robot_position).norm();
+    x_view::SE3 transformation;
+    x_view::GraphMatcher::GraphMatchingResult matching_result;
+    x_view::Graph query_graph;
+    x_view::Graph database_graph;
+    graph_localizer.localize(matching_result, query_graph, database_graph,
+                             &transformation);
+    const double d = (transformation.getPosition() - robot_position).norm();
 
     CHECK_NEAR(d, 0.0, tol);
   }
@@ -86,8 +91,13 @@ void testEvidence(const int seed) {
     // Add an outlier observation with small evidence
     ADD_OBSERVATION(1.0, -1.0, -1.0, 10.0, 0.1 * (1.0 - deviation));
 
-    Eigen::Vector3d res = graph_localizer.localize();
-    const double dist = (res - robot_position).norm();
+    x_view::SE3 transformation;
+    x_view::GraphMatcher::GraphMatchingResult matching_result;
+    x_view::Graph query_graph;
+    x_view::Graph database_graph;
+    graph_localizer.localize(matching_result, query_graph, database_graph,
+                             &transformation);
+    const double dist = (transformation.getPosition() - robot_position).norm();
     CHECK_NEAR(dist, 0.0, 0.2);
   }
 

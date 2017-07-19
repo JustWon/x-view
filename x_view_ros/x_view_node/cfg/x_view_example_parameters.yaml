@@ -37,7 +37,14 @@ Matcher: {
     vertex_similarity_score: "WEIGHTED",  # or "SURFACE"
     random_walk_sampling_type: "UNIFORM", # or "AVOIDING"
     num_walks: 400,
-    walk_length: 3
+    walk_length: 3,
+    outlier_rejection: false,
+    consistency_threshold: 5.0,
+    consistency_size: 2.0
+}
+
+Localizer: {
+    type: "OPTIMIZATION" # OPTIMIZATION or ESTIMATION
 }
 
 Matcher: {

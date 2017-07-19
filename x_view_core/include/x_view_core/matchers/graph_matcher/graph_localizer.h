@@ -2,6 +2,7 @@
 #define X_VIEW_GRAPH_LOCALIZER_H
 
 #include <x_view_core/features/graph.h>
+#include <x_view_core/matchers/graph_matcher/graph_matcher.h>
 #include <x_view_core/x_view_types.h>
 
 namespace x_view {
@@ -29,10 +30,20 @@ class GraphLocalizer {
 
   /**
    * \brief Localizes the robot in the world coordinate frame by optimizing
-   * the nonlinear factor graph associated to the observations.
-   * \return Estimated 3D position of the robot.
+   * the nonlinear factor graph associated to the observations or based on a
+   * geometric estimation.
+   * \param matching_result Const reference to the observations.
+   * \param query_semantic_graph Const reference to the (local) query
+   * semantic graph
+   * \param database_semantic_graph Const reference to the (global) database
+   * semantic graph
+   * \param transformation Return value of the transformation.
+   * \return Indicator if localization succeeded.
    */
-  const Eigen::Vector3d localize() const;
+  bool localize(const GraphMatcher::GraphMatchingResult& matching_result,
+                const Graph& query_semantic_graph,
+                const Graph& database_semantic_graph,
+                SE3* transformation);
 
  private:
   struct Observation {
