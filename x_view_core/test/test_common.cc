@@ -24,9 +24,15 @@ void createParameters() {
   std::unique_ptr<x_view::Parameters> matcher_parameters(
       new x_view::Parameters("Test Matcher parameters"));
 
+  std::unique_ptr<x_view::Parameters> localizer_parameters(
+      new x_view::Parameters("Test Localizer parameters"));
+  localizer_parameters->setString("type", "OPTIMIZATION");
+
   parameters->addChildPropertyList("dataset", std::move(dataset_parameters));
   parameters->addChildPropertyList("landmark", std::move(landmark_parameters));
   parameters->addChildPropertyList("matcher", std::move(matcher_parameters));
+  parameters->addChildPropertyList("localizer",
+                                   std::move(localizer_parameters));
 
   x_view::Locator::registerParameters(std::move(parameters));
 }

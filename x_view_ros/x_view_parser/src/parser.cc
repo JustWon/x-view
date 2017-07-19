@@ -12,10 +12,12 @@ std::unique_ptr<Parameters> Parser::parseParameters() const {
   auto dataset_parameters = parseDataset();
   auto landmark_parameters = parseLandmark();
   auto matcher_parameters = parseMatcher();
+  auto localizer_parameters = parseLocalizer();
 
   parameters->addChildPropertyList("dataset", std::move(dataset_parameters));
   parameters->addChildPropertyList("landmark", std::move(landmark_parameters));
   parameters->addChildPropertyList("matcher", std::move(matcher_parameters));
+  parameters->addChildPropertyList("localizer", std::move(localizer_parameters));
 
   return std::move(parameters);
 }
@@ -252,6 +254,12 @@ std::unique_ptr<Parameters> Parser::parseGraphMatcher() const {
   addInt(nh_, "/Matcher/num_walks", "num_walks", graph_matcher_parameters, 200);
   addInt(nh_, "/Matcher/walk_length", "walk_length",
          graph_matcher_parameters, 3);
+  addBool(nh_, "/Matcher/outlier_rejection", "outlier_rejection",
+          graph_matcher_parameters, false);
+  addFloat(nh_, "/Matcher/consistency_threshold", "consistency_threshold",
+           graph_matcher_parameters, 5.0);
+  addFloat(nh_, "/Matcher/consistency_size", "consistency_size",
+           graph_matcher_parameters, 2.0);
 
   // Parameters related to graph merger.
   addInt(nh_, "/Matcher/time_window", "time_window",
@@ -278,6 +286,18 @@ std::unique_ptr<Parameters> Parser::parseVectorMatcher() const {
          vector_matcher_parameters, 1);
 
   return std::move(vector_matcher_parameters);
+}
+
+std::unique_ptr<Parameters> Parser::parseLocalizer() const {
+
+  std::unique_ptr<Parameters> localizer_parameters(
+      new Parameters("Localizer Parameters"));
+
+  // Set localizer type.
+  addString(nh_, "/Localizer/type", "type", localizer_parameters,
+            "OPTIMIZATION");
+
+  return std::move(localizer_parameters);
 }
 
 }

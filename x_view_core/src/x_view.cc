@@ -64,7 +64,8 @@ void XView::writeGraphToFile() const {
   writeToFile(graph_matcher->getGlobalGraph(), filename);
 }
 
-const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
+bool XView::localize(const FrameData& frame_data,
+                     Eigen::Vector3d* position) {
   LOG(INFO) << "XView tries to localize a robot by its observations.";
 
   const cv::Mat& depth_image = frame_data.getDepthImage();
@@ -100,16 +101,28 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
 
   GraphMatcher::SimilarityMatrixType& similarity_matrix =
       matching_result.getSimilarityMatrix();
+  VectorXb& invalid_matches = matching_result.getInvalidMatches();
 
-  std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)->
-      computeSimilarityMatrix(random_walker, &similarity_matrix,
-                              VertexSimilarity::SCORE_TYPE::WEIGHTED);
+  std::dynamic_pointer_cast <GraphMatcher> (descriptor_matcher_)
+              ->computeSimilarityMatrix(
+                  random_walker, &similarity_matrix, &invalid_matches,
+                  VertexSimilarity::SCORE_TYPE::WEIGHTED);
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
       matching_result.computeMaxSimilarityRowwise().cwiseProduct(
           matching_result.computeMaxSimilarityColwise()
       );
 
+  // Filter matches with geometric consistency.
+  if (Locator::getParameters()->getChildPropertyList("matcher")->getBoolean(
+      "outlier_rejection")) {
+    bool filter_success = std::dynamic_pointer_cast < GraphMatcher
+        > (descriptor_matcher_)->filter_matches(query_graph, global_graph,
+                                                matching_result,
+                                                &invalid_matches);
+  }
+
+  // Estimate transformation between graphs (Localization).
   GraphLocalizer graph_localizer;
 
   for (int j = 0; j < max_similarity_matrix.cols(); ++j) {
@@ -117,22 +130,24 @@ const Eigen::Vector3d XView::localize(const FrameData& frame_data) {
     max_similarity_matrix.col(j).maxCoeff(&max_i);
     if (max_i == -1)
       continue;
-    std::cout << "Match between vertex " << j << " in query graph is vertex "
-              << max_i << " in global graph" << std::endl;
-    const double similarity = similarity_matrix(max_i, j);
-    const VertexProperty& match_v_p = global_graph[max_i];
+    if (!invalid_matches(j)) {
+      std::cout << "Match between vertex " << j << " in query graph is vertex "
+          <<max_i << " in global graph" << std::endl;
+      const double similarity = similarity_matrix(max_i, j);
+      const VertexProperty& match_v_p = global_graph[max_i];
 
-    const unsigned short depth_cm =
-    depth_image.at < unsigned
-    short > (match_v_p.center);
-    const double depth_m = depth_cm * 0.01;
+      const unsigned short depth_cm =
+          depth_image.at<unsigned short>(match_v_p.center);
+      const double depth_m = depth_cm * 0.01;
 
-    graph_localizer.addObservation(match_v_p, depth_m, similarity);
+      graph_localizer.addObservation(match_v_p, depth_m, similarity);
+    }
   }
 
-  const Eigen::Vector3d res = graph_localizer.localize();
-
-  return res;
+  SE3 transformation;
+  bool localized = graph_localizer.localize(matching_result, query_graph, global_graph, &transformation);
+  (*position) = transformation.getPosition();
+  return localized;
 }
 
 void XView::printInfo() const {
@@ -141,6 +156,8 @@ void XView::printInfo() const {
       parameters->getChildPropertyList("landmark");
   const auto& matcher_parameters =
       parameters->getChildPropertyList("matcher");
+  const auto& localizer_parameters =
+      parameters->getChildPropertyList("localizer");
   const auto& dataset = Locator::getDataset();
 
   LOG(INFO)
@@ -154,6 +171,7 @@ void XView::printInfo() const {
       << "\n\n" << dataset
       << "\n\tLandmark type:\t<" + landmark_parameters->getString("type") + ">"
       << "\n\tMatcher type: \t<" + matcher_parameters->getString("type") + ">"
+      << "\n\tLocalizer type: \t<" + localizer_parameters->getString("type") + ">"
       << "\n==========================================================\n";
 
   LOG(INFO)

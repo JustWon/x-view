@@ -35,6 +35,7 @@ HistogramLandmark::HistogramLandmark(const FrameData& frame_data)
   // frequencies as percentages
   const int votes = std::accumulate(histogram_count.begin(),
                                     histogram_count.end(), int(0));
+
   cv::Mat descriptor(1, histogram_count.size(), CV_32FC1);
   for (int k = 0; k < histogram_count.size(); ++k) {
     descriptor.at<float>(k) = float(histogram_count[k]) / votes;
@@ -44,7 +45,6 @@ HistogramLandmark::HistogramLandmark(const FrameData& frame_data)
   // VectorDescriptor containing the histogram data
   descriptor_ =
       std::make_shared<VectorDescriptor>(VectorDescriptor(descriptor));
-
 }
 }
 

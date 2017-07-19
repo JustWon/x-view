@@ -111,13 +111,16 @@ void XViewBagReader::localize(const CAMERA camera_type, const int frame_index) {
   x_view::FrameData frame_data(semantic_image, depth_image,
                                empty_pose, frame_index);
 
-  Eigen::Vector3d estimated_position = x_view_->localize(frame_data);
+  Eigen::Vector3d estimated_position;
+  bool localized = x_view_->localize(frame_data, &estimated_position);
   Eigen::Vector3d true_position = real_pose.getPosition();
 
   std::cout << "Localized robot at position: "
             << Eigen::RowVector3d(estimated_position) <<  std::endl;
   std::cout << "True position: "
             << Eigen::RowVector3d(true_position) << std::endl;
+  std::cout << "Detected localization as outlier: " << std::boolalpha
+            << !localized << std::endl;
 
   publishPosition(estimated_position, Eigen::Vector3d(1.0, 0.0, 0.0),
                   trans.stamp_, "estimated_position");

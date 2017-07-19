@@ -31,9 +31,6 @@ const Graph GraphMerger::computeMergedGraph() {
   const GraphMatcher::SimilarityMatrixType& similarity_matrix =
       matching_result_.getSimilarityMatrix();
 
-  const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
-      computeAgreementMatrix();
-
   // Initialize the merged graph to contain all vertices of the database_graph.
   merged_graph_ = database_graph_;
 
@@ -46,8 +43,7 @@ const Graph GraphMerger::computeMergedGraph() {
     // Loop over the vertices of the database graph.
     for(int i = 0; i < num_db_vertices; ++i) {
       // Check if the two vertices are possible matches.
-      if(max_similarity_agree(i, j) == true
-          && similarity_matrix(i, j) >= graph_merger_parameters_.similarity_threshold &&
+      if(similarity_matrix(i, j) >= graph_merger_parameters_.similarity_threshold &&
           temporalDistance(i, j) <= graph_merger_parameters_.time_window &&
           spatialDistance(i, j) <= graph_merger_parameters_.distance_threshold) {
         // There is a match between the j-th vertex of the query graph and
@@ -238,20 +234,6 @@ const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
   // Since all tests are fulfilled, the two vertices should be merged.
   return true;
 
-}
-
-GraphMatcher::MaxSimilarityMatrixType GraphMerger::computeAgreementMatrix() const {
-
-  const GraphMatcher::MaxSimilarityMatrixType max_similarity_colwise =
-      matching_result_.computeMaxSimilarityColwise();
-
-  const GraphMatcher::MaxSimilarityMatrixType max_similarity_rowwise =
-      matching_result_.computeMaxSimilarityRowwise();
-
-  const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
-      (max_similarity_colwise.array() * max_similarity_rowwise.array());
-
-  return max_similarity_agree;
 }
 
 void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query_graph) {

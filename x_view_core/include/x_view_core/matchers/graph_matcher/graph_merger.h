@@ -155,9 +155,6 @@ class GraphMerger {
   /// \brief Parameters used during graph merging.
   const GraphMergerParameters& graph_merger_parameters_;
 
-
-  GraphMatcher::MaxSimilarityMatrixType computeAgreementMatrix() const;
-
   void addVertexToMergedGraph(const VertexDescriptor& source_in_query_graph);
 
   /**

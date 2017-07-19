@@ -16,8 +16,6 @@
 using namespace x_view;
 using namespace x_view_test;
 
-#define CV_IMAGE_TYPE  CV_8UC3
-
 #define CAST(from, to) std::dynamic_pointer_cast<to>(from)
 
 TEST(XViewSlamTestSuite, test_histogram_landmark) {
@@ -31,12 +29,12 @@ TEST(XViewSlamTestSuite, test_histogram_landmark) {
   Locator::registerDataset(std::move(dataset));
 
   // create various images
-  const int ROWS = 50;
-  const int COLS = 30;
+  const uint64_t ROWS = 50;
+  const uint64_t COLS = 30;
   const uint64_t frame_index = 0;
 
   // Black image
-  cv::Mat black(ROWS, COLS, CV_IMAGE_TYPE, cv::Scalar(0, 0, 0));
+  cv::Mat black(ROWS, COLS, CV_8UC3, cv::Scalar(0, 0, 0));
   FrameData frame_data_black(black, cv::Mat(), SE3(), frame_index);
   SemanticLandmarkPtr bLandmark = HistogramLandmark::create(frame_data_black);
   // expect to have 100% votes for label 0
@@ -45,19 +43,8 @@ TEST(XViewSlamTestSuite, test_histogram_landmark) {
   };
   performLabelTest(bLandmark, bExpected);
 
-  // White image
-  cv::Mat white(ROWS, COLS, CV_IMAGE_TYPE, cv::Scalar(1, 0, 0));
-  FrameData frame_data_white(white, cv::Mat(), SE3(), frame_index);
-  SemanticLandmarkPtr wLandmark = HistogramLandmark::create(frame_data_white);
-  // expect to have 100% votes in label 1
-  std::vector<std::pair<int, double>> wExpected = {
-      {0, 0}, {1, 1}
-  };
-  performLabelTest(wLandmark, wExpected);
-
-
   // Half white half black image
-  cv::Mat half(ROWS, COLS, CV_IMAGE_TYPE, cv::Scalar(0, 0, 0));
+  cv::Mat half(ROWS, COLS, CV_8UC3, cv::Scalar(0, 0, 0));
   for (int i = 0; i < ROWS / 2; ++i) {
     for (int j = 0; j < COLS; ++j) {
       half.at<cv::Vec3b>(i, j) = cv::Vec3b(1, 0, 0);

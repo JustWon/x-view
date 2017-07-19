@@ -43,6 +43,7 @@ class Parser {
   std::unique_ptr<x_view::Parameters> parseDataset() const;
   std::unique_ptr<x_view::Parameters> parseLandmark() const;
   std::unique_ptr<x_view::Parameters> parseMatcher() const;
+  std::unique_ptr<x_view::Parameters> parseLocalizer() const;
 
  private:
 
