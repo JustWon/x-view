@@ -284,13 +284,8 @@ std::unique_ptr<Parameters> Parser::parseLocalizer() const {
       new Parameters("Localizer Parameters"));
 
   // Set localizer type.
-  std::string localizer_type;
-  if (!nh_.getParam("/Localizer/type", localizer_type)) {
-    LOG(WARNING) << "Could not parse parameter </Localizer/type>.\n"
-        << "Setting localizer type to <OPTIMIZATION>.";
-    localizer_type = "OPTIMIZATION";
-  }
-  localizer_parameters->setString("type", localizer_type);
+  addString(nh_, "/Localizer/type", "type", localizer_parameters,
+            "OPTIMIZATION");
 
   return std::move(localizer_parameters);
 }

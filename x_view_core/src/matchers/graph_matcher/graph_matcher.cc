@@ -237,7 +237,8 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
   grouping.setGCSize(matcher_parameters->getFloat("consistency_size"));
 
   size_t query_size = similarities.cols();
-  (*invalid_matches) = VectorXb::Constant(query_size, true);
+  invalid_matches->resize(query_size);
+  invalid_matches->setConstant(true);
   TransformationVector transformations;
   std::vector<pcl::Correspondences> clustered_correspondences(1);
   if (!grouping.recognize(transformations, clustered_correspondences)) {
@@ -246,7 +247,7 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
 
   // Update vector of invalid matches.
   for (size_t i = 0u; i < clustered_correspondences[0].size(); ++i) {
-    (*invalid_matches)((clustered_correspondences[0])[i].index_query, 0) = false;
+    (*invalid_matches)((clustered_correspondences[0])[i].index_query) = false;
   }
 
   LOG(INFO) << "Filtered out "
@@ -315,7 +316,8 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
   similarity_matrix->setZero();
 
   // Setting all invalids to false. These will be modified in the filtering.
-  (*invalid_matches) = VectorXb::Constant(num_query_vertices, false);
+  invalid_matches->resize(num_query_vertices);
+  invalid_matches->setConstant(false);
 
   // Fill up dense similarity matrix.
   for (uint64_t i = 0; i < num_global_vertices; ++i) {
