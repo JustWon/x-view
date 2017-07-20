@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
   x_view_ros::Pause pause;
   for(int i = 0; i< 201; ) {
     if(!pause.isPaused()) {
-      bag_reader.localize(x_view_ros::CAMERA::FRONT, i);
+      bag_reader.localize(x_view_ros::CAMERA::BACK, i);
       ++i;
     }
   }

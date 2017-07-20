@@ -127,8 +127,8 @@ bool XView::localize(const FrameData& frame_data,
     GraphMatcher::MaxSimilarityMatrixType::Index max_index;
     max_similarities_colwise.col(j).maxCoeff(&max_index);
     if (!invalid_matches(j)) {
-      std::cout << "Match between vertex " << j << " in query graph is vertex "
-                << max_index << " in global graph" << std::endl;
+      LOG(INFO) << "Match between vertex " << j << " in query graph is vertex "
+                << max_index << " in global graph.";
       const double similarity = similarity_matrix(max_index, j);
       const VertexProperty& match_v_p = global_graph[max_index];
 
