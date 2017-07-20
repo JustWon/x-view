@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 
   // Build the semantic graph associated to the path specified in the
   // parameters passed to the iteration function.
-  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT, 0, 40);
+  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT, 0, 201);
 
   // Try to localize the following views inside the previously constructed
   // semantic graph.

@@ -219,8 +219,8 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
   const auto& parameters = Locator::getParameters();
   const auto& matcher_parameters = parameters->getChildPropertyList("matcher");
 
-  GraphMatcher::MaxSimilarityMatrixType similarities = matches
-      .computeMaxSimilarityColwise();
+  GraphMatcher::MaxSimilarityMatrixType similarities =
+      matches.computeMaxSimilarityColwise();
 
   // todo(gawela): Should we generally use PCL types for points /
   // correspondences?
@@ -235,12 +235,12 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
   correspondences->resize(similarities.cols());
 
   for (size_t i = 0u; i < similarities.cols(); ++i) {
-    GraphMatcher::MaxSimilarityMatrixType::Index maxIndex;
-    similarities.col(i).maxCoeff(&maxIndex);
-    query_cloud->points[i].getVector3fMap() = query_semantic_graph[i]
-                                                                   .location_3d.cast<float>();
+    GraphMatcher::MaxSimilarityMatrixType::Index max_index;
+    similarities.col(i).maxCoeff(&max_index);
+    query_cloud->points[i].getVector3fMap() =
+        query_semantic_graph[i].location_3d.cast<float>();
     database_cloud->points[i].getVector3fMap() =
-        database_semantic_graph[maxIndex].location_3d.cast<float>();
+        database_semantic_graph[max_index].location_3d.cast<float>();
     (*correspondences)[i].index_query = i;
     (*correspondences)[i].index_match = i;
   }
