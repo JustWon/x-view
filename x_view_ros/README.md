@@ -15,7 +15,7 @@ the implementation of a _graph publisher_ class, which allows a ros node to
 publish a semantic graph as a ros message. This message can be read by tools 
 such as RViz for visualization purposes.
 
-* [__x_view_node__](./x_view_node) directory containing hte implementation of
+* [__x_view_node__](./x_view_node) directory containing the implementation of
  a ros node which passively listens to the topics published by playing a 
  rosbag and submits the data to X-View. Note that this node implementation 
  does not allow the used to have a direct control on which data is set to 
