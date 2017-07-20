@@ -28,12 +28,50 @@ class AbstractSemanticLandmark {
   AbstractSemanticLandmark(const FrameData& frame_data);
   virtual ~AbstractSemanticLandmark();
 
-  /// \brief Returns a const reference to the semantic image associated with
-  /// this landmark.
+  /**
+   * \brief Returns a const reference to the semantic image associated with
+   * this landmark.
+   * \note Since cv::Mats are implemented as pointers to the actual image
+   * data, if you modify the image returned by this method, you will also
+   * modify the image stored by the landmark instance! In order to safely
+   * modify the returned image without modifying the one stored in this
+   * landmark instance proceed as follows:
+   * \code{cpp}
+   * // This modifies the semantic image contained inside the landmark!
+   * // It is only a shallow copy of the image.
+   * cv::Mat unsafe_copy = landmark.getSemanticImage();
+   * unsafe_copy.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,0);
+   *
+   * // This is a safe deep copy of the semantic image.
+   * cv::Mat safe_copy = landmark.getSemanticImage().clone();
+   * // This change only affects the safe_copy cv::Mat and not the one stored
+   * // inside the landmark.
+   * safe_copy.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,0);
+   * \endcode
+   */
   const cv::Mat& getSemanticImage() const;
 
-  /// \brief Returns a const reference to the depth-image associated with
-  /// this landmark.
+  /**
+   * \brief Returns a const reference to the depth-image associated with this
+   * landmark.
+   * \note Since cv::Mats are implemented as pointers to the actual image
+   * data, if you modify the image returned by this method, you will also
+   * modify the image stored by the landmark instance! In order to safely
+   * modify the returned image without modifying the one stored in this
+   * landmark instance proceed as follows:
+   * \code{cpp}
+   * // This modifies the depth image contained inside the landmark!
+   * // It is only a shallow copy of the image.
+   * cv::Mat unsafe_copy = landmark.getDepthImage();
+   * unsafe_copy.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,0);
+   *
+   * // This is a safe deep copy of the depth image.
+   * cv::Mat safe_copy = landmark.getDepthImage().clone();
+   * // This change only affects the safe_copy cv::Mat and not the one stored
+   * // inside the landmark.
+   * safe_copy.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,0);
+   * \endcode
+   */
   const cv::Mat& getDepthImage() const;
 
   /// \brief Returns a const reference to the robot's pose associated with

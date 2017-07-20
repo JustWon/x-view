@@ -3,8 +3,8 @@
 namespace x_view {
 
 AbstractSemanticLandmark::AbstractSemanticLandmark(
-    const FrameData& frame_data
-) : semantic_image_(frame_data.getSemanticImage().clone()),
+    const FrameData& frame_data)
+    : semantic_image_(frame_data.getSemanticImage().clone()),
     depth_image_(frame_data.getDepthImage().clone()),
     pose_(frame_data.getPose()) {
 }
