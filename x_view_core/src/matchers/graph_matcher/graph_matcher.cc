@@ -5,7 +5,6 @@
 #include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/matchers/graph_matcher/graph_merger.h>
 #include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
-#include <x_view_core/x_view_locator.h>
 
 #include <pcl/correspondence.h>
 #include <pcl/point_types.h>
@@ -81,19 +80,19 @@ GraphMatcher::GraphMatcher() {
   const auto& matcher_parameters = parameters->getChildPropertyList("matcher");
   const std::string score_type =
       matcher_parameters->getString("vertex_similarity_score");
-  if(score_type == "WEIGHTED")
+  if (score_type == "WEIGHTED" )
     vertex_similarity_score_type_ = VertexSimilarity::SCORE_TYPE::WEIGHTED;
-  else if(score_type == "SURFACE")
+  else if (score_type == "SURFACE")
     vertex_similarity_score_type_ = VertexSimilarity::SCORE_TYPE::SURFACE;
   else
     LOG(ERROR) << "Unrecognized vertex score type <" << score_type << ">.";
 
   const std::string random_walk_sampling_type =
       matcher_parameters->getString("random_walk_sampling_type");
-  if(random_walk_sampling_type == "UNIFORM")
+  if (random_walk_sampling_type == "UNIFORM")
     random_walker_params_.random_sampling_type =
         RandomWalkerParams::SAMPLING_TYPE::UNIFORM;
-  else if(random_walk_sampling_type == "AVOIDING") {
+  else if (random_walk_sampling_type == "AVOIDING") {
     random_walker_params_.random_sampling_type =
         RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
   } else
@@ -175,12 +174,30 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
                           vertex_similarity_score_type_);
 
   // Merge the query graph to the database graph.
+  const auto& parameters = Locator::getParameters();
+  const auto& matching_parameters = parameters->getChildPropertyList("matcher");
+  GraphMergerParameters graph_merger_parameters;
+  graph_merger_parameters.time_window =
+      matching_parameters->getInteger("time_window",
+                                      std::numeric_limits<int>::max());
+  graph_merger_parameters.similarity_threshold =
+      matching_parameters->getFloat("similarity_threshold", 0.f);
+  graph_merger_parameters.distance_threshold =
+      matching_parameters->getFloat("distance_threshold",
+                                    std::numeric_limits<float>::max());
   GraphMerger graph_merger(global_semantic_graph_, query_semantic_graph,
-                           *matchingResult.get());
+                           *matchingResult.get(), graph_merger_parameters);
 
 
   // Need to regenerate the random walks of the extended global graph.
   global_semantic_graph_ = graph_merger.computeMergedGraph();
+
+  // Clean the newly generated global semantic graph by removing duplicate
+  // vertices.
+  const float merge_distance =
+      matching_parameters->getFloat("merge_distance", 1.5);
+  GraphMerger::mergeDuplicates(&global_semantic_graph_, merge_distance);
+
   // Regenerate the random walks of the new global graph
   RandomWalker global_random_walker(global_semantic_graph_,
                                     random_walker_params_);

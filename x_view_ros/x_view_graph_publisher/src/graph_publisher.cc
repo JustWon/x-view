@@ -2,6 +2,7 @@
 #include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 
+
 namespace x_view_ros {
 
 GraphPublisher::GraphPublisher(ros::NodeHandle& nh,
@@ -28,6 +29,12 @@ void GraphPublisher::publish(const x_view::Graph& graph,
   LOG(INFO) << "Publishing " << num_vertices << " vertices and "
             << num_edges << " edges.";
 
+  // Delete all markers of the previous frame.
+  visualization_msgs::Marker reset_marker;
+  reset_marker.action = 3;
+  vertex_publisher_.publish(reset_marker);
+
+  // Publish all new vertices and edges.
   publishVertices(graph, time);
   publishEdges(graph, time);
 }

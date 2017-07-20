@@ -44,7 +44,6 @@ void XView::processFrameData(const FrameData& frame_data) {
 
   LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
 
-
 }
 
 const Graph& XView::getSemanticGraph() const {
@@ -78,8 +77,8 @@ bool XView::localize(const FrameData& frame_data,
   createSemanticLandmark(frame_data, landmark_ptr);
 
   const Graph& query_graph = std::dynamic_pointer_cast<const GraphDescriptor>(
-  std::dynamic_pointer_cast<GraphLandmark>
-      (landmark_ptr)->getDescriptor())->getDescriptor();
+      std::dynamic_pointer_cast<GraphLandmark>
+          (landmark_ptr)->getDescriptor())->getDescriptor();
 
   // Get the existing global semantic graph before matching.
   const Graph& global_graph = getSemanticGraph();
@@ -126,10 +125,10 @@ bool XView::localize(const FrameData& frame_data,
   // Estimate transformation between graphs (Localization).
   GraphLocalizer graph_localizer;
 
-  for(int j = 0; j < max_similarity_matrix.cols(); ++j) {
+  for (int j = 0; j < max_similarity_matrix.cols(); ++j) {
     int max_i = -1;
     max_similarity_matrix.col(j).maxCoeff(&max_i);
-    if(max_i == -1)
+    if (max_i == -1)
       continue;
     if (!invalid_matches(j)) {
       std::cout << "Match between vertex " << j << " in query graph is vertex "

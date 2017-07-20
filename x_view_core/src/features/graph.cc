@@ -157,6 +157,8 @@ void writeToFile(const Graph& graph, const std::string& filename) {
   }
 
   out << "}";
+
+  LOG(INFO) << "Graph has been written to file <" << filename << ">.";
 }
 
 }

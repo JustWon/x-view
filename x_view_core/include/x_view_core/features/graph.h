@@ -162,7 +162,7 @@ std::ostream& operator<<(std::ostream& out, const Graph& graph);
  * information about the graph passed as argument:
  *   - Graph name (same for all graphs: 'semantic_graph')
  *   - An unordered list of vertices with the following properties:
- *     - Vertex identifier encoded through the vertex index proeprty.
+ *     - Vertex identifier encoded through the vertex index property.
  *     - A text label reflecting the semantic entity name of the vertex.
  *     - Fill color: color associated to the semantic entity (see
  *       getColorFromSemanticLabel()).
