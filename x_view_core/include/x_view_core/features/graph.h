@@ -195,6 +195,8 @@ std::ostream& operator<<(std::ostream& out, const Graph& graph);
  *   - An unordered list of undirected edges defined by the vertex identifiers
  *     composing the edge (e.g '3 -- 4' refers to edge between vertex with
  *     identifier '3' and vertex with identifier '4').
+ *     The 'num_times_seen' property is encoded as the 'penwidth' graphviz
+ *     property.
  */
 void writeToFile(const Graph& graph, const std::string& filename);
 
