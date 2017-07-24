@@ -131,7 +131,7 @@ bool GraphLocalizer::localize(
         GraphMatcher::MaxSimilarityMatrixType::Index maxIndex;
         similarities.col(i).maxCoeff(&maxIndex);
         query_cloud->points[valid].getVector3fMap() = query_semantic_graph[i]
-                                                                           .location_3d.cast<float>();
+            .location_3d.cast<float>();
         database_cloud->points[valid].getVector3fMap() =
             database_semantic_graph[maxIndex].location_3d.cast<float>();
         (*correspondences)[valid].index_query = valid;
@@ -150,7 +150,11 @@ bool GraphLocalizer::localize(
     transformation_estimation->estimateRigidTransformation(
         *query_cloud, *database_cloud, *correspondences, transform);
 
-    (*transformation) = SE3(Eigen::Matrix4d(transform.cast<double>()));
+    SO3 proper_rotation;
+    proper_rotation.fromApproximateRotationMatrix(
+        transform.block(0, 0, 3, 3).cast<double>());
+    (*transformation) = SE3(transform.block(0, 3, 3, 1).cast<double>(),
+                            proper_rotation);
     return true;
   } else {
     CHECK(false) << "Unrecognized localizer type <" << localizer_type << ">"
