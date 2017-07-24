@@ -157,7 +157,8 @@ void writeToFile(const Graph& graph, const std::string& filename) {
     const VertexProperty& to = graph[boost::target(*iter, graph)];
 
     out << "\t" << from.index << "--" << to.index;
-    out << " // num times seen: " << graph[*iter].num_times_seen << std::endl;
+    out << " [ penwidth=" << graph[*iter].num_times_seen <<" ]" <<
+                                                                    std::endl;
   }
 
   out << "}";

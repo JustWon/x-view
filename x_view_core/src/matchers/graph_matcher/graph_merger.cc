@@ -323,11 +323,19 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       if(edge_in_merged_graph.second == true) {
         // An edge between the two vertices was already present, so we need
         // to increase the 'num_times_seen' property of the edge by one.
-        EdgeProperty& e_p = merged_graph_[edge_in_merged_graph.first];
-        LOG(INFO) << "\t\tAn edge was already present in the merged graph. "
-            << "Increasing num_times_seen from " << e_p.num_times_seen
-            << " to " << e_p.num_times_seen + 1 << ".";
-        ++e_p.num_times_seen;
+        // Note, we need to do it only once, and avoid doing it twice, i.e.
+        // once for vertex. Thus we introduce this check:
+        if(source_in_db_graph < neighbor_in_db_graph) {
+          EdgeProperty& e_p = merged_graph_[edge_in_merged_graph.first];
+          LOG(INFO) << "\t\tAn edge was already present in the merged graph. "
+                    << "Increasing num_times_seen from " << e_p.num_times_seen
+                    << " to " << e_p.num_times_seen + 1 << ".";
+          ++e_p.num_times_seen;
+        } else {
+          LOG(INFO) << "\t\tAn edge was already present in the merged graph. "
+                    << "num_times_seen is not updated now, but was/will be "
+                    << "updated when seen in the opposite direction.";
+        }
       } else {
         // There is no edge between the two vertices, so let's add a new one.
         const VertexProperty neighbor_v_p = merged_graph_[neighbor_in_db_graph];

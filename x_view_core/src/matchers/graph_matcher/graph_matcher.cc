@@ -181,10 +181,9 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
       matching_parameters->getInteger("time_window",
                                       std::numeric_limits<int>::max());
   graph_merger_parameters.similarity_threshold =
-      matching_parameters->getFloat("similarity_threshold", 0.f);
+      matching_parameters->getFloat("similarity_threshold", 0.2f);
   graph_merger_parameters.distance_threshold =
-      matching_parameters->getFloat("distance_threshold",
-                                    std::numeric_limits<float>::max());
+      matching_parameters->getFloat("distance_threshold", 0.1f);
   GraphMerger graph_merger(global_semantic_graph_, query_semantic_graph,
                            *matching_result.get(), graph_merger_parameters);
 
@@ -195,7 +194,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   // Clean the newly generated global semantic graph by removing duplicate
   // vertices.
   const float merge_distance =
-      matching_parameters->getFloat("merge_distance", 1.5);
+      matching_parameters->getFloat("merge_distance", 0.1f);
   GraphMerger::mergeDuplicates(&global_semantic_graph_, merge_distance);
 
   // Regenerate the random walks of the new global graph
