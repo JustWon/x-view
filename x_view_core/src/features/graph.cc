@@ -38,7 +38,9 @@ bool addEdgeBetweenVertices(const VertexDescriptor& v_1_d,
   } else {
     const VertexProperty& v_1_p = (*graph)[v_1_d];
     const VertexProperty& v_2_p = (*graph)[v_2_d];
-    boost::add_edge(v_1_d, v_2_d, {v_1_p.index, v_2_p.index}, *graph);
+    const uint64_t num_times_seen = 1;
+    boost::add_edge(v_1_d, v_2_d, {v_1_p.index, v_2_p.index, num_times_seen},
+                    *graph);
     return true;
   }
 }
@@ -80,6 +82,7 @@ std::ostream& operator<<(std::ostream& out, const EdgeProperty& e) {
   out << std::setfill(' ');
   out << "(e) " << std::right << std::setw(2) << e.from << "--"
       << std::left << std::setw(2) << e.to;
+  out << ", w: " << e.num_times_seen;
   return out;
 }
 
@@ -153,7 +156,8 @@ void writeToFile(const Graph& graph, const std::string& filename) {
     const VertexProperty& from = graph[boost::source(*iter, graph)];
     const VertexProperty& to = graph[boost::target(*iter, graph)];
 
-    out << "\t" << from.index << "--" << to.index << std::endl;
+    out << "\t" << from.index << "--" << to.index;
+    out << " // num times seen: " << graph[*iter].num_times_seen << std::endl;
   }
 
   out << "}";

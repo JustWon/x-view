@@ -210,7 +210,9 @@ void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
   for (const VertexDescriptor& v_d : vertices_to_link) {
     const VertexProperty& v_p = (*graph)[v_d];
     LOG(INFO) << "--> linked to existing vertex " << v_p.index << std::endl;
-    boost::add_edge(v_d, new_vertex_d, {v_p.index, new_vertex.index}, *graph);
+    const uint64_t num_times_seen = 1;
+    boost::add_edge(v_d, new_vertex_d,
+                    {v_p.index, new_vertex.index, num_times_seen}, *graph);
   }
 }
 

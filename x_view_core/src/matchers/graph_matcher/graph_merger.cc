@@ -10,16 +10,18 @@ GraphMerger::GraphMerger(const Graph& database_graph,
                          const GraphMergerParameters& graph_merger_parameters)
     : database_graph_(database_graph),
       query_graph_(query_graph),
+    // Initialize merged graph as a copy of the database graph.
+      merged_graph_(database_graph),
       matching_result_(matching_result),
       graph_merger_parameters_(graph_merger_parameters) {
 
   LOG(INFO) << "Using graph merger with following parameters:"
-      << "\n\tTime window:          "
-      << graph_merger_parameters_.time_window
-      << "\n\tSimilarity threshold: "
-      << graph_merger_parameters_.similarity_threshold
-      << "\n\tDistance threshold:   "
-      << graph_merger_parameters_.distance_threshold << ".";
+            << "\n\tTime window:          "
+            << graph_merger_parameters_.time_window
+            << "\n\tSimilarity threshold: "
+            << graph_merger_parameters_.similarity_threshold
+            << "\n\tDistance threshold:   "
+            << graph_merger_parameters_.distance_threshold << ".";
 
 }
 
@@ -31,21 +33,20 @@ const Graph GraphMerger::computeMergedGraph() {
   const GraphMatcher::SimilarityMatrixType& similarity_matrix =
       matching_result_.getSimilarityMatrix();
 
-  // Initialize the merged graph to contain all vertices of the database_graph.
-  merged_graph_ = database_graph_;
-
   // This map contains the matches between the vertex descriptors in the
   // query graph to the corresponding vertex descriptor in the database_graph.
   query_in_db_.clear();
 
   // Loop over the vertices of the query graph.
-  for(int j = 0; j < num_query_vertices; ++j) {
+  for (int j = 0; j < num_query_vertices; ++j) {
     // Loop over the vertices of the database graph.
-    for(int i = 0; i < num_db_vertices; ++i) {
+    for (int i = 0; i < num_db_vertices; ++i) {
       // Check if the two vertices are possible matches.
-      if(similarity_matrix(i, j) >= graph_merger_parameters_.similarity_threshold &&
+      if (similarity_matrix(i, j)
+          >= graph_merger_parameters_.similarity_threshold &&
           temporalDistance(i, j) <= graph_merger_parameters_.time_window &&
-          spatialDistance(i, j) <= graph_merger_parameters_.distance_threshold) {
+          spatialDistance(i, j)
+              <= graph_merger_parameters_.distance_threshold) {
         // There is a match between the j-th vertex of the query graph and
         // the i-th vertex of the database graph.
         query_in_db_.insert({j, i});
@@ -55,8 +56,8 @@ const Graph GraphMerger::computeMergedGraph() {
     }
   }
 
-  // Keep two disconnected graphs??
-  if(matched_vertices_.size() == 0) {
+  // FIXME what to do when there are not matches?
+  if (matched_vertices_.size() == 0) {
     LOG(ERROR) << "Zero matched vertices!";
   }
 
@@ -91,11 +92,8 @@ const Graph GraphMerger::computeMergedGraph() {
 #ifdef X_VIEW_DEBUG
   const cv::Mat similarity_image =
       SimilarityPlotter::getImageFromSimilarityMatrix(similarity_matrix);
-  const cv::Mat agree_similarity_image =
-      SimilarityPlotter::getImageFromSimilarityMatrix(max_similarity_agree);
 
   cv::imshow("Similarity", similarity_image);
-  cv::imshow("Agreement", agree_similarity_image);
 
   cv::waitKey();
 #endif
@@ -115,7 +113,8 @@ void GraphMerger::mergeDuplicates(Graph* graph, const float merge_distance) {
         : anchor_(0), mergeable_(0) {
     }
 
-    CandidateMerge(const VertexDescriptor anchor, const VertexDescriptor mergeable)
+    CandidateMerge(const VertexDescriptor anchor,
+                   const VertexDescriptor mergeable)
         : anchor_(anchor), mergeable_(mergeable) {
       CHECK(anchor < mergeable) << "The anchor vertex descriptor must "
           "have smaller index value than the mergeable!";
@@ -170,10 +169,10 @@ void GraphMerger::mergeDuplicates(Graph* graph, const float merge_distance) {
     }
   }
   LOG(INFO) << "There are " << candidates.size() << " merging pairs "
-            <<"for a graph with " << num_vertices << " vertices in total.";
+            << "for a graph with " << num_vertices << " vertices in total.";
 
   // Traverse the candidate merges and merge them
-  for(const CandidateMerge& candidate : candidates) {
+  for (const CandidateMerge& candidate : candidates) {
 
     const uint64_t anchor = candidate.anchor();
     const uint64_t mergeable = candidate.mergeable();
@@ -191,8 +190,8 @@ void GraphMerger::mergeDuplicates(Graph* graph, const float merge_distance) {
 
       // Avoid self-edges (case that happens if anchor was a neighbor of
       // mergeable).
-      if(anchor != *adjacent_vertex)
-          addEdgeBetweenVertices(anchor, *adjacent_vertex, graph);
+      if (anchor != *adjacent_vertex)
+        addEdgeBetweenVertices(anchor, *adjacent_vertex, graph);
     }
 
     LOG(INFO) << "Updating timestamp of anchor vertex from "
@@ -222,13 +221,13 @@ const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
 
   // Label consistency: if the semantic label associated to the vertices is
   // different, then the two vertices cannot be merged.
-  if(v_p_1.semantic_label != v_p_2.semantic_label)
+  if (v_p_1.semantic_label != v_p_2.semantic_label)
     return false;
 
   // Spatial consistency: only merge vertices if their Eucliden distance is
   // smaller than the merge_distance parameter passed as argument.
   const Eigen::Vector3d diff = v_p_1.location_3d - v_p_2.location_3d;
-  if(diff.norm() > merge_distance)
+  if (diff.norm() > merge_distance)
     return false;
 
   // Since all tests are fulfilled, the two vertices should be merged.
@@ -239,8 +238,8 @@ const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
 void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query_graph) {
 
   // Get correspondent vertex in database graph.
-  const VertexDescriptor
-      source_in_db_graph = query_in_db_[source_in_query_graph];
+  const VertexDescriptor source_in_db_graph =
+      query_in_db_[source_in_query_graph];
   // Get the associated VertexProperty.
   VertexProperty& source_v_p = merged_graph_[source_in_db_graph];
   LOG(INFO) << "\tCorresponds to " << source_in_db_graph
@@ -251,8 +250,8 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
   const uint64_t old_time_stamp =
       source_v_p.last_time_seen_;
 
-  LOG(INFO) << "\tSetting last_time_seen_ property of database vertex from "
-            << old_time_stamp << " to " << new_time_stamp << ".";
+  LOG(INFO) << "\tSetting last_time_seen_ property of merged vertex from "
+            << old_time_stamp << " (db) to " << new_time_stamp << " (query).";
 
   source_v_p.last_time_seen_ = new_time_stamp;
 
@@ -271,50 +270,71 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
        ++neighbor_in_query_graph) {
     LOG(INFO) << "\t\t" << num_neighbor++ << "-th neighbor: "
               << query_graph_[*neighbor_in_query_graph] << ":";
-    auto neighbor_pos =
+
+    // Check if this neighbor has a corresponding match in the database graph
+    // or if it is a "new" observation.
+    const auto neighbor_pos =
         std::find(matched_vertices_.begin(), matched_vertices_.end(),
                   *neighbor_in_query_graph);
     if (neighbor_pos == matched_vertices_.end()) {
-      LOG(INFO) << "\t\tis unmatched, so we simply attach it to the database "
-          "graph via the matched vertex " << source_v_p << ".";
+      LOG(INFO) << "\t\tis unmatched (newly observed semantic entity), "
+                << "so it is attached to the merged graph by linking it to the "
+                << "'parent' matched vertex  " << source_v_p << ".";
       // The neighbor_in_query_graph was unmatched, so we add it to the
-      // merged graph.
+      // merged graph as a new vertex.
       VertexProperty neighbor_v_p = query_graph_[*neighbor_in_query_graph];
-      // Set the new index.
+      // Set the new index of the newly added vertex.
       neighbor_v_p.index = current_vertex_index_++;
       const VertexDescriptor neighbor_in_db_graph =
           boost::add_vertex(neighbor_v_p, merged_graph_);
-      LOG(INFO) << "\t\tWas added to merged graph: " << neighbor_v_p <<
-                " graph with VD: " << neighbor_in_db_graph << ".";
+      LOG(INFO) << "\t\tWas added to merged graph: " << neighbor_v_p
+                << " graph with VD: " << neighbor_in_db_graph << ".";
       // Create an edge between source_in_db_graph and the newly added vertex.
-      auto edge_d = boost::add_edge(source_in_db_graph,
-                                    neighbor_in_db_graph,
-                                    {source_v_p.index, neighbor_v_p.index},
-                                    merged_graph_);
+      // Since this edge links an already known vertex to a new entity, we
+      // set its 'num_times_seen' property to 1.
+      const uint64_t num_times_seen = 1;
+      auto edge_d =
+          boost::add_edge(source_in_db_graph, neighbor_in_db_graph,
+                          {source_v_p.index, neighbor_v_p.index,
+                           num_times_seen},  merged_graph_);
       LOG(INFO) << "\t\tadded corresponding edge "
                 << merged_graph_[edge_d.first] << ".";
 
       CHECK(edge_d.second == true)
-      << "Added an unmatched vertex to the merged graph, but edge "
-          "between source vertex and neighbor was already existing. "
-          "This should not happen";
-      // Set the neighbor as matched.
+      << "Added a vertex associated to a new semantic observation to the "
+          "merged graph, but an edge between it and its parent vertex was "
+          "already existing. This should not happen";
+      // Set the neighbor as matched as it is now fully inserted into the
+      // merged graph.
       matched_vertices_.push_back(*neighbor_in_query_graph);
       query_in_db_.insert({*neighbor_in_query_graph, neighbor_in_db_graph});
       still_to_process_.push(*neighbor_in_query_graph);
     } else {
-      // Add an edge between the two already merged vertices.
-      const VertexDescriptor
-          neighbor_in_db_graph = query_in_db_[*neighbor_in_query_graph];
-      const VertexProperty neighbor_v_p = merged_graph_[neighbor_in_db_graph];
-      LOG(INFO) << "\t\tis already matched, so we simply need to add an edge "
-          "between the the two vertices.";
-      auto edge_d = boost::add_edge(source_in_db_graph, neighbor_in_db_graph,
-                                    {source_v_p.index,
-                                     neighbor_v_p.index}, merged_graph_);
-      if (edge_d.second == false) {
-        LOG(INFO) << "\t\tAn edge was already present in the merged graph...";
+      LOG(INFO) << "\t\tis already matched, checking if an edge already "
+          << "exists in the merged graph or not.";
+      // The neighbor was already a matched vertex. We need to check if an
+      // edge exists in the merged graph or not.
+      const VertexDescriptor neighbor_in_db_graph =
+          query_in_db_[*neighbor_in_query_graph];
+
+      const auto edge_in_merged_graph = boost::edge(source_in_db_graph,
+                                                    neighbor_in_db_graph,
+                                                    merged_graph_);
+      if(edge_in_merged_graph.second == true) {
+        // An edge between the two vertices was already present, so we need
+        // to increase the 'num_times_seen' property of the edge by one.
+        EdgeProperty& e_p = merged_graph_[edge_in_merged_graph.first];
+        LOG(INFO) << "\t\tAn edge was already present in the merged graph. "
+            << "Increasing num_times_seen from " << e_p.num_times_seen
+            << " to " << e_p.num_times_seen + 1 << ".";
+        ++e_p.num_times_seen;
       } else {
+        // There is no edge between the two vertices, so let's add a new one.
+        const VertexProperty neighbor_v_p = merged_graph_[neighbor_in_db_graph];
+        const uint64_t num_times_seen = 1;
+        boost::add_edge(source_in_db_graph, neighbor_in_db_graph,
+                        {source_v_p.index, neighbor_v_p.index, num_times_seen},
+                        merged_graph_);
         LOG(INFO) << "\t\tCreated a new edge in the merged graph even though "
             "the two vertices where already merged.";
       }
@@ -329,7 +349,6 @@ const uint64_t GraphMerger::temporalDistance(const uint64_t i,
 
   return v_j_query.last_time_seen_ - v_i_database.last_time_seen_;
 }
-
 
 const double GraphMerger::spatialDistance(const uint64_t i, const uint64_t j)
 const {

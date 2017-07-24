@@ -18,20 +18,16 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
 
   // *********** Blobs extraction ********** //
 
-  const bool dilate_and_erode =
+  BlobExtractorParams blob_extractor_params;
+  blob_extractor_params.dilate_and_erode =
       landmark_parameters->getBoolean("dilate_and_erode", true);
-  const int num_dilate =
+  blob_extractor_params.num_dilate_reps =
       landmark_parameters->getInteger("num_dilate", 4);
-  const int num_erode =
+  blob_extractor_params.num_erode_reps =
       landmark_parameters->getInteger("num_erode", 4);
 
   const std::string blob_filter_type =
       landmark_parameters->getString("blob_filter_type", "ABSOLUTE");
-
-  BlobExtractorParams blob_extractor_params;
-  blob_extractor_params.dilate_and_erode = dilate_and_erode;
-  blob_extractor_params.num_dilate_reps = num_dilate;
-  blob_extractor_params.num_erode_reps = num_erode;
 
   if(blob_filter_type == "ABSOLUTE") {
     blob_extractor_params.blob_size_filtering.type =
@@ -56,11 +52,10 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
 
 
   // *********** Graph generation ********** //
-  const int blob_neighbor_distance =
-      landmark_parameters->getInteger("blob_neighbor_distance", 10);
 
   GraphBuilderParams graph_builder_params;
-  graph_builder_params.max_distance_for_neighborhood = blob_neighbor_distance;
+  graph_builder_params.max_distance_for_neighborhood =
+      landmark_parameters->getInteger("blob_neighbor_distance", 10);
 
   descriptor = GraphBuilder::createGraphFromImageBlobs(frame_data,
                                                        image_blobs_,

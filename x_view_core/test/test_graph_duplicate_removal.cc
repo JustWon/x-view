@@ -45,10 +45,13 @@ void testDuplicatesChain() {
     const uint64_t new_v_d = boost::add_vertex(mergeable_v_p, database_graph);
 
     // Add some edges from the mergeable to existing vertices of the graph.
+    const uint64_t num_times_seen = 1;
     for (int i = 0; i < 4; ) {
       const uint64_t linked_v_d = boost::random_vertex(database_graph, rng);
       const x_view::VertexProperty& linked_v_p = database_graph[linked_v_d];
-      const x_view::EdgeProperty linked_e_p{mergeable_v_p.index, linked_v_p.index};
+      const x_view::EdgeProperty linked_e_p{
+          mergeable_v_p.index, linked_v_p.index, num_times_seen
+      };
       if(new_v_d != linked_v_d && boost::edge(new_v_d, linked_v_d,
                                               database_graph).second == false) {
         boost::add_edge(new_v_d, linked_v_d, linked_e_p, database_graph);
@@ -57,7 +60,8 @@ void testDuplicatesChain() {
     }
   }
 
-  boost::add_edge(20, 21, {20, 21}, database_graph);
+  const uint64_t num_times_seen = 1;
+  boost::add_edge(20, 21, {20, 21, num_times_seen}, database_graph);
   boost::remove_edge(10, 11, database_graph);
 
 
