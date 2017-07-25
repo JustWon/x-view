@@ -92,10 +92,13 @@ GraphMatcher::GraphMatcher() {
   if (random_walk_sampling_type == "UNIFORM")
     random_walker_params_.random_sampling_type =
         RandomWalkerParams::SAMPLING_TYPE::UNIFORM;
-  else if (random_walk_sampling_type == "AVOIDING") {
+  else if (random_walk_sampling_type == "AVOIDING")
     random_walker_params_.random_sampling_type =
         RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
-  } else
+  else if(random_walk_sampling_type == "WEIGHTED")
+    random_walker_params_.random_sampling_type =
+        RandomWalkerParams::SAMPLING_TYPE::WEIGHTED;
+  else
     LOG(ERROR) << "Unrecognized random walker sampling type <"
                << random_walk_sampling_type << ">.";
 

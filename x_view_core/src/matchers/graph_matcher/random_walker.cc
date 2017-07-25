@@ -43,7 +43,7 @@ std::ostream& operator<<(std::ostream& out, const RandomWalkerParams& params) {
 RandomWalker::RandomWalker(const Graph& graph,
                            const RandomWalkerParams& params,
                            const int random_seed)
-    : random_distribution_(0, 1),
+    : random_distribution_(0.0, 1.0),
       random_engine_(random_seed),
       graph_(graph),
       params_(params) {
@@ -73,22 +73,17 @@ void RandomWalker::generateRandomWalks() {
   //      A : source_vertex_index, the vertex where the random walk starts
   //      |
   //      v
-  //      B : old_vertex_index: vertex visited previously than the
-  //      |   current_vertex_index.
-  //      v
-  //      C : current_vertex_index : last vertex of the random walk.
+  //    [...]
   //      |
   //      v
-  //      D : next_vertex_index : vertex which will be added to the random
+  //      B : current_vertex_index : last vertex of the random walk.
+  //      |
+  //      v
+  //      C : next_vertex_index : vertex which will be added to the random
   //          walk as a next step.
 
   for (VertexDescriptor source_vertex_index = 0;
        source_vertex_index < num_vertices; ++source_vertex_index) {
-
-    // Create a walk map object which stores the generated random walks keyed
-    // by a unique identifier.
-    WalkMap walk_map;
-    walk_map.reserve(params_.num_walks);
 
     // Create params_.num_walks random walks.
     for (int w = 0; w < params_.num_walks; ++w) {
@@ -114,6 +109,11 @@ void RandomWalker::generateRandomWalks() {
       random_walks_[source_vertex_index].push_back(random_walk);
     }
 
+    // Create a walk map object which stores the generated random walks keyed
+    // by a unique identifier.
+    WalkMap walk_map;
+    walk_map.reserve(params_.num_walks);
+
     // Iterate over the generated random walks of the current vertex_index and
     // map them to a unique identifier.
     for (const RandomWalk& random_walk : random_walks_[source_vertex_index]) {
@@ -133,6 +133,8 @@ void RandomWalker::generateRandomWalks() {
 
 const VertexDescriptor RandomWalker::nextVertex(
     const VertexDescriptor current_vertex_index) const {
+
+  // Sample from a uniform probability distribution p \in [0,1).
   const float p = random_distribution_(random_engine_);
 
   const uint64_t num_neighbor_vertices =
@@ -143,36 +145,76 @@ const VertexDescriptor RandomWalker::nextVertex(
     return current_vertex_index;
   }
 
-  auto neighbors = boost::adjacent_vertices(current_vertex_index, graph_);
+  // Get a list of neighbor vertices of the current vertex.
+  const auto neighbors = boost::adjacent_vertices(current_vertex_index, graph_);
 
-  bool found_neighbor_with_different_label = true;
-  if (params_.random_sampling_type ==
-      RandomWalkerParams::SAMPLING_TYPE::AVOIDING) {
-    const int current_label = graph_[current_vertex_index].semantic_label;
-    std::vector<VertexDescriptor> different_index_v_d;
-    different_index_v_d.reserve(num_neighbor_vertices);
-    for (auto iter = neighbors.first; iter != neighbors.second; ++iter) {
-      if (graph_[*iter].semantic_label != current_label)
-        different_index_v_d.push_back(*iter);
-    }
-    const uint64_t num_neighbors_with_different_label =
-        different_index_v_d.size();
-    if (num_neighbors_with_different_label > 0) {
-      const int advance_step =
-          static_cast<int>(p * num_neighbors_with_different_label);
-      return different_index_v_d[advance_step];
-    } else {
-      // All neighbors have same labels, so we are forced to sample neighbors
-      // randomly.
-      found_neighbor_with_different_label = false;
-    }
-  }
-  if (params_.random_sampling_type ==
-      RandomWalkerParams::SAMPLING_TYPE::UNIFORM ||
-      !found_neighbor_with_different_label) {
-    const int advance_step = static_cast<int>(p * num_neighbor_vertices);
-    std::advance(neighbors.first, advance_step);
+  // Degenerate case where only one neighbor is present:
+  if (num_neighbor_vertices == 1)
     return *neighbors.first;
+
+  // Depending on the random walk sampling type, the next vertex is chosen
+  // differently.
+  switch (params_.random_sampling_type) {
+    case RandomWalkerParams::SAMPLING_TYPE::UNIFORM: {
+      const int advance_step = static_cast<int>(p * num_neighbor_vertices);
+      return *(std::next(neighbors.first, advance_step));
+    }
+    case RandomWalkerParams::SAMPLING_TYPE::AVOIDING: {
+      const int current_label = graph_[current_vertex_index].semantic_label;
+      // Generate a list of vertex descriptors associated to vertices with
+      // different semantic label as the one of the current vertex.
+      std::vector<VertexDescriptor> different_index_v_d;
+      different_index_v_d.reserve(num_neighbor_vertices);
+      for (auto iter = neighbors.first; iter != neighbors.second; ++iter) {
+        if (graph_[*iter].semantic_label != current_label)
+          different_index_v_d.push_back(*iter);
+      }
+      const uint64_t num_neighbors_with_different_label =
+          different_index_v_d.size();
+      if (num_neighbors_with_different_label > 0) {
+        const int advance_step =
+            static_cast<int>(p * num_neighbors_with_different_label);
+        return different_index_v_d[advance_step];
+      } else {
+        // All neighbors have same labels, so we are forced to sample neighbors
+        // randomly as in the UNIFORM case.
+        const int advance_step = static_cast<int>(p * num_neighbor_vertices);
+        return *(std::next(neighbors.first, advance_step));
+      }
+    }
+    case RandomWalkerParams::SAMPLING_TYPE::WEIGHTED: {
+      auto getNumTimesSeen = [&](const VertexDescriptor v_d) -> uint64_t {
+        const auto& e_d =
+            boost::edge(current_vertex_index, v_d, graph_);
+        CHECK(e_d.second == true)
+        << "There is no edge between vertex " << current_vertex_index
+        << " and " << v_d << " even though 'boost::adjacent_vertices' returned "
+        << v_d << " as a valid neighbor of " << current_vertex_index << ".";
+
+        return graph_[e_d.first].num_times_seen;
+      };
+
+      // Compute a vector containing the edge weights between the current
+      // vertex and each i-th neighbor.
+      std::vector<uint64_t> weights(num_neighbor_vertices);
+      uint64_t weight_sum = 0;
+      int edge_index = 0;
+      for (auto iter = neighbors.first; iter != neighbors.second; ++iter) {
+        weights[edge_index] = getNumTimesSeen(*iter);
+        weight_sum += weights[edge_index];
+        ++edge_index;
+      }
+
+      uint64_t p_w = static_cast<uint64_t>(p * weight_sum);
+      for (int i = 0; i < weights.size(); ++i) {
+        if(p_w < weights[i])
+          return *(std::next(neighbors.first, i));
+        p_w -= weights[i];
+      }
+      CHECK(false) << "This should never happen";
+    }
+    default:
+      LOG(ERROR) << "Unrecognized random walk sampling type.";
   }
 }
 

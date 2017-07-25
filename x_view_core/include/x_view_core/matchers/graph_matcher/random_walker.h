@@ -23,7 +23,10 @@ struct RandomWalkerParams {
     /// \brief True random walk.
         UNIFORM = 0,
     /// \brief Avoid transitions between vertices with same semantic label.
-        AVOIDING
+        AVOIDING,
+    /// \brief Traverses edges with a probability proportional to the
+    /// `num_times_seen` property.
+        WEIGHTED
   };
 
   /**

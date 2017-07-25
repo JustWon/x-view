@@ -119,7 +119,7 @@ Here follows a description of the parameters being used by X-View:
    
    * __random_walk_sampling_type__(type="GRAPH") string representing the 
    random walk type to be adopted when computing the vertex descriptors.<br/>
-   _supported values_: {"UNIFORM", "AVOIDING"}
+   _supported values_: {"UNIFORM", "AVOIDING", "WEIGHTED"}
    
    * __num_walks__(type="GRAPH") integer indicating how many random walks to 
    compute for each vertex.

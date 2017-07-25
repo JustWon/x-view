@@ -43,7 +43,6 @@ void XView::processFrameData(const FrameData& frame_data) {
   semantics_db_.push_back(landmark_ptr);
 
   LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
-
 }
 
 const Graph& XView::getSemanticGraph() const {
