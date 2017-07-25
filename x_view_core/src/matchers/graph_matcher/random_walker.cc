@@ -148,7 +148,7 @@ const VertexDescriptor RandomWalker::nextVertex(
   // Get a list of neighbor vertices of the current vertex.
   const auto neighbors = boost::adjacent_vertices(current_vertex_index, graph_);
 
-  // Degenerate case where only one neighbor is present:
+  // Degenerate case where there is only one neighbor.
   if (num_neighbor_vertices == 1)
     return *neighbors.first;
 
@@ -184,8 +184,7 @@ const VertexDescriptor RandomWalker::nextVertex(
     }
     case RandomWalkerParams::SAMPLING_TYPE::WEIGHTED: {
       auto getNumTimesSeen = [&](const VertexDescriptor v_d) -> uint64_t {
-        const auto& e_d =
-            boost::edge(current_vertex_index, v_d, graph_);
+        const auto& e_d = boost::edge(current_vertex_index, v_d, graph_);
         CHECK(e_d.second == true)
         << "There is no edge between vertex " << current_vertex_index
         << " and " << v_d << " even though 'boost::adjacent_vertices' returned "
@@ -211,7 +210,8 @@ const VertexDescriptor RandomWalker::nextVertex(
           return *(std::next(neighbors.first, i));
         p_w -= weights[i];
       }
-      CHECK(false) << "This should never happen";
+      CHECK(false) << "This should never happen., p_w remaining is " << p_w
+                   << " p was " << p << ".";
     }
     default:
       LOG(ERROR) << "Unrecognized random walk sampling type.";

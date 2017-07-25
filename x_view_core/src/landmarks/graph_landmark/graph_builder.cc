@@ -171,6 +171,7 @@ void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(Graph* graph,
                 min_distance_square = dist2;
                 closest_v_d_pair.from = i;
                 closest_v_d_pair.to = j;
+                closest_v_d_pair.num_times_seen = 1;
               }
             }
           }
