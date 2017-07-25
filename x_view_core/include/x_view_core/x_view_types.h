@@ -21,6 +21,7 @@ typedef gtsam::NonlinearFactorGraph FactorGraph;
 
 /// \brief 3D pose (position + orientation).
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
+typedef kindr::minimal::RotationQuaternionTemplate<double> SO3;
 
 /// \brief Pointer to feature.
 typedef std::shared_ptr<const AbstractDescriptor> ConstDescriptorPtr;
