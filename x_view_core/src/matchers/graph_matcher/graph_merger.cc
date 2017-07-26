@@ -30,6 +30,9 @@ const Graph GraphMerger::computeMergedGraph() {
   const uint64_t num_query_vertices = boost::num_vertices(query_graph_);
   const uint64_t num_db_vertices = boost::num_vertices(database_graph_);
 
+  std::cout << "Num query: " << num_query_vertices << std::endl;
+  std::cout << "Num db: " << num_db_vertices << std::endl;
+
   const GraphMatcher::SimilarityMatrixType& similarity_matrix =
       matching_result_.getSimilarityMatrix();
 
@@ -55,6 +58,10 @@ const Graph GraphMerger::computeMergedGraph() {
       }
     }
   }
+
+  // If all query are matched, then we do nothing.
+  if(matched_vertices_.size() == num_db_vertices)
+    return database_graph_;
 
   // FIXME what to do when there are not matches?
   if (matched_vertices_.size() == 0) {

@@ -60,6 +60,9 @@ class XViewBagReader {
   std::pair<Eigen::Vector3d, Eigen::Vector3d> localize(
       const CAMERA camera_type, const int frame_index);
 
+  std::pair<Eigen::Vector3d, Eigen::Vector3d> localize_graph(
+      const CAMERA camera_type, const int start_frame, const int steps);
+
  private:
 
   /// \brief Loads a bag file by creating views for current topics.

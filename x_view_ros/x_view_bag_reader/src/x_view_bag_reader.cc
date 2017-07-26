@@ -126,6 +126,49 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> XViewBagReader::localize(
   return std::make_pair(estimated_position, true_position);
 }
 
+std::pair<Eigen::Vector3d, Eigen::Vector3d> XViewBagReader::localize_graph(
+    const CAMERA camera_type, const int start_frame, const int steps) {
+
+  loadCurrentTopic(getTopics(camera_type));
+
+  x_view::XView local_x_view;
+  Eigen::Vector3d true_position;
+  ros::Time time;
+
+  for(int i = start_frame; i < start_frame + steps; ++i) {
+    std::cout << "Creating local graph at frame " << i << std::endl;
+    parseParameters();
+    const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
+    const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
+    const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
+    x_view::SE3 pose;
+    tfTransformToSE3(trans, &pose);
+    if(i == start_frame) {
+      true_position = pose.getPosition();
+      time = trans.stamp_;
+    }
+    std::cout << "Before frame data" << std::endl;
+    x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
+    std::cout << "Before process frame " << std::endl;
+    local_x_view.processFrameData(frame_data);
+  }
+
+  const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
+
+  Eigen::Vector3d estimated_position;
+  x_view_->localize(local_graph, &estimated_position);
+
+  publishPosition(estimated_position, Eigen::Vector3d(1.0, 0.0, 0.0),
+                  time, "estimated_position");
+  publishPosition(true_position, Eigen::Vector3d(0.0, 1.0, 0.0),
+                  time, "true_position");
+
+  bag_.close();
+
+  return std::make_pair(estimated_position, true_position);
+
+}
+
 void XViewBagReader::parseParameters() const {
   // Parse all parameters.
   std::unique_ptr<x_view::Parameters> parameters = parser_.parseParameters();

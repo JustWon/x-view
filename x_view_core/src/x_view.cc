@@ -15,6 +15,8 @@ XView::XView()
   initialize();
 }
 
+bool isFrame = false;
+
 void XView::processFrameData(const FrameData& frame_data) {
 
   ++frame_number_;
@@ -23,7 +25,6 @@ void XView::processFrameData(const FrameData& frame_data) {
   const Eigen::Matrix3d rotation = frame_data.getPose().getRotationMatrix();
   LOG(INFO) << "Associated robot pose:\n" << formatSE3(frame_data.getPose(),
                                                        "\t\t", 3);
-
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
 
@@ -36,8 +37,13 @@ void XView::processFrameData(const FrameData& frame_data) {
     descriptor_matcher_->addDescriptor(landmark_ptr->getDescriptor());
   } else {
     // Perform full matching.
+    if(frame_data.getID() == 68)
+      isFrame = true;
+    else
+      isFrame = false;
     AbstractMatcher::MatchingResultPtr matching_result_ptr;
     matchSemantics(landmark_ptr, matching_result_ptr);
+
   }
   // Add the semantic landmark to the database.
   semantics_db_.push_back(landmark_ptr);
@@ -46,6 +52,13 @@ void XView::processFrameData(const FrameData& frame_data) {
 }
 
 const Graph& XView::getSemanticGraph() const {
+  CHECK(Locator::getParameters()->getChildPropertyList("matcher")->
+      getString("type") == "GRAPH")
+  << "Function " << __FUNCTION__ << " can only be used when X-View runs the "
+  << "'GRAPH' matcher type, currently using "
+  << Locator::getParameters()->getChildPropertyList("matcher")->
+      getString("type") << ".";
+
   const auto graph_matcher =
       std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_);
 
@@ -67,8 +80,6 @@ bool XView::localize(const FrameData& frame_data,
                      Eigen::Vector3d* position) {
   LOG(INFO) << "XView tries to localize a robot by its observations.";
 
-  const cv::Mat& depth_image = frame_data.getDepthImage();
-
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
 
@@ -86,7 +97,7 @@ bool XView::localize(const FrameData& frame_data,
   // existing global semantic graph.
   GraphMatcher::GraphMatchingResult matching_result;
 
-  // Extract the random walks of the graph.
+  // Extract the random walks of the query graph.
   RandomWalkerParams random_walker_params_;
   random_walker_params_.num_walks = Locator::getParameters()
       ->getChildPropertyList("matcher")->getInteger("num_walks");
@@ -102,10 +113,10 @@ bool XView::localize(const FrameData& frame_data,
       matching_result.getSimilarityMatrix();
   VectorXb& invalid_matches = matching_result.getInvalidMatches();
 
-  std::dynamic_pointer_cast <GraphMatcher> (descriptor_matcher_)
-              ->computeSimilarityMatrix(
-                  random_walker, &similarity_matrix, &invalid_matches,
-                  VertexSimilarity::SCORE_TYPE::WEIGHTED);
+  std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
+      ->computeSimilarityMatrix(
+          random_walker, &similarity_matrix, &invalid_matches,
+          VertexSimilarity::SCORE_TYPE::WEIGHTED);
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
       matching_result.computeMaxSimilarityRowwise().cwiseProduct(
@@ -115,14 +126,18 @@ bool XView::localize(const FrameData& frame_data,
   // Filter matches with geometric consistency.
   if (Locator::getParameters()->getChildPropertyList("matcher")->getBoolean(
       "outlier_rejection")) {
-    bool filter_success = std::dynamic_pointer_cast < GraphMatcher
-        > (descriptor_matcher_)->filter_matches(query_graph, global_graph,
-                                                matching_result,
-                                                &invalid_matches);
+    bool filter_success = std::dynamic_pointer_cast<GraphMatcher
+    >(descriptor_matcher_)->filter_matches(query_graph, global_graph,
+                                           matching_result,
+                                           &invalid_matches);
   }
 
   // Estimate transformation between graphs (Localization).
   GraphLocalizer graph_localizer;
+
+  // Using depth image to estimate 3D position of semantic entities contained
+  // in the global semantic graph.
+  const cv::Mat& depth_image = frame_data.getDepthImage();
 
   for (int j = 0; j < max_similarity_matrix.cols(); ++j) {
     int max_i = -1;
@@ -134,7 +149,8 @@ bool XView::localize(const FrameData& frame_data,
       const VertexProperty& match_v_p = global_graph[max_i];
 
       const unsigned short depth_cm =
-          depth_image.at<unsigned short>(match_v_p.center);
+      depth_image.at < unsigned
+      short > (match_v_p.center);
       const double depth_m = depth_cm * 0.01;
 
       graph_localizer.addObservation(match_v_p, depth_m, similarity);
@@ -142,9 +158,90 @@ bool XView::localize(const FrameData& frame_data,
   }
 
   SE3 transformation;
-  bool localized = graph_localizer.localize(matching_result, query_graph, global_graph, &transformation);
+  bool localized = graph_localizer.localize(matching_result,
+                                            query_graph,
+                                            global_graph,
+                                            &transformation);
   (*position) = transformation.getPosition();
   return localized;
+}
+
+bool XView::localize(const Graph& query_graph, Eigen::Vector3d* position) {
+
+  // Get the existing global semantic graph before matching.
+  const Graph& global_graph = getSemanticGraph();
+
+  // Perform full matching getting similarity scores between query graph and
+  // existing global semantic graph.
+  GraphMatcher::GraphMatchingResult matching_result;
+
+  // Extract the random walks of the query graph.
+  RandomWalkerParams random_walker_params_;
+  random_walker_params_.num_walks = Locator::getParameters()
+      ->getChildPropertyList("matcher")->getInteger("num_walks");
+  random_walker_params_.walk_length = Locator::getParameters()
+      ->getChildPropertyList("matcher")->getInteger("walk_length");
+  RandomWalker random_walker(query_graph, random_walker_params_);
+  random_walker.generateRandomWalks();
+
+  // Create a matching result pointer which will be returned by this
+  // function which stores the similarity matrix.
+
+  GraphMatcher::SimilarityMatrixType& similarity_matrix =
+      matching_result.getSimilarityMatrix();
+  VectorXb& invalid_matches = matching_result.getInvalidMatches();
+
+  std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
+      ->computeSimilarityMatrix(
+          random_walker, &similarity_matrix, &invalid_matches,
+          VertexSimilarity::SCORE_TYPE::WEIGHTED);
+
+  const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
+      matching_result.computeMaxSimilarityRowwise().cwiseProduct(
+          matching_result.computeMaxSimilarityColwise()
+      );
+
+  // Filter matches with geometric consistency.
+  if (Locator::getParameters()->getChildPropertyList("matcher")->getBoolean(
+      "outlier_rejection")) {
+    bool filter_success = std::dynamic_pointer_cast<GraphMatcher
+    >(descriptor_matcher_)->filter_matches(query_graph, global_graph,
+                                           matching_result,
+                                           &invalid_matches);
+  }
+
+  struct WeightedPosition {
+    Eigen::Vector3d position;
+    float weight;
+  };
+
+  std::vector<WeightedPosition> matched_positions;
+  matched_positions.reserve(max_similarity_matrix.cols());
+
+  for (int j = 0; j < max_similarity_matrix.cols(); ++j) {
+    int max_i = -1;
+    max_similarity_matrix.col(j).maxCoeff(&max_i);
+    if (max_i == -1)
+      continue;
+    if (!invalid_matches(j)) {
+      const double similarity = similarity_matrix(max_i, j);
+      const VertexProperty& match_v_p = global_graph[max_i];
+      matched_positions.push_back({match_v_p.location_3d, similarity});
+    }
+  }
+
+  Eigen::Vector3d estimated_position = Eigen::Vector3d::Zero();
+  float total_weight = 0.f;
+
+  for(const WeightedPosition& w_p : matched_positions) {
+    estimated_position += w_p.position * w_p.weight;
+    total_weight += w_p.weight;
+  }
+  estimated_position /= total_weight;
+
+  (*position) = estimated_position;
+  return true;
+
 }
 
 void XView::printInfo() const {
@@ -168,7 +265,8 @@ void XView::printInfo() const {
       << "\n\n" << dataset
       << "\n\tLandmark type:\t<" + landmark_parameters->getString("type") + ">"
       << "\n\tMatcher type: \t<" + matcher_parameters->getString("type") + ">"
-      << "\n\tLocalizer type: \t<" + localizer_parameters->getString("type") + ">"
+      << "\n\tLocalizer type: \t<" + localizer_parameters->getString("type")
+          + ">"
       << "\n==========================================================\n";
 
   LOG(INFO)
@@ -240,7 +338,12 @@ void XView::createSemanticLandmark(const FrameData& frame_data,
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
                            AbstractMatcher::MatchingResultPtr& matching_result) {
 
+  if(isFrame)
+    std::cout << "Before match" << std::endl;
   matching_result = descriptor_matcher_->match(semantics_a);
+
+  if(isFrame)
+    std::cout << "After match" << std::endl;
 
   const auto graph_matcher =
       std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_);
@@ -271,6 +374,9 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
                  graph_matching_result->getSimilarityMatrix()));
   cv::waitKey();
 #endif
+
+  if(isFrame)
+    std::cout << "Ended" << std::endl;
 
 }
 

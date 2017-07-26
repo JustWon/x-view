@@ -62,6 +62,8 @@ class XView {
    */
   bool localize(const FrameData& frame_data, Eigen::Vector3d* position);
 
+  bool localize(const Graph& query_graph, Eigen::Vector3d* position);
+
  private:
   /// \brief Prints XView info.
   void printInfo() const;

@@ -172,7 +172,6 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
       matching_result->getSimilarityMatrix();
 
   VectorXb& invalid_matches = matching_result->getInvalidMatches();
-
   computeSimilarityMatrix(random_walker, &similarity_matrix, &invalid_matches,
                           vertex_similarity_score_type_);
 
@@ -190,10 +189,8 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   GraphMerger graph_merger(global_semantic_graph_, query_semantic_graph,
                            *matching_result.get(), graph_merger_parameters);
 
-
   // Need to regenerate the random walks of the extended global graph.
   global_semantic_graph_ = graph_merger.computeMergedGraph();
-
   // Clean the newly generated global semantic graph by removing duplicate
   // vertices.
   const float merge_distance =

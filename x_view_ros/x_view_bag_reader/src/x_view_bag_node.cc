@@ -21,10 +21,13 @@ int main(int argc, char** argv) {
   // semantic graph.
   x_view_ros::Pause pause;
   x_view::Statistics stats;
-  for(int i = 0; i< 200; ) {
+  const int steps = 4;
+  for(int i = 0; i< 200;) {
     if(!pause.isPaused()) {
-      auto position = bag_reader.localize(x_view_ros::CAMERA::FRONT, i);
-      stats.insert((position.second - position.first).norm());
+      auto positions = bag_reader.localize_graph(x_view_ros::CAMERA::FRONT,
+                                                 i, steps);
+      std::cout << positions.first << positions.second << std::endl;
+      stats.insert((positions.second - positions.first).norm());
       ++i;
     }
   }
