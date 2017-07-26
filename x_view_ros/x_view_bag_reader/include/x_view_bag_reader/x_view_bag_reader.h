@@ -49,8 +49,14 @@ class XViewBagReader {
   void iterateBagFromTo(const CAMERA camera_type,
                         const int from, const int to);
 
-  /// \brief Localizes the robot seeing the scene at frame_index through the
-  /// camera camera_type.
+  /**
+   * \brief Localizes the robot seeing the scene at frame_index through the
+   * camera camera_type.
+   * \param camera_type Camera type to be used in this localization.
+   * \param frame_index Frame to be localized inside to global semantic graph.
+   * \return A pair of 3D coordinates representing the estimated and true
+   * robot location respectively.
+   */
   std::pair<Eigen::Vector3d, Eigen::Vector3d> localize(
       const CAMERA camera_type, const int frame_index);
 
