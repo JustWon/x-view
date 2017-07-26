@@ -56,7 +56,7 @@ const Graph& XView::getSemanticGraph() const {
 
 void XView::writeGraphToFile() const {
   const std::string filename = getOutputDirectory() + "merged_" +
-      padded_int(frame_number_, 5, '0') + ".dot";
+      PaddedInt(frame_number_, 5, '0') + ".dot";
   const auto graph_matcher =
       std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_);
   CHECK_NOTNULL(graph_matcher.get());
@@ -130,8 +130,6 @@ bool XView::localize(const FrameData& frame_data,
     if (max_i == -1)
       continue;
     if (!invalid_matches(j)) {
-      std::cout << "Match between vertex " << j << " in query graph is vertex "
-          <<max_i << " in global graph" << std::endl;
       const double similarity = similarity_matrix(max_i, j);
       const VertexProperty& match_v_p = global_graph[max_i];
 

@@ -51,7 +51,8 @@ class XViewBagReader {
 
   /// \brief Localizes the robot seeing the scene at frame_index through the
   /// camera camera_type.
-  void localize(const CAMERA camera_type, const int frame_index);
+  std::pair<Eigen::Vector3d, Eigen::Vector3d> localize(
+      const CAMERA camera_type, const int frame_index);
 
  private:
 

@@ -98,7 +98,8 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
   pause.terminate();
 }
 
-void XViewBagReader::localize(const CAMERA camera_type, const int frame_index) {
+std::pair<Eigen::Vector3d, Eigen::Vector3d> XViewBagReader::localize(
+    const CAMERA camera_type, const int frame_index) {
   loadCurrentTopic(getTopics(camera_type));
 
   std::cout << "Localizing robot at frame " << frame_index << std::endl;
@@ -115,19 +116,14 @@ void XViewBagReader::localize(const CAMERA camera_type, const int frame_index) {
   bool localized = x_view_->localize(frame_data, &estimated_position);
   Eigen::Vector3d true_position = real_pose.getPosition();
 
-  std::cout << "Localized robot at position: "
-            << Eigen::RowVector3d(estimated_position) <<  std::endl;
-  std::cout << "True position: "
-            << Eigen::RowVector3d(true_position) << std::endl;
-  std::cout << "Detected localization as outlier: " << std::boolalpha
-            << !localized << std::endl;
-
   publishPosition(estimated_position, Eigen::Vector3d(1.0, 0.0, 0.0),
                   trans.stamp_, "estimated_position");
   publishPosition(true_position, Eigen::Vector3d(0.0, 1.0, 0.0),
                   trans.stamp_, "true_position");
 
   bag_.close();
+
+  return std::make_pair(estimated_position, true_position);
 }
 
 void XViewBagReader::parseParameters() const {
