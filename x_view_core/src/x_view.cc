@@ -15,8 +15,6 @@ XView::XView()
   initialize();
 }
 
-bool isFrame = false;
-
 void XView::processFrameData(const FrameData& frame_data) {
 
   ++frame_number_;
@@ -37,10 +35,6 @@ void XView::processFrameData(const FrameData& frame_data) {
     descriptor_matcher_->addDescriptor(landmark_ptr->getDescriptor());
   } else {
     // Perform full matching.
-    if(frame_data.getID() == 68)
-      isFrame = true;
-    else
-      isFrame = false;
     AbstractMatcher::MatchingResultPtr matching_result_ptr;
     matchSemantics(landmark_ptr, matching_result_ptr);
 
@@ -118,10 +112,8 @@ bool XView::localize(const FrameData& frame_data,
           random_walker, &similarity_matrix, &invalid_matches,
           VertexSimilarity::SCORE_TYPE::WEIGHTED);
 
-  const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
-      matching_result.computeMaxSimilarityRowwise().cwiseProduct(
-          matching_result.computeMaxSimilarityColwise()
-      );
+  const GraphMatcher::MaxSimilarityMatrixType max_similarities_colwise =
+      matching_result.computeMaxSimilarityColwise();
 
   // Filter matches with geometric consistency.
   if (Locator::getParameters()->getChildPropertyList("matcher")->getBoolean(
@@ -139,18 +131,18 @@ bool XView::localize(const FrameData& frame_data,
   // in the global semantic graph.
   const cv::Mat& depth_image = frame_data.getDepthImage();
 
-  for (int j = 0; j < max_similarity_matrix.cols(); ++j) {
-    int max_i = -1;
-    max_similarity_matrix.col(j).maxCoeff(&max_i);
-    if (max_i == -1)
-      continue;
+  for (int j = 0; j < max_similarities_colwise.cols(); ++j) {
+    GraphMatcher::MaxSimilarityMatrixType::Index max_index;
+    max_similarities_colwise.col(j).maxCoeff(&max_index);
+
     if (!invalid_matches(j)) {
-      const double similarity = similarity_matrix(max_i, j);
-      const VertexProperty& match_v_p = global_graph[max_i];
+      LOG(INFO) << "Match between vertex " << j << " in query graph is vertex "
+                << max_index << " in global graph.";
+      const double similarity = similarity_matrix(max_index, j);
+      const VertexProperty& match_v_p = global_graph[max_index];
 
       const unsigned short depth_cm =
-      depth_image.at < unsigned
-      short > (match_v_p.center);
+      depth_image.at<unsigned short> (match_v_p.center);
       const double depth_m = depth_cm * 0.01;
 
       graph_localizer.addObservation(match_v_p, depth_m, similarity);
@@ -158,11 +150,11 @@ bool XView::localize(const FrameData& frame_data,
   }
 
   SE3 transformation;
-  bool localized = graph_localizer.localize(matching_result,
-                                            query_graph,
-                                            global_graph,
-                                            &transformation);
+
+  bool localized = graph_localizer.localize(matching_result, query_graph,
+                                            global_graph, &transformation);
   (*position) = transformation.getPosition();
+
   return localized;
 }
 
@@ -338,12 +330,7 @@ void XView::createSemanticLandmark(const FrameData& frame_data,
 void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
                            AbstractMatcher::MatchingResultPtr& matching_result) {
 
-  if(isFrame)
-    std::cout << "Before match" << std::endl;
   matching_result = descriptor_matcher_->match(semantics_a);
-
-  if(isFrame)
-    std::cout << "After match" << std::endl;
 
   const auto graph_matcher =
       std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_);
@@ -374,10 +361,6 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
                  graph_matching_result->getSimilarityMatrix()));
   cv::waitKey();
 #endif
-
-  if(isFrame)
-    std::cout << "Ended" << std::endl;
-
 }
 
 void XView::filterMatches(const SemanticLandmarkPtr& semantics_a,

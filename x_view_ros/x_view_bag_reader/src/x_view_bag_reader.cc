@@ -119,10 +119,10 @@ bool XViewBagReader::localize(const CAMERA camera_type, const int frame_index,
   locations->second = real_pose.getPosition();
 
   if(localized) {
-    publishPosition(locations->first, Eigen::Vector3d(1.0, 0.0, 0.0),
-                    trans.stamp_, "estimated_position");
-    publishPosition(locations->second, Eigen::Vector3d(0.0, 1.0, 0.0),
-                    trans.stamp_, "true_position");
+    publishRobotPosition(locations->first, Eigen::Vector3d(1.0, 0.0, 0.0),
+                         trans.stamp_, "estimated_position");
+    publishRobotPosition(locations->second, Eigen::Vector3d(0.0, 1.0, 0.0),
+                         trans.stamp_, "true_position");
   }
   bag_.close();
 
@@ -137,24 +137,24 @@ bool XViewBagReader::localize_graph(
 
   loadCurrentTopic(getTopics(camera_type));
 
+  // Local X-View object used to generate local graph which will be localized
+  // against the global semantic graph built by x_view_.
   x_view::XView local_x_view;
   ros::Time time;
 
   for(int i = start_frame; i < start_frame + steps; ++i) {
-    std::cout << "Creating local graph at frame " << i << std::endl;
     parseParameters();
     const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
     const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
     const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
     x_view::SE3 pose;
     tfTransformToSE3(trans, &pose);
+    // Use the start frame as ground truth.
     if(i == start_frame) {
       locations->second = pose.getPosition();
       time = trans.stamp_;
     }
-    std::cout << "Before frame data" << std::endl;
     x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
-    std::cout << "Before process frame " << std::endl;
     local_x_view.processFrameData(frame_data);
   }
 
@@ -163,15 +163,16 @@ bool XViewBagReader::localize_graph(
   bool localized = x_view_->localize(local_graph, &(locations->first));
 
   if(localized) {
-    publishPosition(locations->first, Eigen::Vector3d(1.0, 0.0, 0.0),
-                    time, "estimated_position");
-    publishPosition(locations->second, Eigen::Vector3d(0.0, 1.0, 0.0),
-                    time, "true_position");
+    const Eigen::Vector3d estimated_color(0.7, 0.15, 0.15);
+    publishRobotPosition(locations->first, estimated_color, time,
+                         "estimated_position");
+    const Eigen::Vector3d ground_truth_color(0.15, 0.7, 0.15);
+    publishRobotPosition(locations->second, ground_truth_color, time,
+                         "true_position");
   }
   bag_.close();
 
   return localized;
-
 }
 
 void XViewBagReader::parseParameters() const {
@@ -272,7 +273,7 @@ void XViewBagReader::tfTransformToSE3(const tf::StampedTransform& tf_transform,
 }
 
 
-void XViewBagReader::publishPosition(const Eigen::Vector3d& pos,
+void XViewBagReader::publishRobotPosition(const Eigen::Vector3d& pos,
                                      const Eigen::Vector3d& color,
                                      const ros::Time& stamp,
                                      const std::string ns) {
@@ -287,7 +288,7 @@ void XViewBagReader::publishPosition(const Eigen::Vector3d& pos,
   marker.ns = ns;
   marker.id = 0;
 
-  marker.type = visualization_msgs::Marker::SPHERE;
+  marker.type = visualization_msgs::Marker::CYLINDER;
   marker.action = visualization_msgs::Marker::ADD;
 
   marker.pose.position.x = pos[0];
@@ -298,10 +299,9 @@ void XViewBagReader::publishPosition(const Eigen::Vector3d& pos,
   marker.pose.orientation.z = 0.0;
   marker.pose.orientation.w = 1.0;
 
-  // Set the scale of the marker -- 1x1x1 here means 1m on a side
-  marker.scale.x = 2.0;
-  marker.scale.y = 2.0;
-  marker.scale.z = 2.0;
+  marker.scale.x = 1.0;
+  marker.scale.y = 1.0;
+  marker.scale.z = 4.0;
 
   // Set the color -- be sure to set alpha to something non-zero!
   marker.color.r = static_cast<float>(color[0]);
@@ -311,7 +311,6 @@ void XViewBagReader::publishPosition(const Eigen::Vector3d& pos,
 
   marker.lifetime = ros::Duration();
   vertex_publisher_.publish(marker);
-
 }
 
 }

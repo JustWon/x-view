@@ -30,9 +30,6 @@ const Graph GraphMerger::computeMergedGraph() {
   const uint64_t num_query_vertices = boost::num_vertices(query_graph_);
   const uint64_t num_db_vertices = boost::num_vertices(database_graph_);
 
-  std::cout << "Num query: " << num_query_vertices << std::endl;
-  std::cout << "Num db: " << num_db_vertices << std::endl;
-
   const GraphMatcher::SimilarityMatrixType& similarity_matrix =
       matching_result_.getSimilarityMatrix();
 
@@ -58,9 +55,6 @@ const Graph GraphMerger::computeMergedGraph() {
       }
     }
   }
-
-  // FIXME: what happens if matched_vertices.size() == num_db_vertices?
-  // This makes it fail at fram 68 and at frame 110!!
 
   // FIXME what to do when there are not matches?
   if (matched_vertices_.size() == 0) {
@@ -94,15 +88,6 @@ const Graph GraphMerger::computeMergedGraph() {
               << query_graph_[source_in_query_graph].index << ").";
     addVertexToMergedGraph(source_in_query_graph);
   }
-
-#ifdef X_VIEW_DEBUG
-  const cv::Mat similarity_image =
-      SimilarityPlotter::getImageFromSimilarityMatrix(similarity_matrix);
-
-  cv::imshow("Similarity", similarity_image);
-
-  cv::waitKey();
-#endif
 
   return merged_graph_;
 }
@@ -230,7 +215,7 @@ const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
   if (v_p_1.semantic_label != v_p_2.semantic_label)
     return false;
 
-  // Spatial consistency: only merge vertices if their Eucliden distance is
+  // Spatial consistency: only merge vertices if their Euclidean distance is
   // smaller than the merge_distance parameter passed as argument.
   const Eigen::Vector3d diff = v_p_1.location_3d - v_p_2.location_3d;
   if (diff.norm() > merge_distance)
@@ -246,8 +231,11 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
   // Get correspondent vertex in database graph.
   const VertexDescriptor source_in_db_graph =
       query_in_db_[source_in_query_graph];
-  // Get the associated VertexProperty.
-  VertexProperty& source_v_p = merged_graph_[source_in_db_graph];
+  // Get the associated VertexProperty. Need to get it by value, as when
+  // adding new vertices to the merged graph the internal representation of
+  // the graph sometimes changes, changing also the values which would be
+  // referred if the property was taken by reference.
+  VertexProperty source_v_p = merged_graph_[source_in_db_graph];
   LOG(INFO) << "\tCorresponds to " << source_in_db_graph
             << "-th vertex in database graph:" << source_v_p << ".";
 
@@ -286,6 +274,7 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       LOG(INFO) << "\t\tis unmatched (newly observed semantic entity), "
                 << "so it is attached to the merged graph by linking it to the "
                 << "'parent' matched vertex  " << source_v_p << ".";
+      const int source_v_p_index = source_v_p.index;
       // The neighbor_in_query_graph was unmatched, so we add it to the
       // merged graph as a new vertex.
       VertexProperty neighbor_v_p = query_graph_[*neighbor_in_query_graph];
@@ -303,6 +292,9 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
           boost::add_edge(source_in_db_graph, neighbor_in_db_graph,
                           {source_v_p.index, neighbor_v_p.index,
                            num_times_seen},  merged_graph_);
+      LOG(INFO) << "\t\tsource index: " << source_v_p.index << ", target "
+          "index: " << neighbor_v_p.index << "." << "(" <<
+                                                        source_v_p_index<<")";
       LOG(INFO) << "\t\tadded corresponding edge "
                 << merged_graph_[edge_d.first] << ".";
 
@@ -323,9 +315,8 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       const VertexDescriptor neighbor_in_db_graph =
           query_in_db_[*neighbor_in_query_graph];
 
-      const auto edge_in_merged_graph = boost::edge(source_in_db_graph,
-                                                    neighbor_in_db_graph,
-                                                    merged_graph_);
+      const auto edge_in_merged_graph =
+          boost::edge(source_in_db_graph, neighbor_in_db_graph, merged_graph_);
       if(edge_in_merged_graph.second == true) {
         // An edge between the two vertices was already present, so we need
         // to increase the 'num_times_seen' property of the edge by one.
@@ -354,6 +345,9 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       }
     }
   }
+  // Since the source vertex property might have be modified, we need to set
+  // it again with the updated values.
+  merged_graph_[source_in_db_graph] = source_v_p;
 }
 
 const uint64_t GraphMerger::temporalDistance(const uint64_t i,

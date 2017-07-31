@@ -89,10 +89,10 @@ class XViewBagReader {
   void tfTransformToSE3(const tf::StampedTransform& tf_transform,
                         x_view::SE3* pose);
 
-  void publishPosition(const Eigen::Vector3d& pos,
-                       const Eigen::Vector3d& color,
-                       const ros::Time& stamp,
-                       const std::string ns);
+  void publishRobotPosition(const Eigen::Vector3d& pos,
+                            const Eigen::Vector3d& color,
+                            const ros::Time& stamp,
+                            const std::string ns);
 
   std::unique_ptr<x_view::XView> x_view_;
 
