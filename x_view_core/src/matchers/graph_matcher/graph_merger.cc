@@ -274,7 +274,7 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       LOG(INFO) << "\t\tis unmatched (newly observed semantic entity), "
                 << "so it is attached to the merged graph by linking it to the "
                 << "'parent' matched vertex  " << source_v_p << ".";
-      const int source_v_p_index = source_v_p.index;
+
       // The neighbor_in_query_graph was unmatched, so we add it to the
       // merged graph as a new vertex.
       VertexProperty neighbor_v_p = query_graph_[*neighbor_in_query_graph];
@@ -293,8 +293,7 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
                           {source_v_p.index, neighbor_v_p.index,
                            num_times_seen},  merged_graph_);
       LOG(INFO) << "\t\tsource index: " << source_v_p.index << ", target "
-          "index: " << neighbor_v_p.index << "." << "(" <<
-                                                        source_v_p_index<<")";
+          "index: " << neighbor_v_p.index << ".";
       LOG(INFO) << "\t\tadded corresponding edge "
                 << merged_graph_[edge_d.first] << ".";
 
