@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
   // Build the semantic graph associated to the path specified in the
   // parameters passed to the iteration function.
-  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::BACK,
+  bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT,
                               start_frame, end_frame);
 
 
@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
   // semantic graph.
   x_view_ros::Pause pause;
   x_view::Statistics stats;
-  const uint64_t local_graph_steps = 4;
+  const uint64_t local_graph_steps = 5;
   for(int i = start_frame; i < end_frame - local_graph_steps;) {
     if(!pause.isPaused()) {
       std::pair<Eigen::Vector3d, Eigen::Vector3d> locations;

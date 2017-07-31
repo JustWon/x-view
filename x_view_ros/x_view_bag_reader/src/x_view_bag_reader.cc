@@ -6,6 +6,7 @@
 
 #include <glog/logging.h>
 #include <opencv2/core/core.hpp>
+#include <x_view_core/x_view_tools.h>
 
 namespace x_view_ros {
 
@@ -152,24 +153,25 @@ bool XViewBagReader::localize_graph(
     // Use the start frame as ground truth.
     if(i == start_frame) {
       locations->second = pose.getPosition();
-      time = trans.stamp_;
     }
     x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
     local_x_view.processFrameData(frame_data);
+    // Publish all ground truth poses that contribute to the estimation.
+    const Eigen::Vector3d ground_truth_color(0.15, 0.7, 0.15);
+    publishRobotPosition(pose.getPosition(), ground_truth_color, trans.stamp_,
+                         "true_position_" +
+                             x_view::PaddedInt(i - start_frame, 3).str());
   }
 
   const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
 
   bool localized = x_view_->localize(local_graph, &(locations->first));
 
-  if(localized) {
-    const Eigen::Vector3d estimated_color(0.7, 0.15, 0.15);
-    publishRobotPosition(locations->first, estimated_color, time,
-                         "estimated_position");
-    const Eigen::Vector3d ground_truth_color(0.15, 0.7, 0.15);
-    publishRobotPosition(locations->second, ground_truth_color, time,
-                         "true_position");
-  }
+  const Eigen::Vector3d estimated_color(0.7, 0.15, 0.15);
+  publishRobotPosition(locations->first, estimated_color, time,
+                       "estimated_position");
+
+
   bag_.close();
 
   return localized;
