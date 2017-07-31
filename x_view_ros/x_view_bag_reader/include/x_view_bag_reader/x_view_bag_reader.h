@@ -62,6 +62,19 @@ class XViewBagReader {
   bool localize(const CAMERA camera_type, const int frame_index,
                 std::pair<Eigen::Vector3d, Eigen::Vector3d>* locations);
 
+  /**
+   * \brief Localizes the semantic graph being build between the frames
+   * delimited by the passed arguments by matching it to the global semantic
+   * graph of x_view_.
+   * \param camera_type Camera type to be used in this localization.
+   * \param start_frame Lower index for graph being localized.
+   * \param steps Number of steps (frames) to iterate over for the
+   * construction of the local graph which must be localized.
+   * \param locations A pair of 3D coordinates representing the estimated and
+   * true robot location respectively.
+   * \return A boolean which is true if the localization was effective, false
+   * otherwise.
+   */
   bool localize_graph(const CAMERA camera_type, const int start_frame,
                       const int steps,
                       std::pair<Eigen::Vector3d, Eigen::Vector3d>* locations);
