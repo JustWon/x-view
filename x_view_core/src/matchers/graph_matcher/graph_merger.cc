@@ -59,9 +59,8 @@ const Graph GraphMerger::computeMergedGraph() {
     }
   }
 
-  // If all query are matched, then we do nothing.
-  if(matched_vertices_.size() == num_db_vertices)
-    return database_graph_;
+  // FIXME: what happens if matched_vertices.size() == num_db_vertices?
+  // This makes it fail at fram 68 and at frame 110!!
 
   // FIXME what to do when there are not matches?
   if (matched_vertices_.size() == 0) {
