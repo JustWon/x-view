@@ -67,7 +67,7 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
   const uint64_t new_last_time_seen = 1;
   setLastTimeSeen(&query_graph, new_last_time_seen);
 
-  // Perform the matching
+  // Perform the matching.
   Graph merged_graph;
   mergeGraphs(database_graph, query_graph, &merged_graph);
 

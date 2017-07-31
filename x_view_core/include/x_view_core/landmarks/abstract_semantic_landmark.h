@@ -36,7 +36,7 @@ class AbstractSemanticLandmark {
    * modify the image stored by the landmark instance! In order to safely
    * modify the returned image without modifying the one stored in this
    * landmark instance proceed as follows:
-   * \code{cpp}
+   * \code{.cpp}
    * // This modifies the semantic image contained inside the landmark!
    * // It is only a shallow copy of the image.
    * cv::Mat unsafe_copy = landmark.getSemanticImage();
@@ -59,7 +59,7 @@ class AbstractSemanticLandmark {
    * modify the image stored by the landmark instance! In order to safely
    * modify the returned image without modifying the one stored in this
    * landmark instance proceed as follows:
-   * \code{cpp}
+   * \code{.cpp}
    * // This modifies the depth image contained inside the landmark!
    * // It is only a shallow copy of the image.
    * cv::Mat unsafe_copy = landmark.getDepthImage();

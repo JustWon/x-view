@@ -43,11 +43,10 @@ void XView::processFrameData(const FrameData& frame_data) {
   semantics_db_.push_back(landmark_ptr);
 
   LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
-
 }
 
 const Graph& XView::getSemanticGraph() const {
-  auto graph_matcher =
+  const auto graph_matcher =
       std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_);
 
   CHECK_NOTNULL(graph_matcher.get());
@@ -57,8 +56,8 @@ const Graph& XView::getSemanticGraph() const {
 
 void XView::writeGraphToFile() const {
   const std::string filename = getOutputDirectory() + "merged_" +
-      padded_int(frame_number_, 5, '0') + ".dot";
-  const auto& graph_matcher =
+      PaddedInt(frame_number_, 5, '0') + ".dot";
+  const auto graph_matcher =
       std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_);
   CHECK_NOTNULL(graph_matcher.get());
   writeToFile(graph_matcher->getGlobalGraph(), filename);
@@ -247,18 +246,18 @@ void XView::matchSemantics(const SemanticLandmarkPtr& semantics_a,
       std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_);
 
   const cv::Mat& current_semantic_image = semantics_a->getSemanticImage();
-  const auto& current_graph_landmark =
+  const auto current_graph_landmark =
       std::dynamic_pointer_cast<GraphLandmark>(semantics_a);
   CHECK_NOTNULL(current_graph_landmark.get());
 
-  const auto& current_graph_descriptor =
+  const auto current_graph_descriptor =
       std::dynamic_pointer_cast<const GraphDescriptor>
           (current_graph_landmark->getDescriptor());
 
   const auto& current_graph =
       current_graph_descriptor->getDescriptor();
 
-  const auto& graph_matching_result = std::dynamic_pointer_cast
+  const auto graph_matching_result = std::dynamic_pointer_cast
       <GraphMatcher::GraphMatchingResult>(matching_result);
 
 #ifdef X_VIEW_DEBUG

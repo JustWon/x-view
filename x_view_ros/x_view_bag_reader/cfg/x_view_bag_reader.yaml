@@ -15,8 +15,8 @@ Landmark: {
 
 Matcher: {
     type: "GRAPH",
-    vertex_similarity_score: "SURFACE",
-    random_walk_sampling_type: "UNIFORM",
+    vertex_similarity_score: "WEIGHTED",
+    random_walk_sampling_type: "WEIGHTED",
     num_walks: 200,
     walk_length: 3,
     time_window: 10,
@@ -29,7 +29,7 @@ Matcher: {
 }
 
 Localizer: {
-    type: "OPTIMIZATION" # OPTIMIZATION or ESTIMATION",
+    type: "ESTIMATION" # OPTIMIZATION or ESTIMATION",
 }
 
 # Parameters read exclusively by XViewBagReader

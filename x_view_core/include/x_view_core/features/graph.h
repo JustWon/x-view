@@ -14,8 +14,10 @@ namespace x_view {
 /// \brief Property associated to a graph vertex.
 struct VertexProperty {
 
-  /// \brief Index of the vertex in the graph, such that
-  /// boost::vertex(i, graph) returns the vertex property with index == i.
+  /// \brief Index of the vertex in the graph.
+  /// \note This index should not be used to acces the vertex in the graph,
+  /// as even if the vertex order is maintained, due to vertex merging
+  /// operations it might happen that vertices are deleted from the graph.
   int index;
 
   /// \brief Semantic label associated to this graph vertex. This label
@@ -41,9 +43,27 @@ struct VertexProperty {
 /// \brief Property associated to a graph edge.
 struct EdgeProperty {
   /// \brief Index of the first vertex defining this edge.
+  /// \note This index should not be used to access the associated vertex, as
+  /// it might differ with the storage index of the graph. To access the
+  /// source vertex of this edge proceed as follows:
+  /// \code{.cpp}
+  /// const VertexDescriptor from_v_d = boost::source(edge, graph);
+  /// const VertexProperty from_v_p = graph[from_v_d];
+  /// \endcode
+
   int from;
   /// \brief Index of the second vertex defining this edge.
+  /// \note This index should not be used to access the associated vertex, as
+  /// it might differ with the storage index of the graph. To access the
+  /// target vertex of this edge proceed as follows:
+  /// \code{.cpp}
+  /// const VertexDescriptor to_v_d = boost::target(edge, graph);
+  /// const VertexProperty to_v_p = graph[to_v_d];
+  /// \endcode
   int to;
+
+  /// \brief Integer indicating how many times this edge has been observed.
+  uint64_t num_times_seen;
 };
 
 /**
@@ -175,6 +195,8 @@ std::ostream& operator<<(std::ostream& out, const Graph& graph);
  *   - An unordered list of undirected edges defined by the vertex identifiers
  *     composing the edge (e.g '3 -- 4' refers to edge between vertex with
  *     identifier '3' and vertex with identifier '4').
+ *     The 'num_times_seen' property is encoded as the 'penwidth' graphviz
+ *     property.
  */
 void writeToFile(const Graph& graph, const std::string& filename);
 

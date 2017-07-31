@@ -1,4 +1,7 @@
 #include "test_random_walk.h"
+#include "test_common.h"
+
+#include <iostream>
 
 namespace x_view_test {
 
@@ -76,5 +79,82 @@ void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
     ++start_vertex_index;
   }
 }
+
+void testWeightedStrategyStatistics() {
+
+  // Create a chain-like graph.
+  GraphConstructionParams graph_construction_params;
+  graph_construction_params.num_vertices = 10;
+  graph_construction_params.num_semantic_classes = 10;
+  graph_construction_params.seed = 0;
+
+  x_view::Graph chain_graph = generateChainGraph(graph_construction_params);
+
+  // Test for different multiplication factors between successive vertices.
+  std::vector<int> multiplication_factors = {1, 2, 3};
+  for(const int multiplication_factor : multiplication_factors) {
+
+    LOG(INFO) << "Testing weighted strategy statistics with multiplication "
+              << "factor " << multiplication_factor << ".";
+
+    // A vector whose elements represent the ratio of random walks that start
+    // from vertex i and go to vertex i+1 over the ones that go to vertex i-1;
+    std::vector<float> expected_next_vertex_ratio(
+        graph_construction_params.num_vertices, multiplication_factor);
+
+    // Special case for vertex 0, since it is linked to vertex 1 on one side
+    // and on the last vertex of the graph from the other side.
+    // One weight (left) is huge, other (right) is small.
+    if(multiplication_factor > 1)
+      expected_next_vertex_ratio[0] = 0.f;
+    // One weight (left) is small, other (right) is huge.
+    else if(multiplication_factor < 1)
+      expected_next_vertex_ratio[0] = 1.f;
+
+    // Set the edges weights such that the weights are all different and
+    // increasing by doubling their value.
+    const auto edges = boost::edges(chain_graph);
+    uint64_t num_times_seen = 1;
+    for (auto iter = edges.first; iter != edges.second; ++iter) {
+      x_view::EdgeProperty& e_p = chain_graph[*iter];
+      e_p.num_times_seen = num_times_seen;
+      num_times_seen *= multiplication_factor;
+    }
+
+    LOG(INFO) << "Chain graph for weighted strategy: \n" << chain_graph << ".";
+
+    x_view::RandomWalkerParams random_walker_params;
+    // We are interested in testing how a vertex is chosen independently of the
+    // walk length.
+    random_walker_params.walk_length = 1;
+    // Choose a large number of random walks per vertex in order to have better
+    // (and smoother) statistics.
+    random_walker_params.num_walks = 5000;
+    random_walker_params.random_sampling_type =
+        x_view::RandomWalkerParams::SAMPLING_TYPE::WEIGHTED;
+    x_view::RandomWalker random_walker(chain_graph, random_walker_params);
+    random_walker.generateRandomWalks();
+
+    for (int i = 0; i < graph_construction_params.num_vertices; ++i) {
+      auto& random_walks = random_walker.getRandomWalksOfVertex(i);
+      uint64_t starts_i_min_1 = 0;
+      uint64_t starts_i_plus_1 = 0;
+      for (auto& random_walk: random_walks) {
+        if (random_walk.front()->index ==
+            (i + graph_construction_params.num_vertices - 1)
+                % graph_construction_params.num_vertices)
+          ++starts_i_min_1;
+        else
+          ++starts_i_plus_1;
+      }
+
+      const float ratio = static_cast<float>(starts_i_plus_1) / starts_i_min_1;
+      CHECK_NEAR(expected_next_vertex_ratio[i], ratio, 0.15);
+    }
+
+    LOG(INFO) << "Statistic test passed.";
+  }
+}
+
 
 }

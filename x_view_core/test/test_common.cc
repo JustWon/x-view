@@ -77,6 +77,7 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
     // Set the edge properties.
     graph[*edges_iter.first].from = from_v.index;
     graph[*edges_iter.first].to = to_v.index;
+    graph[*edges_iter.first].num_times_seen = 1;
   }
 
   std::vector<int> component(boost::num_vertices(graph));
@@ -135,13 +136,14 @@ x_view::Graph generateChainGraph(const GraphConstructionParams& params) {
     vertex_descriptors.push_back(boost::add_vertex(vertex, graph));
   }
   // Add edges between each pair of consequent vertices.
+  const uint64_t num_times_seen = 1;
   for (int i = 0; i < params.num_vertices - 1; ++i) {
     boost::add_edge(vertex_descriptors[i], vertex_descriptors[i + 1],
-                    {i, i + 1}, graph);
+                    {i, i + 1, num_times_seen}, graph);
   }
   // Close the loop.
   boost::add_edge(vertex_descriptors.back(), vertex_descriptors.front(),
-                  {params.num_vertices - 1, 0}, graph);
+                  {params.num_vertices - 1, 0, num_times_seen}, graph);
 
   return graph;
 }

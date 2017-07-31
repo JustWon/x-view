@@ -35,7 +35,7 @@ cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel) {
 }
 
 // ******************************* Utility ***********************************//
-padded_int::padded_int(const int64_t value, const int pad, const char fill)
+PaddedInt::PaddedInt(const int64_t value, const int pad, const char fill)
     : value_(value), pad_(pad), fill_(fill) {
   const std::string value_string = std::to_string(value_);
   const int num_digits = value_string.length();
@@ -49,14 +49,14 @@ padded_int::padded_int(const int64_t value, const int pad, const char fill)
   str_ = ss.str();
 }
 
-const std::string& padded_int::str() const {
+const std::string& PaddedInt::str() const {
   return str_;
 }
 
-std::string operator+(const std::string& l, const padded_int& r) {
+std::string operator+(const std::string& l, const PaddedInt& r) {
   return l + r.str();
 }
-std::string operator+(const padded_int& l, const std::string& r) {
+std::string operator+(const PaddedInt& l, const std::string& r) {
   return l.str() + l;
 }
 
@@ -118,6 +118,27 @@ const Eigen::Matrix3d createRotationMatrix(double r1, double r2, double r3) {
 const Eigen::Matrix3d randomRotationMatrix(std::mt19937& rng) {
   std::uniform_real_distribution<double> dist(0, 1);
   return createRotationMatrix(dist(rng), dist(rng), dist(rng));
+}
+
+Statistics::Statistics()
+    : sum_(0.f),
+      sum_squared_(0.f),
+      num_samples_(0) {
+}
+
+void Statistics::insert(const float& sample) {
+  ++num_samples_;
+  sum_ += sample;
+  sum_squared_ += sample * sample;
+}
+
+const float Statistics::mean() const {
+  return sum_ / num_samples_;
+}
+
+const float Statistics::std() const {
+  const float m = mean();
+  return std::sqrt(sum_squared_ / num_samples_ - m * m);
 }
 
 // ******************************* Logging ***********************************//
@@ -210,7 +231,9 @@ void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
   for (const VertexDescriptor& v_d : vertices_to_link) {
     const VertexProperty& v_p = (*graph)[v_d];
     LOG(INFO) << "--> linked to existing vertex " << v_p.index << std::endl;
-    boost::add_edge(v_d, new_vertex_d, {v_p.index, new_vertex.index}, *graph);
+    const uint64_t num_times_seen = 1;
+    boost::add_edge(v_d, new_vertex_d,
+                    {v_p.index, new_vertex.index, num_times_seen}, *graph);
   }
 }
 

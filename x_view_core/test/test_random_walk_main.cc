@@ -40,7 +40,8 @@ TEST(XViewSlamTestSuite, test_random_walk) {
   };
   std::vector<RandomWalkerParams::SAMPLING_TYPE> sampling_types{
       RandomWalkerParams::SAMPLING_TYPE::UNIFORM,
-      RandomWalkerParams::SAMPLING_TYPE::AVOIDING
+      RandomWalkerParams::SAMPLING_TYPE::AVOIDING,
+      RandomWalkerParams::SAMPLING_TYPE::WEIGHTED
   };
 
   int num_vertices;
@@ -54,7 +55,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
     construction_params.num_semantic_classes = num_semantic_classes;
     construction_params.seed = seed;
 
-    Graph graph = generateRandomGraph(construction_params);
+    const Graph graph = generateRandomGraph(construction_params);
 
     for (const auto sampling_type : sampling_types) {
 
@@ -79,17 +80,19 @@ TEST(XViewSlamTestSuite, test_random_walk) {
                 << std::chrono::duration_cast<std::chrono::duration<double>>
                     (t2 - t1).count() << " seconds.";
 
-      // Retrieve the parameters passed to the RandomWalker as some of them
-      // might have changed due to input coherence.
-      params = random_walker.params();
       testRandomWalkSequence(random_walker, graph, params);
       if (params.random_sampling_type ==
           RandomWalkerParams::SAMPLING_TYPE::AVOIDING)
         testAvoidingStrategy(random_walker, graph, params);
 
     }
-    LOG(INFO) << "Test passed.";
   }
+
+  // Test the 'WEIGHTED' random walk sampling strategy by analyzing the
+  // statistic properties of its random walks.
+  testWeightedStrategyStatistics();
+
+  LOG(INFO) << "Test passed.";
 
 }
 

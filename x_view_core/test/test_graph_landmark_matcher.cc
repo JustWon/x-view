@@ -71,16 +71,13 @@ void testChainGraph(const uint64_t seed) {
 #ifdef X_VIEW_DEBUG
   // Compute similarity matrices.
   const GraphMatcher::SimilarityMatrixType& similarity_matrix =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->getSimilarityMatrix();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->getSimilarityMatrix();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_colwise =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->computeMaxSimilarityColwise();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->computeMaxSimilarityColwise();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_rowwise =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->computeMaxSimilarityRowwise();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->computeMaxSimilarityRowwise();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
       max_similarity_colwise.cwiseProduct(max_similarity_rowwise);
@@ -165,16 +162,13 @@ void testRandomGraph(const uint64_t seed) {
 #ifdef X_VIEW_DEBUG
   // Compute similarity matrices.
   const GraphMatcher::SimilarityMatrixType& similarity_matrix =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->getSimilarityMatrix();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->getSimilarityMatrix();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_colwise =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->computeMaxSimilarityColwise();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->computeMaxSimilarityColwise();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_rowwise =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->computeMaxSimilarityRowwise();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->computeMaxSimilarityRowwise();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
       max_similarity_colwise.cwiseProduct(max_similarity_rowwise);

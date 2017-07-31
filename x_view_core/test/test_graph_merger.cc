@@ -6,16 +6,15 @@ namespace x_view_test {
 
 void mergeGraphs(const Graph& g1, const Graph g2, Graph* merged) {
 
-  CHECK_NOTNULL(merged);
-
   // Define the parameters needed to match the graphs.
   RandomWalkerParams random_walker_params;
-  random_walker_params.num_walks = 1000;
+  random_walker_params.num_walks = 200;
   random_walker_params.walk_length = 3;
   random_walker_params.random_sampling_type =
-      RandomWalkerParams::SAMPLING_TYPE::AVOIDING;
+      RandomWalkerParams::SAMPLING_TYPE::UNIFORM;
 
-  VertexSimilarity::SCORE_TYPE score_type = VertexSimilarity::SCORE_TYPE::WEIGHTED;
+  VertexSimilarity::SCORE_TYPE score_type =
+      VertexSimilarity::SCORE_TYPE::WEIGHTED;
 
   // Compute the similarities between the graphs via the GraphMatcher.
   GraphMatcher graph_matcher(random_walker_params, score_type);
@@ -31,16 +30,7 @@ void mergeGraphs(const Graph& g1, const Graph g2, Graph* merged) {
   // Verify that the cast was successful
   CHECK_NOTNULL(matching_result.get());
 
-
-  // Define the parameters to merge the graphs.
-  GraphMergerParameters graph_merger_parameters;
-  graph_merger_parameters.time_window = std::numeric_limits<uint64_t>::max();
-  graph_merger_parameters.similarity_threshold = 0.f;
-  graph_merger_parameters.distance_threshold =
-      std::numeric_limits<float>::max();
-  GraphMerger graph_merger(g1, g2, *(matching_result.get()),
-                           graph_merger_parameters);
-  *merged = graph_merger.computeMergedGraph();
+  *merged = graph_matcher.getGlobalGraph();
 }
 
 }

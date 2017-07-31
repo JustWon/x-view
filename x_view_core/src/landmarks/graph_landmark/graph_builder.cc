@@ -35,12 +35,17 @@ Graph GraphBuilder::createGraphFromImageBlobs(const FrameData& frame_data,
       const Blob* bi = blob_vector[i];
       const Blob* bj = blob_vector[j];
 
+      // Since we don't know yet how many times this edge has been seen in
+      // the past, we set its property as if it has been seen only once. This
+      // property is updated in the global semantic graph during graph merging.
+      const uint64_t num_times_seen = 1;
+
       // Only create an edge between the two blobs if they are neighbors.
       if (Blob::areNeighbors(*bi, *bj, params.max_distance_for_neighborhood))
         if (vertex_descriptors[i] != INVALID_VERTEX_DESCRIPTOR &&
             vertex_descriptors[j] != INVALID_VERTEX_DESCRIPTOR)
           boost::add_edge(vertex_descriptors[i], vertex_descriptors[j],
-                          {i, j}, graph);
+                          {i, j, num_times_seen}, graph);
     }
   }
 
@@ -166,6 +171,7 @@ void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(Graph* graph,
                 min_distance_square = dist2;
                 closest_v_d_pair.from = i;
                 closest_v_d_pair.to = j;
+                closest_v_d_pair.num_times_seen = 1;
               }
             }
           }
