@@ -102,36 +102,34 @@ bool XView::localize(const FrameData& frame_data,
       matching_result.getSimilarityMatrix();
   VectorXb& invalid_matches = matching_result.getInvalidMatches();
 
-  std::dynamic_pointer_cast <GraphMatcher> (descriptor_matcher_)
-              ->computeSimilarityMatrix(
-                  random_walker, &similarity_matrix, &invalid_matches,
-                  VertexSimilarity::SCORE_TYPE::WEIGHTED);
+  std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
+      ->computeSimilarityMatrix(
+          random_walker, &similarity_matrix, &invalid_matches,
+          VertexSimilarity::SCORE_TYPE::WEIGHTED);
 
-  const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
-      matching_result.computeMaxSimilarityRowwise().cwiseProduct(
-          matching_result.computeMaxSimilarityColwise()
-      );
+  const GraphMatcher::MaxSimilarityMatrixType max_similarities_colwise =
+      matching_result.computeMaxSimilarityColwise();
 
   // Filter matches with geometric consistency.
   if (Locator::getParameters()->getChildPropertyList("matcher")->getBoolean(
       "outlier_rejection")) {
-    bool filter_success = std::dynamic_pointer_cast < GraphMatcher
-        > (descriptor_matcher_)->filter_matches(query_graph, global_graph,
-                                                matching_result,
-                                                &invalid_matches);
+    bool filter_success = std::dynamic_pointer_cast<GraphMatcher
+    >(descriptor_matcher_)->filter_matches(query_graph, global_graph,
+                                           matching_result,
+                                           &invalid_matches);
   }
 
   // Estimate transformation between graphs (Localization).
   GraphLocalizer graph_localizer;
 
-  for (int j = 0; j < max_similarity_matrix.cols(); ++j) {
-    int max_i = -1;
-    max_similarity_matrix.col(j).maxCoeff(&max_i);
-    if (max_i == -1)
-      continue;
+  for (int j = 0; j < max_similarities_colwise.cols(); ++j) {
+    GraphMatcher::MaxSimilarityMatrixType::Index max_index;
+    max_similarities_colwise.col(j).maxCoeff(&max_index);
     if (!invalid_matches(j)) {
-      const double similarity = similarity_matrix(max_i, j);
-      const VertexProperty& match_v_p = global_graph[max_i];
+      LOG(INFO) << "Match between vertex " << j << " in query graph is vertex "
+                << max_index << " in global graph.";
+      const double similarity = similarity_matrix(max_index, j);
+      const VertexProperty& match_v_p = global_graph[max_index];
 
       const unsigned short depth_cm =
           depth_image.at<unsigned short>(match_v_p.center);
@@ -142,7 +140,8 @@ bool XView::localize(const FrameData& frame_data,
   }
 
   SE3 transformation;
-  bool localized = graph_localizer.localize(matching_result, query_graph, global_graph, &transformation);
+  bool localized = graph_localizer.localize(matching_result, query_graph,
+                                            global_graph, &transformation);
   (*position) = transformation.getPosition();
   return localized;
 }
@@ -168,7 +167,8 @@ void XView::printInfo() const {
       << "\n\n" << dataset
       << "\n\tLandmark type:\t<" + landmark_parameters->getString("type") + ">"
       << "\n\tMatcher type: \t<" + matcher_parameters->getString("type") + ">"
-      << "\n\tLocalizer type: \t<" + localizer_parameters->getString("type") + ">"
+      << "\n\tLocalizer type: \t<" + localizer_parameters->getString("type")
+          + ">"
       << "\n==========================================================\n";
 
   LOG(INFO)
