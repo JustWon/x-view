@@ -98,8 +98,11 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
   pause.terminate();
 }
 
-std::pair<Eigen::Vector3d, Eigen::Vector3d> XViewBagReader::localize(
-    const CAMERA camera_type, const int frame_index) {
+bool XViewBagReader::localize(const CAMERA camera_type, const int frame_index,
+                              std::pair<Eigen::Vector3d, Eigen::Vector3d>*
+                              locations) {
+  CHECK_NOTNULL(locations);
+
   loadCurrentTopic(getTopics(camera_type));
 
   std::cout << "Localizing robot at frame " << frame_index << std::endl;
@@ -112,27 +115,29 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> XViewBagReader::localize(
   x_view::FrameData frame_data(semantic_image, depth_image,
                                empty_pose, frame_index);
 
-  Eigen::Vector3d estimated_position;
-  bool localized = x_view_->localize(frame_data, &estimated_position);
-  Eigen::Vector3d true_position = real_pose.getPosition();
+  bool localized = x_view_->localize(frame_data, &(locations->first));
+  locations->second = real_pose.getPosition();
 
-  publishPosition(estimated_position, Eigen::Vector3d(1.0, 0.0, 0.0),
-                  trans.stamp_, "estimated_position");
-  publishPosition(true_position, Eigen::Vector3d(0.0, 1.0, 0.0),
-                  trans.stamp_, "true_position");
-
+  if(localized) {
+    publishPosition(locations->first, Eigen::Vector3d(1.0, 0.0, 0.0),
+                    trans.stamp_, "estimated_position");
+    publishPosition(locations->second, Eigen::Vector3d(0.0, 1.0, 0.0),
+                    trans.stamp_, "true_position");
+  }
   bag_.close();
 
-  return std::make_pair(estimated_position, true_position);
+  return localized;
 }
 
-std::pair<Eigen::Vector3d, Eigen::Vector3d> XViewBagReader::localize_graph(
-    const CAMERA camera_type, const int start_frame, const int steps) {
+bool XViewBagReader::localize_graph(
+    const CAMERA camera_type, const int start_frame, const int steps,
+    std::pair<Eigen::Vector3d, Eigen::Vector3d>* locations) {
+
+  CHECK_NOTNULL(locations);
 
   loadCurrentTopic(getTopics(camera_type));
 
   x_view::XView local_x_view;
-  Eigen::Vector3d true_position;
   ros::Time time;
 
   for(int i = start_frame; i < start_frame + steps; ++i) {
@@ -144,7 +149,7 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> XViewBagReader::localize_graph(
     x_view::SE3 pose;
     tfTransformToSE3(trans, &pose);
     if(i == start_frame) {
-      true_position = pose.getPosition();
+      locations->second = pose.getPosition();
       time = trans.stamp_;
     }
     std::cout << "Before frame data" << std::endl;
@@ -155,17 +160,17 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> XViewBagReader::localize_graph(
 
   const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
 
-  Eigen::Vector3d estimated_position;
-  x_view_->localize(local_graph, &estimated_position);
+  bool localized = x_view_->localize(local_graph, &(locations->first));
 
-  publishPosition(estimated_position, Eigen::Vector3d(1.0, 0.0, 0.0),
-                  time, "estimated_position");
-  publishPosition(true_position, Eigen::Vector3d(0.0, 1.0, 0.0),
-                  time, "true_position");
-
+  if(localized) {
+    publishPosition(locations->first, Eigen::Vector3d(1.0, 0.0, 0.0),
+                    time, "estimated_position");
+    publishPosition(locations->second, Eigen::Vector3d(0.0, 1.0, 0.0),
+                    time, "true_position");
+  }
   bag_.close();
 
-  return std::make_pair(estimated_position, true_position);
+  return localized;
 
 }
 

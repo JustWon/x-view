@@ -24,10 +24,18 @@ int main(int argc, char** argv) {
   const int steps = 4;
   for(int i = 0; i< 200;) {
     if(!pause.isPaused()) {
-      auto positions = bag_reader.localize_graph(x_view_ros::CAMERA::FRONT,
-                                                 i, steps);
-      std::cout << positions.first << positions.second << std::endl;
-      stats.insert((positions.second - positions.first).norm());
+      std::pair<Eigen::Vector3d, Eigen::Vector3d> locations;
+      bool localized =  bag_reader.localize_graph(x_view_ros::CAMERA::FRONT, i,
+                                                  steps, &locations);
+      if(localized) {
+        std::cout << "Estimation: " << Eigen::RowVector3d(locations.first)
+                  << "\n"
+                  << "True: " << Eigen::RowVector3d(locations.second)
+                  << std::endl;
+        stats.insert((locations.second - locations.first).norm());
+      } else {
+        std::cout << "Localization was not effective." << std::endl;
+      }
       ++i;
     }
   }

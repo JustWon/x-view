@@ -8,7 +8,7 @@ void mergeGraphs(const Graph& g1, const Graph g2, Graph* merged) {
 
   // Define the parameters needed to match the graphs.
   RandomWalkerParams random_walker_params;
-  random_walker_params.num_walks = 200;
+  random_walker_params.num_walks = 1000;
   random_walker_params.walk_length = 3;
   random_walker_params.random_sampling_type =
       RandomWalkerParams::SAMPLING_TYPE::UNIFORM;

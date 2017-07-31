@@ -54,14 +54,17 @@ class XViewBagReader {
    * camera camera_type.
    * \param camera_type Camera type to be used in this localization.
    * \param frame_index Frame to be localized inside to global semantic graph.
-   * \return A pair of 3D coordinates representing the estimated and true
-   * robot location respectively.
+   * \param locations A pair of 3D coordinates representing the estimated and
+   * true robot location respectively.
+   * \return A boolean which is true if the localization was effective, false
+   * otherwise.
    */
-  std::pair<Eigen::Vector3d, Eigen::Vector3d> localize(
-      const CAMERA camera_type, const int frame_index);
+  bool localize(const CAMERA camera_type, const int frame_index,
+                std::pair<Eigen::Vector3d, Eigen::Vector3d>* locations);
 
-  std::pair<Eigen::Vector3d, Eigen::Vector3d> localize_graph(
-      const CAMERA camera_type, const int start_frame, const int steps);
+  bool localize_graph(const CAMERA camera_type, const int start_frame,
+                      const int steps,
+                      std::pair<Eigen::Vector3d, Eigen::Vector3d>* locations);
 
  private:
 
@@ -71,15 +74,11 @@ class XViewBagReader {
   /// \brief Returns the topics associated with the camera type passed as
   /// argument.
   const CameraTopics& getTopics(const CAMERA camera_type) const {
-    switch(camera_type) {
-      case CAMERA::BACK:
-        return params_.back;
-      case CAMERA::RIGHT:
-        return params_.right;
-      case CAMERA::FRONT:
-        return params_.front;
-      default:
-        LOG(ERROR) << "Unrecognized camera type.";
+    switch (camera_type) {
+      case CAMERA::BACK:return params_.back;
+      case CAMERA::RIGHT:return params_.right;
+      case CAMERA::FRONT:return params_.front;
+      default:LOG(ERROR) << "Unrecognized camera type.";
     }
   }
 
