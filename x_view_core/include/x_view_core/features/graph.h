@@ -6,8 +6,9 @@
 #include <boost/graph/breadth_first_search.hpp>
 #include <Eigen/Core>
 #include <opencv2/core/core.hpp>
-
 #include <random>
+
+#include <x_view_core/x_view_types.h>
 
 namespace x_view {
 
@@ -38,6 +39,9 @@ struct VertexProperty {
 
   /// \brief Index referring to the last time this vertex has been observed.
   uint64_t last_time_seen_;
+
+  /// \brief Poses from which the vertex was observed.
+  std::vector<SE3> observers;
 };
 
 /// \brief Property associated to a graph edge.
@@ -65,7 +69,6 @@ struct EdgeProperty {
   /// \brief Integer indicating how many times this edge has been observed.
   uint64_t num_times_seen;
 };
-
 /**
  * \brief A graph object represented as an adjacency list.
  * \details

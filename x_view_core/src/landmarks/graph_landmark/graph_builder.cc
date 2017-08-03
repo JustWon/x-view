@@ -117,6 +117,10 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
       // the current frame.
       vertex.last_time_seen_ = frame_data.getID();
 
+      // Store the location of the observer.
+      vertex.observers.push_back(pose);
+      std::cout << "pose added to graph" << std::endl;
+
       // Add the newly generated vertex to the graph.
       vertex_descriptors->push_back(boost::add_vertex(vertex, *graph));
     }
