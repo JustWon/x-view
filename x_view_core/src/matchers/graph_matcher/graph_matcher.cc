@@ -98,6 +98,9 @@ GraphMatcher::GraphMatcher() {
   else if(random_walk_sampling_type == "WEIGHTED")
     random_walker_params_.random_sampling_type =
         RandomWalkerParams::SAMPLING_TYPE::WEIGHTED;
+  else if(random_walk_sampling_type == "NON_RETURNING")
+    random_walker_params_.random_sampling_type =
+        RandomWalkerParams::SAMPLING_TYPE::NON_RETURNING;
   else
     LOG(ERROR) << "Unrecognized random walker sampling type <"
                << random_walk_sampling_type << ">.";

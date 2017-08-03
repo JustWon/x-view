@@ -70,16 +70,17 @@ void RandomWalker::generateRandomWalks() {
   // A random walk consists of a sequence of graph vertices. The variable
   // names used in this functions are associated to this figure:
   //
-  //      A : source_vertex_index, the vertex where the random walk starts
+  //      A : source_vertex_index: the vertex where the random walk starts
   //      |
   //      v
-  //    [...]
+  //      B : previous_vertex_index: the vertex which has been seen before
+  //          the current. It is used in the NON_RETURNING strategy.
   //      |
   //      v
-  //      B : current_vertex_index : last vertex of the random walk.
+  //      C : current_vertex_index : last vertex of the random walk.
   //      |
   //      v
-  //      C : next_vertex_index : vertex which will be added to the random
+  //      D : next_vertex_index : vertex which will be added to the random
   //          walk as a next step.
 
   for (VertexDescriptor source_vertex_index = 0;
@@ -90,18 +91,24 @@ void RandomWalker::generateRandomWalks() {
       RandomWalk random_walk(params_.walk_length);
 
       // Prepare variables for iteration over the random walk.
-      VertexDescriptor current_vertex_index = source_vertex_index;;
+      VertexDescriptor current_vertex_index = source_vertex_index;
+      // Set the previous vertex index to a value which will never be met in
+      // a real world graph. In this way the first step is "free" and has no
+      // restrictions.
+      VertexDescriptor previous_vertex_index =
+          std::numeric_limits<uint64_t>::max();
 
       for (int step = 0; step < params_.walk_length; ++step) {
 
-        VertexDescriptor next_vertex_index = nextVertex(current_vertex_index);
+        VertexDescriptor next_vertex_index =
+            nextVertex(current_vertex_index, previous_vertex_index);
 
         // Add the vertex to the random_walk.
         const VertexProperty& next_vertex_p = graph_[next_vertex_index];
         random_walk[step] = &next_vertex_p;
 
-        // Set the current graph vertex descriptor as the next so that it
-        // can be used in the next iteration.
+        // Update the variables for the next iteration.
+        previous_vertex_index = current_vertex_index;
         current_vertex_index = next_vertex_index;
       }
 
@@ -132,7 +139,8 @@ void RandomWalker::generateRandomWalks() {
 }
 
 const VertexDescriptor RandomWalker::nextVertex(
-    const VertexDescriptor current_vertex_index) const {
+    const VertexDescriptor current_vertex_index,
+    const VertexDescriptor previous_vertex_index) const {
 
   // Sample from a uniform probability distribution p \in [0,1).
   const float p = random_distribution_(random_engine_);
@@ -212,6 +220,27 @@ const VertexDescriptor RandomWalker::nextVertex(
       }
       CHECK(false) << "This should never happen., p_w remaining is " << p_w
                    << " p was " << p << ".";
+    }
+    case RandomWalkerParams::SAMPLING_TYPE::NON_RETURNING: {
+      // Generate a list of vertex descriptors associated to the neighbors.
+      std::vector<VertexDescriptor> neighbor_descriptors(num_neighbor_vertices);
+      uint64_t neighbor_index = 0;
+      for(auto iter = neighbors.first; iter != neighbors.second; ++iter) {
+        neighbor_descriptors[neighbor_index++] = *iter;
+      }
+
+      // Shift the previous_vertex_index to the end of this list and remove it.
+      auto found_previous_vertex_index =
+          std::find(neighbor_descriptors.begin(), neighbor_descriptors.end(),
+                    previous_vertex_index);
+      if(found_previous_vertex_index != neighbor_descriptors.end()) {
+        std::swap(*found_previous_vertex_index, neighbor_descriptors.back());
+        neighbor_descriptors.pop_back();
+      }
+
+      // Sample the next vertex by choosing from the updated neighbor_list.
+      const int advance_step = static_cast<int>(p * neighbor_descriptors.size());
+      return *(std::next(neighbor_descriptors.begin(), advance_step));
     }
     default:
       LOG(ERROR) << "Unrecognized random walk sampling type.";

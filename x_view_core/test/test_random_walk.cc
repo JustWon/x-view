@@ -1,8 +1,6 @@
 #include "test_random_walk.h"
 #include "test_common.h"
 
-#include <iostream>
-
 namespace x_view_test {
 
 void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
@@ -26,7 +24,8 @@ void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
         << "Vertex " << from_index << " and vertex " << to_index
         << " appear in a random walk at position " << i << " and " << i + 1
         << " respectively in the random walk starting at vertex "
-        << start_vertex_index << " but there is no edge between them in the graph.";
+        << start_vertex_index
+        << " but there is no edge between them in the graph.";
       }
     }
     ++start_vertex_index;
@@ -80,6 +79,40 @@ void testAvoidingStrategy(const x_view::RandomWalker& random_walker,
   }
 }
 
+void testNonReturningStrategy(const x_view::RandomWalker& random_walker,
+                              const x_view::Graph& graph,
+                              const x_view::RandomWalkerParams& params) {
+  const auto& all_random_walks = random_walker.getRandomWalks();
+  uint64_t start_vertex_index = 0;
+  for (const x_view::RandomWalker::RandomWalks
+        & random_walks : all_random_walks) {
+    x_view::VertexProperty start_vertex_property;
+    start_vertex_property.index = start_vertex_index;
+
+    for (x_view::RandomWalker::RandomWalk random_walk : random_walks) {
+      // Insert the start_vertex_index into the random walk to facilitate
+      // checking the non-returning property in a loop.
+      random_walk.insert(random_walk.begin(), &start_vertex_property);
+      for (uint64_t i = 1; i < random_walk.size() - 1; ++i) {
+        // The non-returning property must only be satisfied for vertex B in
+        // a random walk of the form '[...] - B - [...]' if B has a larger
+        // degree than 1, i.e. at least two neighbors.
+        const x_view::VertexDescriptor center_vertex_index =
+            random_walk[i]->index;
+        if (boost::degree(center_vertex_index, graph) > 1) {
+          CHECK(random_walk[i - 1]->index != random_walk[i + 1]->index)
+          << "Random walk presents a returning walk for random walk "
+          << "with start_vertex_index " << start_vertex_index << " "
+          << "at step " << i - 1 << " and " << i + 1 << " with central "
+          << "index being " << center_vertex_index << " which has "
+          << boost::degree(center_vertex_index, graph) << " neighbors.";
+        }
+      }
+    }
+    ++start_vertex_index;
+  }
+}
+
 void testWeightedStrategyStatistics() {
 
   // Create a chain-like graph.
@@ -92,7 +125,7 @@ void testWeightedStrategyStatistics() {
 
   // Test for different multiplication factors between successive vertices.
   std::vector<int> multiplication_factors = {1, 2, 3};
-  for(const int multiplication_factor : multiplication_factors) {
+  for (const int multiplication_factor : multiplication_factors) {
 
     LOG(INFO) << "Testing weighted strategy statistics with multiplication "
               << "factor " << multiplication_factor << ".";
@@ -104,12 +137,13 @@ void testWeightedStrategyStatistics() {
 
     // Special case for vertex 0, since it is linked to vertex 1 on one side
     // and on the last vertex of the graph from the other side.
-    // One weight (left) is huge, other (right) is small.
-    if(multiplication_factor > 1)
+    if (multiplication_factor > 1) {
+      // One weight (left) is huge, other (right) is small.
       expected_next_vertex_ratio[0] = 0.f;
-    // One weight (left) is small, other (right) is huge.
-    else if(multiplication_factor < 1)
+    } else if (multiplication_factor < 1) {
+      // One weight (left) is small, other (right) is huge.
       expected_next_vertex_ratio[0] = 1.f;
+    }
 
     // Set the edges weights such that the weights are all different and
     // increasing by doubling their value.
@@ -155,6 +189,5 @@ void testWeightedStrategyStatistics() {
     LOG(INFO) << "Statistic test passed.";
   }
 }
-
 
 }
