@@ -70,9 +70,9 @@ void XView::writeGraphToFile() const {
   writeToFile(graph_matcher->getGlobalGraph(), filename);
 }
 
-bool XView::localize(const FrameData& frame_data,
-                     Eigen::Vector3d* position) {
-  LOG(INFO) << "XView tries to localize a robot by its observations.";
+bool XView::localizeFrame(const FrameData& frame_data,
+                          Eigen::Vector3d* position) {
+  LOG(INFO) << "XView tries to localizeFrame a robot by its observations.";
 
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
@@ -158,7 +158,7 @@ bool XView::localize(const FrameData& frame_data,
   return localized;
 }
 
-bool XView::localize(const Graph& query_graph, Eigen::Vector3d* position) {
+bool XView::localizeGraph(const Graph& query_graph, Eigen::Vector3d* position) {
 
   // Get the existing global semantic graph before matching.
   const Graph& global_graph = getSemanticGraph();
