@@ -6,6 +6,7 @@
 
 #include <glog/logging.h>
 #include <opencv2/core/core.hpp>
+#include <x_view_core/x_view_tools.h>
 
 namespace x_view_ros {
 
@@ -98,8 +99,11 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
   pause.terminate();
 }
 
-std::pair<Eigen::Vector3d, Eigen::Vector3d> XViewBagReader::localize(
-    const CAMERA camera_type, const int frame_index) {
+bool XViewBagReader::localize(const CAMERA camera_type, const int frame_index,
+                              std::pair<Eigen::Vector3d, Eigen::Vector3d>*
+                              locations) {
+  CHECK_NOTNULL(locations);
+
   loadCurrentTopic(getTopics(camera_type));
 
   std::cout << "Localizing robot at frame " << frame_index << std::endl;
@@ -112,18 +116,65 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> XViewBagReader::localize(
   x_view::FrameData frame_data(semantic_image, depth_image,
                                empty_pose, frame_index);
 
-  Eigen::Vector3d estimated_position;
-  bool localized = x_view_->localize(frame_data, &estimated_position);
-  Eigen::Vector3d true_position = real_pose.getPosition();
+  bool localized = x_view_->localize(frame_data, &(locations->first));
+  locations->second = real_pose.getPosition();
 
-  publishPosition(estimated_position, Eigen::Vector3d(1.0, 0.0, 0.0),
-                  trans.stamp_, "estimated_position");
-  publishPosition(true_position, Eigen::Vector3d(0.0, 1.0, 0.0),
-                  trans.stamp_, "true_position");
+  if(localized) {
+    publishRobotPosition(locations->first, Eigen::Vector3d(1.0, 0.0, 0.0),
+                         trans.stamp_, "estimated_position");
+    publishRobotPosition(locations->second, Eigen::Vector3d(0.0, 1.0, 0.0),
+                         trans.stamp_, "true_position");
+  }
+  bag_.close();
+
+  return localized;
+}
+
+bool XViewBagReader::localize_graph(
+    const CAMERA camera_type, const int start_frame, const int steps,
+    std::pair<Eigen::Vector3d, Eigen::Vector3d>* locations) {
+
+  CHECK_NOTNULL(locations);
+
+  loadCurrentTopic(getTopics(camera_type));
+
+  // Local X-View object used to generate local graph which will be localized
+  // against the global semantic graph built by x_view_.
+  x_view::XView local_x_view;
+  ros::Time time;
+
+  for(int i = start_frame; i < start_frame + steps; ++i) {
+    parseParameters();
+    const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
+    const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
+    const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
+    x_view::SE3 pose;
+    tfTransformToSE3(trans, &pose);
+    // Use the start frame as ground truth.
+    if(i == start_frame) {
+      locations->second = pose.getPosition();
+    }
+    x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
+    local_x_view.processFrameData(frame_data);
+    // Publish all ground truth poses that contribute to the estimation.
+    const Eigen::Vector3d ground_truth_color(0.15, 0.7, 0.15);
+    publishRobotPosition(pose.getPosition(), ground_truth_color, trans.stamp_,
+                         "true_position_" +
+                             x_view::PaddedInt(i - start_frame, 3).str());
+  }
+
+  const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
+
+  bool localized = x_view_->localize(local_graph, &(locations->first));
+
+  const Eigen::Vector3d estimated_color(0.7, 0.15, 0.15);
+  publishRobotPosition(locations->first, estimated_color, time,
+                       "estimated_position");
+
 
   bag_.close();
 
-  return std::make_pair(estimated_position, true_position);
+  return localized;
 }
 
 void XViewBagReader::parseParameters() const {
@@ -224,7 +275,7 @@ void XViewBagReader::tfTransformToSE3(const tf::StampedTransform& tf_transform,
 }
 
 
-void XViewBagReader::publishPosition(const Eigen::Vector3d& pos,
+void XViewBagReader::publishRobotPosition(const Eigen::Vector3d& pos,
                                      const Eigen::Vector3d& color,
                                      const ros::Time& stamp,
                                      const std::string ns) {
@@ -239,7 +290,7 @@ void XViewBagReader::publishPosition(const Eigen::Vector3d& pos,
   marker.ns = ns;
   marker.id = 0;
 
-  marker.type = visualization_msgs::Marker::SPHERE;
+  marker.type = visualization_msgs::Marker::CYLINDER;
   marker.action = visualization_msgs::Marker::ADD;
 
   marker.pose.position.x = pos[0];
@@ -250,10 +301,9 @@ void XViewBagReader::publishPosition(const Eigen::Vector3d& pos,
   marker.pose.orientation.z = 0.0;
   marker.pose.orientation.w = 1.0;
 
-  // Set the scale of the marker -- 1x1x1 here means 1m on a side
-  marker.scale.x = 2.0;
-  marker.scale.y = 2.0;
-  marker.scale.z = 2.0;
+  marker.scale.x = 1.0;
+  marker.scale.y = 1.0;
+  marker.scale.z = 4.0;
 
   // Set the color -- be sure to set alpha to something non-zero!
   marker.color.r = static_cast<float>(color[0]);
@@ -263,7 +313,6 @@ void XViewBagReader::publishPosition(const Eigen::Vector3d& pos,
 
   marker.lifetime = ros::Duration();
   vertex_publisher_.publish(marker);
-
 }
 
 }

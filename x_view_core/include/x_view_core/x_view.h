@@ -62,6 +62,16 @@ class XView {
    */
   bool localize(const FrameData& frame_data, Eigen::Vector3d* position);
 
+  /**
+   * \brief Localizes the graph passed as argument by matching it against the
+   * global semantic graph.
+   * \param query_graph Semantic graph which is localized.
+   * \param position An estimation of the pose of the query graph passed as
+   * argument.
+   * \return Success in localization.
+   */
+  bool localize(const Graph& query_graph, Eigen::Vector3d* position);
+
  private:
   /// \brief Prints XView info.
   void printInfo() const;
