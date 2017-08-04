@@ -13,9 +13,28 @@ std::vector<const Blob*> GraphBuilder::DEFAULT_BLOB_VECTOR;
 const uint64_t GraphBuilder::INVALID_VERTEX_DESCRIPTOR =
     std::numeric_limits<uint64_t>::max();
 
-Graph GraphBuilder::createGraphFromImageBlobs(const FrameData& frame_data,
-                                              const ImageBlobs& blobs,
-                                              const GraphBuilderParams& params) {
+Graph GraphBuilder::extractSemanticGraph(const FrameData& frame_data,
+                                         const ImageBlobs& blobs,
+                                         const GraphBuilderParams& params) {
+
+  if (params.extraction_type ==
+      GraphBuilderParams::EXTRACTION_TYPE::EDGES_DEFINED_ON_BLOB_NEIGHBORS) {
+    LOG(INFO) << "Building semantic graph by defining edges between neighbor "
+        "blobs in semantic segmentation.";
+    return extractSemanticGraphOnSemanticImage(frame_data, blobs, params);
+  } else if (params.extraction_type ==
+      GraphBuilderParams::EXTRACTION_TYPE::EDGES_DEFINED_ON_3D_SPACE) {
+    LOG(INFO) << "Building semantic graph by defining edges between neighbor "
+        "blobs in 3D space.";
+    return extractSemanticGraphOn3DSpace(frame_data, blobs, params);
+  } else {
+    LOG(ERROR) << "Unrecognized graph extraction type.";
+  }
+}
+
+Graph GraphBuilder::extractSemanticGraphOnSemanticImage(
+    const FrameData& frame_data, const ImageBlobs& blobs,
+    const GraphBuilderParams& params) {
 
   Graph graph;
 
@@ -64,6 +83,12 @@ Graph GraphBuilder::createGraphFromImageBlobs(const FrameData& frame_data,
       << "has " << num_components << " components.";
     return graph;
   }
+
+}
+
+Graph GraphBuilder::extractSemanticGraphOn3DSpace(
+    const FrameData& frame_data, const ImageBlobs& blobs,
+    const GraphBuilderParams& params) {
 
 }
 
@@ -135,9 +160,9 @@ VertexProperty GraphBuilder::blobToGraphVertex(const int index,
   return VertexProperty{index, semantic_label, label, size, center};
 }
 
-void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(Graph* graph,
-                                                             const std::vector<
-                                                                 int>& component) {
+void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(
+    Graph* graph, const std::vector<int>& component) {
+
   std::vector<int> unique_components(component);
   std::sort(unique_components.begin(), unique_components.end());
   unique_components.erase(std::unique(unique_components.begin(),

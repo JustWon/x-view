@@ -94,8 +94,16 @@ Here follows a description of the parameters being used by X-View:
    how many times the _erosion_ procedure has to be applied to the extracted blob.
    This number is usually the same as __num_dilate__.
    
-   * __blob_neighbor_distance__(type="GRAPH") integer indicating how many 
-   pixels far apart two blobs can be to still consider them as neighbors.
+   * __extraction_type__(type="GRAPH") string defining which strategy to use 
+   to extract the semantic graph from the frame data.<br/>
+   _supported values_: {"IMAGE", "3D_SPACE"}
+   
+   * __blob_neighbor_distance__(type="GRAPH" & extraction_type="IMAGE") integer 
+   indicating how many pixels far apart two blobs can be to still consider them as neighbors.
+   
+   * __max_euclidean_distance__(type="GRAPH" & extraction_type="3D_SPACE") 
+   floating point number specifying the maximal Euclidean distance between 
+   any two vertices such that an edge is defined between them.
    
    * __depth_clip__(type="GRAPH") floating point number indicating the 
    maximal depth value associated to a blob in order to be considered. All 
