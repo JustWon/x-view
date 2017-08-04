@@ -163,7 +163,8 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   << "frame to simply add the first graph to the matcher without "
   << "performing any match.";
 
-  // Extract the random walks of the graph.
+  // Extract the random walks of the query graph using the same parameters as
+  // the ones used for the global database graph.
   RandomWalker random_walker(query_semantic_graph, random_walker_params_);
   random_walker.generateRandomWalks();
 
@@ -181,6 +182,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   // Merge the query graph to the database graph.
   const auto& parameters = Locator::getParameters();
   const auto& matching_parameters = parameters->getChildPropertyList("matcher");
+
   GraphMergerParameters graph_merger_parameters;
   graph_merger_parameters.time_window =
       matching_parameters->getInteger("time_window",
@@ -192,13 +194,28 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   GraphMerger graph_merger(global_semantic_graph_, query_semantic_graph,
                            *matching_result.get(), graph_merger_parameters);
 
-  // Need to regenerate the random walks of the extended global graph.
+  // Merge the query graph onto the global semantic graph. The result of this
+  // operation is the new global semantic graph.
   global_semantic_graph_ = graph_merger.computeMergedGraph();
+
   // Clean the newly generated global semantic graph by removing duplicate
   // vertices.
-  const float merge_distance =
-      matching_parameters->getFloat("merge_distance", 0.1f);
-  GraphMerger::mergeDuplicates(&global_semantic_graph_, merge_distance);
+  const bool should_merge_duplicates =
+      matching_parameters->getBoolean("merge_close_vertices", false);
+  if(should_merge_duplicates) {
+    const float merge_distance =
+        matching_parameters->getFloat("merge_distance", 0.1f);
+    GraphMerger::mergeDuplicates(&global_semantic_graph_, merge_distance);
+  }
+  // Add edges between close vertices of the new global semantic graph in
+  const bool should_link_vertices =
+      matching_parameters->getBoolean("link_close_vertices", false);
+  if(should_link_vertices) {
+    const double max_link_distance =
+        matching_parameters->getFloat("max_link_distance");
+    GraphMerger::linkCloseVertices(&global_semantic_graph_, max_link_distance);
+  }
+
 
   // Regenerate the random walks of the new global graph
   RandomWalker global_random_walker(global_semantic_graph_,
