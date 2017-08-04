@@ -60,7 +60,7 @@ class XView {
    * \param position An estimation of the pose of the robot.
    * \return Success in localization.
    */
-  bool localize(const FrameData& frame_data, Eigen::Vector3d* position);
+  bool localizeFrame(const FrameData& frame_data, Eigen::Vector3d* position);
 
   /**
    * \brief Localizes the graph passed as argument by matching it against the
@@ -70,7 +70,7 @@ class XView {
    * argument.
    * \return Success in localization.
    */
-  bool localize(const Graph& query_graph, Eigen::Vector3d* position);
+  bool localizeGraph(const Graph& query_graph, Eigen::Vector3d* position);
 
  private:
   /// \brief Prints XView info.

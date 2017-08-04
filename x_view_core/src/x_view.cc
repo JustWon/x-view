@@ -70,9 +70,9 @@ void XView::writeGraphToFile() const {
   writeToFile(graph_matcher->getGlobalGraph(), filename);
 }
 
-bool XView::localize(const FrameData& frame_data,
-                     Eigen::Vector3d* position) {
-  LOG(INFO) << "XView tries to localize a robot by its observations.";
+bool XView::localizeFrame(const FrameData& frame_data,
+                          Eigen::Vector3d* position) {
+  LOG(INFO) << "XView tries to localizeFrame a robot by its observations.";
 
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
@@ -158,7 +158,7 @@ bool XView::localize(const FrameData& frame_data,
   return localized;
 }
 
-bool XView::localize(const Graph& query_graph, Eigen::Vector3d* position) {
+bool XView::localizeGraph(const Graph& query_graph, Eigen::Vector3d* position) {
 
   // Get the existing global semantic graph before matching.
   const Graph& global_graph = getSemanticGraph();
@@ -204,7 +204,7 @@ bool XView::localize(const Graph& query_graph, Eigen::Vector3d* position) {
 
   struct WeightedPosition {
     Eigen::Vector3d position;
-    float weight;
+    double weight;
   };
 
   std::vector<WeightedPosition> matched_positions;
@@ -223,7 +223,7 @@ bool XView::localize(const Graph& query_graph, Eigen::Vector3d* position) {
   }
 
   Eigen::Vector3d estimated_position = Eigen::Vector3d::Zero();
-  float total_weight = 0.f;
+  double total_weight = 0.0;
 
   for(const WeightedPosition& w_p : matched_positions) {
     estimated_position += w_p.position * w_p.weight;
