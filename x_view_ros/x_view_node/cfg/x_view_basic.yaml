@@ -23,7 +23,10 @@ Matcher: {
     time_window: 10,
     similarity_threshold: 0.2,
     distance_threshold: 5.0,
-    merge_distance: 2.0,
+    merge_close_vertices: true,
+    merge_distance: 2.5,
+    link_close_vertices: true,
+    max_link_distance: 2.5,
     outlier_rejection: false,
     consistency_threshold: 5.0,
     consistency_size: 2.0
