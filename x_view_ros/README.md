@@ -147,15 +147,28 @@ Here follows a description of the parameters being used by X-View:
    considered as valid. Candidate matches whose semantic similarity score is 
    smaller than this parameter are rejected.
    
-   * __distance_threshold__(type=="GRAPH") floating point value indicating 
+   * __distance_threshold__(type="GRAPH") floating point value indicating 
    the maximal Euclidean distance between the vertices of a candidate match 
    to be considered as valid. If the vertices representing a candidate match 
    are further apart than this parameter, the match is rejected.
    
-   * __merge_distance__(type="GRAPH") floating point value indicating the 
-   maximal Euclidean distance between two vertices in order to be merged 
-   together. Given a pair of vertices with same semantic label and whose 
-   distance is smaller than this parameter will make them merge together.
+   * __merge_close_vertices__(type="GRAPH") boolean stating if after the 
+   graph matching operation, close vertices in space should be merged or not.
+   
+   * __merge_distance__(type="GRAPH" & merge_close_vertices="true) floating 
+   point value indicating the maximal Euclidean distance between two vertices
+   in order to be merged together. Given a pair of vertices with same 
+   semantic label and whose distance is smaller than this parameter will make
+   them merge together.
+   
+   * __link_close_vertices__(type="GRAPH") boolean stating if vertices close 
+   together in space should be linked by an edge. This operation takes place 
+   after merging the query graph to the global database graph, thus has only 
+   effect on vertex pairs containing one _old_ vertex and one _new_ vertex.
+   
+   * __max_link_distance__(type="GRAPH" & link_close_vertices="true") 
+   floating point value indicating the maximal distance between two vertices 
+   to allow an edge between them.
    
    * __num_retained_matches__(type="VECTOR") integer indicating how many 
    matches have to be retained for each feature. If this paremeter is equal 

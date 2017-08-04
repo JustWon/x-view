@@ -279,8 +279,19 @@ std::unique_ptr<Parameters> Parser::parseGraphMatcher() const {
            graph_matcher_parameters, 0.f);
   addFloat(nh_, "/Matcher/distance_threshold", "distance_threshold",
            graph_matcher_parameters, std::numeric_limits<float>::max());
-  addFloat(nh_, "/Matcher/merge_distance", "merge_distance",
-           graph_matcher_parameters, 2.f);
+
+  addBool(nh_, "/Matcher/merge_close_vertices", "merge_close_vertices",
+          graph_matcher_parameters, false);
+  if(graph_matcher_parameters->getBoolean("merge_close_vertices"))
+    addFloat(nh_, "/Matcher/merge_distance", "merge_distance",
+             graph_matcher_parameters, 2.f);
+
+  addBool(nh_, "/Matcher/link_close_vertices", "link_close_vertices",
+          graph_matcher_parameters, false);
+  if(graph_matcher_parameters->getBoolean("link_close_vertices"))
+    addFloat(nh_, "/Matcher/max_link_distance", "max_link_distance",
+             graph_matcher_parameters, 2.0);
+
 
   return std::move(graph_matcher_parameters);
 }
