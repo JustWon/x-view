@@ -92,7 +92,7 @@ const Graph GraphMerger::computeMergedGraph() {
   return merged_graph_;
 }
 
-void GraphMerger::mergeDuplicates(Graph* graph, const float merge_distance) {
+void GraphMerger::mergeDuplicates(Graph* graph, const double merge_distance) {
 
   LOG(INFO) << "Merging all vertices with same semantic label whose euclidean "
             << "distance is smaller than " << merge_distance << ".";
@@ -200,6 +200,27 @@ void GraphMerger::mergeDuplicates(Graph* graph, const float merge_distance) {
   }
 }
 
+void GraphMerger::linkCloseVertices(Graph* graph,
+                                    const double max_link_distance) {
+  const uint64_t num_vertices = boost::num_vertices(*graph);
+  const double max_link_distance_squared =
+      max_link_distance * max_link_distance;
+
+  auto distSquared = [](const VertexProperty& v_p_1,
+                        const VertexProperty& v_p_2) -> double {
+    return (v_p_1.location_3d - v_p_2.location_3d).squaredNorm();
+  };
+
+  for(uint64_t i = 0; i < num_vertices; ++i) {
+    const VertexProperty& v_p_i = (*graph)[i];
+    for(uint64_t j = i + 1; j < num_vertices; ++j) {
+      const VertexProperty& v_p_j = (*graph)[j];
+      if(distSquared(v_p_i, v_p_j) < max_link_distance_squared)
+        boost::add_edge(i, j, {i, j, 1}, *graph);
+    }
+  }
+}
+
 const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
                                                const VertexDescriptor v_d_2,
                                                const Graph& graph,
@@ -217,8 +238,8 @@ const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
 
   // Spatial consistency: only merge vertices if their Euclidean distance is
   // smaller than the merge_distance parameter passed as argument.
-  const Eigen::Vector3d diff = v_p_1.location_3d - v_p_2.location_3d;
-  if (diff.norm() > merge_distance)
+  if ((v_p_1.location_3d - v_p_2.location_3d).squaredNorm() >
+      merge_distance * merge_distance)
     return false;
 
   // Since all tests are fulfilled, the two vertices should be merged.
