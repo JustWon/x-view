@@ -140,12 +140,25 @@ class GraphBuilder {
    * \brief Given a graph with multiple disconnected components, this
    * function iterates over all possible pairs of vertices belonging to the
    * different components and creates an edge between the vertices with
-   * smallest euclidean distance.
+   * smallest euclidean distance computed on the image.
    * \param graph Pointer to graph to be connected.
    * \param component Vector indicating for each vertex to which component it
    * belongs.
    */
-  static void connectClosestVerticesOfDisconnectedGraph(
+  static void connectComponentsInImage(
+      Graph* graph, const std::vector<int>& component);
+
+
+  /**
+   * \brief Given a graph with multiple disconnected components, this
+   * function iterates over all possible pairs of vertices belonging to the
+   * different components and creates an edge between the vertices with
+   * smallest euclidean distance computed in 3D space.
+   * \param graph Pointer to graph to be connected.
+   * \param component Vector indicating for each vertex to which component it
+   * belongs.
+   */
+  static void connectComponentsInSpace(
       Graph* graph, const std::vector<int>& component);
 
 };
