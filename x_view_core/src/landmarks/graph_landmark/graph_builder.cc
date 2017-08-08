@@ -221,7 +221,7 @@ void GraphBuilder::connectComponentsInImage(Graph* graph,
 
   const uint64_t num_vertices = boost::num_vertices(*graph);
 
-  auto dist_square = [](const cv::Point2i& p1, const cv::Point2i& p2) {
+  auto distSquared = [](const cv::Point2i& p1, const cv::Point2i& p2) {
     cv::Point2i d(p1 - p2);
     return d.x * d.x + d.y * d.y;
   };
