@@ -8,25 +8,11 @@ IF (NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE "Release")
 ENDIF (NOT CMAKE_BUILD_TYPE)
 
-
 message(STATUS "Building XView in ${CMAKE_BUILD_TYPE} mode.")
 
 IF (CMAKE_BUILD_TYPE MATCHES Debug)
     add_definitions(-DX_VIEW_DEBUG)
 ENDIF ()
-
-# Set floating point type to be used inside XView
-IF(NOT X_VIEW_USE_DOUBLES)
-    set(X_VIEW_USE_DOUBLES False CACHE BOOL "Flag indicating whether the
-    project is built using single or double precision floating point values.")
-ENDIF()
-
-IF (${X_VIEW_USE_DOUBLES})
-    add_definitions(-DX_VIEW_USE_DOUBLES)
-    message(STATUS "Building ${PROJECT_NAME} in double precision.")
-ELSE()
-    message(STATUS "Building ${PROJECT_NAME} in single precision.")
-ENDIF()
 
 # Flag used by XView to know the path of where it is located.
 add_definitions(-DX_VIEW_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR})

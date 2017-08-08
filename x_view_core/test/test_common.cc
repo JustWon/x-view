@@ -106,7 +106,8 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
     GraphConstructionParams new_params;
     new_params.num_vertices = params.num_vertices;
     new_params.edge_probability =
-        std::min(1.1f, params.edge_probability * 1.1f);
+        std::min(static_cast<x_view::real_t>(1.1),
+                 static_cast<x_view::real_t>(params.edge_probability * 1.1));
     new_params.num_semantic_classes = params.num_semantic_classes;
     new_params.seed = params.seed;
     return generateRandomGraph(new_params);

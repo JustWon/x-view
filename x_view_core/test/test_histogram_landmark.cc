@@ -21,7 +21,7 @@ void performLabelTest(const SemanticLandmarkPtr& landmark_,
       CAST(landmark->getDescriptor(), const VectorDescriptor)->getDescriptor();
 
   auto toVec = [](const cv::Mat& mat) -> std::vector<real_t> {
-    std::vector<real_t> v(mat.cols, 0.0);
+    std::vector<real_t> v(mat.cols, static_cast<real_t>(0.0));
     for (int i = 0; i < mat.cols; ++i) {
       v[i] = mat.at<real_t>(i);
     }

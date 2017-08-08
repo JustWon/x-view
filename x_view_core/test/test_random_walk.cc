@@ -165,7 +165,7 @@ void testWeightedStrategyStatistics() {
     random_walker_params.walk_length = 1;
     // Choose a large number of random walks per vertex in order to have better
     // (and smoother) statistics.
-    random_walker_params.num_walks = 5000;
+    random_walker_params.num_walks = 10000;
     random_walker_params.random_sampling_type =
         x_view::RandomWalkerParams::SAMPLING_TYPE::WEIGHTED;
     x_view::RandomWalker random_walker(chain_graph, random_walker_params);

@@ -11,11 +11,17 @@
 namespace x_view {
 
 // Single or double floating point precision.
-#ifdef X_VIEW_USE_DOUBLES
+// Change this MACRO to 0 to use single precision where possible.
+#ifndef X_VIEW_USE_DOUBLE_PRECISION
+#define X_VIEW_USE_DOUBLE_PRECISION 0
+#endif
+
+#if X_VIEW_USE_DOUBLE_PRECISION
 typedef double real_t;
 #else
 typedef float real_t;
 #endif
+
 constexpr real_t real_eps = std::numeric_limits<real_t>::epsilon();
 
 // Associated floating point matrices.
