@@ -16,14 +16,13 @@ typedef double real_t;
 #else
 typedef float real_t;
 #endif
+constexpr real_t real_eps = std::numeric_limits<real_t>::epsilon();
 
 // Associated floating point matrices.
 typedef Eigen::Matrix<real_t, 3, 1> Vec3;
 typedef Eigen::Matrix<real_t, 1, 3> RowVec3;
 typedef Eigen::Matrix<real_t, 3, 3> Mat3;
-typedef Eigen::Matrix<real_t, 4, 4> Mat4;
 typedef Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> MatX;
-typedef Eigen::AngleAxis<real_t> AngleAxis;
 
 // Forward declaration.
 class AbstractDataset;

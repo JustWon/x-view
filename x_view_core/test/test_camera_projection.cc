@@ -19,7 +19,7 @@ void transformsExample() {
               1.0, 0.0, 0.0,
               0.0, 1.0, 0.0;
 
-  Eigen::Quaterniond q(rotation);
+  Eigen::Quaternion<x_view::real_t> q(rotation);
   x_view::SE3 pose(q, robot_position_in_world_frame);
 
   std::cout << "Pose:\n" << pose << std::endl;
@@ -70,12 +70,15 @@ void testRandomCameraPose() {
     // side, then the projection on the image frame is very unstable).
     x_view::Mat3 robot_in_world_frame;
     robot_in_world_frame =
-        AngleAxis(0.5 * angle_rand(rng), x_view::Vec3::UnitX())*
-        AngleAxis(0.5 * angle_rand(rng), x_view::Vec3::UnitY())*
-        AngleAxis(2 * M_PI * angle_rand(rng), x_view::Vec3::UnitZ());
+        Eigen::AngleAxis<x_view::real_t>(0.5 * angle_rand(rng),
+                                       x_view::Vec3::UnitX())*
+        Eigen::AngleAxis<x_view::real_t>(0.5 * angle_rand(rng),
+                                       x_view::Vec3::UnitY())*
+        Eigen::AngleAxis<x_view::real_t>(2 * M_PI * angle_rand(rng),
+                                  x_view::Vec3::UnitZ());
 
     // Pose construction.
-    Eigen::Quaterniond q(robot_in_world_frame);
+    Eigen::Quaternion<x_view::real_t> q(robot_in_world_frame);
     x_view::SE3 pose(q, robot_position);
 
     const x_view::real_t depth =
@@ -121,7 +124,7 @@ void testPixelToCamera() {
                       diff.x() * diff.x() + focal_length * focal_length));
     const x_view::real_t l_y =
         std::sqrt(static_cast<x_view::real_t>(
-                      diff.y() * diff.y() + focal_length * focal_length);
+                      diff.y() * diff.y() + focal_length * focal_length));
 
     const x_view::real_t expected_x = diff.x() / l_x * depth;
     const x_view::real_t expected_y = diff.y() / l_y * depth;

@@ -98,7 +98,7 @@ bool GraphLocalizer::localize(
     transformation->setIdentity();
     transformation->getPosition() = computed_robot_pose;
     return true;
-    
+
   } else if (localizer_type == "ESTIMATION") {
 
     // Retrieve locations of matching node pairs.

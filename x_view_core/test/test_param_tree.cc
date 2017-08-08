@@ -2,6 +2,7 @@
 
 #include <x_view_core/parameters/parameters.h>
 
+#include <iostream>
 using namespace x_view;
 
 namespace x_view_test {
@@ -24,11 +25,11 @@ void testParameterValues() {
   parameters.setFloat("FloatValue-3.14", -3.14);
 
   const real_t float_value_1 = parameters.getFloat("FloatValue1");
-  CHECK_DOUBLE_EQ(float_value_1, 1.0);
+  CHECK_NEAR(float_value_1, 1.0, x_view::real_eps);
   const real_t float_value_42_5 = parameters.getFloat("FloatValue42.5");
-  CHECK_DOUBLE_EQ(float_value_42_5, 42.5);
+  CHECK_NEAR(float_value_42_5, 42.5,x_view::real_eps);
   const real_t float_value_min3_14 = parameters.getFloat("FloatValue-3.14");
-  CHECK_DOUBLE_EQ(float_value_min3_14, -3.14);
+  CHECK_NEAR(float_value_min3_14, -3.14, x_view::real_eps);
 
   parameters.setBoolean("False", false);
   parameters.setBoolean("True", true);

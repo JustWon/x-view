@@ -74,7 +74,6 @@ class Statistics {
   const real_t std() const;
 
  private:
-  std::vector<real_t> samples_;
   real_t sum_;
   real_t sum_squared_;
   uint64_t num_samples_;
