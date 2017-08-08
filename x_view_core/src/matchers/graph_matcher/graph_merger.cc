@@ -217,7 +217,7 @@ const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
 
   // Spatial consistency: only merge vertices if their Euclidean distance is
   // smaller than the merge_distance parameter passed as argument.
-  const Vec3 diff = v_p_1.location_3d - v_p_2.location_3d;
+  const Vector3r diff = v_p_1.location_3d - v_p_2.location_3d;
   if (diff.norm() > merge_distance)
     return false;
 

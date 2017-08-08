@@ -24,12 +24,12 @@ void testLocalization(const int num_tests, const int num_observations,
   for(int t = 0; t < num_tests; ++t) {
 
     // Real robot position.
-    x_view::Vec3 robot_position;
+    x_view::Vector3r robot_position;
     robot_position << dist(rng), dist(rng), dist(rng);
 
     x_view::GraphLocalizer graph_localizer;
 
-    x_view::Mat3 rot = x_view::randomRotationMatrix(rng);
+    x_view::Matrix3r rot = x_view::randomRotationMatrix(rng);
 
     // Add the observations to the graph_localizer.
     for(int o = 0; o < num_observations; ++o) {
@@ -59,7 +59,7 @@ void testLocalization(const int num_tests, const int num_observations,
 }
 
 void testEvidence(const int seed) {
-  x_view::Vec3 robot_position;
+  x_view::Vector3r robot_position;
   robot_position << 0.0, 0.0, 0.0;
 
 

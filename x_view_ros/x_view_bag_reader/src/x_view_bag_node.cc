@@ -33,8 +33,8 @@ int main(int argc, char** argv) {
       bool localized = bag_reader.localizeGraph(x_view_ros::CAMERA::FRONT, i,
                                                 local_graph_steps, &locations);
       if(localized) {
-        std::cout << "Estimation: " << x_view::RowVec3(locations.first) << "\n"
-                  << "True: " << x_view::RowVec3(locations.second) << std::endl;
+        std::cout << "Estimation: " << x_view::RowVector3r(locations.first) << "\n"
+                  << "True: " << x_view::RowVector3r(locations.second) << std::endl;
         stats.insert((locations.second - locations.first).norm());
       } else {
         std::cout << "Localization was not effective." << std::endl;

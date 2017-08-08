@@ -20,8 +20,8 @@ void XView::processFrameData(const FrameData& frame_data) {
 
   ++frame_number_;
   LOG(INFO) << "XView starts processing frame " << frame_number_ << ".";
-  const RowVec3 origin = frame_data.getPose().getPosition();
-  const Mat3 rotation = frame_data.getPose().getRotationMatrix();
+  const RowVector3r origin = frame_data.getPose().getPosition();
+  const Matrix3r rotation = frame_data.getPose().getRotationMatrix();
   LOG(INFO) << "Associated robot pose:\n"
             << formatSE3(frame_data.getPose(), "\t\t", 3);
 
@@ -72,7 +72,7 @@ void XView::writeGraphToFile() const {
   writeToFile(graph_matcher->getGlobalGraph(), filename);
 }
 
-bool XView::localizeFrame(const FrameData& frame_data, Vec3* position) {
+bool XView::localizeFrame(const FrameData& frame_data, Vector3r* position) {
   LOG(INFO) << "XView tries to localizeFrame a robot by its observations.";
 
   // Generate a new semantic landmark pointer.
@@ -159,7 +159,7 @@ bool XView::localizeFrame(const FrameData& frame_data, Vec3* position) {
   return localized;
 }
 
-bool XView::localizeGraph(const Graph& query_graph, Vec3* position) {
+bool XView::localizeGraph(const Graph& query_graph, Vector3r* position) {
 
   // Get the existing global semantic graph before matching.
   const Graph& global_graph = getSemanticGraph();
@@ -204,7 +204,7 @@ bool XView::localizeGraph(const Graph& query_graph, Vec3* position) {
   }
 
   struct WeightedPosition {
-    Vec3 position;
+    Vector3r position;
     real_t weight;
   };
 
@@ -223,7 +223,7 @@ bool XView::localizeGraph(const Graph& query_graph, Vec3* position) {
     }
   }
 
-  Vec3 estimated_position = Vec3::Zero();
+  Vector3r estimated_position = Vector3r::Zero();
   real_t total_weight = 0.0;
 
   for(const WeightedPosition& w_p : matched_positions) {

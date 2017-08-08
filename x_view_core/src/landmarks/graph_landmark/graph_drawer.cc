@@ -236,10 +236,10 @@ void GraphDrawer::addCoordinatesToImage(const Graph& graph, cv::Mat* image) {
     const VertexProperty& node = graph[node_descriptor];
 
     const cv::Point2i& center = node.center;
-    const Vec3& location_3d = node.location_3d;
+    const Vector3r& location_3d = node.location_3d;
     const int label = node.semantic_label;
 
-    if(location_3d != Vec3::Zero())
+    if(location_3d != Vector3r::Zero())
     if (std::find(labels_to_render.begin(), labels_to_render.end(), label) !=
         std::end(labels_to_render)) {
       const std::string coord =

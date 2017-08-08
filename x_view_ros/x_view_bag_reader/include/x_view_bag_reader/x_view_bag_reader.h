@@ -27,7 +27,7 @@ class XViewBagReader {
   /// \brief Pair used in localization functions, the first element in the
   /// pair corresponds to the Estimated location, the second element to the
   /// ground truth location.
-  typedef std::pair<x_view::Vec3, x_view::Vec3> LocationPair;
+  typedef std::pair<x_view::Vector3r, x_view::Vector3r> LocationPair;
 
   /// \brief Parameters needed by XViewBagReader.
   struct XViewBagReaderParams {
@@ -107,8 +107,8 @@ class XViewBagReader {
   void tfTransformToSE3(const tf::StampedTransform& tf_transform,
                         x_view::SE3* pose);
 
-  void publishRobotPosition(const x_view::Vec3& pos,
-                            const x_view::Vec3& color,
+  void publishRobotPosition(const x_view::Vector3r& pos,
+                            const x_view::Vector3r& color,
                             const ros::Time& stamp,
                             const std::string ns);
 

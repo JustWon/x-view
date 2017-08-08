@@ -47,7 +47,7 @@ bool GraphLocalizer::localize(
         " observations.";
 
     // Create a factor graph container.
-    gtsam::NonlinearFactorGraph graph;
+    FactorGraph graph;
     gtsam::Values initials;
 
     // Add all observations to the factor graph adding a prior on their
@@ -92,7 +92,7 @@ bool GraphLocalizer::localize(
     const gtsam::Point3 robot_position =
         results.at<gtsam::Point3>(gtsam::Symbol ('r', 0));
 
-    const Vec3 computed_robot_pose(robot_position[0],
+    const Vector3r computed_robot_pose(robot_position[0],
                                               robot_position[1],
                                               robot_position[2]);
     transformation->setIdentity();

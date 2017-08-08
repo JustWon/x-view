@@ -68,7 +68,7 @@ const std::string formatSE3(const SE3& se3, const std::string& indent,
   s += std::string("origin:\n") + indent;
 
   std::stringstream ss;
-  ss << std::setfill(' ') << RowVec3(se3.getPosition()).format(format);
+  ss << std::setfill(' ') << RowVector3r(se3.getPosition()).format(format);
   s += ss.str();
   ss.str(std::string());
 
@@ -92,7 +92,7 @@ const cv::Scalar getColorFromSemanticLabel(const int semantic_label) {
   return color;
 }
 
-const Mat3 createRotationMatrix(real_t r1, real_t r2, real_t r3) {
+const Matrix3r createRotationMatrix(real_t r1, real_t r2, real_t r3) {
   r1 = r1 * 2.0 * M_PI;
   r2 = r2 * 2.0 * M_PI;
   r3 = r3 * 2.0;
@@ -105,14 +105,14 @@ const Mat3 createRotationMatrix(real_t r1, real_t r2, real_t r3) {
   real_t st = std::sin(r1);
   real_t ct = std::cos(r1);
 
-  Mat3 R;
+  Matrix3r R;
   R << ct, st, 0, -st, ct, 0, 0, 0, 1;
 
-  Mat3 M =  (Vec3(vx, vy, vz) * RowVec3(vx, vy, vz) - Mat3::Identity()) * R;
+  Matrix3r M =  (Vector3r(vx, vy, vz) * RowVector3r(vx, vy, vz) - Matrix3r::Identity()) * R;
   return M;
 }
 
-const Mat3 randomRotationMatrix(std::mt19937& rng) {
+const Matrix3r randomRotationMatrix(std::mt19937& rng) {
   std::uniform_real_distribution<real_t> dist(0, 1);
   return createRotationMatrix(dist(rng), dist(rng), dist(rng));
 }

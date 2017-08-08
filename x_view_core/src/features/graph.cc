@@ -73,7 +73,7 @@ std::ostream& operator<<(std::ostream& out, const VertexProperty& v) {
       << ", name: " << std::right << std::setw(max_label_length) << v
           .semantic_entity_name
       << ", num pixels: " << v.num_pixels << ", center: " << v.center
-      << ", 3D location: " << RowVec3(v.location_3d);
+      << ", 3D location: " << RowVector3r(v.location_3d);
 
   return out;
 }
@@ -142,12 +142,12 @@ void writeToFile(const Graph& graph, const std::string& filename) {
         << " label=\"" << label << "\","
         << " fillcolor=\"#" << fill_color << "\","
         << " fontcolor=\"#" << font_color << "\",";
-    if (v_p.location_3d != Vec3::Zero()) {
+    if (v_p.location_3d != Vector3r::Zero()) {
       out << " pos = \"" << v_p.location_3d[0] << ", "
           << v_p.location_3d[1] << "!\",";
     }
     out << " style=filled ]";
-    out << " // 3D pos: " << RowVec3(v_p.location_3d) << std::endl;
+    out << " // 3D pos: " << RowVector3r(v_p.location_3d) << std::endl;
   }
 
   // Iterate over the edges of the graph.

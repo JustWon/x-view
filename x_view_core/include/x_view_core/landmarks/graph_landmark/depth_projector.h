@@ -25,7 +25,7 @@ class DepthProjector {
    * involved between the camera frame and the image frame.
    */
   DepthProjector(const SE3& pose, const CameraIntrinsics& intrinsics,
-                 const Mat3& camera_to_image_rotation =
+                 const Matrix3r& camera_to_image_rotation =
                  Locator::getDataset()->getCameraToImageRotation());
 
   /**
@@ -35,7 +35,7 @@ class DepthProjector {
    * \return The 3D location of the object projected at the pixel location
    * expressed in the world frame.
    */
-  Vec3 getWorldCoordinates(const cv::Point2i& pixel, const real_t depth) const;
+  Vector3r getWorldCoordinates(const cv::Point2i& pixel, const real_t depth) const;
 
   /**
    * \brief Computes the pixel coordinates of a point given in world
@@ -45,36 +45,36 @@ class DepthProjector {
    * \return Pixel coordinate associated with the 3D position passed as
    * argument.
    */
-  cv::Point2i getPixelCoordinates(const Vec3& coordinate) const;
+  cv::Point2i getPixelCoordinates(const Vector3r& coordinate) const;
 
   /// \brief Transforms the 3D point given in world coordinate frame into the
   /// camera frame.
-  Vec3 worldToCamera(const Vec3& world_coordinate) const;
+  Vector3r worldToCamera(const Vector3r& world_coordinate) const;
 
   /// \brief Transforms the 3D point given in camera coordinate frame into
   /// pixel coordinates.
-  Eigen::Vector2i cameraToPixel(const Vec3& camera_coordinate) const;
+  Eigen::Vector2i cameraToPixel(const Vector3r& camera_coordinate) const;
 
   /// \brief Transforms the pixel passed as argument into a 3D point
   /// expressed in camera frame.
-  Vec3 pixelToCamera(const Eigen::Vector2i& pixel_coordinate,
+  Vector3r pixelToCamera(const Eigen::Vector2i& pixel_coordinate,
                      const real_t depth) const;
 
   /// \brief Transforms the 3D point give in camera frame into the world frame.
-  Vec3 cameraToWorld(const Vec3& camera_coordinate) const;
+  Vector3r cameraToWorld(const Vector3r& camera_coordinate) const;
 
  private:
   /// \brief Robot's pose expressed in world frame.
   const SE3 pose_;
 
   /// \brief Intrinsic camera parameters.
-  const Mat3 intrinsic_matrix_;
-  const Mat3 inverse_intrinsic_matrix_;
+  const Matrix3r intrinsic_matrix_;
+  const Matrix3r inverse_intrinsic_matrix_;
 
   /// \brief Rotation matrix between camera frame (the one described by the
   /// pose_ object) and the image plane.
-  const Mat3 camera_to_image_rotation_;
-  const Mat3 image_to_camera_rotation_;
+  const Matrix3r camera_to_image_rotation_;
+  const Matrix3r image_to_camera_rotation_;
 };
 
 }

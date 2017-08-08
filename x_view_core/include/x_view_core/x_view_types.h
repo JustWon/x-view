@@ -24,13 +24,16 @@ typedef float real_t;
 
 constexpr real_t real_eps = std::numeric_limits<real_t>::epsilon();
 
-// Associated floating point matrices.
-typedef Eigen::Matrix<real_t, 3, 1> Vec3;
-typedef Eigen::Matrix<real_t, 1, 3> RowVec3;
-typedef Eigen::Matrix<real_t, 3, 3> Mat3;
-typedef Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> MatX;
+// Matrix types used in X-View.
+typedef Eigen::Matrix<real_t, 3, 1> Vector3r;
+typedef Eigen::Matrix<real_t, 1, 3> RowVector3r;
+typedef Eigen::Matrix<real_t, 3, 3> Matrix3r;
+typedef Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> MatrixXr;
+typedef Eigen::Matrix<bool, Eigen::Dynamic, 1> VectorXb;
+typedef Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> MatrixXb;
+typedef Eigen::Matrix<uchar, Eigen::Dynamic, Eigen::Dynamic> MatrixXuc;
 
-// Forward declaration.
+// Forward declaration of classes.
 class AbstractDataset;
 class AbstractDescriptor;
 class AbstractSemanticLandmark;
@@ -108,7 +111,7 @@ class FrameData {
 class CameraIntrinsics {
  public:
   CameraIntrinsics(const real_t focal_length, const int px, const int py) {
-    intrinsics_ = Mat3::Identity();
+    intrinsics_ = Matrix3r::Identity();
     intrinsics_(0, 0) = intrinsics_(1, 1) = focal_length;
     intrinsics_(0, 2) = px;
     intrinsics_(1, 2) = py;
@@ -117,12 +120,12 @@ class CameraIntrinsics {
   CameraIntrinsics(const real_t focal_length, const Eigen::Vector2i& p)
       : CameraIntrinsics(focal_length, p[0], p[1]) {}
 
-  const Mat3& getCameraMatrix() const {
+  const Matrix3r& getCameraMatrix() const {
     return intrinsics_;
   }
 
  private:
-  Mat3 intrinsics_;
+  Matrix3r intrinsics_;
 };
 
 }

@@ -36,7 +36,7 @@ struct VertexProperty {
   cv::Point2i center;
 
   /// \brief 3D location of this vertex expressed in world frame.
-  Vec3 location_3d;
+  Vector3r location_3d;
 
   /// \brief Index referring to the last time this vertex has been observed.
   uint64_t last_time_seen_;
