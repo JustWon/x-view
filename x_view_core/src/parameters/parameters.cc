@@ -42,7 +42,7 @@ namespace x_view {
 
 DEFINE_PROPERTY_ACCESSOR(bool, Boolean)
 DEFINE_PROPERTY_ACCESSOR(int, Integer)
-DEFINE_PROPERTY_ACCESSOR(real_t, Float)
+DEFINE_PROPERTY_ACCESSOR(float, Float)
 DEFINE_PROPERTY_ACCESSOR(std::string, String)
 
 void Parameters::addChildPropertyList(const std::string& name,

@@ -63,14 +63,14 @@ class Parameters {
   int getInteger(const std::string& name, const int& defaultValue) const;
 
   /// \brief Set a floating point value property.
-  void setFloat(const std::string& name, const real_t& value);
+  void setFloat(const std::string& name, const float& value);
 
   /**
    * \brief Get a floating point value property.
    * \param name Key associated to the floating point value to retrieve.
    * \return Floating point value associated to the key passed as parameter.
    */
-  real_t getFloat(const std::string& name) const;
+  float getFloat(const std::string& name) const;
 
   /**
    * \brief Get a floating point value property and, if the key is not
@@ -80,7 +80,7 @@ class Parameters {
    * found in the properties.
    * \return Floating point value associated to the key passed as parameter.
    */
-  real_t getFloat(const std::string& name, const real_t& defaultValue) const;
+  float getFloat(const std::string& name, const float& defaultValue) const;
 
   /// \brief Set a string property.
   void setString(const std::string& name, const std::string& value);
