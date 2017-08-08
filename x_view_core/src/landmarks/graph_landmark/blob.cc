@@ -24,8 +24,8 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
 
   // Increase the box dimension to avoid rejecting matches between blobs in
   // case they are close but their original bounding_box's don't touch.
-  const cv::Point box_shift(distance, distance);
-  const cv::Size box_expansion(2 * distance, 2 * distance);
+  const cv::Point2i box_shift(distance, distance);
+  const cv::Size2i box_expansion(2 * distance, 2 * distance);
 
   const cv::Rect& bounding_box_i =
       (bi.bounding_box - box_shift) + box_expansion;
@@ -36,41 +36,41 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
     return false;
 
   // External contour.
-  const std::vector<cv::Point>& external_contour_i = bi
+  const std::vector<cv::Point2i>& external_contour_i = bi
       .external_contour_pixels;
-  const std::vector<cv::Point>& external_contour_j = bj
+  const std::vector<cv::Point2i>& external_contour_j = bj
       .external_contour_pixels;
 
-  for (const cv::Point& pi : external_contour_i)
-    for (const cv::Point& pj : external_contour_j) {
+  for (const cv::Point2i& pi : external_contour_i)
+    for (const cv::Point2i& pj : external_contour_j) {
       // Compute pixel distance.
-      cv::Point diff = pi - pj;
+      cv::Point2i diff = pi - pj;
       const int dist2 = diff.dot(diff);
       if (dist2 <= distance_squared)
         return true;
     }
 
   // Internal contours.
-  const std::vector<std::vector<cv::Point>>& internal_contours_i =
+  const std::vector<std::vector<cv::Point2i>>& internal_contours_i =
       bi.internal_contour_pixels;
-  const std::vector<std::vector<cv::Point>>& internal_contours_j =
+  const std::vector<std::vector<cv::Point2i>>& internal_contours_j =
       bj.internal_contour_pixels;
 
   for (const auto& internal_contour_i : internal_contours_i)
-    for (const cv::Point& pi : internal_contour_i)
-      for (const cv::Point& pj : external_contour_j) {
+    for (const cv::Point2i& pi : internal_contour_i)
+      for (const cv::Point2i& pj : external_contour_j) {
         // Compute pixel distance.
-        cv::Point diff = pi - pj;
+        cv::Point2i diff = pi - pj;
         const int dist2 = diff.dot(diff);
         if (dist2 <= distance_squared)
           return true;
       }
 
   for (const auto& internal_contour_j : internal_contours_j)
-    for (const cv::Point& pj : internal_contour_j)
-      for (const cv::Point& pi : external_contour_i) {
+    for (const cv::Point2i& pj : internal_contour_j)
+      for (const cv::Point2i& pi : external_contour_i) {
         // Compute pixel distance.
-        cv::Point diff = pi - pj;
+        cv::Point2i diff = pi - pj;
         const int dist2 = diff.dot(diff);
         if (dist2 <= distance_squared)
           return true;

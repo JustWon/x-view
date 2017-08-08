@@ -60,19 +60,19 @@ cv::Mat SynthiaDataset::convertSemanticImage(
   const int cols = msg->width;
   const int rows = msg->height;
 
-  // new image used as container for semantic labels and instances.
+  // New image used as container for semantic labels and instances.
   // the first channel of this new image contains the semantic label
   // associated to each pixel
   // the second channel contains a unique ID associated to dynamic objects
-  // the third channel is not used
+  // the third channel is not used.
   cv::Mat labelImage(rows, cols, CV_8UC3, cv::Scalar::all(0));
 
-  // loop over the rows of the image implicitly stored into msg
+  // Loop over the rows of the image implicitly stored into msg.
   for (int i = 0; i < rows; ++i) {
-    // loop over the cols of the image implicitly stored into msg
+    // Loop over the cols of the image implicitly stored into msg.
     for (int j = 0; j < cols; ++j) {
-      // index of the pixel, need to have "6*j" because each pixel value is
-      // stored into two consecutive bytes and there are three channels
+      // Index of the pixel, need to have "6*j" because each pixel value is
+      // stored into two consecutive bytes and there are three channels.
       int idx = step_size * i + 6 * j;
       CHECK(idx < msg_size)
       << "Computed index is larger or equal to message size";
@@ -90,13 +90,11 @@ cv::Mat SynthiaDataset::convertSemanticImage(
           )
       );
 
-      labelImage.at<cv::Vec3b>(cv::Point(j, i)) = values;
+      labelImage.at<cv::Vec3b>(cv::Point2i(j, i)) = values;
     }
 
   }
-
   return labelImage;
-
 }
 
 #undef SYNTHIA_NUM_SEMANTIC_CLASSES

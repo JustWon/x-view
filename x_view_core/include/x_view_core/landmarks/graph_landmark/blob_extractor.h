@@ -213,8 +213,8 @@ class BlobExtractor {
    * function the unordered set pointed by the parameter contains all
    * different instances contained in the image passed as parameter.
    */
-  static void collectInstancesFromImage(const cv::Mat& image,
-                                        std::unordered_set<unsigned char>* instance_set);
+  static void collectInstancesFromImage(
+      const cv::Mat& image, std::unordered_set<unsigned char>* instance_set);
 
 };
 

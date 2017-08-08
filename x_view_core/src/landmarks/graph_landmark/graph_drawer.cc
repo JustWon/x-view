@@ -80,7 +80,7 @@ cv::Mat GraphDrawer::createImageFromBlobs(const ImageBlobs& blobs,
         const int semantic_label = blob.semantic_label;
         const cv::Scalar color = getColorFromSemanticLabel(semantic_label);
 
-        std::vector<std::vector<cv::Point>> v_contours;
+        std::vector<std::vector<cv::Point2i>> v_contours;
         v_contours.push_back(blob.external_contour_pixels);
 
         cv::drawContours(image, v_contours, 0, color, CV_FILLED);
@@ -118,7 +118,7 @@ void GraphDrawer::addLabelsToImage(const ImageBlobs& blobs, cv::Mat* image) {
         if (blob.instance != -1) {
           const std::string instance =
               "id: " + std::to_string(blob.instance);
-          cv::putText(*image, instance, blob.pixel_center + cv::Point(0, 20),
+          cv::putText(*image, instance, blob.pixel_center + cv::Point2i(0, 20),
                       cv::FONT_HERSHEY_DUPLEX, GraphDrawer::label_scale_,
                       GraphDrawer::label_color_, 1, CV_AA);
 
@@ -170,7 +170,7 @@ void GraphDrawer::addGraphNodesToImage(const Graph& graph, cv::Mat* image) {
     const VertexDescriptor& node_descriptor = *node_iter.first;
     const VertexProperty& node = graph[node_descriptor];
 
-    const cv::Point& center = node.center;
+    const cv::Point2i& center = node.center;
     const int label = node.semantic_label;
 
     if (std::find(labels_to_render.begin(), labels_to_render.end(), label) !=
@@ -210,8 +210,8 @@ void GraphDrawer::addGraphEdgesToImage(const Graph& graph, cv::Mat* image) {
         != std::end(labels_to_render) &&
         std::find(labels_to_render.begin(), labels_to_render.end(), to_label)
             != std::end(labels_to_render)) {
-      const cv::Point& from_center = v_from.center;
-      const cv::Point& to_center = v_to.center;
+      const cv::Point2i& from_center = v_from.center;
+      const cv::Point2i& to_center = v_to.center;
 
       cv::line(*image, from_center, to_center, GraphDrawer::edge_color_,
                GraphDrawer::edge_thickness_);
@@ -235,7 +235,7 @@ void GraphDrawer::addCoordinatesToImage(const Graph& graph, cv::Mat* image) {
     const VertexDescriptor& node_descriptor = *node_iter.first;
     const VertexProperty& node = graph[node_descriptor];
 
-    const cv::Point& center = node.center;
+    const cv::Point2i& center = node.center;
     const Vec3& location_3d = node.location_3d;
     const int label = node.semantic_label;
 
@@ -245,7 +245,7 @@ void GraphDrawer::addCoordinatesToImage(const Graph& graph, cv::Mat* image) {
       const std::string coord =
           "coord: [" + std::to_string(location_3d[0]) + ", " + std::to_string
               (location_3d[1]) + ", " + std::to_string(location_3d[2]) + "]";
-      cv::putText(*image, coord, center + cv::Point(0, 40),
+      cv::putText(*image, coord, center + cv::Point2i(0, 40),
                   cv::FONT_HERSHEY_DUPLEX, GraphDrawer::label_scale_ * 0.5,
                   GraphDrawer::label_color_, 1, CV_AA);
     }

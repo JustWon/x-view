@@ -27,17 +27,14 @@ class Blob {
   int instance;
 
   /// \brief Vector of pixels representing the contour of this blob.
-  std::vector<cv::Point> external_contour_pixels;
-  std::vector<std::vector<cv::Point>> internal_contour_pixels;
+  std::vector<cv::Point2i> external_contour_pixels;
+  std::vector<std::vector<cv::Point2i>> internal_contour_pixels;
 
   /// \brief Number of pixels in this blob.
   int num_pixels;
 
   /// \brief Pixel representing the center of the blob.
   cv::Point2i pixel_center;
-
-  /// \brief World coordinate associated to the pixel_center.
-  Vec3 world_coordinate;
 
   /// \brief Ellipse fitted to external contours of blob.
   cv::RotatedRect ellipse;

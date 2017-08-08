@@ -146,8 +146,8 @@ void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(Graph* graph,
 
   const uint64_t num_vertices = boost::num_vertices(*graph);
 
-  auto dist_square = [](const cv::Point& p1, const cv::Point& p2) {
-    cv::Point d(p1 - p2);
+  auto dist_square = [](const cv::Point2i& p1, const cv::Point2i& p2) {
+    cv::Point2i d(p1 - p2);
     return d.x * d.x + d.y * d.y;
   };
   // Iterate over each pair of components and determine the closest pair of
@@ -162,10 +162,10 @@ void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(Graph* graph,
       EdgeProperty closest_v_d_pair = {-1, -1};
       for (int i = 0; i < num_vertices; ++i) {
         if (component[i] == first_component_id) {
-          const cv::Point& center_i = (*graph)[i].center;
+          const cv::Point2i& center_i = (*graph)[i].center;
           for (int j = 0; j < num_vertices; ++j) {
             if (component[j] == second_component_id) {
-              const cv::Point& center_j = (*graph)[j].center;
+              const cv::Point2i& center_j = (*graph)[j].center;
               int dist2 = dist_square(center_i, center_j);
               if (dist2 < min_distance_square) {
                 min_distance_square = dist2;

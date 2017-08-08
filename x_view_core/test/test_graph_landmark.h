@@ -64,13 +64,13 @@ void createCustomImage(const int desired_rows, const int desired_cols,
  * \brief Creates an image containing a set of discs.
  * \param desired_rows desired number of rows.
  * \param desired_cols desired number of cols.
- * \param centers vector of disc centers (cv::Point).
+ * \param centers vector of disc centers (cv::Point2i).
  * \param radii vector of disc radii.
  * \param labels vector of label to associate to each disc.
  * \param image pointer to image to be filled up.
  */
 void createDiscImage(const int desired_rows, const int desired_cols,
-                     const std::vector<cv::Point>& centers,
+                     const std::vector<cv::Point2i>& centers,
                      const std::vector<int> radii,
                      const std::vector<int> labels, cv::Mat* image);
 
