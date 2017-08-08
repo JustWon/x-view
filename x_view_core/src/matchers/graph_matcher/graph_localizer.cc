@@ -14,7 +14,7 @@
 
 namespace x_view {
 
-GraphLocalizer::GraphLocalizer(const double prior_noise)
+GraphLocalizer::GraphLocalizer(const real_t prior_noise)
     : prior_noise_(prior_noise),
       observations_(0) {
 }
@@ -58,7 +58,8 @@ bool GraphLocalizer::localize(
             gtsam::Vector3::Ones() * prior_noise_);
 
     for(int i = 0; i < observations_.size(); ++i) {
-      gtsam::Point3 location(observations_[i].vertex_property.location_3d);
+      gtsam::Point3 location(
+          observations_[i].vertex_property.location_3d.cast<double>());
 
       graph.add(gtsam::PriorFactor<gtsam::Point3>(
           gtsam::Symbol('x', i), location, prior_noise));
@@ -79,7 +80,8 @@ bool GraphLocalizer::localize(
     // Compute initial guess for robot position.
     gtsam::Vector3 initial_robot_position = gtsam::Vector3::Zero();
     for(int i = 0; i < observations_.size(); ++i) {
-      initial_robot_position += observations_[i].vertex_property.location_3d;
+      initial_robot_position +=
+          observations_[i].vertex_property.location_3d.cast<double>();
     }
     initial_robot_position /= observations_.size();
     initials.insert(gtsam::Symbol('r', 0), gtsam::Point3(initial_robot_position));
@@ -90,13 +92,13 @@ bool GraphLocalizer::localize(
     const gtsam::Point3 robot_position =
         results.at<gtsam::Point3>(gtsam::Symbol ('r', 0));
 
-    const Eigen::Vector3d computed_robot_pose(robot_position[0],
+    const Vec3 computed_robot_pose(robot_position[0],
                                               robot_position[1],
                                               robot_position[2]);
     transformation->setIdentity();
     transformation->getPosition() = computed_robot_pose;
     return true;
-
+    
   } else if (localizer_type == "ESTIMATION") {
 
     // Retrieve locations of matching node pairs.
@@ -152,8 +154,8 @@ bool GraphLocalizer::localize(
 
     SO3 proper_rotation;
     proper_rotation.fromApproximateRotationMatrix(
-        transform.block(0, 0, 3, 3).cast<double>());
-    (*transformation) = SE3(transform.block(0, 3, 3, 1).cast<double>(),
+        transform.block(0, 0, 3, 3).cast<real_t>());
+    (*transformation) = SE3(transform.block(0, 3, 3, 1).cast<real_t>(),
                             proper_rotation);
     return true;
   } else {
@@ -164,8 +166,8 @@ bool GraphLocalizer::localize(
 }
 
 void GraphLocalizer::addObservation(const VertexProperty& vertex_property,
-                                    const double distance,
-                                    const double evidence) {
+                                    const real_t distance,
+                                    const real_t evidence) {
   observations_.push_back(Observation{vertex_property, distance, evidence});
 }
 

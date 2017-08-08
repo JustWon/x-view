@@ -15,12 +15,12 @@ struct GraphMergerParameters {
   GraphMergerParameters()
     : time_window(std::numeric_limits<uint64_t>::max()),
       similarity_threshold(0.f),
-      distance_threshold(std::numeric_limits<float>::max())
+      distance_threshold(std::numeric_limits<real_t>::max())
   {}
 
   GraphMergerParameters(const uint64_t time_window,
-                        const float similarity_threshold,
-                        const float distance_threshold)
+                        const real_t similarity_threshold,
+                        const real_t distance_threshold)
       : time_window(time_window),
         similarity_threshold(similarity_threshold),
         distance_threshold(distance_threshold) {}
@@ -34,11 +34,11 @@ struct GraphMergerParameters {
 
   /// \brief Only vertices whose semantic similarity is greater than this
   /// parameter are considered in the routine merging two graphs together.
-  float similarity_threshold;
+  real_t similarity_threshold;
 
   /// \brief Only allow to match vertices if their euclidean distance is
   /// smaller than this threshold.
-  float distance_threshold;
+  real_t distance_threshold;
 };
 
 /**
@@ -93,7 +93,7 @@ class GraphMerger {
    * merges them together. The resulting vertex v_m is a vertex whose edges
    * correspond to the union of the edges of v_1 and v_2.
    */
-  static void mergeDuplicates(Graph* graph, const float merge_distance);
+  static void mergeDuplicates(Graph* graph, const real_t merge_distance);
 
   /**
    * \brief Function to test if the vertices associated to the vertex
@@ -116,7 +116,7 @@ class GraphMerger {
   static const bool verticesShouldBeMerged(const VertexDescriptor v_d_1,
                                            const VertexDescriptor v_d_2,
                                            const Graph& graph,
-                                           const float merge_distance);
+                                           const real_t merge_distance);
 
  private:
 
@@ -179,7 +179,7 @@ class GraphMerger {
    * 'location_3d' property of the database vertex from the 'location_3d'
    * value of the query vertex and by taking its norm.
    */
-  const double spatialDistance(const uint64_t i, const uint64_t j) const;
+  const real_t spatialDistance(const uint64_t i, const uint64_t j) const;
 
 };
 

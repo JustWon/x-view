@@ -8,7 +8,7 @@ int SimilarityPlotter::desired_image_size_ = 500;
 int SimilarityPlotter::colormap_ = cv::COLORMAP_OCEAN;
 
 cv::Mat SimilarityPlotter::getImageFromSimilarityMatrix(
-    const Eigen::MatrixXf& similarity_matrix, bool auto_size) {
+    const MatX& similarity_matrix, bool auto_size) {
 
   Eigen::MatrixXuc uchar_similarity =
       (similarity_matrix * 255.f).cast <uchar>();

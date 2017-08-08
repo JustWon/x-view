@@ -67,7 +67,7 @@ class AbstractDataset {
 
   /// \brief Returns a reference to the rotation matrix between camera and
   /// image frame.
-  const Eigen::Matrix3d& getCameraToImageRotation() const {
+  const Mat3& getCameraToImageRotation() const {
     return camera_to_image_rotation_;
   }
 
@@ -117,7 +117,7 @@ class AbstractDataset {
   const int num_semantic_classes_;
   std::vector<SemanticEntity> semantic_entities_;
   CameraIntrinsics camera_intrinsics_;
-  Eigen::Matrix3d camera_to_image_rotation_;
+  Mat3 camera_to_image_rotation_;
 };
 
 /**

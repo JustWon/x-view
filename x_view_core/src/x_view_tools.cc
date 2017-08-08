@@ -68,8 +68,7 @@ const std::string formatSE3(const SE3& se3, const std::string& indent,
   s += std::string("origin:\n") + indent;
 
   std::stringstream ss;
-  ss << std::setfill(' ')
-     << Eigen::RowVector3d(se3.getPosition()).format(format);
+  ss << std::setfill(' ') << RowVec3(se3.getPosition()).format(format);
   s += ss.str();
   ss.str(std::string());
 
@@ -93,51 +92,49 @@ const cv::Scalar getColorFromSemanticLabel(const int semantic_label) {
   return color;
 }
 
-const Eigen::Matrix3d createRotationMatrix(double r1, double r2, double r3) {
+const Mat3 createRotationMatrix(real_t r1, real_t r2, real_t r3) {
   r1 = r1 * 2.0 * M_PI;
   r2 = r2 * 2.0 * M_PI;
   r3 = r3 * 2.0;
 
-  double r = std::sqrt(r3);
-  double vx = std::sin(r2) * r;
-  double vy = std::cos(r2) * r;
-  double vz = std::sqrt(2.0 - r3);
+  real_t r = std::sqrt(r3);
+  real_t vx = std::sin(r2) * r;
+  real_t vy = std::cos(r2) * r;
+  real_t vz = std::sqrt(2.0 - r3);
 
-  double st = std::sin(r1);
-  double ct = std::cos(r1);
+  real_t st = std::sin(r1);
+  real_t ct = std::cos(r1);
 
-  Eigen::Matrix3d R;
+  Mat3 R;
   R << ct, st, 0, -st, ct, 0, 0, 0, 1;
 
-  Eigen::Matrix3d M =
-      (Eigen::Vector3d(vx, vy, vz) * Eigen::RowVector3d(vx, vy, vz)
-          - Eigen::Matrix3d::Identity()) * R;
+  Mat3 M =  (Vec3(vx, vy, vz) * RowVec3(vx, vy, vz) - Mat3::Identity()) * R;
   return M;
 }
 
-const Eigen::Matrix3d randomRotationMatrix(std::mt19937& rng) {
-  std::uniform_real_distribution<double> dist(0, 1);
+const Mat3 randomRotationMatrix(std::mt19937& rng) {
+  std::uniform_real_distribution<real_t> dist(0, 1);
   return createRotationMatrix(dist(rng), dist(rng), dist(rng));
 }
 
 Statistics::Statistics()
-    : sum_(0.f),
-      sum_squared_(0.f),
+    : sum_(0.0),
+      sum_squared_(0.0),
       num_samples_(0) {
 }
 
-void Statistics::insert(const float& sample) {
+void Statistics::insert(const real_t& sample) {
   ++num_samples_;
   sum_ += sample;
   sum_squared_ += sample * sample;
 }
 
-const float Statistics::mean() const {
+const real_t Statistics::mean() const {
   return sum_ / num_samples_;
 }
 
-const float Statistics::std() const {
-  const float m = mean();
+const real_t Statistics::std() const {
+  const real_t m = mean();
   return std::sqrt(sum_squared_ / num_samples_ - m * m);
 }
 

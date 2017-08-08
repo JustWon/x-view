@@ -10,7 +10,22 @@
 
 namespace x_view {
 
-// forward declaration
+// Single or double floating point precision.
+#ifdef X_VIEW_USE_DOUBLES
+typedef double real_t;
+#else
+typedef float real_t;
+#endif
+
+// Associated floating point matrices.
+typedef Eigen::Matrix<real_t, 3, 1> Vec3;
+typedef Eigen::Matrix<real_t, 1, 3> RowVec3;
+typedef Eigen::Matrix<real_t, 3, 3> Mat3;
+typedef Eigen::Matrix<real_t, 4, 4> Mat4;
+typedef Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> MatX;
+typedef Eigen::AngleAxis<real_t> AngleAxis;
+
+// Forward declaration.
 class AbstractDataset;
 class AbstractDescriptor;
 class AbstractSemanticLandmark;
@@ -20,8 +35,8 @@ class AbstractMatcher;
 typedef gtsam::NonlinearFactorGraph FactorGraph;
 
 /// \brief 3D pose (position + orientation).
-typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
-typedef kindr::minimal::RotationQuaternionTemplate<double> SO3;
+typedef kindr::minimal::QuatTransformationTemplate<real_t> SE3;
+typedef kindr::minimal::RotationQuaternionTemplate<real_t> SO3;
 
 /// \brief Pointer to feature.
 typedef std::shared_ptr<const AbstractDescriptor> ConstDescriptorPtr;
@@ -87,22 +102,22 @@ class FrameData {
 /// pixel given robot pose.
 class CameraIntrinsics {
  public:
-  CameraIntrinsics(const double focal_length, const int px, const int py) {
-    intrinsics_ = Eigen::Matrix3d::Identity();
+  CameraIntrinsics(const real_t focal_length, const int px, const int py) {
+    intrinsics_ = Mat3::Identity();
     intrinsics_(0, 0) = intrinsics_(1, 1) = focal_length;
     intrinsics_(0, 2) = px;
     intrinsics_(1, 2) = py;
   }
 
-  CameraIntrinsics(const double focal_length, const Eigen::Vector2i& p)
+  CameraIntrinsics(const real_t focal_length, const Eigen::Vector2i& p)
       : CameraIntrinsics(focal_length, p[0], p[1]) {}
 
-  const Eigen::Matrix3d& getCameraMatrix() const {
+  const Mat3& getCameraMatrix() const {
     return intrinsics_;
   }
 
  private:
-  Eigen::Matrix3d intrinsics_;
+  Mat3 intrinsics_;
 };
 
 }

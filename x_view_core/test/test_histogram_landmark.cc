@@ -12,18 +12,18 @@ typedef std::shared_ptr<HistogramLandmark> HistogramLandmarkPtr;
 
 #define CAST(from, to) std::dynamic_pointer_cast<to>(from)
 
-void performLabelTest(const SemanticLandmarkPtr& landmark_, const
-std::vector<std::pair<int, double>>& expected) {
+void performLabelTest(const SemanticLandmarkPtr& landmark_,
+                      const std::vector<std::pair<int, real_t>>& expected) {
 
   HistogramLandmarkPtr landmark = CAST(landmark_, HistogramLandmark);
 
   cv::Mat hist =
       CAST(landmark->getDescriptor(), const VectorDescriptor)->getDescriptor();
 
-  auto toVec = [](const cv::Mat& mat) -> std::vector<float> {
-    std::vector<float> v(mat.cols, 0.f);
+  auto toVec = [](const cv::Mat& mat) -> std::vector<real_t> {
+    std::vector<real_t> v(mat.cols, 0.0);
     for (int i = 0; i < mat.cols; ++i) {
-      v[i] = mat.at<float>(i);
+      v[i] = mat.at<real_t>(i);
     }
     return v;
   };
@@ -32,7 +32,7 @@ std::vector<std::pair<int, double>>& expected) {
 
   for (int condition = 0; condition < expected.size(); ++condition) {
     const int binIndex = expected[condition].first;
-    const double expectedPercentage = expected[condition].second;
+    const real_t expectedPercentage = expected[condition].second;
     CHECK_DOUBLE_EQ(vec[binIndex], expectedPercentage);
   }
 }

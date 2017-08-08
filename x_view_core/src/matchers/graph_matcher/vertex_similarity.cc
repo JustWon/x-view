@@ -30,7 +30,7 @@ VertexSimilarity::ScoreFunctionType VertexSimilarity::getScoreFunction() {
   }
 }
 
-const float VertexSimilarity::score_weighted(const RandomWalker::WalkMap& node1,
+const real_t VertexSimilarity::score_weighted(const RandomWalker::WalkMap& node1,
                                              const RandomWalker::WalkMap& node2) {
   int score = 0;
   int normalization = 0;
@@ -51,10 +51,10 @@ const float VertexSimilarity::score_weighted(const RandomWalker::WalkMap& node1,
     }
     normalization += walk1_multiplicity;
   }
-  return float(score) / normalization;
+  return real_t(score) / normalization;
 }
 
-const float VertexSimilarity::score_surface(const RandomWalker::WalkMap& node1,
+const real_t VertexSimilarity::score_surface(const RandomWalker::WalkMap& node1,
                                  const RandomWalker::WalkMap& node2) {
 
   int normalization = 0;
@@ -77,7 +77,7 @@ const float VertexSimilarity::score_surface(const RandomWalker::WalkMap& node1,
       score += walk1_multiplicity + walk2_multiplicity;
     }
   }
-  return float(score) / normalization;
+  return real_t(score) / normalization;
 
 }
 

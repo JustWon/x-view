@@ -70,7 +70,7 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
  * the first parameter.
  * \return Accuracy of the matching.
  */
-float similarityAccuracy(const GraphPair& graph_pair,
+real_t similarityAccuracy(const GraphPair& graph_pair,
                          const AbstractMatcher::MatchingResultPtr&
                          matching_result_ptr);
 

@@ -65,7 +65,7 @@ void testChainGraph(const uint64_t seed) {
   // Match the subgraph to the entire graph.
   auto matching_result = graph_matcher_ptr->match(graph_pair_chain.sub_graph);
 
-  const float accuracy = similarityAccuracy(graph_pair_chain, matching_result);
+  const real_t accuracy = similarityAccuracy(graph_pair_chain, matching_result);
   std::cout << "Chain matching has accuracy of " << accuracy << std::endl;
 
 #ifdef X_VIEW_DEBUG
@@ -154,7 +154,7 @@ void testRandomGraph(const uint64_t seed) {
   // Match the subgraph to the entire graph.
   auto matching_result = graph_matcher_ptr->match(graph_pair_random.sub_graph);
 
-  const float accuracy =
+  const real_t accuracy =
       similarityAccuracy(graph_pair_random, matching_result);
 
   std::cout << "Random matching has accuracy of " << accuracy << std::endl;
@@ -280,7 +280,7 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
   return graph_pair;
 }
 
-float similarityAccuracy(const GraphPair& graph_pair,
+real_t similarityAccuracy(const GraphPair& graph_pair,
                          const AbstractMatcher::MatchingResultPtr& matching_result_ptr) {
   const Graph& base_graph = graph_pair.base_graph;
   const Graph& sub_graph = graph_pair.sub_graph;
@@ -314,7 +314,7 @@ float similarityAccuracy(const GraphPair& graph_pair,
       }
     }
   }
-  return static_cast<float>(correct_matches) / num_proposed_matches;
+  return static_cast<real_t>(correct_matches) / num_proposed_matches;
 }
 
 }

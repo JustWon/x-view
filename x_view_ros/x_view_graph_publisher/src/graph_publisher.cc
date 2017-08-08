@@ -56,7 +56,7 @@ void GraphPublisher::publishVertices(const x_view::Graph& graph,
     const cv::Scalar color = x_view::getColorFromSemanticLabel(semantic_label);
     const std::string semantic_name =
         x_view::Locator::getDataset()->label(semantic_label);
-    const Eigen::Vector3d& position = v_p.location_3d;
+    const x_view::Vec3& position = v_p.location_3d;
 
     marker.header.frame_id = "/world";
     marker.header.stamp = time;

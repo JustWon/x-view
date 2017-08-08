@@ -26,7 +26,7 @@ class GraphMatcher : public AbstractMatcher {
 
  public:
 
-  typedef Eigen::MatrixXf SimilarityMatrixType;
+  typedef MatX SimilarityMatrixType;
   typedef Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic>
       MaxSimilarityMatrixType;
 

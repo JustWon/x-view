@@ -2,6 +2,7 @@
 #define X_VIEW_PARSER_H
 
 #include <x_view_core/parameters/parameters.h>
+#include <x_view_core/x_view_types.h>
 
 #include <ros/ros.h>
 
@@ -33,7 +34,7 @@ class Parser {
   static void addFloat(const ros::NodeHandle& nh, const std::string& ros_key,
                        const std::string& param_key,
                        std::unique_ptr<x_view::Parameters>& parameters,
-                       const float default_float = 0.f);
+                       const x_view::real_t default_float = 0.0);
 
   static void addBool(const ros::NodeHandle& nh, const std::string& ros_key,
                       const std::string& param_key,

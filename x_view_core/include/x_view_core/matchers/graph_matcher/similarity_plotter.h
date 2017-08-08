@@ -1,6 +1,8 @@
 #ifndef X_VIEW_SIMILARITY_PLOTTER_H
 #define X_VIEW_SIMILARITY_PLOTTER_H
 
+#include <x_view_core/x_view_types.h>
+
 #include <Eigen/Core>
 #include <opencv2/opencv.hpp>
 
@@ -43,7 +45,7 @@ class SimilarityPlotter {
    * converted to a dense format. For large matrices this should be avoided.
    */
   static cv::Mat getImageFromSimilarityMatrix(
-      const Eigen::MatrixXf& similarity_matrix, bool auto_size = true);
+      const MatX& similarity_matrix, bool auto_size = true);
 
   static cv::Mat getImageFromSimilarityMatrix(
       const Eigen::MatrixXb& max_similarity_matrix, bool auto_size = true);

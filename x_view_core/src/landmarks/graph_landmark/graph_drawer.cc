@@ -18,7 +18,7 @@ cv::Scalar GraphDrawer::ellipse_color_dynamic_ = CV_RGB(255, 60, 10);
 int GraphDrawer::ellipse_thickness_ = 2;
 
 cv::Scalar GraphDrawer::label_color_ = CV_RGB(255, 255, 255);
-float GraphDrawer::label_scale_ = 0.65f;
+real_t GraphDrawer::label_scale_ = 0.65;
 
 
 void GraphDrawer::resetProperties() {
@@ -33,7 +33,7 @@ void GraphDrawer::resetProperties() {
   GraphDrawer::ellipse_thickness_ = 2;
 
   GraphDrawer::label_color_ = CV_RGB(255, 255, 255);
-  GraphDrawer::label_scale_ = 0.65f;
+  GraphDrawer::label_scale_ = 0.65;
 }
 
 void GraphDrawer::printBlobs(const ImageBlobs& blobs) {
@@ -236,10 +236,10 @@ void GraphDrawer::addCoordinatesToImage(const Graph& graph, cv::Mat* image) {
     const VertexProperty& node = graph[node_descriptor];
 
     const cv::Point& center = node.center;
-    const Eigen::Vector3d& location_3d = node.location_3d;
+    const Vec3& location_3d = node.location_3d;
     const int label = node.semantic_label;
 
-    if(location_3d != Eigen::Vector3d::Zero())
+    if(location_3d != Vec3::Zero())
     if (std::find(labels_to_render.begin(), labels_to_render.end(), label) !=
         std::end(labels_to_render)) {
       const std::string coord =

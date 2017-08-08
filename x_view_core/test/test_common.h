@@ -23,7 +23,7 @@ struct GraphConstructionParams {
   /// \brief Number of vertices of the generated graph.
   int num_vertices;
   /// \brief Probability to generate an edge between each pair of vertices.
-  float edge_probability;
+  real_t edge_probability;
   /// \brief Number of semantic classes. Each vertex is associated to a
   /// random semantic class (random integer in {0, .., num_semantic_classes-1}
   int num_semantic_classes;

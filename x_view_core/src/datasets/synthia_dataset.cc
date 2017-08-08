@@ -35,7 +35,7 @@ SynthiaDataset::SynthiaDataset()
   << semantic_entities_.size();
 
   // Set the intrinsic parameters for the Synthia dataset.
-  const double synthia_focal_length = 532.740352;
+  const real_t synthia_focal_length = 532.740352;
   const int synthia_px = 640;
   const int synthia_py = 380;
   camera_intrinsics_ = CameraIntrinsics(synthia_focal_length,
@@ -43,9 +43,9 @@ SynthiaDataset::SynthiaDataset()
 
   // Set up camera-to-image rotation.
   // Flipped z-axis and flipped y-axis
-  camera_to_image_rotation_ << 1,  0,  0,
-                               0, -1,  0,
-                               0,  0, -1;
+  camera_to_image_rotation_ << 1.0,  0.0,  0.0,
+                               0.0, -1.0,  0.0,
+                               0.0,  0.0, -1.0;
 }
 
 cv::Mat SynthiaDataset::convertSemanticImage(

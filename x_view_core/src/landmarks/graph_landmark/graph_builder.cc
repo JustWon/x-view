@@ -80,9 +80,9 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
   const cv::Mat& depth_image = frame_data.getDepthImage();
   const SE3& pose = frame_data.getPose();
 
-  const float max_depth_m =
+  const real_t max_depth_m =
       Locator::getParameters()->getChildPropertyList("landmark")->getFloat(
-          "depth_clip", 0.01f * std::numeric_limits<unsigned short>::max()
+          "depth_clip", 0.01 * std::numeric_limits<unsigned short>::max()
       );
 
   // Create a projector object, which projects pixels back to 3D coordinates
@@ -102,7 +102,7 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
       // Extract the depth associated to the vertex.
       const unsigned short depth_cm =
           depth_image.at<unsigned short>(vertex.center);
-      const double depth_m = depth_cm * 0.01;
+      const real_t depth_m = depth_cm * 0.01;
       // If the projected center of the blob is too distant, set it as invalid.
       if (depth_m >= max_depth_m) {
         vertex_descriptors->push_back(INVALID_VERTEX_DESCRIPTOR);

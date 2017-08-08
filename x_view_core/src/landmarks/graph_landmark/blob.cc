@@ -1,4 +1,5 @@
 #include <x_view_core/landmarks/graph_landmark/blob.h>
+#include <x_view_core/x_view_types.h>
 
 #include <glog/logging.h>
 

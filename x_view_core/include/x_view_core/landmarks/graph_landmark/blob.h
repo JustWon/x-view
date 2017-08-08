@@ -1,6 +1,8 @@
 #ifndef X_VIEW_BLOB_H
 #define X_VIEW_BLOB_H
 
+#include <x_view_core/x_view_types.h>
+
 #include <Eigen/Core>
 #include <opencvblobslib/blob.h>
 
@@ -35,7 +37,7 @@ class Blob {
   cv::Point2i pixel_center;
 
   /// \brief World coordinate associated to the pixel_center.
-  Eigen::Vector3d world_coordinate;
+  Vec3 world_coordinate;
 
   /// \brief Ellipse fitted to external contours of blob.
   cv::RotatedRect ellipse;

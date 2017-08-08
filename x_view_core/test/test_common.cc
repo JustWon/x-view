@@ -1,6 +1,7 @@
 #include "test_common.h"
 
 #include <x_view_core/x_view_tools.h>
+#include <x_view_core/x_view_types.h>
 
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/erdos_renyi_generator.hpp>
@@ -45,7 +46,7 @@ x_view::Graph generateRandomGraph(const GraphConstructionParams& params) {
   boost::minstd_rand gen(params.seed);
   std::mt19937 rng(params.seed);
   std::uniform_int_distribution<int> dist(0, params.num_semantic_classes - 1);
-  std::uniform_real_distribution<double> step(-1, 1);
+  std::uniform_real_distribution<x_view::real_t> step(-1, 1);
 
   // Create random graph.
   x_view::Graph graph(ERGen(gen, params.num_vertices, params.edge_probability),
@@ -119,8 +120,8 @@ x_view::Graph generateChainGraph(const GraphConstructionParams& params) {
 
   x_view::Graph graph;
   std::vector<x_view::VertexDescriptor> vertex_descriptors;
-  double theta = 0;
-  const double d_theta = 2 * M_PI / params.num_vertices;
+  x_view::real_t theta = 0.0;
+  const x_view::real_t d_theta = 2 * M_PI / params.num_vertices;
   // Create the vertices of the graph in sequence.
   for (int i = 0; i < params.num_vertices; ++i, theta += d_theta) {
     x_view::VertexProperty vertex;

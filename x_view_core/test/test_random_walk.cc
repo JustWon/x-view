@@ -1,6 +1,8 @@
 #include "test_random_walk.h"
 #include "test_common.h"
 
+#include <x_view_core/x_view_types.h>
+
 namespace x_view_test {
 
 void testRandomWalkSequence(const x_view::RandomWalker& random_walker,
@@ -132,7 +134,7 @@ void testWeightedStrategyStatistics() {
 
     // A vector whose elements represent the ratio of random walks that start
     // from vertex i and go to vertex i+1 over the ones that go to vertex i-1;
-    std::vector<float> expected_next_vertex_ratio(
+    std::vector<x_view::real_t> expected_next_vertex_ratio(
         graph_construction_params.num_vertices, multiplication_factor);
 
     // Special case for vertex 0, since it is linked to vertex 1 on one side
@@ -182,7 +184,8 @@ void testWeightedStrategyStatistics() {
           ++starts_i_plus_1;
       }
 
-      const float ratio = static_cast<float>(starts_i_plus_1) / starts_i_min_1;
+      const x_view::real_t ratio =
+          static_cast<x_view::real_t>(starts_i_plus_1) / starts_i_min_1;
       CHECK_NEAR(expected_next_vertex_ratio[i], ratio, 0.15);
     }
 

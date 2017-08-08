@@ -19,16 +19,16 @@ void testParameterValues() {
   const int integer_value_min3 = parameters.getInteger("IntegerValue-3");
   CHECK_EQ(integer_value_min3, -3);
 
-  parameters.setFloat("FloatValue1", 1.f);
-  parameters.setFloat("FloatValue42.5", 42.5f);
-  parameters.setFloat("FloatValue-3.14", -3.14f);
+  parameters.setFloat("FloatValue1", 1.0);
+  parameters.setFloat("FloatValue42.5", 42.5);
+  parameters.setFloat("FloatValue-3.14", -3.14);
 
-  const float float_value_1 = parameters.getFloat("FloatValue1");
-  CHECK_DOUBLE_EQ(float_value_1, 1.f);
-  const float float_value_42_5 = parameters.getFloat("FloatValue42.5");
-  CHECK_DOUBLE_EQ(float_value_42_5, 42.5f);
-  const float float_value_min3_14 = parameters.getFloat("FloatValue-3.14");
-  CHECK_DOUBLE_EQ(float_value_min3_14, -3.14f);
+  const real_t float_value_1 = parameters.getFloat("FloatValue1");
+  CHECK_DOUBLE_EQ(float_value_1, 1.0);
+  const real_t float_value_42_5 = parameters.getFloat("FloatValue42.5");
+  CHECK_DOUBLE_EQ(float_value_42_5, 42.5);
+  const real_t float_value_min3_14 = parameters.getFloat("FloatValue-3.14");
+  CHECK_DOUBLE_EQ(float_value_min3_14, -3.14);
 
   parameters.setBoolean("False", false);
   parameters.setBoolean("True", true);
@@ -45,8 +45,6 @@ void testParameterValues() {
   CHECK(what == "What");
   const std::string where = parameters.getString("StringWhere");
   CHECK(where == "Where");
-
-  // std::cout << parameters.toString() << std::endl;
 }
 
 void testParameterChildren() {
@@ -98,8 +96,6 @@ void testParameterChildren() {
   CHECK(child1_->getChildPropertyList("c2")->getInteger("grandChildInt") == 4);
   CHECK(child2_->getChildPropertyList("c1")->getInteger("grandChildInt") == 5);
   CHECK(child2_->getChildPropertyList("c2")->getInteger("grandChildInt") == 6);
-
-  // std::cout << parent->toString() << std::endl;
 }
 
 }

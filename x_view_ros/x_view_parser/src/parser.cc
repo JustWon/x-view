@@ -53,8 +53,8 @@ void Parser::addInt(const ros::NodeHandle& nh, const std::string& ros_key,
 void Parser::addFloat(const ros::NodeHandle& nh, const std::string& ros_key,
                       const std::string& param_key,
                       std::unique_ptr<x_view::Parameters>& parameters,
-                      const float default_float) {
-  float retrieved_float;
+                      const real_t default_float) {
+  real_t retrieved_float;
   if (nh.getParam(ros_key, retrieved_float)) {
     parameters->setFloat(param_key, retrieved_float);
   } else {
@@ -265,11 +265,11 @@ std::unique_ptr<Parameters> Parser::parseGraphMatcher() const {
   addInt(nh_, "/Matcher/time_window", "time_window",
          graph_matcher_parameters, std::numeric_limits<int>::max());
   addFloat(nh_, "/Matcher/similarity_threshold", "similarity_threshold",
-           graph_matcher_parameters, 0.f);
+           graph_matcher_parameters, 0.0);
   addFloat(nh_, "/Matcher/distance_threshold", "distance_threshold",
-           graph_matcher_parameters, std::numeric_limits<float>::max());
+           graph_matcher_parameters, std::numeric_limits<real_t>::max());
   addFloat(nh_, "/Matcher/merge_distance", "merge_distance",
-           graph_matcher_parameters, 2.f);
+           graph_matcher_parameters, 2.0);
 
   return std::move(graph_matcher_parameters);
 }

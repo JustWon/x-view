@@ -38,8 +38,8 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
   } else if(blob_filter_type == "RELATIVE") {
     blob_extractor_params.blob_size_filtering.type =
     BlobExtractorParams::MIN_BLOB_SIZE_TYPE::RELATIVE;
-    const float fraction_min_blob =
-        landmark_parameters->getFloat("min_blob_size", 0.05f);
+    const real_t fraction_min_blob =
+        landmark_parameters->getFloat("min_blob_size", 0.05);
     blob_extractor_params.blob_size_filtering.fraction_min_pixels =
         fraction_min_blob;
   } else {

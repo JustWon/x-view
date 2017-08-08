@@ -12,6 +12,7 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/histogram_landmark.h>
 #include <x_view_core/x_view_locator.h>
+#include <x_view_core/x_view_types.h>
 
 using namespace x_view;
 using namespace x_view_test;
@@ -38,7 +39,7 @@ TEST(XViewSlamTestSuite, test_histogram_landmark) {
   FrameData frame_data_black(black, cv::Mat(), SE3(), frame_index);
   SemanticLandmarkPtr black_land = HistogramLandmark::create(frame_data_black);
   // Expect to have 100% votes for label 0.
-  std::vector<std::pair<int, double>> bExpected = {
+  std::vector<std::pair<int, real_t>> bExpected = {
       {0, 1.0}, {1, 0.0}
   };
   performLabelTest(black_land, bExpected);
@@ -48,7 +49,7 @@ TEST(XViewSlamTestSuite, test_histogram_landmark) {
   FrameData frame_data_white(white, cv::Mat(), SE3(), frame_index);
   SemanticLandmarkPtr white_land = HistogramLandmark::create(frame_data_white);
   // Expect to have 100% votes for label 1.
-  std::vector<std::pair<int, double>> wExpected = {
+  std::vector<std::pair<int, real_t>> wExpected = {
       {0, 0.0}, {1, 1.0}
   };
   performLabelTest(white_land, wExpected);
@@ -63,7 +64,7 @@ TEST(XViewSlamTestSuite, test_histogram_landmark) {
   FrameData frame_data_half(half, cv::Mat(), SE3(), frame_index);
   SemanticLandmarkPtr half_land = HistogramLandmark::create(frame_data_half);
   // Expect to have 50% votes for label 0 and 50% for label 1.
-  std::vector<std::pair<int, double>> hExpected = {
+  std::vector<std::pair<int, real_t>> hExpected = {
       {0, 0.5}, {1, 0.5}, {2, 0.0}
   };
   performLabelTest(half_land, hExpected);

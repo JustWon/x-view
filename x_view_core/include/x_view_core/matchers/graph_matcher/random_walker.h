@@ -2,6 +2,7 @@
 #define X_VIEW_RANDOM_WALKER_H
 
 #include <x_view_core/features/graph.h>
+#include <x_view_core/x_view_types.h>
 
 #include <Eigen/Sparse>
 #include <glog/logging.h>
@@ -168,7 +169,7 @@ class RandomWalker {
  private:
   /// \brief Distribution to be used when picking a new random number.
   /// Needs to be mutable as it is used inside a const member function.
-  mutable std::uniform_real_distribution<float> random_distribution_;
+  mutable std::uniform_real_distribution<real_t> random_distribution_;
   /// \brief Random engine used to generate new random numbers.
   /// Needs to be mutable as it is used inside a const member function.
   mutable std::mt19937 random_engine_;

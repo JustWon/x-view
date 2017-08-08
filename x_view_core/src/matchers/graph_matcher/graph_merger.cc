@@ -92,7 +92,7 @@ const Graph GraphMerger::computeMergedGraph() {
   return merged_graph_;
 }
 
-void GraphMerger::mergeDuplicates(Graph* graph, const float merge_distance) {
+void GraphMerger::mergeDuplicates(Graph* graph, const real_t merge_distance) {
 
   LOG(INFO) << "Merging all vertices with same semantic label whose euclidean "
             << "distance is smaller than " << merge_distance << ".";
@@ -203,7 +203,7 @@ void GraphMerger::mergeDuplicates(Graph* graph, const float merge_distance) {
 const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
                                                const VertexDescriptor v_d_2,
                                                const Graph& graph,
-                                               const float merge_distance) {
+                                               const real_t merge_distance) {
 
   // Query the vertex properties associated to the vertex descriptors passed
   // as argument.
@@ -217,7 +217,7 @@ const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
 
   // Spatial consistency: only merge vertices if their Euclidean distance is
   // smaller than the merge_distance parameter passed as argument.
-  const Eigen::Vector3d diff = v_p_1.location_3d - v_p_2.location_3d;
+  const Vec3 diff = v_p_1.location_3d - v_p_2.location_3d;
   if (diff.norm() > merge_distance)
     return false;
 
@@ -357,7 +357,7 @@ const uint64_t GraphMerger::temporalDistance(const uint64_t i,
   return v_j_query.last_time_seen_ - v_i_database.last_time_seen_;
 }
 
-const double GraphMerger::spatialDistance(const uint64_t i, const uint64_t j)
+const real_t GraphMerger::spatialDistance(const uint64_t i, const uint64_t j)
 const {
   const VertexProperty& v_i_database = database_graph_[i];
   const VertexProperty& v_j_query = query_graph_[j];

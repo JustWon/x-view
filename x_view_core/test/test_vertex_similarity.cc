@@ -7,7 +7,7 @@ namespace x_view_test {
 
 void VertexSimilarityTest::addWalkMap(const RandomWalker::WalkMap& walk_left,
                                       const RandomWalker::WalkMap& walk_right,
-                                      const float expected_score) {
+                                      const real_t expected_score) {
   vertices_left_.push_back(walk_left);
   vertices_right_.push_back(walk_right);
   expected_scores_.push_back(expected_score);
@@ -25,10 +25,10 @@ void VertexSimilarityTest::checkExpectedSimilarity() const {
   for(int i = 0; i < num_mapped_walks; ++i) {
     const RandomWalker::WalkMap& left = vertices_left_[i];
     const RandomWalker::WalkMap& right = vertices_right_[i];
-    const float expected_score = expected_scores_[i];
+    const real_t expected_score = expected_scores_[i];
 
     // Compute score.
-    const float computed_score = VertexSimilarity::score(left, right);
+    const real_t computed_score = VertexSimilarity::score(left, right);
     CHECK_LE(0.f, computed_score);
     CHECK_GE(1.f, computed_score);
 
@@ -45,8 +45,8 @@ void VertexSimilarityTest::checkSymmetry() const {
     const RandomWalker::WalkMap& right = vertices_right_[i];
 
     // Compute score.
-    const float computed_score_1 = VertexSimilarity::score(left, right);
-    const float computed_score_2 = VertexSimilarity::score(right, left);
+    const real_t computed_score_1 = VertexSimilarity::score(left, right);
+    const real_t computed_score_2 = VertexSimilarity::score(right, left);
 
     CHECK_LE(0.f, computed_score_1);
     CHECK_GE(1.f, computed_score_1);
@@ -186,7 +186,7 @@ void testScoreValue() {
   VertexSimilarityTest vertex_similarity_test;
 
   vertex_similarity_test.setScoreType(VertexSimilarity::SCORE_TYPE::WEIGHTED);
-  const float expected_score_weighted = 3.f/5.f;
+  const real_t expected_score_weighted = 3.0/5.0;
   vertex_similarity_test.addWalkMap(left_map, right_map,
                                     expected_score_weighted);
   vertex_similarity_test.run();
@@ -194,7 +194,7 @@ void testScoreValue() {
 
 
   vertex_similarity_test.setScoreType(VertexSimilarity::SCORE_TYPE::SURFACE);
-  const float expected_score_surface = 7.f/10.f;
+  const real_t expected_score_surface = 7.0/10.0;
   vertex_similarity_test.addWalkMap(left_map, right_map,
                                     expected_score_surface);
   vertex_similarity_test.run();
