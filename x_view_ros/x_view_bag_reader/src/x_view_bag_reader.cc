@@ -3,10 +3,11 @@
 
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/x_view_locator.h>
+#include <x_view_core/x_view_tools.h>
 
 #include <glog/logging.h>
 #include <opencv2/core/core.hpp>
-#include <x_view_core/x_view_tools.h>
+
 
 namespace x_view_ros {
 

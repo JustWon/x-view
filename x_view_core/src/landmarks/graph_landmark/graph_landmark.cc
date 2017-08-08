@@ -54,13 +54,30 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
   // *********** Graph generation ********** //
 
   GraphBuilderParams graph_builder_params;
-  graph_builder_params.max_distance_for_neighborhood =
-      landmark_parameters->getInteger("blob_neighbor_distance", 10);
+  const std::string graph_extraction_type =
+      landmark_parameters->getString("extraction_type", "IMAGE");
 
-  descriptor = GraphBuilder::createGraphFromImageBlobs(frame_data,
-                                                       image_blobs_,
-                                                       graph_builder_params);
+  if(graph_extraction_type == "IMAGE") {
+    graph_builder_params.extraction_type =
+        GraphBuilderParams::EXTRACTION_TYPE::EDGES_DEFINED_ON_BLOB_NEIGHBORS;
 
+    graph_builder_params.max_distance_for_neighborhood =
+        landmark_parameters->getInteger("blob_neighbor_distance", 10);
+
+  } else if(graph_extraction_type == "3D_SPACE") {
+    graph_builder_params.extraction_type =
+        GraphBuilderParams::EXTRACTION_TYPE::EDGES_DEFINED_ON_3D_SPACE;
+
+    graph_builder_params.max_euclidean_distance =
+        landmark_parameters->getFloat("max_euclidean_distance", 2.f);
+  } else {
+    LOG(ERROR) << "Unrecognized graph extraction type <"
+               << graph_extraction_type << ">.";
+  }
+
+  descriptor = GraphBuilder::extractSemanticGraph(frame_data,
+                                                  image_blobs_,
+                                                  graph_builder_params);
 
   // Create the descriptor stored in this landmark by generating a
   // VectorDescriptor containing the graph data.

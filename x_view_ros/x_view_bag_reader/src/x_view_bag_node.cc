@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
   x_view_ros::Pause pause;
   x_view::Statistics stats;
   const uint64_t local_graph_steps = 5;
-  for(int i = start_frame; i < end_frame - local_graph_steps;) {
+  for(int i = start_frame; i + local_graph_steps < end_frame;) {
     if(!pause.isPaused()) {
       x_view_ros::XViewBagReader::LocationPair locations;
       bool localized = bag_reader.localizeGraph(x_view_ros::CAMERA::FRONT, i,

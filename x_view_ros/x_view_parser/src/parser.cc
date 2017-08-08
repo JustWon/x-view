@@ -205,8 +205,19 @@ std::unique_ptr<Parameters> Parser::parseGraphLandmark() const {
            graph_landmark_parameters, 5);
   }
 
-  addInt(nh_, "/Landmark/blob_neighbor_distance", "blob_neighbor_distance",
-         graph_landmark_parameters, 10);
+  addString(nh_, "/Landmark/extraction_type", "extraction_type",
+            graph_landmark_parameters, "IMAGE");
+  if(graph_landmark_parameters->getString("extraction_type") == "IMAGE") {
+    addInt(nh_, "/Landmark/blob_neighbor_distance", "blob_neighbor_distance",
+           graph_landmark_parameters, 10);
+  } else if(graph_landmark_parameters->getString("extraction_type") ==
+      "3D_SPACE") {
+    addFloat(nh_, "/Landmark/max_euclidean_distance",
+             "max_euclidean_distance", graph_landmark_parameters, 2.f);
+  } else {
+    LOG(ERROR) << "Unrecognized graph extraction type <"
+               << graph_landmark_parameters->getString("extraction_type") << ">.";
+  }
 
   addFloat(nh_, "/Landmark/depth_clip", "depth_clip", graph_landmark_parameters);
 
@@ -267,9 +278,19 @@ std::unique_ptr<Parameters> Parser::parseGraphMatcher() const {
   addFloat(nh_, "/Matcher/similarity_threshold", "similarity_threshold",
            graph_matcher_parameters, 0.0);
   addFloat(nh_, "/Matcher/distance_threshold", "distance_threshold",
-           graph_matcher_parameters, std::numeric_limits<real_t>::max());
-  addFloat(nh_, "/Matcher/merge_distance", "merge_distance",
-           graph_matcher_parameters, 2.0);
+           graph_matcher_parameters, std::numeric_limits<float>::max());
+
+  addBool(nh_, "/Matcher/merge_close_vertices", "merge_close_vertices",
+          graph_matcher_parameters, false);
+  if(graph_matcher_parameters->getBoolean("merge_close_vertices"))
+    addFloat(nh_, "/Matcher/merge_distance", "merge_distance",
+             graph_matcher_parameters, 2.f);
+
+  addBool(nh_, "/Matcher/link_close_vertices", "link_close_vertices",
+          graph_matcher_parameters, false);
+  if(graph_matcher_parameters->getBoolean("link_close_vertices"))
+    addFloat(nh_, "/Matcher/max_link_distance", "max_link_distance",
+             graph_matcher_parameters, 2.0);
 
   return std::move(graph_matcher_parameters);
 }

@@ -13,9 +13,28 @@ std::vector<const Blob*> GraphBuilder::DEFAULT_BLOB_VECTOR;
 const uint64_t GraphBuilder::INVALID_VERTEX_DESCRIPTOR =
     std::numeric_limits<uint64_t>::max();
 
-Graph GraphBuilder::createGraphFromImageBlobs(const FrameData& frame_data,
-                                              const ImageBlobs& blobs,
-                                              const GraphBuilderParams& params) {
+Graph GraphBuilder::extractSemanticGraph(const FrameData& frame_data,
+                                         const ImageBlobs& blobs,
+                                         const GraphBuilderParams& params) {
+
+  if (params.extraction_type ==
+      GraphBuilderParams::EXTRACTION_TYPE::EDGES_DEFINED_ON_BLOB_NEIGHBORS) {
+    LOG(INFO) << "Building semantic graph by defining edges between neighbor "
+        "blobs in semantic segmentation.";
+    return extractSemanticGraphOnSemanticImage(frame_data, blobs, params);
+  } else if (params.extraction_type ==
+      GraphBuilderParams::EXTRACTION_TYPE::EDGES_DEFINED_ON_3D_SPACE) {
+    LOG(INFO) << "Building semantic graph by defining edges between neighbor "
+        "blobs in 3D space.";
+    return extractSemanticGraphOn3DSpace(frame_data, blobs, params);
+  } else {
+    LOG(ERROR) << "Unrecognized graph extraction type.";
+  }
+}
+
+Graph GraphBuilder::extractSemanticGraphOnSemanticImage(
+    const FrameData& frame_data, const ImageBlobs& blobs,
+    const GraphBuilderParams& params) {
 
   Graph graph;
 
@@ -24,7 +43,7 @@ Graph GraphBuilder::createGraphFromImageBlobs(const FrameData& frame_data,
   // Vector keeping track of which Blob is associated to which graph node.
   std::vector<const Blob*> blob_vector;
 
-  // Add all blobs to the graph.
+  // Add all blobs to the graph creating semantic vertices.
   GraphBuilder::addBlobsToGraph(frame_data, blobs, &graph, &vertex_descriptors,
                                 &blob_vector);
 
@@ -54,17 +73,73 @@ Graph GraphBuilder::createGraphFromImageBlobs(const FrameData& frame_data,
   int num_components = boost::connected_components(graph, &component[0]);
   if (num_components == 1)
     return graph;
-  else {
+  while(num_components > 1) {
     LOG(WARNING) << "Graph built upon semantic image presents "
                  << num_components << " disconnected components.";
-    connectClosestVerticesOfDisconnectedGraph(&graph, component);
+    connectComponentsInImage(&graph, component);
     num_components = boost::connected_components(graph, &component[0]);
-    CHECK_EQ(num_components, 1)
-      << "The graph resulting from connectClosestVerticesOfDisconnectedGraph "
-      << "has " << num_components << " components.";
-    return graph;
+  }
+  CHECK_EQ(num_components, 1)
+    << "The graph resulting from connectComponentsInImage "
+    << "has " << num_components << " components.";
+  return graph;
+
+}
+
+Graph GraphBuilder::extractSemanticGraphOn3DSpace(
+    const FrameData& frame_data, const ImageBlobs& blobs,
+    const GraphBuilderParams& params) {
+
+  Graph graph;
+
+  // Vector containing references to the created graph vertices.
+  std::vector<VertexDescriptor> vertex_descriptors;
+
+  // Add all blobs to the graph creating semantic vertices.
+  GraphBuilder::addBlobsToGraph(frame_data, blobs, &graph, &vertex_descriptors);
+
+  // Create the edges between nodes sharing an edge.
+  const uint64_t num_vertices = boost::num_vertices(graph);
+  for (uint64_t i = 0; i < num_vertices; ++i) {
+    for (uint64_t j = i + 1; j < num_vertices; ++j) {
+
+      const VertexProperty& vi = graph[i];
+      const VertexProperty& vj = graph[j];
+
+      // Since we don't know yet how many times this edge has been seen in
+      // the past, we set its property as if it has been seen only once. This
+      // property is updated in the global semantic graph during graph merging.
+      const uint64_t num_times_seen = 1;
+
+      // Only create an edge between the two vertices if their Euclidean
+      // distance is smaller than the threshold defined in tha parameters.
+      auto euclideanDistance = [](const VertexProperty& v_p_1,
+                                  const VertexProperty& v_p_2) -> real_t {
+        return (v_p_1.location_3d - v_p_2.location_3d).norm();
+      };
+
+      if (euclideanDistance(vi, vj) <= params.max_euclidean_distance)
+        boost::add_edge(i, j, {i, j, num_times_seen}, graph);
+    }
   }
 
+  // Check that the generated graph is a single connected component.
+  std::vector<int> component(boost::num_vertices(graph));
+  int num_components = boost::connected_components(graph, &component[0]);
+  if (num_components == 1)
+    return graph;
+  while(num_components > 1) {
+    LOG(WARNING) << "Graph built upon semantic image presents "
+                 << num_components << " disconnected components over "
+                 << boost::num_vertices(graph) << " vertices.";
+    connectComponentsInSpace(&graph, component);
+    num_components = boost::connected_components(graph, &component[0]);
+  }
+
+  CHECK_EQ(num_components, 1)
+    << "The graph resulting from connectComponentsInSpace "
+    << "has " << num_components << " components.";
+  return graph;
 }
 
 void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
@@ -82,7 +157,7 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
 
   const real_t max_depth_m =
       Locator::getParameters()->getChildPropertyList("landmark")->getFloat(
-          "depth_clip", 0.01 * std::numeric_limits<unsigned short>::max()
+          "depth_clip", 10000.f
       );
 
   // Create a projector object, which projects pixels back to 3D coordinates
@@ -103,6 +178,7 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
       const unsigned short depth_cm =
           depth_image.at<unsigned short>(vertex.center);
       const real_t depth_m = depth_cm * 0.01;
+
       // If the projected center of the blob is too distant, set it as invalid.
       if (depth_m >= max_depth_m) {
         vertex_descriptors->push_back(INVALID_VERTEX_DESCRIPTOR);
@@ -121,7 +197,6 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
       vertex_descriptors->push_back(boost::add_vertex(vertex, *graph));
     }
   }
-
 }
 
 VertexProperty GraphBuilder::blobToGraphVertex(const int index,
@@ -135,9 +210,9 @@ VertexProperty GraphBuilder::blobToGraphVertex(const int index,
   return VertexProperty{index, semantic_label, label, size, center};
 }
 
-void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(Graph* graph,
-                                                             const std::vector<
-                                                                 int>& component) {
+void GraphBuilder::connectComponentsInImage(Graph* graph,
+                                            const std::vector<int>& component) {
+
   std::vector<int> unique_components(component);
   std::sort(unique_components.begin(), unique_components.end());
   unique_components.erase(std::unique(unique_components.begin(),
@@ -150,23 +225,24 @@ void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(Graph* graph,
     cv::Point2i d(p1 - p2);
     return d.x * d.x + d.y * d.y;
   };
+
   // Iterate over each pair of components and determine the closest pair of
   // vertices to be connected.
+  int min_distance_square = std::numeric_limits<int>::max();
+  EdgeProperty closest_v_d_pair = {-1, -1};
   for (auto first_component = unique_components.begin();
        first_component != unique_components.end(); ++first_component) {
     const int first_component_id = *first_component;
     for (auto second_component = std::next(first_component);
          second_component != unique_components.end(); ++second_component) {
       const int second_component_id = *second_component;
-      int min_distance_square = std::numeric_limits<int>::max();
-      EdgeProperty closest_v_d_pair = {-1, -1};
       for (int i = 0; i < num_vertices; ++i) {
         if (component[i] == first_component_id) {
           const cv::Point2i& center_i = (*graph)[i].center;
           for (int j = 0; j < num_vertices; ++j) {
             if (component[j] == second_component_id) {
               const cv::Point2i& center_j = (*graph)[j].center;
-              int dist2 = dist_square(center_i, center_j);
+              int dist2 = distSquared(center_i, center_j);
               if (dist2 < min_distance_square) {
                 min_distance_square = dist2;
                 closest_v_d_pair.from = i;
@@ -177,17 +253,72 @@ void GraphBuilder::connectClosestVerticesOfDisconnectedGraph(Graph* graph,
           }
         }
       }
-      CHECK(closest_v_d_pair.from != -1 && closest_v_d_pair.to != -1)
-      << "Function " << __FUNCTION__ << " could not determine which "
-      << "vertices are the closest pair in the disconnected graph "
-      << "between component " << first_component_id << " and "
-      << second_component_id;
-      // The closest vertices between first_component and second_component
-      // are the ones contained in closest_v_d_pair.
-      boost::add_edge(closest_v_d_pair.from, closest_v_d_pair.to,
-                      closest_v_d_pair, *graph);
     }
   }
+  CHECK(closest_v_d_pair.from != -1 && closest_v_d_pair.to != -1)
+  << "Function " << __FUNCTION__ << " could not determine which "
+  << "vertices are the closest pair in the disconnected graph "
+  << "between component.";
+  // The closest vertices between first_component and second_component
+  // are the ones contained in closest_v_d_pair.
+  boost::add_edge(closest_v_d_pair.from, closest_v_d_pair.to,
+                  closest_v_d_pair, *graph);
+}
+
+
+void GraphBuilder::connectComponentsInSpace(Graph* graph,
+                                            const std::vector<int>& component) {
+
+  std::vector<int> unique_components(component);
+  std::sort(unique_components.begin(), unique_components.end());
+  unique_components.erase(std::unique(unique_components.begin(),
+                                      unique_components.end()),
+                          unique_components.end());
+
+  const uint64_t num_vertices = boost::num_vertices(*graph);
+
+  auto distSquared = [](const VertexProperty& v_p_1,
+                        const VertexProperty& v_p_2) -> real_t {
+    return (v_p_1.location_3d - v_p_2.location_3d).squaredNorm();
+  };
+
+  // Iterate over each pair of components and determine the closest pair of
+  // vertices to be connected.
+  real_t min_distance_square = std::numeric_limits<real_t>::max();
+  EdgeProperty closest_v_d_pair = {-1, -1};
+  for (auto first_component = unique_components.begin();
+       first_component != unique_components.end(); ++first_component) {
+    const int first_component_id = *first_component;
+    for (auto second_component = std::next(first_component);
+         second_component != unique_components.end(); ++second_component) {
+      const int second_component_id = *second_component;
+      for (int i = 0; i < num_vertices; ++i) {
+        if (component[i] == first_component_id) {
+          const VertexProperty& v_p_i = (*graph)[i];
+          for (int j = 0; j < num_vertices; ++j) {
+            if (component[j] == second_component_id) {
+              const VertexProperty& v_p_j = (*graph)[j];
+              real_t dist2 = distSquared(v_p_i, v_p_j);
+              if (dist2 < min_distance_square) {
+                min_distance_square = dist2;
+                closest_v_d_pair.from = i;
+                closest_v_d_pair.to = j;
+                closest_v_d_pair.num_times_seen = 1;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  CHECK(closest_v_d_pair.from != -1 && closest_v_d_pair.to != -1)
+  << "Function " << __FUNCTION__ << " could not determine which "
+  << "vertices are the closest pair in the disconnected graph "
+  << "between component.";
+  // The closest vertices between first_component and second_component
+  // are the ones contained in closest_v_d_pair.
+  boost::add_edge(closest_v_d_pair.from, closest_v_d_pair.to,
+                  closest_v_d_pair, *graph);
 }
 
 }
