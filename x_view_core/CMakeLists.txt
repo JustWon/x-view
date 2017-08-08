@@ -17,7 +17,7 @@ ENDIF ()
 
 # Set floating point type to be used inside XView
 IF(NOT X_VIEW_USE_DOUBLES)
-    set(X_VIEW_USE_DOUBLES True CACHE BOOL "Flag indicating whether the
+    set(X_VIEW_USE_DOUBLES False CACHE BOOL "Flag indicating whether the
     project is built using single or double precision floating point values.")
 ENDIF()
 

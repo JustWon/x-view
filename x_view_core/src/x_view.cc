@@ -6,6 +6,7 @@
 #include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/matchers/vector_matcher.h>
 #include <x_view_core/x_view_tools.h>
+#include <x_view_core/x_view_types.h>
 
 namespace x_view {
 
@@ -21,8 +22,9 @@ void XView::processFrameData(const FrameData& frame_data) {
   LOG(INFO) << "XView starts processing frame " << frame_number_ << ".";
   const RowVec3 origin = frame_data.getPose().getPosition();
   const Mat3 rotation = frame_data.getPose().getRotationMatrix();
-  LOG(INFO) << "Associated robot pose:\n" << formatSE3(frame_data.getPose(),
-                                                       "\t\t", 3);
+  LOG(INFO) << "Associated robot pose:\n"
+            << formatSE3(frame_data.getPose(), "\t\t", 3);
+
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
 

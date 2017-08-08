@@ -84,7 +84,7 @@ class XView {
   /// from Locator::getParameters()->getChildPropertyList("landmark")->getString("type")
   void initializeLandmarkFactory();
 
-  /// \brief Initializes the matchert based on the value retrieved
+  /// \brief Initializes the matchers based on the value retrieved
   /// from Locator::getParameters()->getChildPropertyList("matcher")->getString("type")
   void initializeMatcher();
 
