@@ -40,8 +40,8 @@ struct VertexProperty {
   /// \brief Index referring to the last time this vertex has been observed.
   uint64_t last_time_seen_;
 
-  /// \brief Poses from which the vertex was observed.
-  std::vector<SE3> observers;
+  /// \brief Indices of poses from which the vertex was observed.
+  std::vector<PoseId> observers;
 };
 
 /// \brief Property associated to a graph edge.

@@ -32,13 +32,19 @@ typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;
 /// \brief Pointer to landmark matchers.
 typedef std::shared_ptr<AbstractMatcher> LandmarksMatcherPtr;
 
+struct PoseId {
+  /// \brief Pose of the robot.
+  SE3 pose;
+  /// \brief Unique identifier for pose.
+  uint64_t id;
+};
 
 /// \brief In each frame XView recieves an instance of FrameData containing
 /// information about semantic segmentation, depth image and robot pose.
 class FrameData {
  public:
   FrameData(const cv::Mat& semantic_image, const cv::Mat& depth_image,
-            const SE3& pose, const uint64_t id)
+            const PoseId& pose, const uint64_t id)
       : semantic_image_(semantic_image),
         depth_image_(depth_image),
         pose_(pose),
@@ -54,6 +60,10 @@ class FrameData {
   }
 
   const SE3& getPose() const {
+    return pose_.pose;
+  }
+
+  const PoseId& getPoseId() const {
     return pose_;
   }
 
@@ -76,7 +86,7 @@ class FrameData {
 
   /// \brief Pose of the robot associated with this frame expressed in world
   /// coordinates.
-  const SE3& pose_;
+  const PoseId& pose_;
 
   /// \brief Unique identifier associated with the index of the frame
   /// represented by this instance.

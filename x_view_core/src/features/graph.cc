@@ -151,7 +151,7 @@ void writeToFile(const Graph& graph, const std::string& filename) {
     out << " // 3D pos: " << Eigen::RowVector3d(v_p.location_3d);
     out << " // Observers: ";
     for (auto i:v_p.observers) {
-      out << i << ",";
+      out << i.id << ",";
     }
     out << std::endl;
   }
