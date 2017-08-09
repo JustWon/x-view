@@ -224,7 +224,6 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
 
   // Return the matching result filled with the matches.
   return matching_result;
-
 }
 
 bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,

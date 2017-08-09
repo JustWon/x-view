@@ -117,7 +117,7 @@ class GraphMerger {
    * queried for merging.
    * \param graph Const reference to the graph structure containing the
    * vertices passed as argument.
-   * \param merge_distance Vertices whose euclidean distance is larget than
+   * \param merge_distance Vertices whose euclidean distance is larger than
    * this parameter are not merged together.
    * \return True if the vertices associated with the passed parameters
    * should be merged together, false otherwise.
@@ -168,6 +168,8 @@ class GraphMerger {
   const GraphMergerParameters& graph_merger_parameters_;
 
   void addVertexToMergedGraph(const VertexDescriptor& source_in_query_graph);
+
+  void linkUnmatchedQueryGraph();
 
   /**
    * \brief Computes the temporal distance between the i-th vertex of the

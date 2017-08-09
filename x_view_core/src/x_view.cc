@@ -255,6 +255,13 @@ void XView::printInfo() const {
       #else
       << " (Release)"
       #endif
+
+      #if X_VIEW_USE_DOUBLE_PRECISION
+      << " (DP)"
+      #else
+      << " (SP)"
+      #endif
+
       << "\n\n" << dataset
       << "\n\tLandmark type:\t<" + landmark_parameters->getString("type") + ">"
       << "\n\tMatcher type: \t<" + matcher_parameters->getString("type") + ">"
