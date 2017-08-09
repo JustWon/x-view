@@ -7,6 +7,7 @@
 #include <boost/graph/random.hpp>
 #include <glog/logging.h>
 
+#include <atomic>
 #include <iomanip>
 #include <sstream>
 
@@ -336,6 +337,12 @@ void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng) {
 
     }
   }
+}
+
+size_t KeyGenerator::getNextKey() {
+  static std::atomic<size_t> key(0u);
+  size_t new_key = key++;
+  return new_key;
 }
 
 };

@@ -1,8 +1,9 @@
-#include <x_view_core/landmarks/graph_landmark/graph_builder.h>
-
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
 #include <x_view_core/landmarks/graph_landmark/depth_projector.h>
+
+#include "x_view_core/x_view_tools.h"
+#include "x_view_core/landmarks/graph_landmark/graph_builder.h"
 
 #include <boost/graph/connected_components.hpp>
 
@@ -98,7 +99,7 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
     for (const Blob& blob : blobs[c]) {
       blob_vector->push_back(&blob);
       VertexProperty vertex =
-          GraphBuilder::blobToGraphVertex(blob_count++, blob);
+          GraphBuilder::blobToGraphVertex(KeyGenerator::getNextKey(), blob);
       // Extract the depth associated to the vertex.
       const unsigned short depth_cm =
           depth_image.at<unsigned short>(vertex.center);
@@ -118,8 +119,7 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
       vertex.last_time_seen_ = frame_data.getID();
 
       // Store the location of the observer.
-      vertex.observers.push_back(pose);
-      std::cout << "pose added to graph" << std::endl;
+      vertex.observers.push_back(frame_data.getPoseId());
 
       // Add the newly generated vertex to the graph.
       vertex_descriptors->push_back(boost::add_vertex(vertex, *graph));
