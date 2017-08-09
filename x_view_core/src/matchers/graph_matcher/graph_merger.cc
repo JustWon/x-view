@@ -219,7 +219,8 @@ void GraphMerger::linkCloseVertices(Graph* graph,
     for(uint64_t j = i + 1; j < num_vertices; ++j) {
       const VertexProperty& v_p_j = (*graph)[j];
       if(distSquared(v_p_i, v_p_j) < max_link_distance_squared)
-        boost::add_edge(i, j, {i, j, 1}, *graph);
+        boost::add_edge(i, j, {int(i), int(j), 1}, *graph);
+      // FIXME type
     }
   }
 }

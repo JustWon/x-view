@@ -119,7 +119,8 @@ Graph GraphBuilder::extractSemanticGraphOn3DSpace(
       };
 
       if (euclideanDistance(vi, vj) <= params.max_euclidean_distance)
-        boost::add_edge(i, j, {i, j, num_times_seen}, graph);
+        boost::add_edge(i, j, {int(i), int(j), num_times_seen}, graph);
+      // FIXME type
     }
   }
 
