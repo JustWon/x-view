@@ -158,7 +158,8 @@ bool XView::localize(const FrameData& frame_data,
   return localized;
 }
 
-bool XView::localize(const Graph& query_graph, Eigen::Vector3d* position) {
+bool XView::localize(const Graph& query_graph, std::vector<x_view::PoseId> pose_ids,
+                     Eigen::Vector3d* position) {
 
   // Get the existing global semantic graph before matching.
   const Graph& global_graph = getSemanticGraph();
@@ -202,14 +203,30 @@ bool XView::localize(const Graph& query_graph, Eigen::Vector3d* position) {
                                            &invalid_matches);
   }
 
-  struct WeightedPosition {
-    Eigen::Vector3d position;
-    float weight;
-  };
+  // Estimate transformation between graphs (Localization).
+  GraphLocalizer graph_localizer;
 
-  std::vector<WeightedPosition> matched_positions;
-  matched_positions.reserve(max_similarity_matrix.cols());
+  // Add relative pose-to-pose observations to the graph localizer, assuming
+  // poses are consecutive.
 
+  for (size_t i = 0u; i < pose_ids.size() - 1; ++i) {
+    graph_localizer.addPosePoseMeasurement(pose_ids[i], pose_ids[i + 1]);
+  }
+
+  // Add all pose-to-vertex observations.
+  const uint64_t num_vertices = boost::num_vertices(query_graph);
+
+  for (size_t i = 0u; i < num_vertices; ++i) {
+    const VertexProperty& vertex_property = query_graph[i];
+    // Add a pose-node observation for each observer of node.
+    for (size_t i_pose = 0u; i_pose < vertex_property.observers.size();
+        ++i_pose) {
+      graph_localizer.addPoseVertexMeasurement(
+          vertex_property, vertex_property.observers[i_pose]);
+    }
+  }
+
+  // Add all vertex-to-vertex observations.
   for (int j = 0; j < max_similarity_matrix.cols(); ++j) {
     int max_i = -1;
     max_similarity_matrix.col(j).maxCoeff(&max_i);
@@ -217,23 +234,19 @@ bool XView::localize(const Graph& query_graph, Eigen::Vector3d* position) {
       continue;
     if (!invalid_matches(j)) {
       const double similarity = similarity_matrix(max_i, j);
-      const VertexProperty& match_v_p = global_graph[max_i];
-      matched_positions.push_back({match_v_p.location_3d, similarity});
+      const VertexProperty& vertex_query = query_graph[j];
+      const VertexProperty& vertex_global = global_graph[max_i];
+      graph_localizer.addVertexVertexMeasurement(vertex_query, vertex_global,
+                                                 similarity);
     }
   }
 
-  Eigen::Vector3d estimated_position = Eigen::Vector3d::Zero();
-  float total_weight = 0.f;
+  SE3 transformation;
+  bool localized = graph_localizer.localize2(matching_result, query_graph,
+                                            global_graph, &transformation);
+  (*position) = transformation.getPosition();
 
-  for(const WeightedPosition& w_p : matched_positions) {
-    estimated_position += w_p.position * w_p.weight;
-    total_weight += w_p.weight;
-  }
-  estimated_position /= total_weight;
-
-  (*position) = estimated_position;
-  return true;
-
+  return localized;
 }
 
 void XView::printInfo() const {

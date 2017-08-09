@@ -66,11 +66,13 @@ class XView {
    * \brief Localizes the graph passed as argument by matching it against the
    * global semantic graph.
    * \param query_graph Semantic graph which is localized.
+   * \param pose_ids PosesIds of robot, assumed to be in consecutive order.
    * \param position An estimation of the pose of the query graph passed as
    * argument.
    * \return Success in localization.
    */
-  bool localize(const Graph& query_graph, Eigen::Vector3d* position);
+  bool localize(const Graph& query_graph, std::vector<x_view::PoseId> pose_ids,
+                Eigen::Vector3d* position);
 
  private:
   /// \brief Prints XView info.
