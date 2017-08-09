@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
   for(int i = start_frame; i < end_frame - local_graph_steps;) {
     if(!pause.isPaused()) {
       std::pair<Eigen::Vector3d, Eigen::Vector3d> locations;
-      bool localized =  bag_reader.localize_graph(x_view_ros::CAMERA::BACK, i,
+      bool localized =  bag_reader.localize_graph2(x_view_ros::CAMERA::BACK, i,
                                                   local_graph_steps, &locations);
       if(localized) {
         std::cout << "Estimation: " << Eigen::RowVector3d(locations.first)
