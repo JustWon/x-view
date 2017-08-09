@@ -92,9 +92,9 @@ bool GraphLocalizer::localize(
     const gtsam::Point3 robot_position =
         results.at<gtsam::Point3>(gtsam::Symbol ('r', 0));
 
-    const Eigen::Vector3d computed_robot_pose(robot_position[0],
-                                              robot_position[1],
-                                              robot_position[2]);
+    const Eigen::Vector3d computed_robot_pose(robot_position.x(),
+                                              robot_position.y(),
+                                              robot_position.z());
     transformation->setIdentity();
     transformation->getPosition() = computed_robot_pose;
     return true;
