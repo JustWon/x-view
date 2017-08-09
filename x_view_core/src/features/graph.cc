@@ -39,7 +39,7 @@ bool addEdgeBetweenVertices(const VertexDescriptor& v_1_d,
     const VertexProperty& v_1_p = (*graph)[v_1_d];
     const VertexProperty& v_2_p = (*graph)[v_2_d];
     const uint64_t num_times_seen = 1;
-    boost::add_edge(v_1_d, v_2_d, {v_1_p.index, v_2_p.index, num_times_seen},
+    boost::add_edge(v_1_d, v_2_d, {v_1_p.index,v_2_p.index, num_times_seen},
                     *graph);
     return true;
   }

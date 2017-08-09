@@ -26,7 +26,7 @@ GraphMerger::GraphMerger(const Graph& database_graph,
             << graph_merger_parameters_.distance_threshold << ".";
 
   // Define start vertex index of vertices being added to the merged graph.
-  current_vertex_index_ = std::numeric_limits<int>::min();
+  current_vertex_index_ = 0;
   const auto db_vertices = boost::vertices(database_graph_);
   for (auto iter = db_vertices.first; iter != db_vertices.second; ++iter)
     current_vertex_index_ =
@@ -219,8 +219,7 @@ void GraphMerger::linkCloseVertices(Graph* graph,
     for(uint64_t j = i + 1; j < num_vertices; ++j) {
       const VertexProperty& v_p_j = (*graph)[j];
       if(distSquared(v_p_i, v_p_j) < max_link_distance_squared)
-        boost::add_edge(i, j, {int(i), int(j), 1}, *graph);
-      // FIXME type
+        boost::add_edge(i, j, {i, j, 1}, *graph);
     }
   }
 }
@@ -313,10 +312,10 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       // Since this edge links an already known vertex to a new entity, we
       // set its 'num_times_seen' property to 1.
       const uint64_t num_times_seen = 1;
-      auto edge_d =
-          boost::add_edge(source_in_db_graph, neighbor_in_db_graph,
-                          {source_v_p.index, neighbor_v_p.index,
-                           num_times_seen},  merged_graph_);
+      auto edge_d = boost::add_edge(source_in_db_graph, neighbor_in_db_graph,
+                                    {source_v_p.index, neighbor_v_p.index,
+                                      num_times_seen}, merged_graph_);
+
       LOG(INFO) << "\t\tsource index: " << source_v_p.index << ", target "
           "index: " << neighbor_v_p.index << ".";
       LOG(INFO) << "\t\tadded corresponding edge "
@@ -398,8 +397,8 @@ void GraphMerger::linkUnmatchedQueryGraph() {
     const VertexDescriptor from_in_merged = query_in_db_[from_in_query];
     const VertexDescriptor to_in_merged = query_in_db_[to_in_query];
 
-    const int from_index = merged_graph_[from_in_merged].index;
-    const int to_index = merged_graph_[to_in_merged].index;
+    const uint64_t from_index = merged_graph_[from_in_merged].index;
+    const uint64_t to_index = merged_graph_[to_in_merged].index;
 
     // Since this edge comes from the query graph, we set its num_times_seen
     // property to 1.
@@ -457,17 +456,17 @@ void GraphMerger::linkUnmatchedQueryGraph() {
   // Iterate over each pair of components and determine the closest pair of
   // vertices to be connected.
   real_t min_distance_square = std::numeric_limits<real_t>::max();
-  EdgeProperty closest_v_d_pair = {-1, -1};
+  EdgeProperty closest_v_d_pair = {0, 0};
   for (auto first_component = unique_components.begin();
        first_component != unique_components.end(); ++first_component) {
     const int first_component_id = *first_component;
     for (auto second_component = std::next(first_component);
          second_component != unique_components.end(); ++second_component) {
       const int second_component_id = *second_component;
-      for (int i = 0; i < num_vertices; ++i) {
+      for (uint64_t i = 0; i < num_vertices; ++i) {
         if (components[i] == first_component_id) {
           const VertexProperty& v_p_i = merged_graph_[i];
-          for (int j = 0; j < num_vertices; ++j) {
+          for (uint64_t j = 0; j < num_vertices; ++j) {
             if (components[j] == second_component_id) {
               const VertexProperty& v_p_j = merged_graph_[j];
               real_t dist2 = distSquared(v_p_i, v_p_j);
@@ -483,7 +482,7 @@ void GraphMerger::linkUnmatchedQueryGraph() {
       }
     }
   }
-  CHECK(closest_v_d_pair.from != -1 && closest_v_d_pair.to != -1)
+  CHECK(closest_v_d_pair.from != 0 || closest_v_d_pair.to != 0)
   << "Function " << __FUNCTION__ << " could not determine which "
   << "vertices are the closest pair in the disconnected graph "
   << "between component.";
