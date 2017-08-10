@@ -39,15 +39,14 @@ void generatePointsOnLine(const uint64_t N, const uint64_t D,
 }
 
 void testKNN(const x_view::MatrixXr& points, const x_view::Vector3r& query,
-             const std::vector<uint64_t>& expected_indices) {
+             const std::vector<int>& expected_indices) {
 
   CHECK(points.rows() == query.rows());
 
   const uint64_t D = points.rows();
   const uint64_t K = expected_indices.size();
 
-  NNSearch* knn_tree =
-      Nabo::NearestNeighbourSearch::createKDTreeLinearHeap(points, D);
+  NNSearch* knn_tree = NNSearch::createKDTreeLinearHeap(points, D);
 
   IndexVector indices;
   DistanceVector distances;
