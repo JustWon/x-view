@@ -51,7 +51,7 @@ void testDuplicatesChain() {
       const uint64_t linked_v_d = boost::random_vertex(database_graph, rng);
       const x_view::VertexProperty& linked_v_p = database_graph[linked_v_d];
       const x_view::EdgeProperty linked_e_p{
-          mergeable_v_p.index,linked_v_p.index, num_times_seen
+          mergeable_v_p.index, linked_v_p.index, num_times_seen
       };
       if(new_v_d != linked_v_d && boost::edge(new_v_d, linked_v_d,
                                               database_graph).second == false) {
