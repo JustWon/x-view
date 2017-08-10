@@ -139,13 +139,14 @@ x_view::Graph generateChainGraph(const GraphConstructionParams& params) {
   }
   // Add edges between each pair of consequent vertices.
   const uint64_t num_times_seen = 1;
-  for (int i = 0; i < params.num_vertices - 1; ++i) {
+  for (uint64_t i = 0; i < params.num_vertices - 1; ++i) {
     boost::add_edge(vertex_descriptors[i], vertex_descriptors[i + 1],
                     {i, i + 1, num_times_seen}, graph);
   }
   // Close the loop.
   boost::add_edge(vertex_descriptors.back(), vertex_descriptors.front(),
-                  {params.num_vertices - 1, 0, num_times_seen}, graph);
+                  {uint64_t(params.num_vertices - 1), 0, num_times_seen},
+                  graph);
 
   return graph;
 }

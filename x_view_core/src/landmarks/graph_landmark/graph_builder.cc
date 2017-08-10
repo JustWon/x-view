@@ -48,8 +48,8 @@ Graph GraphBuilder::extractSemanticGraphOnSemanticImage(
                                 &blob_vector);
 
   // Create the edges between nodes sharing an edge.
-  for (int i = 0; i < blob_vector.size(); ++i) {
-    for (int j = i + 1; j < blob_vector.size(); ++j) {
+  for (uint64_t i = 0; i < blob_vector.size(); ++i) {
+    for (uint64_t j = i + 1; j < blob_vector.size(); ++j) {
 
       const Blob* bi = blob_vector[i];
       const Blob* bj = blob_vector[j];
@@ -168,7 +168,7 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
   blob_vector->clear();
 
   // Each blob is a graph node
-  int blob_count = 0;
+  uint64_t blob_count = 0;
   for (int c = 0; c < blobs.size(); ++c) {
     for (const Blob& blob : blobs[c]) {
       blob_vector->push_back(&blob);
@@ -199,7 +199,7 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
   }
 }
 
-VertexProperty GraphBuilder::blobToGraphVertex(const int index,
+VertexProperty GraphBuilder::blobToGraphVertex(const uint64_t index,
                                                const Blob& blob) {
   const auto& dataset = Locator::getDataset();
 
@@ -229,17 +229,17 @@ void GraphBuilder::connectComponentsInImage(Graph* graph,
   // Iterate over each pair of components and determine the closest pair of
   // vertices to be connected.
   int min_distance_square = std::numeric_limits<int>::max();
-  EdgeProperty closest_v_d_pair = {-1, -1};
+  EdgeProperty closest_v_d_pair = {0, 0};
   for (auto first_component = unique_components.begin();
        first_component != unique_components.end(); ++first_component) {
     const int first_component_id = *first_component;
     for (auto second_component = std::next(first_component);
          second_component != unique_components.end(); ++second_component) {
       const int second_component_id = *second_component;
-      for (int i = 0; i < num_vertices; ++i) {
+      for (uint64_t i = 0; i < num_vertices; ++i) {
         if (component[i] == first_component_id) {
           const cv::Point2i& center_i = (*graph)[i].center;
-          for (int j = 0; j < num_vertices; ++j) {
+          for (uint64_t j = 0; j < num_vertices; ++j) {
             if (component[j] == second_component_id) {
               const cv::Point2i& center_j = (*graph)[j].center;
               int dist2 = distSquared(center_i, center_j);
@@ -255,7 +255,7 @@ void GraphBuilder::connectComponentsInImage(Graph* graph,
       }
     }
   }
-  CHECK(closest_v_d_pair.from != -1 && closest_v_d_pair.to != -1)
+  CHECK(closest_v_d_pair.from != 0 || closest_v_d_pair.to != 0)
   << "Function " << __FUNCTION__ << " could not determine which "
   << "vertices are the closest pair in the disconnected graph "
   << "between component.";
@@ -285,17 +285,17 @@ void GraphBuilder::connectComponentsInSpace(Graph* graph,
   // Iterate over each pair of components and determine the closest pair of
   // vertices to be connected.
   real_t min_distance_square = std::numeric_limits<real_t>::max();
-  EdgeProperty closest_v_d_pair = {-1, -1};
+  EdgeProperty closest_v_d_pair = {0, 0};
   for (auto first_component = unique_components.begin();
        first_component != unique_components.end(); ++first_component) {
     const int first_component_id = *first_component;
     for (auto second_component = std::next(first_component);
          second_component != unique_components.end(); ++second_component) {
       const int second_component_id = *second_component;
-      for (int i = 0; i < num_vertices; ++i) {
+      for (uint64_t i = 0; i < num_vertices; ++i) {
         if (component[i] == first_component_id) {
           const VertexProperty& v_p_i = (*graph)[i];
-          for (int j = 0; j < num_vertices; ++j) {
+          for (uint64_t j = 0; j < num_vertices; ++j) {
             if (component[j] == second_component_id) {
               const VertexProperty& v_p_j = (*graph)[j];
               real_t dist2 = distSquared(v_p_i, v_p_j);
@@ -311,7 +311,7 @@ void GraphBuilder::connectComponentsInSpace(Graph* graph,
       }
     }
   }
-  CHECK(closest_v_d_pair.from != -1 && closest_v_d_pair.to != -1)
+  CHECK(closest_v_d_pair.from != 0 || closest_v_d_pair.to != 0)
   << "Function " << __FUNCTION__ << " could not determine which "
   << "vertices are the closest pair in the disconnected graph "
   << "between component.";
