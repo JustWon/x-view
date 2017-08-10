@@ -9,7 +9,7 @@ using namespace x_view;
 namespace x_view_test {
 
 /**
- * \brief This class implements tests to verify the simmetry and integrity of
+ * \brief This class implements tests to verify the symmetry and integrity of
  * the VertexSimilarity between two vertex descriptors (random walks)
  */
 class VertexSimilarityTest {
@@ -49,7 +49,7 @@ class VertexSimilarityTest {
    */
   void addWalkMap(const RandomWalker::WalkMap& walk_left,
                   const RandomWalker::WalkMap& walk_right,
-                  const float expected_score);
+                  const real_t expected_score);
 
   /// \brief Runs all tests for the walk maps contained in vertices_left_ and
   /// vertices_right_ respectively.
@@ -88,7 +88,7 @@ class VertexSimilarityTest {
 
   /// \brief Vector containing at position i the expected score between
   /// WalkMaps at position i in vertices_left_ and vertices_right respectively.
-  std::vector<float> expected_scores_;
+  std::vector<real_t> expected_scores_;
 
   /// \brief Similarity score type being used.
   VertexSimilarity::SCORE_TYPE score_type_;

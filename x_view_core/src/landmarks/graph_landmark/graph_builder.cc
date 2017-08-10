@@ -114,7 +114,7 @@ Graph GraphBuilder::extractSemanticGraphOn3DSpace(
       // Only create an edge between the two vertices if their Euclidean
       // distance is smaller than the threshold defined in tha parameters.
       auto euclideanDistance = [](const VertexProperty& v_p_1,
-                                  const VertexProperty& v_p_2) -> double {
+                                  const VertexProperty& v_p_2) -> real_t {
         return (v_p_1.location_3d - v_p_2.location_3d).norm();
       };
 
@@ -155,7 +155,7 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
   const cv::Mat& depth_image = frame_data.getDepthImage();
   const SE3& pose = frame_data.getPose();
 
-  const float max_depth_m =
+  const real_t max_depth_m =
       Locator::getParameters()->getChildPropertyList("landmark")->getFloat(
           "depth_clip", 10000.f
       );
@@ -176,9 +176,9 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
           GraphBuilder::blobToGraphVertex(blob_count++, blob);
       // Extract the depth associated to the vertex.
       const unsigned short depth_cm =
-      depth_image.at < unsigned
-      short > (vertex.center);
-      const double depth_m = depth_cm * 0.01;
+          depth_image.at<unsigned short>(vertex.center);
+      const real_t depth_m = depth_cm * 0.01;
+
       // If the projected center of the blob is too distant, set it as invalid.
       if (depth_m >= max_depth_m) {
         vertex_descriptors->push_back(INVALID_VERTEX_DESCRIPTOR);
@@ -221,8 +221,8 @@ void GraphBuilder::connectComponentsInImage(Graph* graph,
 
   const uint64_t num_vertices = boost::num_vertices(*graph);
 
-  auto distSquared = [](const cv::Point& p1, const cv::Point& p2) {
-    cv::Point d(p1 - p2);
+  auto distSquared = [](const cv::Point2i& p1, const cv::Point2i& p2) {
+    cv::Point2i d(p1 - p2);
     return d.x * d.x + d.y * d.y;
   };
 
@@ -238,10 +238,10 @@ void GraphBuilder::connectComponentsInImage(Graph* graph,
       const int second_component_id = *second_component;
       for (int i = 0; i < num_vertices; ++i) {
         if (component[i] == first_component_id) {
-          const cv::Point& center_i = (*graph)[i].center;
+          const cv::Point2i& center_i = (*graph)[i].center;
           for (int j = 0; j < num_vertices; ++j) {
             if (component[j] == second_component_id) {
-              const cv::Point& center_j = (*graph)[j].center;
+              const cv::Point2i& center_j = (*graph)[j].center;
               int dist2 = distSquared(center_i, center_j);
               if (dist2 < min_distance_square) {
                 min_distance_square = dist2;
@@ -278,13 +278,13 @@ void GraphBuilder::connectComponentsInSpace(Graph* graph,
   const uint64_t num_vertices = boost::num_vertices(*graph);
 
   auto distSquared = [](const VertexProperty& v_p_1,
-                        const VertexProperty& v_p_2) -> double {
+                        const VertexProperty& v_p_2) -> real_t {
     return (v_p_1.location_3d - v_p_2.location_3d).squaredNorm();
   };
 
   // Iterate over each pair of components and determine the closest pair of
   // vertices to be connected.
-  double min_distance_square = std::numeric_limits<double>::max();
+  real_t min_distance_square = std::numeric_limits<real_t>::max();
   EdgeProperty closest_v_d_pair = {-1, -1};
   for (auto first_component = unique_components.begin();
        first_component != unique_components.end(); ++first_component) {
@@ -298,7 +298,7 @@ void GraphBuilder::connectComponentsInSpace(Graph* graph,
           for (int j = 0; j < num_vertices; ++j) {
             if (component[j] == second_component_id) {
               const VertexProperty& v_p_j = (*graph)[j];
-              double dist2 = distSquared(v_p_i, v_p_j);
+              real_t dist2 = distSquared(v_p_i, v_p_j);
               if (dist2 < min_distance_square) {
                 min_distance_square = dist2;
                 closest_v_d_pair.from = i;

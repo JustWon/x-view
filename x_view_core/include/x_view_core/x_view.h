@@ -60,7 +60,7 @@ class XView {
    * \param position An estimation of the pose of the robot.
    * \return Success in localization.
    */
-  bool localizeFrame(const FrameData& frame_data, Eigen::Vector3d* position);
+  bool localizeFrame(const FrameData& frame_data, Vector3r* position);
 
   /**
    * \brief Localizes the graph passed as argument by matching it against the
@@ -70,7 +70,7 @@ class XView {
    * argument.
    * \return Success in localization.
    */
-  bool localizeGraph(const Graph& query_graph, Eigen::Vector3d* position);
+  bool localizeGraph(const Graph& query_graph, Vector3r* position);
 
  private:
   /// \brief Prints XView info.
@@ -84,7 +84,7 @@ class XView {
   /// from Locator::getParameters()->getChildPropertyList("landmark")->getString("type")
   void initializeLandmarkFactory();
 
-  /// \brief Initializes the matchert based on the value retrieved
+  /// \brief Initializes the matchers based on the value retrieved
   /// from Locator::getParameters()->getChildPropertyList("matcher")->getString("type")
   void initializeMatcher();
 

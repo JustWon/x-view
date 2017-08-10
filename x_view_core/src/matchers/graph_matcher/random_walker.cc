@@ -143,7 +143,7 @@ const VertexDescriptor RandomWalker::nextVertex(
     const VertexDescriptor previous_vertex_index) const {
 
   // Sample from a uniform probability distribution p \in [0,1).
-  const float p = random_distribution_(random_engine_);
+  const real_t p = random_distribution_(random_engine_);
 
   const uint64_t num_neighbor_vertices =
       boost::degree(current_vertex_index, graph_);

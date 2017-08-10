@@ -16,7 +16,7 @@ AbstractDataset::AbstractDataset(const int num_semantic_classes)
   }
 
   // Set up trivial camera-to-image rotation.
-  camera_to_image_rotation_ = Eigen::Matrix3d::Identity();
+  camera_to_image_rotation_ = Matrix3r::Identity();
 }
 
 cv::Mat AbstractDataset::convertSemanticImage(

@@ -82,11 +82,11 @@ void testDiscImage() {
                 << rows << " x " << cols << "] and " << num_disc << " discs.";
 
       cv::Mat disc_image;
-      std::vector<cv::Point> centers;
+      std::vector<cv::Point2i> centers;
       std::vector<int> radii, labels;
 
       for (int i = 0; i < num_disc; ++i) {
-        centers.push_back(cv::Point(rng.uniform(0, cols),
+        centers.push_back(cv::Point2i(rng.uniform(0, cols),
                                     rng.uniform(0, rows)));
         radii.push_back(std::max(15, rng.uniform(diag / 40, diag / 10)));
         labels.push_back(rng.uniform(1, num_classes));
@@ -197,7 +197,7 @@ void createCustomImage(const int desired_rows, const int desired_cols,
 }
 
 void createDiscImage(const int desired_rows, const int desired_cols,
-                     const std::vector<cv::Point>& centers,
+                     const std::vector<cv::Point2i>& centers,
                      const std::vector<int> radii,
                      const std::vector<int> labels, cv::Mat* image) {
 

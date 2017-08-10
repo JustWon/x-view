@@ -1,6 +1,8 @@
 #ifndef X_VIEW_GRAPH_H
 #define X_VIEW_GRAPH_H
 
+#include <x_view_core/x_view_types.h>
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/breadth_first_search.hpp>
@@ -34,7 +36,7 @@ struct VertexProperty {
   cv::Point2i center;
 
   /// \brief 3D location of this vertex expressed in world frame.
-  Eigen::Vector3d location_3d;
+  Vector3r location_3d;
 
   /// \brief Index referring to the last time this vertex has been observed.
   uint64_t last_time_seen_;

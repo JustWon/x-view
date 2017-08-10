@@ -36,9 +36,14 @@ HistogramLandmark::HistogramLandmark(const FrameData& frame_data)
   const int votes = std::accumulate(histogram_count.begin(),
                                     histogram_count.end(), int(0));
 
+#if X_VIEW_USE_DOUBLE_PRECISION
+  cv::Mat descriptor(1, dataset_size, CV_64FC1);
+#else
   cv::Mat descriptor(1, dataset_size, CV_32FC1);
+#endif
+
   for (int k = 0; k < dataset_size; ++k) {
-    descriptor.at<float>(k) = float(histogram_count[k]) / votes;
+    descriptor.at<real_t>(k) = real_t(histogram_count[k]) / votes;
   }
 
   // Create the descriptor stored in this landmark by generating a

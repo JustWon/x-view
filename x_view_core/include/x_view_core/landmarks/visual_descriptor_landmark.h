@@ -25,7 +25,7 @@ class VisualDescriptorLandmark : public AbstractSemanticLandmark {
   static int DEFAULT_NUM_VISUAL_FEATURES;
   /// \brief Hessian threshold value to use by the detector in case no
   /// parameter is provided.
-  static float DEFAULT_HESSIAN_THRESHOLD;
+  static real_t DEFAULT_HESSIAN_THRESHOLD;
 
   /// \brief Class responsible for extracting visual features.
   std::unique_ptr<cv::Feature2D> features_extractor;

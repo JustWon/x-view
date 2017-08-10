@@ -121,9 +121,9 @@ bool XViewBagReader::localizeFrame(const CAMERA camera_type,
   locations->second = real_pose.getPosition();
 
   if(localized) {
-    publishRobotPosition(locations->first, Eigen::Vector3d(1.0, 0.0, 0.0),
+    publishRobotPosition(locations->first, x_view::Vector3r(1.0, 0.0, 0.0),
                          trans.stamp_, "estimated_position");
-    publishRobotPosition(locations->second, Eigen::Vector3d(0.0, 1.0, 0.0),
+    publishRobotPosition(locations->second, x_view::Vector3r(0.0, 1.0, 0.0),
                          trans.stamp_, "true_position");
   }
   bag_.close();
@@ -158,7 +158,7 @@ bool XViewBagReader::localizeGraph(const CAMERA camera_type,
     x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
     local_x_view.processFrameData(frame_data);
     // Publish all ground truth poses that contribute to the estimation.
-    const Eigen::Vector3d ground_truth_color(0.15, 0.7, 0.15);
+    const x_view::Vector3r ground_truth_color(0.15, 0.7, 0.15);
     publishRobotPosition(pose.getPosition(), ground_truth_color, trans.stamp_,
                          "true_position_" +
                              x_view::PaddedInt(i - start_frame, 3).str());
@@ -168,7 +168,7 @@ bool XViewBagReader::localizeGraph(const CAMERA camera_type,
 
   bool localized = x_view_->localizeGraph(local_graph, &(locations->first));
 
-  const Eigen::Vector3d estimated_color(0.7, 0.15, 0.15);
+  const x_view::Vector3r estimated_color(0.7, 0.15, 0.15);
   publishRobotPosition(locations->first, estimated_color, time,
                        "estimated_position");
 
@@ -276,10 +276,10 @@ void XViewBagReader::tfTransformToSE3(const tf::StampedTransform& tf_transform,
 }
 
 
-void XViewBagReader::publishRobotPosition(const Eigen::Vector3d& pos,
-                                     const Eigen::Vector3d& color,
-                                     const ros::Time& stamp,
-                                     const std::string ns) {
+void XViewBagReader::publishRobotPosition(const x_view::Vector3r& pos,
+                                          const x_view::Vector3r& color,
+                                          const ros::Time& stamp,
+                                          const std::string ns) {
 
   visualization_msgs::Marker marker;
 
