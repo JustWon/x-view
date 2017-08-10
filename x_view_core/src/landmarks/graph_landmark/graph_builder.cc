@@ -76,7 +76,7 @@ Graph GraphBuilder::extractSemanticGraphOnSemanticImage(
   while(num_components > 1) {
     LOG(WARNING) << "Graph built upon semantic image presents "
                  << num_components << " disconnected components.";
-    connectComponentsInImage(&graph, component);
+    connectComponentsInImage(component, &graph);
     num_components = boost::connected_components(graph, &component[0]);
   }
   CHECK_EQ(num_components, 1)
@@ -132,7 +132,7 @@ Graph GraphBuilder::extractSemanticGraphOn3DSpace(
     LOG(WARNING) << "Graph built upon semantic image presents "
                  << num_components << " disconnected components over "
                  << boost::num_vertices(graph) << " vertices.";
-    connectComponentsInSpace(&graph, component);
+    connectComponentsInSpace(component, &graph);
     num_components = boost::connected_components(graph, &component[0]);
   }
 
@@ -205,13 +205,13 @@ VertexProperty GraphBuilder::blobToGraphVertex(const uint64_t index,
 
   const int semantic_label = blob.semantic_label;
   const std::string label = dataset->label(semantic_label);
-  const int size = blob.num_pixels;
+  const uint64_t size = blob.num_pixels;
   const cv::Point2i center = blob.pixel_center;
   return VertexProperty{index, semantic_label, label, size, center};
 }
 
-void GraphBuilder::connectComponentsInImage(Graph* graph,
-                                            const std::vector<int>& component) {
+void GraphBuilder::connectComponentsInImage(const std::vector<int>& component,
+                                           Graph* graph) {
 
   std::vector<int> unique_components(component);
   std::sort(unique_components.begin(), unique_components.end());
@@ -266,8 +266,8 @@ void GraphBuilder::connectComponentsInImage(Graph* graph,
 }
 
 
-void GraphBuilder::connectComponentsInSpace(Graph* graph,
-                                            const std::vector<int>& component) {
+void GraphBuilder::connectComponentsInSpace(const std::vector<int>& component,
+                                           Graph* graph) {
 
   std::vector<int> unique_components(component);
   std::sort(unique_components.begin(), unique_components.end());

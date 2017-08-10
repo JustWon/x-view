@@ -26,7 +26,7 @@ void testDiscImage();
  * 'pixelCount[i]' contains the number of pixels in 'image' having label 'i'.
  */
 void countPixelLabelsInImage(const cv::Mat& image,
-                             std::vector<int>& pixel_count);
+                             std::vector<uint64_t>& pixel_count);
 
 /**
  * \brief Checks if the number of pixels for each class 'i' in 'image' is the

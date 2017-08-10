@@ -205,7 +205,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   if(should_merge_duplicates) {
     const real_t merge_distance =
         matching_parameters->getFloat("merge_distance", 0.1f);
-    GraphMerger::mergeDuplicates(&global_semantic_graph_, merge_distance);
+    GraphMerger::mergeDuplicates(merge_distance, &global_semantic_graph_);
   }
   // Add edges between close vertices of the new global semantic graph in
   const bool should_link_vertices =
@@ -213,7 +213,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   if(should_link_vertices) {
     const real_t max_link_distance =
         matching_parameters->getFloat("max_link_distance");
-    GraphMerger::linkCloseVertices(&global_semantic_graph_, max_link_distance);
+    GraphMerger::linkCloseVertices(max_link_distance, &global_semantic_graph_);
   }
 
   // Regenerate the random walks of the new global graph

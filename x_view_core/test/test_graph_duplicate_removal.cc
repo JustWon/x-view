@@ -70,7 +70,7 @@ void testDuplicatesChain() {
   x_view::writeToFile(database_graph, output_path + "removal_before.dot");
 
   const x_view::real_t merge_distance = 0.2;
-  x_view::GraphMerger::mergeDuplicates(&database_graph, merge_distance);
+  x_view::GraphMerger::mergeDuplicates(merge_distance, &database_graph);
   x_view::writeToFile(database_graph, output_path + "removal_after.dot");
 }
 

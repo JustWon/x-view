@@ -85,27 +85,27 @@ class GraphMerger {
    * \brief This function cleans the graph passed as argument by merging
    * together all pairs of vertices which fulfill proximity/similarity
    * properties.
-   * \param graph Graph to be cleaned.
    * \param merge_distance Vertices whose Euclidean distance is larger than
    * this parameter are not merged together.
+   * \param graph Graph to be cleaned.
    * \details Given two vertices v_1 and v_2, if their euclidean distance is
    * small enough, and their semantic label is identical, this function
    * merges them together. The resulting vertex v_m is a vertex whose edges
    * correspond to the union of the edges of v_1 and v_2.
    */
-  static void mergeDuplicates(Graph* graph, const real_t merge_distance);
+  static void mergeDuplicates(const real_t merge_distance, Graph* graph);
 
   /**
    * \brief This function creates an edge between each pair of vertices
    * belonging to the graph passed as argument whose Euclidean distance is
    * smaller than the parameter passed as argument.
-   * \param graph Graph to be modified by adding edges where necessary.
-   * \param max_link_distance Parameter specifiying which vertex pair should
+   * \param max_link_distance Parameter specifying which vertex pair should
    * be linked together by a new edge. If vertex v_i and vertex v_j have a
    * lie at a distance closer than this parameter, a new edge (if non
    * existing) is added to the graph linking them.
+   * \param graph Graph to be modified by adding edges where necessary.
    */
-  static void linkCloseVertices(Graph* graph, const real_t max_link_distance);
+  static void linkCloseVertices(const real_t max_link_distance, Graph* graph);
 
   /**
    * \brief Function to test if the vertices associated to the vertex

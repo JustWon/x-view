@@ -93,7 +93,7 @@ const Graph GraphMerger::computeMergedGraph() {
 }
 
 
-void GraphMerger::mergeDuplicates(Graph* graph, const real_t merge_distance) {
+void GraphMerger::mergeDuplicates(const real_t merge_distance, Graph* graph) {
 
   LOG(INFO) << "Merging all vertices with same semantic label whose euclidean "
             << "distance is smaller than " << merge_distance << ".";
@@ -201,8 +201,7 @@ void GraphMerger::mergeDuplicates(Graph* graph, const real_t merge_distance) {
   }
 }
 
-void GraphMerger::linkCloseVertices(Graph* graph,
-                                    const real_t max_link_distance) {
+void GraphMerger::linkCloseVertices(const real_t max_link_distance, Graph* graph) {
   const uint64_t num_vertices = boost::num_vertices(*graph);
   const real_t max_link_distance_squared =
       max_link_distance * max_link_distance;
