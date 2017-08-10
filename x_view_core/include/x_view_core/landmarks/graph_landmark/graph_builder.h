@@ -133,7 +133,7 @@ class GraphBuilder {
    * \return A graph node containing the relevant information extracted from
    * the blob passed as argument.
    */
-  static VertexProperty blobToGraphVertex(const int index,
+  static VertexProperty blobToGraphVertex(const uint64_t index,
                                           const Blob& blob);
 
   /**

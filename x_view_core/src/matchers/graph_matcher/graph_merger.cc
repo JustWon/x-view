@@ -68,7 +68,7 @@ const Graph GraphMerger::computeMergedGraph() {
   }
 
   // Define start vertex index of vertices being added to the merged graph.
-  current_vertex_index_ = std::numeric_limits<int>::min();
+  current_vertex_index_ = 0;
   const auto db_vertices = boost::vertices(database_graph_);
   for (auto iter = db_vertices.first; iter != db_vertices.second; ++iter)
     current_vertex_index_ =

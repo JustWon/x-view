@@ -216,7 +216,7 @@ GraphPair generateChainGraphPair(const GraphConstructionParams& construction_par
   // existing ones: newly existing vertices have indices starting at the
   // maximal value of the base graph indices. In this way there are no two
   // vertices with the same index.
-  int max_index = std::numeric_limits<int>::min();
+  uint64_t max_index = 0;
   const auto vertices = boost::vertices(graph_pair.base_graph);
   for(auto iter = vertices.first; iter != vertices.second; ++iter) {
     max_index = std::max(max_index, graph_pair.base_graph[*iter].index);
@@ -259,7 +259,7 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
   // existing ones: newly existing vertices have indices starting at the
   // maximal value of the base graph indices. In this way there are no two
   // vertices with the same index.
-  int max_index = std::numeric_limits<int>::min();
+  uint64_t max_index = 0;
   const auto vertices = boost::vertices(graph_pair.base_graph);
   for(auto iter = vertices.first; iter != vertices.second; ++iter) {
     max_index = std::max(max_index, graph_pair.base_graph[*iter].index);

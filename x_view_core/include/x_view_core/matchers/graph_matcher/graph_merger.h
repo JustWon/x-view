@@ -157,7 +157,7 @@ class GraphMerger {
   std::unordered_map<VertexDescriptor, VertexDescriptor> query_in_db_;
 
   /// \brief Index assigned to the vertices being added to the merged graph.
-  int current_vertex_index_;
+  uint64_t current_vertex_index_;
 
   /// \brief Vector containign references to vertices belonging to the query
   /// graph which have been matched to a vertex of the database graph.
