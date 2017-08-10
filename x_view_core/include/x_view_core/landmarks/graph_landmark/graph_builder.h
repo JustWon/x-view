@@ -141,12 +141,12 @@ class GraphBuilder {
    * function iterates over all possible pairs of vertices belonging to the
    * different components and creates an edge between the vertices with
    * smallest euclidean distance computed on the image.
-   * \param graph Pointer to graph to be connected.
    * \param component Vector indicating for each vertex to which component it
    * belongs.
+   * \param graph Pointer to graph to be connected.
    */
-  static void connectComponentsInImage(
-      Graph* graph, const std::vector<int>& component);
+  static void connectComponentsInImage(const std::vector<int>& component,
+                                       Graph* graph);
 
 
   /**
@@ -154,12 +154,12 @@ class GraphBuilder {
    * function iterates over all possible pairs of vertices belonging to the
    * different components and creates an edge between the vertices with
    * smallest euclidean distance computed in 3D space.
-   * \param graph Pointer to graph to be connected.
    * \param component Vector indicating for each vertex to which component it
    * belongs.
+   * \param graph Pointer to graph to be connected.
    */
-  static void connectComponentsInSpace(
-      Graph* graph, const std::vector<int>& component);
+  static void connectComponentsInSpace(const std::vector<int>& component,
+                                       Graph* graph);
 
 };
 

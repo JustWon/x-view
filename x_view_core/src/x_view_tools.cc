@@ -138,6 +138,23 @@ const real_t Statistics::std() const {
   return std::sqrt(sum_squared_ / num_samples_ - m * m);
 }
 
+const real_t distSquared(const Vector3r& v1, const Vector3r& v2) {
+  return (v1 - v2).squaredNorm();
+}
+
+const real_t distSquared(const VertexProperty& v_p1,
+                         const VertexProperty& v_p2) {
+  return distSquared(v_p1.location_3d, v_p2.location_3d);
+}
+
+const real_t dist(const Vector3r& v1, const Vector3r& v2) {
+  return (v1 - v2).norm();
+}
+
+const real_t dist(const VertexProperty& v_p1, const VertexProperty& v_p2) {
+  return dist(v_p1.location_3d, v_p2.location_3d);
+}
+
 // ******************************* Logging ***********************************//
 
 const std::string& getRootDirectory() {

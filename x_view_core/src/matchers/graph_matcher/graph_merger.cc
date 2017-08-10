@@ -1,5 +1,7 @@
 #include <x_view_core/matchers/graph_matcher/graph_merger.h>
 
+#include <x_view_core/matchers/graph_matcher.h>
+#include <x_view_core/x_view_tools.h>
 #include <x_view_core/x_view_locator.h>
 
 #include <boost/graph/connected_components.hpp>
@@ -47,9 +49,9 @@ const Graph GraphMerger::computeMergedGraph() {
   query_in_db_.clear();
 
   // Loop over the vertices of the query graph.
-  for (int j = 0; j < num_query_vertices; ++j) {
+  for (uint64_t j = 0; j < num_query_vertices; ++j) {
     // Loop over the vertices of the database graph.
-    for (int i = 0; i < num_db_vertices; ++i) {
+    for (uint64_t i = 0; i < num_db_vertices; ++i) {
       // Check if the two vertices are possible matches.
       if (similarity_matrix(i, j)
           >= graph_merger_parameters_.similarity_threshold &&
@@ -95,7 +97,7 @@ const Graph GraphMerger::computeMergedGraph() {
 }
 
 
-void GraphMerger::mergeDuplicates(Graph* graph, const real_t merge_distance) {
+void GraphMerger::mergeDuplicates(const real_t merge_distance, Graph* graph) {
 
   LOG(INFO) << "Merging all vertices with same semantic label whose euclidean "
             << "distance is smaller than " << merge_distance << ".";
@@ -203,16 +205,10 @@ void GraphMerger::mergeDuplicates(Graph* graph, const real_t merge_distance) {
   }
 }
 
-void GraphMerger::linkCloseVertices(Graph* graph,
-                                    const real_t max_link_distance) {
+void GraphMerger::linkCloseVertices(const real_t max_link_distance, Graph* graph) {
   const uint64_t num_vertices = boost::num_vertices(*graph);
   const real_t max_link_distance_squared =
       max_link_distance * max_link_distance;
-
-  auto distSquared = [](const VertexProperty& v_p_1,
-                        const VertexProperty& v_p_2) -> real_t {
-    return (v_p_1.location_3d - v_p_2.location_3d).squaredNorm();
-  };
 
   for(uint64_t i = 0; i < num_vertices; ++i) {
     const VertexProperty& v_p_i = (*graph)[i];
@@ -241,8 +237,7 @@ const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
 
   // Spatial consistency: only merge vertices if their Euclidean distance is
   // smaller than the merge_distance parameter passed as argument.
-  if ((v_p_1.location_3d - v_p_2.location_3d).squaredNorm() >
-      merge_distance * merge_distance)
+  if (distSquared(v_p_1, v_p_2) > merge_distance * merge_distance)
     return false;
 
   // Since all tests are fulfilled, the two vertices should be merged.
@@ -379,7 +374,6 @@ void GraphMerger::linkUnmatchedQueryGraph() {
   // merged_graph_ and update their index.
   const auto query_vertices = boost::vertices(query_graph_);
   for(auto iter = query_vertices.first; iter != query_vertices.second; ++iter) {
-
     const VertexDescriptor vertex_in_query_graph = *iter;
     VertexProperty v_p = query_graph_[*iter];
     v_p.index = current_vertex_index_++;
@@ -422,12 +416,12 @@ void GraphMerger::linkUnmatchedQueryGraph() {
   const real_t merge_distance =
       matching_parameters->getFloat("merge_distance", 1.0f);
 
-  mergeDuplicates(&merged_graph_, merge_distance);
+  mergeDuplicates(merge_distance, &merged_graph_);
 
   // Create new edges between close vertices.
   const real_t max_link_distance =
       matching_parameters->getFloat("max_link_distance");
-  linkCloseVertices(&merged_graph_, max_link_distance);
+  linkCloseVertices(max_link_distance, &merged_graph_);
 
   // Check for disconnected components.
   components.resize(boost::num_vertices(merged_graph_));
@@ -447,11 +441,6 @@ void GraphMerger::linkUnmatchedQueryGraph() {
                           unique_components.end());
 
   const uint64_t num_vertices = boost::num_vertices(merged_graph_);
-
-  auto distSquared = [](const VertexProperty& v_p_1,
-                        const VertexProperty& v_p_2) -> real_t {
-    return (v_p_1.location_3d - v_p_2.location_3d).squaredNorm();
-  };
 
   // Iterate over each pair of components and determine the closest pair of
   // vertices to be connected.
@@ -510,7 +499,7 @@ const {
   const VertexProperty& v_i_database = database_graph_[i];
   const VertexProperty& v_j_query = query_graph_[j];
 
-  return (v_j_query.location_3d - v_i_database.location_3d).norm();
+  return dist(v_j_query, v_i_database);
 }
 
 }

@@ -16,7 +16,7 @@ void testLocalization(const int num_tests, const int num_observations,
   std::mt19937 rng(seed);
   // Set the bounding box for random coordinate generation.
   const x_view::real_t bound = 30.0;
-  std::uniform_real_distribution<x_view::real_t> dist(-bound, bound);
+  std::uniform_real_distribution<x_view::real_t> distr(-bound, bound);
 
   // Test tolerance for distance between real robot pose and estimated pose.
   const x_view::real_t tol = 0.01;
@@ -25,7 +25,7 @@ void testLocalization(const int num_tests, const int num_observations,
 
     // Real robot position.
     x_view::Vector3r robot_position;
-    robot_position << dist(rng), dist(rng), dist(rng);
+    robot_position << distr(rng), distr(rng), distr(rng);
 
     x_view::GraphLocalizer graph_localizer;
 
@@ -34,7 +34,7 @@ void testLocalization(const int num_tests, const int num_observations,
     // Add the observations to the graph_localizer.
     for(int o = 0; o < num_observations; ++o) {
       x_view::VertexProperty vertex;
-      vertex.location_3d << dist(rng), dist(rng), dist(rng);
+      vertex.location_3d << distr(rng), distr(rng), distr(rng);
       x_view::real_t distance =
           (rot*(vertex.location_3d - robot_position)).norm();
 

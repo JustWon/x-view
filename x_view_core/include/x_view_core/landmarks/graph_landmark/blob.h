@@ -31,7 +31,7 @@ class Blob {
   std::vector<std::vector<cv::Point2i>> internal_contour_pixels;
 
   /// \brief Number of pixels in this blob.
-  int num_pixels;
+  uint64_t num_pixels;
 
   /// \brief Pixel representing the center of the blob.
   cv::Point2i pixel_center;
@@ -66,7 +66,7 @@ class Blob {
 
   /// \brief Computes the number of pixels belonging to the blob.
   void computeArea() {
-    num_pixels = static_cast<int>(c_blob_.Area(AreaMode::PIXELWISE));
+    num_pixels = static_cast<uint64_t>(c_blob_.Area(AreaMode::PIXELWISE));
   }
 
   /// \brief Computes the external bounding boxes of the blob. The bounding

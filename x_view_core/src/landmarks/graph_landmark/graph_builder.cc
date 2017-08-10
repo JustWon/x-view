@@ -3,6 +3,7 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
 #include <x_view_core/landmarks/graph_landmark/depth_projector.h>
+#include <x_view_core/x_view_tools.h>
 
 #include <boost/graph/connected_components.hpp>
 
@@ -76,7 +77,7 @@ Graph GraphBuilder::extractSemanticGraphOnSemanticImage(
   while(num_components > 1) {
     LOG(WARNING) << "Graph built upon semantic image presents "
                  << num_components << " disconnected components.";
-    connectComponentsInImage(&graph, component);
+    connectComponentsInImage(component, &graph);
     num_components = boost::connected_components(graph, &component[0]);
   }
   CHECK_EQ(num_components, 1)
@@ -111,14 +112,7 @@ Graph GraphBuilder::extractSemanticGraphOn3DSpace(
       // property is updated in the global semantic graph during graph merging.
       const uint64_t num_times_seen = 1;
 
-      // Only create an edge between the two vertices if their Euclidean
-      // distance is smaller than the threshold defined in tha parameters.
-      auto euclideanDistance = [](const VertexProperty& v_p_1,
-                                  const VertexProperty& v_p_2) -> real_t {
-        return (v_p_1.location_3d - v_p_2.location_3d).norm();
-      };
-
-      if (euclideanDistance(vi, vj) <= params.max_euclidean_distance)
+      if (dist(vi, vj) <= params.max_euclidean_distance)
         boost::add_edge(i, j, {i, j, num_times_seen}, graph);
     }
   }
@@ -132,7 +126,7 @@ Graph GraphBuilder::extractSemanticGraphOn3DSpace(
     LOG(WARNING) << "Graph built upon semantic image presents "
                  << num_components << " disconnected components over "
                  << boost::num_vertices(graph) << " vertices.";
-    connectComponentsInSpace(&graph, component);
+    connectComponentsInSpace(component, &graph);
     num_components = boost::connected_components(graph, &component[0]);
   }
 
@@ -205,13 +199,13 @@ VertexProperty GraphBuilder::blobToGraphVertex(const uint64_t index,
 
   const int semantic_label = blob.semantic_label;
   const std::string label = dataset->label(semantic_label);
-  const int size = blob.num_pixels;
+  const uint64_t size = blob.num_pixels;
   const cv::Point2i center = blob.pixel_center;
   return VertexProperty{index, semantic_label, label, size, center};
 }
 
-void GraphBuilder::connectComponentsInImage(Graph* graph,
-                                            const std::vector<int>& component) {
+void GraphBuilder::connectComponentsInImage(const std::vector<int>& component,
+                                           Graph* graph) {
 
   std::vector<int> unique_components(component);
   std::sort(unique_components.begin(), unique_components.end());
@@ -266,8 +260,8 @@ void GraphBuilder::connectComponentsInImage(Graph* graph,
 }
 
 
-void GraphBuilder::connectComponentsInSpace(Graph* graph,
-                                            const std::vector<int>& component) {
+void GraphBuilder::connectComponentsInSpace(const std::vector<int>& component,
+                                           Graph* graph) {
 
   std::vector<int> unique_components(component);
   std::sort(unique_components.begin(), unique_components.end());
@@ -276,11 +270,6 @@ void GraphBuilder::connectComponentsInSpace(Graph* graph,
                           unique_components.end());
 
   const uint64_t num_vertices = boost::num_vertices(*graph);
-
-  auto distSquared = [](const VertexProperty& v_p_1,
-                        const VertexProperty& v_p_2) -> real_t {
-    return (v_p_1.location_3d - v_p_2.location_3d).squaredNorm();
-  };
 
   // Iterate over each pair of components and determine the closest pair of
   // vertices to be connected.

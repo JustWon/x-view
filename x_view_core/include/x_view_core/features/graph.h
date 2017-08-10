@@ -30,7 +30,7 @@ struct VertexProperty {
   std::string semantic_entity_name;
 
   /// \brief Number of pixels contained in this vertex/blob.
-  int num_pixels;
+  uint64_t num_pixels;
 
   /// \brief Blob center.
   cv::Point2i center;

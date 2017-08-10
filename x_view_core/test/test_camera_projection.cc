@@ -1,6 +1,7 @@
 #include "test_camera_projection.h"
 
 #include <x_view_core/landmarks/graph_landmark/depth_projector.h>
+#include <x_view_core/x_view_tools.h>
 
 #include <glog/logging.h>
 
@@ -82,7 +83,7 @@ void testRandomCameraPose() {
     x_view::SE3 pose(q, robot_position);
 
     const x_view::real_t depth =
-        (object_in_world_coordinates - robot_position).norm();
+        x_view::dist(object_in_world_coordinates, robot_position);
 
     x_view::DepthProjector projector(pose, intrinsics);
 

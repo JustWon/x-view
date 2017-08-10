@@ -8,7 +8,7 @@ IF (NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE "Release")
 ENDIF (NOT CMAKE_BUILD_TYPE)
 
-message(STATUS "Building XView in ${CMAKE_BUILD_TYPE} mode.")
+message(STATUS "Building XView Node in ${CMAKE_BUILD_TYPE} mode.")
 
 IF (CMAKE_BUILD_TYPE MATCHES Debug)
     add_definitions(-DX_VIEW_DEBUG)

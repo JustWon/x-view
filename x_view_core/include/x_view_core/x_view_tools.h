@@ -79,6 +79,18 @@ class Statistics {
   uint64_t num_samples_;
 };
 
+/// \brief Computes the squared distance between two points in 3D space.
+const real_t distSquared(const Vector3r& v1, const Vector3r& v2);
+
+/// \brief Computes the squared distance between two graph vertices in 3D space.
+const real_t distSquared(const VertexProperty& v_p1, const VertexProperty& v_p2);
+
+/// \brief Computes the distance between two points in 3D space.
+const real_t dist(const Vector3r& v1, const Vector3r& v2);
+
+/// \brief Computes the distance between two graph vertices in 3D space.
+const real_t dist(const VertexProperty& v_p1, const VertexProperty& v_p2);
+
 // ******************************* Logging ***********************************//
 /**
  * \brief Stringification macros used to transform preprocessor strings into

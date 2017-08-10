@@ -124,7 +124,7 @@ void testDiscImage() {
 }
 
 void countPixelLabelsInImage(const cv::Mat& image,
-                             std::vector<int>& pixel_count) {
+                             std::vector<uint64_t>& pixel_count) {
   const auto& dataset = Locator::getDataset();
   pixel_count.clear();
   pixel_count.resize(dataset->numSemanticClasses());
@@ -140,12 +140,12 @@ void testPixelCount(const GraphLandmarkPtr& graph_landmark_ptr,
                     const std::string& imageName) {
 
   // vector counting explicitly the number of pixels
-  std::vector<int> expected_pixel_count;
+  std::vector<uint64_t> expected_pixel_count;
   countPixelLabelsInImage(graph_landmark_ptr->getSemanticImage(),
                           expected_pixel_count);
 
   for (int i = 0; i < expected_pixel_count.size(); ++i) {
-    int semantic_class_pixel_count = 0;
+    uint64_t semantic_class_pixel_count = 0;
     const auto& semantic_label_blobs = graph_landmark_ptr->getBlobs()[i];
     for (int j = 0; j < semantic_label_blobs.size(); ++j)
       semantic_class_pixel_count += semantic_label_blobs[j].num_pixels;
