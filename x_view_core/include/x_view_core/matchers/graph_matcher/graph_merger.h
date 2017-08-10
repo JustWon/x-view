@@ -169,6 +169,12 @@ class GraphMerger {
 
   void addVertexToMergedGraph(const VertexDescriptor& source_in_query_graph);
 
+  /**
+   * \brief This function tries to merge the query_graph_ to the
+   * merged_graph_ by merging and linking together close vertices.
+   * This function is executed whenever no matches are found between the
+   * query and the database graph.
+   */
   void linkUnmatchedQueryGraph();
 
   /**
