@@ -3,6 +3,7 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
 #include <x_view_core/landmarks/graph_landmark/depth_projector.h>
+#include <x_view_core/x_view_tools.h>
 
 #include <boost/graph/connected_components.hpp>
 
@@ -111,14 +112,7 @@ Graph GraphBuilder::extractSemanticGraphOn3DSpace(
       // property is updated in the global semantic graph during graph merging.
       const uint64_t num_times_seen = 1;
 
-      // Only create an edge between the two vertices if their Euclidean
-      // distance is smaller than the threshold defined in tha parameters.
-      auto euclideanDistance = [](const VertexProperty& v_p_1,
-                                  const VertexProperty& v_p_2) -> real_t {
-        return (v_p_1.location_3d - v_p_2.location_3d).norm();
-      };
-
-      if (euclideanDistance(vi, vj) <= params.max_euclidean_distance)
+      if (dist(vi, vj) <= params.max_euclidean_distance)
         boost::add_edge(i, j, {i, j, num_times_seen}, graph);
     }
   }
@@ -276,11 +270,6 @@ void GraphBuilder::connectComponentsInSpace(const std::vector<int>& component,
                           unique_components.end());
 
   const uint64_t num_vertices = boost::num_vertices(*graph);
-
-  auto distSquared = [](const VertexProperty& v_p_1,
-                        const VertexProperty& v_p_2) -> real_t {
-    return (v_p_1.location_3d - v_p_2.location_3d).squaredNorm();
-  };
 
   // Iterate over each pair of components and determine the closest pair of
   // vertices to be connected.
