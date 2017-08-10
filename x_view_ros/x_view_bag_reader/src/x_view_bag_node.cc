@@ -27,16 +27,14 @@ int main(int argc, char** argv) {
   x_view_ros::Pause pause;
   x_view::Statistics stats;
   const uint64_t local_graph_steps = 5;
-  for(int i = start_frame; i < end_frame - local_graph_steps;) {
+  for(int i = start_frame; i + local_graph_steps < end_frame;) {
     if(!pause.isPaused()) {
       x_view_ros::XViewBagReader::LocationPair locations;
       bool localized = bag_reader.localizeGraph(x_view_ros::CAMERA::FRONT, i,
                                                 local_graph_steps, &locations);
       if(localized) {
-        std::cout << "Estimation: " << Eigen::RowVector3d(locations.first)
-                  << "\n"
-                  << "True: " << Eigen::RowVector3d(locations.second)
-                  << std::endl;
+        std::cout << "Estimation: " << x_view::RowVector3r(locations.first) << "\n"
+                  << "True: " << x_view::RowVector3r(locations.second) << std::endl;
         stats.insert((locations.second - locations.first).norm());
       } else {
         std::cout << "Localization was not effective." << std::endl;

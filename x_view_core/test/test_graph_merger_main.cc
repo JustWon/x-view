@@ -55,7 +55,7 @@ TEST(XViewSlamTestSuite, test_graph_merger) {
   graph_modifier_params.num_edges_to_add = 1;
   graph_modifier_params.num_edges_to_remove = 1;
   // Set the index at which the newly inserted vertices start.
-  int max_index = std::numeric_limits<int>::min();
+  uint64_t max_index = 0;
   const auto vertices = boost::vertices(database_graph);
   for(auto iter = vertices.first; iter != vertices.second; ++iter) {
     max_index = std::max(max_index, database_graph[*iter].index);

@@ -1,6 +1,7 @@
 #include <x_view_core/matchers/graph_matcher/graph_merger.h>
 
 #include <x_view_core/matchers/graph_matcher.h>
+#include <x_view_core/x_view_tools.h>
 
 namespace x_view {
 
@@ -38,9 +39,9 @@ const Graph GraphMerger::computeMergedGraph() {
   query_in_db_.clear();
 
   // Loop over the vertices of the query graph.
-  for (int j = 0; j < num_query_vertices; ++j) {
+  for (uint64_t j = 0; j < num_query_vertices; ++j) {
     // Loop over the vertices of the database graph.
-    for (int i = 0; i < num_db_vertices; ++i) {
+    for (uint64_t i = 0; i < num_db_vertices; ++i) {
       // Check if the two vertices are possible matches.
       if (similarity_matrix(i, j)
           >= graph_merger_parameters_.similarity_threshold &&
@@ -68,7 +69,7 @@ const Graph GraphMerger::computeMergedGraph() {
   }
 
   // Define start vertex index of vertices being added to the merged graph.
-  current_vertex_index_ = std::numeric_limits<int>::min();
+  current_vertex_index_ = 0;
   const auto db_vertices = boost::vertices(database_graph_);
   for (auto iter = db_vertices.first; iter != db_vertices.second; ++iter)
     current_vertex_index_ =
@@ -92,7 +93,8 @@ const Graph GraphMerger::computeMergedGraph() {
   return merged_graph_;
 }
 
-void GraphMerger::mergeDuplicates(Graph* graph, const float merge_distance) {
+
+void GraphMerger::mergeDuplicates(const real_t merge_distance, Graph* graph) {
 
   LOG(INFO) << "Merging all vertices with same semantic label whose euclidean "
             << "distance is smaller than " << merge_distance << ".";
@@ -200,10 +202,25 @@ void GraphMerger::mergeDuplicates(Graph* graph, const float merge_distance) {
   }
 }
 
+void GraphMerger::linkCloseVertices(const real_t max_link_distance, Graph* graph) {
+  const uint64_t num_vertices = boost::num_vertices(*graph);
+  const real_t max_link_distance_squared =
+      max_link_distance * max_link_distance;
+
+  for(uint64_t i = 0; i < num_vertices; ++i) {
+    const VertexProperty& v_p_i = (*graph)[i];
+    for(uint64_t j = i + 1; j < num_vertices; ++j) {
+      const VertexProperty& v_p_j = (*graph)[j];
+      if(distSquared(v_p_i, v_p_j) < max_link_distance_squared)
+        boost::add_edge(i, j, {i, j, 1}, *graph);
+    }
+  }
+}
+
 const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
                                                const VertexDescriptor v_d_2,
                                                const Graph& graph,
-                                               const float merge_distance) {
+                                               const real_t merge_distance) {
 
   // Query the vertex properties associated to the vertex descriptors passed
   // as argument.
@@ -217,8 +234,7 @@ const bool GraphMerger::verticesShouldBeMerged(const VertexDescriptor v_d_1,
 
   // Spatial consistency: only merge vertices if their Euclidean distance is
   // smaller than the merge_distance parameter passed as argument.
-  const Eigen::Vector3d diff = v_p_1.location_3d - v_p_2.location_3d;
-  if (diff.norm() > merge_distance)
+  if (distSquared(v_p_1, v_p_2) > merge_distance * merge_distance)
     return false;
 
   // Since all tests are fulfilled, the two vertices should be merged.
@@ -357,12 +373,12 @@ const uint64_t GraphMerger::temporalDistance(const uint64_t i,
   return v_j_query.last_time_seen_ - v_i_database.last_time_seen_;
 }
 
-const double GraphMerger::spatialDistance(const uint64_t i, const uint64_t j)
+const real_t GraphMerger::spatialDistance(const uint64_t i, const uint64_t j)
 const {
   const VertexProperty& v_i_database = database_graph_[i];
   const VertexProperty& v_j_query = query_graph_[j];
 
-  return (v_j_query.location_3d - v_i_database.location_3d).norm();
+  return dist(v_j_query, v_i_database);
 }
 
 }

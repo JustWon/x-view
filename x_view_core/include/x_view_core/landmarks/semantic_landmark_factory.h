@@ -15,7 +15,7 @@ class SemanticLandmarkFactory {
  public:
 
   /// \brief Function pointer passed to the factory to create new landmarks.
-  typedef SemanticLandmarkPtr (* CreateCallBack)(const FrameData&);
+  typedef std::function<SemanticLandmarkPtr(const FrameData&)> CreateCallBack;
 
   /**
    * \brief Sets the landmark type the factory is going to generate.

@@ -106,7 +106,7 @@ class GraphDrawer {
     ellipse_thickness_ = thickness;
   }
   static void setLabelColor(const cv::Scalar& color) { label_color_ = color; }
-  static void setLabelScale(const float scale) { label_scale_ = scale; }
+  static void setLabelScale(const real_t scale) { label_scale_ = scale; }
 
   /**
    * \brief Resets the color and line specifications to their default value.
@@ -125,7 +125,7 @@ class GraphDrawer {
   static int ellipse_thickness_;
 
   static cv::Scalar label_color_;
-  static float label_scale_;
+  static real_t label_scale_;
 
 };
 

@@ -1,6 +1,8 @@
 #ifndef X_VIEW_PARAMETERS_H
 #define X_VIEW_PARAMETERS_H
 
+#include <x_view_core/x_view_types.h>
+
 #include <list>
 #include <memory>
 #include <string>
@@ -60,15 +62,15 @@ class Parameters {
    */
   int getInteger(const std::string& name, const int& defaultValue) const;
 
-  /// \brief Set a float property.
-  void setFloat(const std::string& name, const float& value);
+  /// \brief Set a floating point value property.
+  void setFloat(const std::string& name, const real_t& value);
 
   /**
    * \brief Get a floating point value property.
    * \param name Key associated to the floating point value to retrieve.
    * \return Floating point value associated to the key passed as parameter.
    */
-  float getFloat(const std::string& name) const;
+  real_t getFloat(const std::string& name) const;
 
   /**
    * \brief Get a floating point value property and, if the key is not
@@ -78,7 +80,7 @@ class Parameters {
    * found in the properties.
    * \return Floating point value associated to the key passed as parameter.
    */
-  float getFloat(const std::string& name, const float& defaultValue) const;
+  real_t getFloat(const std::string& name, const real_t& defaultValue) const;
 
   /// \brief Set a string property.
   void setString(const std::string& name, const std::string& value);
@@ -151,7 +153,7 @@ class Parameters {
 
       bool Boolean_value;
       int Integer_value;
-      float Float_value;
+      real_t Float_value;
       std::string String_value;
       std::unique_ptr<Parameters> PropertyList_value;
     } value;
