@@ -16,13 +16,13 @@ Landmark: {
 Matcher: {
     type: "GRAPH",
     vertex_similarity_score: "WEIGHTED",
-    random_walk_sampling_type: "WEIGHTED",
+    random_walk_sampling_type: "NON_RETURNING",
     num_walks: 200,
     walk_length: 3,
     time_window: 10,
     similarity_threshold: 0.2,
     distance_threshold: 5.0,
-    merge_distance: 1,
+    merge_distance: 1.0,
     outlier_rejection: false,
     consistency_threshold: 5.0,
     consistency_size: 2.0

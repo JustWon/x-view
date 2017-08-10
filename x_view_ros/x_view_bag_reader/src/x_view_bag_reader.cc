@@ -101,9 +101,9 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
   pause.terminate();
 }
 
-bool XViewBagReader::localize(const CAMERA camera_type, const int frame_index,
-                              std::pair<Eigen::Vector3d, Eigen::Vector3d>*
-                              locations) {
+bool XViewBagReader::localizeFrame(const CAMERA camera_type,
+                                   const int frame_index,
+                                   LocationPair* locations) {
   CHECK_NOTNULL(locations);
 
   loadCurrentTopic(getTopics(camera_type));
@@ -120,7 +120,7 @@ bool XViewBagReader::localize(const CAMERA camera_type, const int frame_index,
   x_view::FrameData frame_data(semantic_image, depth_image,
                                empty_pose_id, frame_index);
 
-  bool localized = x_view_->localize(frame_data, &(locations->first));
+  bool localized = x_view_->localizeFrame(frame_data, &(locations->first));
   locations->second = real_pose.getPosition();
 
   if(localized) {
@@ -135,7 +135,7 @@ bool XViewBagReader::localize(const CAMERA camera_type, const int frame_index,
 }
 
 bool XViewBagReader::localize_graph2(const CAMERA camera_type, const int start_frame, const int steps,
-    std::pair<Eigen::Vector3d, Eigen::Vector3d>* locations) {
+    LocationPair* locations) {
 
   CHECK_NOTNULL(locations);
 
@@ -171,7 +171,7 @@ bool XViewBagReader::localize_graph2(const CAMERA camera_type, const int start_f
 
   const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
 
-  bool localized = x_view_->localize(local_graph, pose_ids, &(locations->first));
+  bool localized = x_view_->localizeGraph(local_graph, pose_ids, &(locations->first));
 
   const Eigen::Vector3d estimated_color(0.7, 0.15, 0.15);
   publishRobotPosition(locations->first, estimated_color, time,
@@ -183,9 +183,9 @@ bool XViewBagReader::localize_graph2(const CAMERA camera_type, const int start_f
   return localized;
 }
 
-bool XViewBagReader::localize_graph(
+bool XViewBagReader::localizeGraph(
     const CAMERA camera_type, const int start_frame, const int steps,
-    std::pair<Eigen::Vector3d, Eigen::Vector3d>* locations) {
+    LocationPair* locations) {
 
   CHECK_NOTNULL(locations);
 
@@ -221,7 +221,7 @@ bool XViewBagReader::localize_graph(
 
   const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
 
-  bool localized = x_view_->localize(local_graph, pose_ids, &(locations->first));
+  bool localized = x_view_->localizeGraph(local_graph, pose_ids, &(locations->first));
 
   const Eigen::Vector3d estimated_color(0.7, 0.15, 0.15);
   publishRobotPosition(locations->first, estimated_color, time,

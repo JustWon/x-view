@@ -41,7 +41,8 @@ TEST(XViewSlamTestSuite, test_random_walk) {
   std::vector<RandomWalkerParams::SAMPLING_TYPE> sampling_types{
       RandomWalkerParams::SAMPLING_TYPE::UNIFORM,
       RandomWalkerParams::SAMPLING_TYPE::AVOIDING,
-      RandomWalkerParams::SAMPLING_TYPE::WEIGHTED
+      RandomWalkerParams::SAMPLING_TYPE::WEIGHTED,
+      RandomWalkerParams::SAMPLING_TYPE::NON_RETURNING
   };
 
   int num_vertices;
@@ -84,6 +85,11 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       if (params.random_sampling_type ==
           RandomWalkerParams::SAMPLING_TYPE::AVOIDING)
         testAvoidingStrategy(random_walker, graph, params);
+
+      if(params.random_sampling_type ==
+          RandomWalkerParams::SAMPLING_TYPE::NON_RETURNING) {
+        testNonReturningStrategy(random_walker, graph, params);
+      }
 
     }
   }

@@ -23,6 +23,10 @@ namespace x_view_ros {
 class XViewBagReader {
 
  public:
+  /// \brief Pair used in localization functions, the first element in the
+  /// pair corresponds to the Estimated location, the second element to the
+  /// ground truth location.
+  typedef std::pair<Eigen::Vector3d, Eigen::Vector3d> LocationPair;
 
   /// \brief Parameters needed by XViewBagReader.
   struct XViewBagReaderParams {
@@ -59,8 +63,8 @@ class XViewBagReader {
    * \return A boolean which is true if the localization was effective, false
    * otherwise.
    */
-  bool localize(const CAMERA camera_type, const int frame_index,
-                std::pair<Eigen::Vector3d, Eigen::Vector3d>* locations);
+  bool localizeFrame(const CAMERA camera_type, const int frame_index,
+                     LocationPair* locations);
 
   /**
    * \brief Localizes the semantic graph being build between the frames
@@ -75,9 +79,9 @@ class XViewBagReader {
    * \return A boolean which is true if the localization was effective, false
    * otherwise.
    */
-  bool localize_graph(const CAMERA camera_type, const int start_frame,
-                      const int steps,
-                      std::pair<Eigen::Vector3d, Eigen::Vector3d>* locations);
+  bool localizeGraph(const CAMERA camera_type, const int start_frame,
+                     const int steps,
+                     LocationPair* locations);
 
   bool localize_graph2(const CAMERA camera_type, const int start_frame,
                       const int steps,
