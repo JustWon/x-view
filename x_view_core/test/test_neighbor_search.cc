@@ -51,7 +51,9 @@ void testKNN(const x_view::MatrixXr& points, const x_view::Vector3r& query,
   IndexVector indices;
   DistanceVector distances;
 
-  knn_tree->knn(query, indices, distances, K, NNSearch::SORT_RESULTS);
+  const x_view::real_t epsilon = 0.0;
+  knn_tree->knn(query, indices, distances, K, epsilon,
+                NNSearch::SORT_RESULTS | NNSearch::ALLOW_SELF_MATCH);
 
   for(int i = 0; i < K; ++i) {
     CHECK(expected_indices[i] == indices(i));

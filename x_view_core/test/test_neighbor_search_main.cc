@@ -16,7 +16,7 @@ TEST(XViewSlamTestSuite, test_neighbor_search) {
   const x_view::real_t upper_bound = 9;
   generatePointsOnLine(N, D, lower_bound, upper_bound, &points);
 
-  const x_view::Vector3r query_point(4.4, 0, 0);
+  const x_view::Vector3r query_point(4.4, 2.0, -1.2);
   std::vector<int> expected_indices = {
       4, 5, 3, 6
   };
