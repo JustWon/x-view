@@ -2,6 +2,7 @@
 #include <x_view_core/x_view_types.h>
 
 #include <glog/logging.h>
+#include <nabo/nabo.h>
 
 namespace x_view {
 
