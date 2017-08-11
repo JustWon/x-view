@@ -1,6 +1,7 @@
 #ifndef X_VIEW_GRAPH_LOCALIZER_H
 #define X_VIEW_GRAPH_LOCALIZER_H
 
+#include <gtsam/geometry/Point3.h>
 #include <gtsam/nonlinear/ExpressionFactor.h>
 #include <kindr/minimal/quat-transformation-gtsam.h>
 
@@ -66,6 +67,11 @@ class GraphLocalizer {
   gtsam::ExpressionFactor<SE3> absolutePoseFactor(const SE3& pose_measurement,
                                                   int index,
                                                   gtsam::noiseModel::Base::shared_ptr noise_model) const;
+
+  gtsam::ExpressionFactor<gtsam::Point3> relativePointFactor(const gtsam::Point3& translation,
+                                                             int index_a,
+                                                             int index_b,
+                                                             gtsam::noiseModel::Base::shared_ptr noise_model) const;
 
   bool localize2(const GraphMatcher::GraphMatchingResult& matching_result,
                  const Graph& query_semantic_graph,

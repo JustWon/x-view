@@ -53,6 +53,7 @@ Graph GraphBuilder::createGraphFromImageBlobs(const FrameData& frame_data,
   // Check that the generated graph is a single connected component.
   std::vector<int> component(boost::num_vertices(graph));
   int num_components = boost::connected_components(graph, &component[0]);
+
   if (num_components == 1)
     return graph;
   else {
@@ -98,8 +99,9 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
   for (int c = 0; c < blobs.size(); ++c) {
     for (const Blob& blob : blobs[c]) {
       blob_vector->push_back(&blob);
+      size_t key = KeyGenerator::getNextKey();
       VertexProperty vertex =
-          GraphBuilder::blobToGraphVertex(KeyGenerator::getNextKey(), blob);
+          GraphBuilder::blobToGraphVertex(key, blob);
       // Extract the depth associated to the vertex.
       const unsigned short depth_cm =
           depth_image.at<unsigned short>(vertex.center);
@@ -116,6 +118,7 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
 
       // Set the last_time_seen_ property of the newly created vertex to be
       // the current frame.
+      // todo(gawela) does this need to be the poseId id?
       vertex.last_time_seen_ = frame_data.getID();
 
       // Store the location of the observer.

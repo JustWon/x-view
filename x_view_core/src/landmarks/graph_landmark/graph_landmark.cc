@@ -61,7 +61,6 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
                                                        image_blobs_,
                                                        graph_builder_params);
 
-
   // Create the descriptor stored in this landmark by generating a
   // VectorDescriptor containing the graph data.
   descriptor_ = std::make_shared<GraphDescriptor>(GraphDescriptor(descriptor));

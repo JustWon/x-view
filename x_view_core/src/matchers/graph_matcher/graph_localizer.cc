@@ -5,7 +5,9 @@
 #include <gtsam/geometry/Point3.h>
 #include <gtsam/inference/Symbol.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
+#include <gtsam/nonlinear/expressions.h>
 #include <gtsam/slam/PriorFactor.h>
+#include <gtsam/slam/BetweenFactor.h>
 
 #include <pcl/correspondence.h>
 #include <pcl/point_types.h>
@@ -166,23 +168,32 @@ bool GraphLocalizer::localize(
 }
 
 // Create GTSAM Expression for relative pose measurements (e.g., odometry).
-gtsam::ExpressionFactor<SE3> GraphLocalizer::relativeFactor(const SE3& relative_pose,
-                                            int index_a,
-                                            int index_b,
-                                            gtsam::noiseModel::Base::shared_ptr noise_model) const {
+gtsam::ExpressionFactor<SE3> GraphLocalizer::relativeFactor(
+    const SE3& relative_pose, int index_a, int index_b,
+    gtsam::noiseModel::Base::shared_ptr noise_model) const {
   gtsam::Expression<SE3> T_w_a(index_a);
   gtsam::Expression<SE3> T_w_b(index_b);
   gtsam::Expression<SE3> T_a_w(kindr::minimal::inverse(T_w_a));
   gtsam::Expression<SE3> relative(kindr::minimal::compose(T_a_w, T_w_b));
-  return gtsam::ExpressionFactor<SE3> (noise_model, relative_pose, relative);
+  return gtsam::ExpressionFactor < SE3 > (noise_model, relative_pose, relative);
 }
 
 // Create GTSAM expression for absolute pose measurements (e.g., priors).
-gtsam::ExpressionFactor<SE3> GraphLocalizer::absolutePoseFactor(const SE3& pose_measurement,
-                                                int index,
-                                                gtsam::noiseModel::Base::shared_ptr noise_model) const {
+gtsam::ExpressionFactor<SE3> GraphLocalizer::absolutePoseFactor(
+    const SE3& pose_measurement, int index,
+    gtsam::noiseModel::Base::shared_ptr noise_model) const {
   gtsam::Expression<SE3> T_w(index);
-  return gtsam::ExpressionFactor<SE3>(noise_model, pose_measurement, T_w);
+  return gtsam::ExpressionFactor < SE3 > (noise_model, pose_measurement, T_w);
+}
+
+gtsam::ExpressionFactor<gtsam::Point3> GraphLocalizer::relativePointFactor(
+    const gtsam::Point3& translation, int index_a, int index_b,
+    gtsam::noiseModel::Base::shared_ptr noise_model) const {
+  gtsam::Expression < gtsam::Point3 > t_w_a(index_a);
+  gtsam::Expression < gtsam::Point3 > t_w_b(index_b);
+  gtsam::Expression < gtsam::Point3 > t_a_b(gtsam::between(t_w_a, t_w_b));
+  return gtsam::ExpressionFactor < gtsam::Point3
+      > (noise_model, translation, t_a_b);
 }
 
 bool GraphLocalizer::localize2(
@@ -236,59 +247,72 @@ bool GraphLocalizer::localize2(
       gtsam::Point3 location(database_semantic_graph[i].location_3d);
 
       graph.add(gtsam::PriorFactor <gtsam::Point3>(
-          gtsam::Symbol('x', database_semantic_graph[i].index), location, prior_noise));
-      initials.insert(gtsam::Symbol('x', database_semantic_graph[i].index), location);
+          gtsam::Symbol(database_semantic_graph[i].index), location, prior_noise));
+      initials.insert(gtsam::Symbol(database_semantic_graph[i].index), location);
     }
 
     const uint64_t num_vertices_query = boost::num_vertices(query_semantic_graph);
 
     // Treat odometry of the localization as perfect, therefore add relative factors
     // without noise to the graph.
-    gtsam::noiseModel::Diagonal::shared_ptr relative_noise =
-            gtsam::noiseModel::Diagonal::Sigmas(
-                gtsam::Vector6::Ones() * prior_noise_);
+    gtsam::noiseModel::Diagonal::shared_ptr relative_noise_trans =
+        gtsam::noiseModel::Diagonal::Sigmas(
+            gtsam::Vector3::Ones() * prior_noise_);
 
     for (size_t i = 0u; i < pose_pose_measurements_.size(); ++i) {
       SE3 T_a_b = pose_pose_measurements_[i].pose_a.pose.inverted()
           * pose_pose_measurements_[i].pose_b.pose;
-      graph.push_back(relativeFactor(T_a_b, pose_pose_measurements_[i].pose_a.id,
-                               pose_pose_measurements_[i].pose_b.id, relative_noise));
+      gtsam::Point3 t_a_b(T_a_b.getPosition());
+      graph.push_back(
+          gtsam::BetweenFactor < gtsam::Point3
+              > (gtsam::Symbol(pose_pose_measurements_[i].pose_a.id), gtsam::Symbol(
+                  pose_pose_measurements_[i].pose_b.id), t_a_b, relative_noise_trans));
     }
 
-    // Add pose-vertex factors between robot poses and vertices.
     for (size_t i = 0u; i < pose_vertex_measurements_.size(); ++i) {
       gtsam::noiseModel::Diagonal::shared_ptr observation_noise =
-                gtsam::noiseModel::Diagonal::Sigmas(
-                    gtsam::Vector1::Ones() * 5.0);
-      gtsam::noiseModel::Robust::shared_ptr temp_noise = gtsam::noiseModel::Robust::Create(
-          gtsam::noiseModel::mEstimator::Cauchy::Create(10), observation_noise);
+          gtsam::noiseModel::Diagonal::Sigmas(
+              gtsam::Vector3::Ones() * 10.0);
+      gtsam::noiseModel::Robust::shared_ptr temp_noise =
+          gtsam::noiseModel::Robust::Create(
+              gtsam::noiseModel::mEstimator::Cauchy::Create(1),
+              observation_noise);
       double distance = (pose_vertex_measurements_[i].observer_pose.pose
           .getPosition()
           - pose_vertex_measurements_[i].vertex_property.location_3d).norm();
+      gtsam::Point3 translation(
+          pose_vertex_measurements_[i].vertex_property.location_3d
+              - pose_vertex_measurements_[i].observer_pose.pose.getPosition());
       graph.push_back(
-          gtsam::RangeFactor<SE3, gtsam::Point3> (gtsam::Symbol(pose_vertex_measurements_[i].observer_pose.id), gtsam::Symbol(
-                  'x', pose_vertex_measurements_[i].vertex_property.index), distance, temp_noise));
+          relativePointFactor(
+              translation,
+              gtsam::Symbol(pose_vertex_measurements_[i].observer_pose.id),
+              gtsam::Symbol(pose_vertex_measurements_[i].vertex_property.index),
+              temp_noise));
     }
 
     // Add vertex-vertex measurements to graph as identity matches.
     for (size_t i = 0u; i < vertex_vertex_measurements_.size(); ++i) {
-      gtsam::noiseModel::Robust::shared_ptr observation_noise = gtsam::noiseModel::Robust::Create(
+      gtsam::noiseModel::Robust::shared_ptr observation_noise =
+          gtsam::noiseModel::Robust::Create(
               gtsam::noiseModel::mEstimator::Cauchy::Create(10),
-      gtsam::noiseModel::Diagonal::Sigmas(
-              gtsam::Vector1::Ones() * 5.0));
-      graph.add(
-          gtsam::RangeFactor<gtsam::Point3>(
+              gtsam::noiseModel::Diagonal::Sigmas(
+                  gtsam::Vector3::Ones() * 10.0));
+
+      gtsam::Point3 zero_translation(0.0, 0.0, 0.0);
+      graph.push_back(
+          relativePointFactor(
+              zero_translation,
               gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_a.index),
               gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_b.index),
-              0.0, observation_noise));
+              observation_noise));
 
       // Add initial guesses for query_graph at database vertex locations.
       gtsam::Point3 location(vertex_vertex_measurements_[i].vertex_b.location_3d);
-      graph.add(gtsam::PriorFactor <gtsam::Point3> (gtsam::Symbol('x',
-        vertex_vertex_measurements_[i].vertex_a.index), location, prior_noise));
       initials.insert(
-          gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_a.index), location);
+          gtsam::Symbol(vertex_vertex_measurements_[i].vertex_a.index), location);
     }
+
 
     // Compute initial guess for robot and vertex poses / positions.
     gtsam::Vector3 initial_robot_position = gtsam::Vector3::Zero();
@@ -297,31 +321,32 @@ bool GraphLocalizer::localize2(
     }
     initial_robot_position /= vertex_vertex_measurements_.size();
 
-    x_view::SE3 initial_robot_pose;
-    initial_robot_pose.setIdentity();
-    initial_robot_pose.getPosition() = initial_robot_position;
-
-    // todo remove temp transform
-    SE3 temp_transform;
-    temp_transform.setIdentity();
-    temp_transform.getPosition() = gtsam::Vector3(2,2,2);
-
-    initials.insert(gtsam::Symbol(pose_pose_measurements_[0].pose_a.id), pose_pose_measurements_[0].pose_a.pose * temp_transform);
+    initials.insert(gtsam::Symbol(pose_pose_measurements_[0].pose_a.id),
+                    gtsam::Point3(initial_robot_position));
     for (size_t i = 0u; i < pose_pose_measurements_.size(); ++i) {
-      initials.insert(gtsam::Symbol(pose_pose_measurements_[i].pose_b.id), pose_pose_measurements_[i].pose_b.pose * temp_transform);
+      initials.insert(gtsam::Symbol(pose_pose_measurements_[i].pose_b.id),
+                      gtsam::Point3(initial_robot_position));
     }
 
     gtsam::LevenbergMarquardtParams params;
-    params.setVerbosity("LINEAR");
     gtsam::LevenbergMarquardtOptimizer optimizer(graph, initials, params);
 
     gtsam::Values results = optimizer.optimize();
 
     std::cout << "Inital position: " << initial_robot_position << std::endl;
-    x_view::SE3 robot_pose =
-        results.at<x_view::SE3>(gtsam::Symbol (pose_pose_measurements_[pose_pose_measurements_.size() -1].pose_b.id));
 
-    (*transformation) = robot_pose;
+    gtsam::Point3 robot_position = results.at < gtsam::Point3
+        > (gtsam::Symbol(
+            gtsam::Symbol(
+                pose_pose_measurements_[pose_pose_measurements_.size() - 1]
+                    .pose_b.id)));
+    SE3 temp_transform;
+    temp_transform.setIdentity();
+    temp_transform.getPosition() = gtsam::Vector3(robot_position.x(),
+                                                  robot_position.y(),
+                                                  robot_position.z());
+
+    (*transformation) = temp_transform;
     return true;
 
   } else if (localizer_type == "ESTIMATION") {
