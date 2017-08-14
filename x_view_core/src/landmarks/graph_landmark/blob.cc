@@ -81,13 +81,13 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance,
     // Total number of pixels.
     const uint64_t num_contour_pixels_i =
         num_external_contour_pixels_i + num_internal_contour_pixels_i;
-    const uint64_t num_contour_pixals_j =
+    const uint64_t num_contour_pixels_j =
         num_external_contour_pixels_j + num_internal_contour_pixels_j;
 
     // Create matrices containing the contour pixels used in nearest neighbor
     // search.
     MatrixXr contour_i_matrix(2, num_contour_pixels_i);
-    MatrixXr contour_j_matrix(2, num_contour_pixals_j);
+    MatrixXr contour_j_matrix(2, num_contour_pixels_j);
 
     // Fill up matrices with pixel coordinates.
     auto fillPixelMatrix =
@@ -124,7 +124,7 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance,
     const real_t epsilon = 0.0;
     // Nearest neighbor search options.
     const uint64_t
-        options = NNSearch::ALLOW_SELF_MATCH | NNSearch::SORT_RESULTS;
+        options = 0;
 
     // Build a KD-tree for the pixels in blob i.
     auto* kd_tree_pixels_blob_i =
