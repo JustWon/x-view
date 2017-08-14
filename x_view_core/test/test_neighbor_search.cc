@@ -111,6 +111,9 @@ void testBlobNeighborPerformance() {
   blob_i.external_contour_pixels = external_contours_i;
   blob_j.external_contour_pixels = external_contours_j;
 
+  std::chrono::duration with_libnabo_duration;
+  std::chrono::duration without_libnabo_duration;
+
   const uint64_t repetitions = 1000;
   {
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -121,9 +124,9 @@ void testBlobNeighborPerformance() {
         x_view::Blob::areNeighbors(blob_j, blob_i, distance_threshold, true);
     }
     auto end_time = std::chrono::high_resolution_clock::now();
-    std::cout << "With KD-tree: "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(
-                  end_time - start_time).count() << " ms." << std::endl;
+    with_libnabo_duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
+            start_time);
   }
   {
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -134,10 +137,17 @@ void testBlobNeighborPerformance() {
         x_view::Blob::areNeighbors(blob_j, blob_i, distance_threshold, false);
     }
     auto end_time = std::chrono::high_resolution_clock::now();
-    std::cout << "Without KD-tree: "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(
-                  end_time - start_time).count() << " ms." << std::endl;
+    without_libnabo_duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
+            start_time);
   }
+  if(with_libnabo_duration < without_libnabo_duration)
+    std::cout << "Libnabo is more performing than bruteforce approach: ";
+  else
+    std::cout << "Libnabo is less performing than bruteforce approcah: ";
+  std::cout << "\tLibnabo: " << with_libnabo_duration.count() << "\n"
+            << "\tWithout libnabo: " << without_libnabo_duration.count()
+            << std::endl;
 }
 
 }
