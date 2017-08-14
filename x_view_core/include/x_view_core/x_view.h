@@ -74,6 +74,18 @@ class XView {
   bool localizeGraph(const Graph& query_graph, std::vector<x_view::PoseId> pose_ids,
                 x_view::Vector3r* position);
 
+  /**
+   * \brief Extract semantic descriptor from semantics image and creates a
+   * semantic landamark associated to it.
+   * \param frame_data Data to be processed associated to the current frame.
+   * \param semantics_out Generated landmark.
+   * \details Depending on the XView parameters passed to the class
+   * constructor, the dynamic type of the object pointed by semantics_out
+   * will be different.
+   */
+  void createSemanticLandmark(const FrameData& frame_data,
+                              SemanticLandmarkPtr& semantics_out) const;
+
  private:
   /// \brief Prints XView info.
   void printInfo() const;
@@ -93,18 +105,6 @@ class XView {
   //=======================================================================//
   //        FUNCTIONS CALLED BY 'processFrameData' FUNCTION                //
   //=======================================================================//
-
-  /**
-   * \brief Extract semantic descriptor from semantics image and creates a
-   * semantic landamark associated to it.
-   * \param frame_data Data to be processed associated to the current frame.
-   * \param semantics_out Generated landmark.
-   * \details Depending on the XView parameters passed to the class
-   * constructor, the dynamic type of the object pointed by semantics_out
-   * will be different.
-   */
-  void createSemanticLandmark(const FrameData& frame_data,
-                              SemanticLandmarkPtr& semantics_out) const;
 
   /// \brief Match semantics instance to database and return score.
   void matchSemantics(const SemanticLandmarkPtr& semantics_a,

@@ -203,6 +203,8 @@ bool GraphLocalizer::localize2(
     SE3* transformation) {
 
   CHECK_NOTNULL(transformation);
+  CHECK_GT(pose_vertex_measurements_.size(), 0)
+      << "No pose vertex measurements given.";
 
   const auto& parameters = Locator::getParameters();
   const auto& localizer_parameters =
@@ -210,27 +212,27 @@ bool GraphLocalizer::localize2(
   const std::string localizer_type = localizer_parameters->getString("type");
 
   if (localizer_type == "OPTIMIZATION") {
-    if (pose_pose_measurements_.size() + pose_vertex_measurements_.size()
+    if (pose_vertex_measurements_.size()
         + vertex_vertex_measurements_.size() < 4) {
       LOG(ERROR) << "Localization only works correctly with N>=4 "
           "observations! Given observations: "
           << pose_pose_measurements_.size() + pose_vertex_measurements_.size()
-              + vertex_vertex_measurements_.size() << ".";
+          + vertex_vertex_measurements_.size() << ".";
       return false;
     }
 
-    if (pose_pose_measurements_.size() + pose_vertex_measurements_.size()
+    if (pose_vertex_measurements_.size()
         + vertex_vertex_measurements_.size() < 7) {
       LOG(WARNING) << "Localization result might be inaccurate due to lack of "
           "data: using "
           << pose_pose_measurements_.size() + pose_vertex_measurements_.size()
-              + vertex_vertex_measurements_.size() << " observations.";
+          + vertex_vertex_measurements_.size() << " observations.";
     }
 
     LOG(INFO) << "Localizing robot with "
-        << pose_pose_measurements_.size() + pose_vertex_measurements_.size()
-            + vertex_vertex_measurements_.size() << " semantic"
-            " observations.";
+        << pose_vertex_measurements_.size()
+        + vertex_vertex_measurements_.size() << " semantic"
+        " observations.";
 
     // Create a factor graph container.
     gtsam::NonlinearFactorGraph graph;
@@ -332,11 +334,18 @@ bool GraphLocalizer::localize2(
     initial_robot_position /= vertex_vertex_measurements_.size();
 
     // Add robot position initials to GTSAM.
-    initials.insert(gtsam::Symbol(pose_pose_measurements_[0].pose_a.id),
-                    gtsam::Point3(initial_robot_position));
-    for (size_t i = 0u; i < pose_pose_measurements_.size(); ++i) {
-      initials.insert(gtsam::Symbol(pose_pose_measurements_[i].pose_b.id),
+    if (pose_pose_measurements_.size() > 0) {
+      initials.insert(gtsam::Symbol(pose_pose_measurements_[0].pose_a.id),
                       gtsam::Point3(initial_robot_position));
+      for (size_t i = 0u; i < pose_pose_measurements_.size(); ++i) {
+        initials.insert(gtsam::Symbol(pose_pose_measurements_[i].pose_b.id),
+                        gtsam::Point3(initial_robot_position));
+      }
+      // If no intra-pose measurements, take the observer of the first vertex.
+    } else {
+      initials.insert(
+          gtsam::Symbol(pose_vertex_measurements_[0].observer_pose.id),
+          gtsam::Point3(initial_robot_position));
     }
 
     // Add graph to optimizer object and estimate transformation.
@@ -344,13 +353,25 @@ bool GraphLocalizer::localize2(
     gtsam::LevenbergMarquardtOptimizer optimizer(graph, initials, params);
     gtsam::Values results = optimizer.optimize();
 
-    LOG(INFO) << "Inital position: " << initial_robot_position.transpose() << std::endl;
+    std::cout << "Inital position: " << initial_robot_position.transpose() << std::endl;
 
-    gtsam::Point3 robot_position = results.at < gtsam::Point3
-        > (gtsam::Symbol(
-            gtsam::Symbol(
-                pose_pose_measurements_[pose_pose_measurements_.size() - 1]
-                    .pose_b.id)));
+    gtsam::Point3 robot_position;
+
+    // Estimate last position of pose-pose measurements.
+    if (pose_pose_measurements_.size() > 0) {
+      robot_position = results.at < gtsam::Point3
+          > (gtsam::Symbol(
+              gtsam::Symbol(
+                  pose_pose_measurements_[pose_pose_measurements_.size() - 1]
+                      .pose_b.id)));
+      // Otherwise estimate the observer position.
+    } else {
+      robot_position =
+          results.at < gtsam::Point3
+          > (gtsam::Symbol(
+              gtsam::Symbol(
+                  pose_vertex_measurements_[0].observer_pose.id)));
+    }
     SE3 temp_transform;
     temp_transform.setIdentity();
     temp_transform.getPosition() = gtsam::Vector3(robot_position.x(),

@@ -1,6 +1,7 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
 #include <x_view_bag_reader/x_view_pause.h>
 #include <x_view_core/datasets/synthia_dataset.h>
+#include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 #include <x_view_core/x_view_types.h>
@@ -114,13 +115,27 @@ bool XViewBagReader::localizeFrame(const CAMERA camera_type,
   const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(frame_index);
   const tf::StampedTransform trans = transform_view_->getDataAtFrame(frame_index);
   x_view::SE3 real_pose;
-  x_view::PoseId empty_pose_id;
-  empty_pose_id.id = x_view::KeyGenerator::getNextKey();
+  x_view::PoseId pose_id;
+  pose_id.id = x_view::KeyGenerator::getNextKey();
   tfTransformToSE3(trans, &real_pose);
   x_view::FrameData frame_data(semantic_image, depth_image,
-                               empty_pose_id, frame_index);
+                               pose_id, frame_index);
 
-  bool localized = x_view_->localizeFrame(frame_data, &(locations->first));
+  // Build local graph from frame.
+  x_view::SemanticLandmarkPtr landmark_ptr;
+
+  // Extract semantics associated to the semantic image and pose.
+  x_view_->createSemanticLandmark(frame_data, landmark_ptr);
+
+  const x_view::Graph& query_graph = std::dynamic_pointer_cast<
+      const x_view::GraphDescriptor>(
+          std::dynamic_pointer_cast < x_view::GraphLandmark
+          > (landmark_ptr)->getDescriptor())->getDescriptor();
+
+  // Localize robot.
+  std::vector<x_view::PoseId> pose_ids;
+  pose_ids.push_back(pose_id);
+  bool localized = x_view_->localizeGraph(query_graph, pose_ids, &(locations->first));
   locations->second = real_pose.getPosition().cast<x_view::real_t>();
 
   if(localized) {
