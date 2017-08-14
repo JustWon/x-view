@@ -111,8 +111,8 @@ void testBlobNeighborPerformance() {
   blob_i.external_contour_pixels = external_contours_i;
   blob_j.external_contour_pixels = external_contours_j;
 
-  std::chrono::duration with_libnabo_duration;
-  std::chrono::duration without_libnabo_duration;
+  std::chrono::duration<std::chrono::milliseconds> with_libnabo_duration;
+  std::chrono::duration<std::chrono::milliseconds> without_libnabo_duration;
 
   const uint64_t repetitions = 1000;
   {
