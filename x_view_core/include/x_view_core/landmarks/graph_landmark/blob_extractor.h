@@ -3,6 +3,7 @@
 
 #include <x_view_core/landmarks/graph_landmark/blob.h>
 #include <x_view_core/landmarks/graph_landmark/graph_landmark_types.h>
+#include <x_view_core/x_view_types.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencvblobslib/blob.h>
@@ -46,7 +47,7 @@ struct BlobExtractorParams {
      */
     BlobSizeFiltering()
         : type(MIN_BLOB_SIZE_TYPE::RELATIVE),
-          fraction_min_pixels(0.01f) {}
+          fraction_min_pixels(0.01) {}
 
     MIN_BLOB_SIZE_TYPE type;
     /// \brief If type is RELATIVE, then the fraction_min_pixels part of the
@@ -55,7 +56,7 @@ struct BlobExtractorParams {
     /// total number of pixels in the image, the latter represents the minimum
     /// number of pixels a blob must have in order to be extracted.
     union {
-      float fraction_min_pixels;
+      real_t fraction_min_pixels;
       int num_min_pixels;
     };
 
@@ -212,8 +213,8 @@ class BlobExtractor {
    * function the unordered set pointed by the parameter contains all
    * different instances contained in the image passed as parameter.
    */
-  static void collectInstancesFromImage(const cv::Mat& image,
-                                        std::unordered_set<unsigned char>* instance_set);
+  static void collectInstancesFromImage(
+      const cv::Mat& image, std::unordered_set<unsigned char>* instance_set);
 
 };
 

@@ -82,11 +82,11 @@ void testDiscImage() {
                 << rows << " x " << cols << "] and " << num_disc << " discs.";
 
       cv::Mat disc_image;
-      std::vector<cv::Point> centers;
+      std::vector<cv::Point2i> centers;
       std::vector<int> radii, labels;
 
       for (int i = 0; i < num_disc; ++i) {
-        centers.push_back(cv::Point(rng.uniform(0, cols),
+        centers.push_back(cv::Point2i(rng.uniform(0, cols),
                                     rng.uniform(0, rows)));
         radii.push_back(std::max(15, rng.uniform(diag / 40, diag / 10)));
         labels.push_back(rng.uniform(1, num_classes));
@@ -124,7 +124,7 @@ void testDiscImage() {
 }
 
 void countPixelLabelsInImage(const cv::Mat& image,
-                             std::vector<int>& pixel_count) {
+                             std::vector<uint64_t>& pixel_count) {
   const auto& dataset = Locator::getDataset();
   pixel_count.clear();
   pixel_count.resize(dataset->numSemanticClasses());
@@ -140,12 +140,12 @@ void testPixelCount(const GraphLandmarkPtr& graph_landmark_ptr,
                     const std::string& imageName) {
 
   // vector counting explicitly the number of pixels
-  std::vector<int> expected_pixel_count;
+  std::vector<uint64_t> expected_pixel_count;
   countPixelLabelsInImage(graph_landmark_ptr->getSemanticImage(),
                           expected_pixel_count);
 
   for (int i = 0; i < expected_pixel_count.size(); ++i) {
-    int semantic_class_pixel_count = 0;
+    uint64_t semantic_class_pixel_count = 0;
     const auto& semantic_label_blobs = graph_landmark_ptr->getBlobs()[i];
     for (int j = 0; j < semantic_label_blobs.size(); ++j)
       semantic_class_pixel_count += semantic_label_blobs[j].num_pixels;
@@ -197,7 +197,7 @@ void createCustomImage(const int desired_rows, const int desired_cols,
 }
 
 void createDiscImage(const int desired_rows, const int desired_cols,
-                     const std::vector<cv::Point>& centers,
+                     const std::vector<cv::Point2i>& centers,
                      const std::vector<int> radii,
                      const std::vector<int> labels, cv::Mat* image) {
 

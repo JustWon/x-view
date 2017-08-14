@@ -3,6 +3,7 @@
 
 #include <x_view_bag_reader/x_view_topic_view.h>
 #include <x_view_core/x_view.h>
+#include <x_view_core/x_view_types.h>
 #include <x_view_graph_publisher/graph_publisher.h>
 #include <x_view_parser/parser.h>
 
@@ -26,7 +27,7 @@ class XViewBagReader {
   /// \brief Pair used in localization functions, the first element in the
   /// pair corresponds to the Estimated location, the second element to the
   /// ground truth location.
-  typedef std::pair<Eigen::Vector3d, Eigen::Vector3d> LocationPair;
+  typedef std::pair<x_view::Vector3r, x_view::Vector3r> LocationPair;
 
   /// \brief Parameters needed by XViewBagReader.
   struct XViewBagReaderParams {
@@ -85,7 +86,7 @@ class XViewBagReader {
 
   bool localize_graph2(const CAMERA camera_type, const int start_frame,
                       const int steps,
-                      std::pair<Eigen::Vector3d, Eigen::Vector3d>* locations);
+                      LocationPair* locations);
 
  private:
 
@@ -110,8 +111,8 @@ class XViewBagReader {
   void tfTransformToSE3(const tf::StampedTransform& tf_transform,
                         x_view::SE3* pose);
 
-  void publishRobotPosition(const Eigen::Vector3d& pos,
-                            const Eigen::Vector3d& color,
+  void publishRobotPosition(const x_view::Vector3r& pos,
+                            const x_view::Vector3r& color,
                             const ros::Time& stamp,
                             const std::string ns);
 

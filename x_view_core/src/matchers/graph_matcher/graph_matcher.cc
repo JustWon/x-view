@@ -27,7 +27,7 @@ GraphMatcher::GraphMatchingResult::computeMaxSimilarityColwise() const {
   std::vector<std::vector<int> > max_indices_per_col(cols);
   // Iterate over all columns.
   for (int j = 0; j < cols; ++j) {
-    float max_val = similarity_matrix_.col(j).maxCoeff();
+    real_t max_val = similarity_matrix_.col(j).maxCoeff();
     if (max_val > 0.f)
       for (int i = 0; i < rows; ++i) {
         if (similarity_matrix_(i, j) == max_val)
@@ -58,7 +58,7 @@ GraphMatcher::GraphMatchingResult::computeMaxSimilarityRowwise() const {
   std::vector<std::vector<int> > max_indices_per_row(rows);
   // Iterate over all rows.
   for (int i = 0; i < rows; ++i) {
-    float max_val = similarity_matrix_.row(i).maxCoeff();
+    real_t max_val = similarity_matrix_.row(i).maxCoeff();
     if (max_val > 0.f)
       for (int j = 0; j < cols; ++j) {
         if (similarity_matrix_(i, j) == max_val)
@@ -163,7 +163,8 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   << "frame to simply add the first graph to the matcher without "
   << "performing any match.";
 
-  // Extract the random walks of the graph.
+  // Extract the random walks of the query graph using the same parameters as
+  // the ones used for the global database graph.
   RandomWalker random_walker(query_semantic_graph, random_walker_params_);
   random_walker.generateRandomWalks();
 
@@ -181,6 +182,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   // Merge the query graph to the database graph.
   const auto& parameters = Locator::getParameters();
   const auto& matching_parameters = parameters->getChildPropertyList("matcher");
+
   GraphMergerParameters graph_merger_parameters;
   graph_merger_parameters.time_window =
       matching_parameters->getInteger("time_window",
@@ -192,13 +194,27 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   GraphMerger graph_merger(global_semantic_graph_, query_semantic_graph,
                            *matching_result.get(), graph_merger_parameters);
 
-  // Need to regenerate the random walks of the extended global graph.
+  // Merge the query graph onto the global semantic graph. The result of this
+  // operation is the new global semantic graph.
   global_semantic_graph_ = graph_merger.computeMergedGraph();
+
   // Clean the newly generated global semantic graph by removing duplicate
   // vertices.
-  const float merge_distance =
-      matching_parameters->getFloat("merge_distance", 0.1f);
-  GraphMerger::mergeDuplicates(&global_semantic_graph_, merge_distance);
+  const bool should_merge_duplicates =
+      matching_parameters->getBoolean("merge_close_vertices", false);
+  if(should_merge_duplicates) {
+    const real_t merge_distance =
+        matching_parameters->getFloat("merge_distance", 0.1f);
+    GraphMerger::mergeDuplicates(merge_distance, &global_semantic_graph_);
+  }
+  // Add edges between close vertices of the new global semantic graph in
+  const bool should_link_vertices =
+      matching_parameters->getBoolean("link_close_vertices", false);
+  if(should_link_vertices) {
+    const real_t max_link_distance =
+        matching_parameters->getFloat("max_link_distance");
+    GraphMerger::linkCloseVertices(max_link_distance, &global_semantic_graph_);
+  }
 
   // Regenerate the random walks of the new global graph
   RandomWalker global_random_walker(global_semantic_graph_,
@@ -312,7 +328,7 @@ LandmarksMatcherPtr GraphMatcher::create(const RandomWalkerParams& random_walker
 }
 
 void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
-                                           Eigen::MatrixXf* similarity_matrix,
+                                           SimilarityMatrixType* similarity_matrix,
                                            VectorXb* invalid_matches,
                                            const VertexSimilarity::SCORE_TYPE score_type) const {
   CHECK_NOTNULL(similarity_matrix);
@@ -350,7 +366,7 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
       // Score is only nonzero if the source vertex has same semantic label.
       if (vertex_p_i.semantic_label == vertex_p_j.semantic_label) {
         const auto& mapped_walks_j = query_walk_map_vector[j];
-        const float similarity =
+        const real_t similarity =
             VertexSimilarity::score(mapped_walks_i, mapped_walks_j);
         similarity_matrix->operator()(i, j) = similarity;
       }

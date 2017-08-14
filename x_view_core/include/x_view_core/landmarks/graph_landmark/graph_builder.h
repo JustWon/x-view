@@ -11,10 +11,33 @@ namespace x_view {
  */
 struct GraphBuilderParams {
   GraphBuilderParams()
-      : max_distance_for_neighborhood(2) {}
+      : extraction_type(EXTRACTION_TYPE::EDGES_DEFINED_ON_BLOB_NEIGHBORS),
+        max_distance_for_neighborhood(2),
+        max_euclidean_distance(2.0) {}
+
+  enum class EXTRACTION_TYPE {
+    /// \brief The graph edges are defined on the semantically segmented
+    /// image and link blobs that are closer than
+    /// max_distance_for_neighborhood pixels from each other.
+    EDGES_DEFINED_ON_BLOB_NEIGHBORS = 0,
+
+    /// \brief The graph edges are defined on the projected blob centers in
+    /// 3D space and they link each pair of semantic entity if their
+    /// Euclidean distance is smaller than max_euclidean_distance.
+    EDGES_DEFINED_ON_3D_SPACE
+  };
+
+  EXTRACTION_TYPE extraction_type;
 
   /// \brief Threshold for determining if two blobs are neighbors or not.
-  int max_distance_for_neighborhood;
+  /// \note Parameter used if EXTRACTION_TYPE is
+  /// EDGES_DEFINED_ON_BLOB_NEIGHBORS.
+  uint64_t max_distance_for_neighborhood;
+
+  /// \brief Max Euclidean distance between blob centers for determining if
+  /// they are neighbors or not.
+  /// \note Parameter used if EXTRACTION_TYPE is EDGES_DEFINED_ON_3D_SPACE.
+  double max_euclidean_distance;
 };
 
 class GraphBuilder {
@@ -31,9 +54,9 @@ class GraphBuilder {
    * \return A graph object containing nodes and edges based on the
    * ImageBlobs datastructure passed as argument.
    */
-  static Graph createGraphFromImageBlobs(const FrameData& frame_data,
-                                         const ImageBlobs& blobs,
-                                         const GraphBuilderParams& params = GraphBuilderParams());
+  static Graph extractSemanticGraph(const FrameData& frame_data,
+                                    const ImageBlobs& blobs,
+                                    const GraphBuilderParams& params = GraphBuilderParams());
 
  private:
 
@@ -44,6 +67,43 @@ class GraphBuilder {
   /// distant. This value is used during graph construction to keep track of
   /// such vertices.
   static const uint64_t INVALID_VERTEX_DESCRIPTOR;
+
+  /**
+   * \brief This function extracts a semantic graph from the frame data
+   * passed as argument by defining semantic vertices for every image blob
+   * contained in the second parameter, and by linking every vertex pair by
+   * an edge only if the associated blobs are neighbors in the semantically
+   * segmented image.
+   * \param frame_data Data associated to the current landmark containing
+   * semantic, depth and pose information.
+   * \param blobs ImageBlobs datastructure containing all blobs.
+   * \param params Parameters used by the graph builder during graph
+   * construction.
+   * \return A graph object containing nodes and edges based on the
+   * ImageBlobs datastructure passed as argument.
+   */
+  static Graph extractSemanticGraphOnSemanticImage(
+      const FrameData& frame_data, const ImageBlobs& blobs,
+      const GraphBuilderParams& params);
+
+  /**
+   * \brief This function extracts a semantic graph from the frame data
+   * passed as argument by defining semantic vertices for every image blob
+   * contained in the second parameter, and by linking every vertex pair by
+   * an edge only if the associated Euclidean distance computed in 3D space
+   * by projecting the blob centers into the world frame is closer than a
+   * threshold contained in the parameters passed as argument.
+   * \param frame_data Data associated to the current landmark containing
+   * semantic, depth and pose information.
+   * \param blobs ImageBlobs datastructure containing all blobs.
+   * \param params Parameters used by the graph builder during graph
+   * construction.
+   * \return A graph object containing nodes and edges based on the
+   * ImageBlobs datastructure and 3D coordinates of the vertices.
+   */
+  static Graph extractSemanticGraphOn3DSpace(
+      const FrameData& frame_data, const ImageBlobs& blobs,
+      const GraphBuilderParams& params);
 
   /**
    * \brief Adds all blobs contained in the ImageBlobs datastructure to the
@@ -73,20 +133,33 @@ class GraphBuilder {
    * \return A graph node containing the relevant information extracted from
    * the blob passed as argument.
    */
-  static VertexProperty blobToGraphVertex(const int index,
+  static VertexProperty blobToGraphVertex(const uint64_t index,
                                           const Blob& blob);
 
   /**
    * \brief Given a graph with multiple disconnected components, this
    * function iterates over all possible pairs of vertices belonging to the
    * different components and creates an edge between the vertices with
-   * smallest euclidean distance.
-   * \param graph Pointer to graph to be connected.
+   * smallest euclidean distance computed on the image.
    * \param component Vector indicating for each vertex to which component it
    * belongs.
+   * \param graph Pointer to graph to be connected.
    */
-  static void connectClosestVerticesOfDisconnectedGraph(Graph* graph,
-                                                        const std::vector<int>& component);
+  static void connectComponentsInImage(const std::vector<int>& component,
+                                       Graph* graph);
+
+
+  /**
+   * \brief Given a graph with multiple disconnected components, this
+   * function iterates over all possible pairs of vertices belonging to the
+   * different components and creates an edge between the vertices with
+   * smallest euclidean distance computed in 3D space.
+   * \param component Vector indicating for each vertex to which component it
+   * belongs.
+   * \param graph Pointer to graph to be connected.
+   */
+  static void connectComponentsInSpace(const std::vector<int>& component,
+                                       Graph* graph);
 
 };
 

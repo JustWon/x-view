@@ -8,7 +8,6 @@
 #include <gtsam/nonlinear/expressions.h>
 #include <gtsam/slam/PriorFactor.h>
 #include <gtsam/slam/BetweenFactor.h>
-
 #include <pcl/correspondence.h>
 #include <pcl/point_types.h>
 #include <pcl/recognition/cg/geometric_consistency.h>
@@ -16,7 +15,7 @@
 
 namespace x_view {
 
-GraphLocalizer::GraphLocalizer(const double prior_noise)
+GraphLocalizer::GraphLocalizer(const real_t prior_noise)
     : prior_noise_(prior_noise),
       observations_(0) {
 }
@@ -60,7 +59,8 @@ bool GraphLocalizer::localize(
             gtsam::Vector3::Ones() * prior_noise_);
 
     for(int i = 0; i < observations_.size(); ++i) {
-      gtsam::Point3 location(observations_[i].vertex_property.location_3d);
+      gtsam::Point3 location(
+          observations_[i].vertex_property.location_3d.cast<double>());
 
       graph.add(gtsam::PriorFactor<gtsam::Point3>(
           gtsam::Symbol('x', i), location, prior_noise));
@@ -83,7 +83,8 @@ bool GraphLocalizer::localize(
     // Compute initial guess for robot position.
     gtsam::Vector3 initial_robot_position = gtsam::Vector3::Zero();
     for(int i = 0; i < observations_.size(); ++i) {
-      initial_robot_position += observations_[i].vertex_property.location_3d;
+      initial_robot_position +=
+          observations_[i].vertex_property.location_3d.cast<double>();
     }
     initial_robot_position /= observations_.size();
     initials.insert(gtsam::Symbol('r', 0), gtsam::Point3(initial_robot_position));
@@ -94,11 +95,11 @@ bool GraphLocalizer::localize(
     const gtsam::Point3 robot_position =
         results.at<gtsam::Point3>(gtsam::Symbol ('r', 0));
 
-    const Eigen::Vector3d computed_robot_pose(robot_position.x(),
-                                              robot_position.y(),
-                                              robot_position.z());
+    const Vector3r computed_robot_pose(robot_position.x(),
+                                       robot_position.y(),
+                                       robot_position.z());
     transformation->setIdentity();
-    transformation->getPosition() = computed_robot_pose;
+    transformation->getPosition() = computed_robot_pose.cast<double>();
     return true;
 
   } else if (localizer_type == "ESTIMATION") {
@@ -175,7 +176,7 @@ gtsam::ExpressionFactor<SE3> GraphLocalizer::relativeFactor(
   gtsam::Expression<SE3> T_w_b(index_b);
   gtsam::Expression<SE3> T_a_w(kindr::minimal::inverse(T_w_a));
   gtsam::Expression<SE3> relative(kindr::minimal::compose(T_a_w, T_w_b));
-  return gtsam::ExpressionFactor < SE3 > (noise_model, relative_pose, relative);
+  return gtsam::ExpressionFactor<SE3> (noise_model, relative_pose, relative);
 }
 
 // Create GTSAM expression for absolute pose measurements (e.g., priors).
@@ -183,16 +184,16 @@ gtsam::ExpressionFactor<SE3> GraphLocalizer::absolutePoseFactor(
     const SE3& pose_measurement, int index,
     gtsam::noiseModel::Base::shared_ptr noise_model) const {
   gtsam::Expression<SE3> T_w(index);
-  return gtsam::ExpressionFactor < SE3 > (noise_model, pose_measurement, T_w);
+  return gtsam::ExpressionFactor<SE3> (noise_model, pose_measurement, T_w);
 }
 
 gtsam::ExpressionFactor<gtsam::Point3> GraphLocalizer::relativePointFactor(
     const gtsam::Point3& translation, int index_a, int index_b,
     gtsam::noiseModel::Base::shared_ptr noise_model) const {
-  gtsam::Expression < gtsam::Point3 > t_w_a(index_a);
-  gtsam::Expression < gtsam::Point3 > t_w_b(index_b);
-  gtsam::Expression < gtsam::Point3 > t_a_b(gtsam::between(t_w_a, t_w_b));
-  return gtsam::ExpressionFactor < gtsam::Point3
+  gtsam::Expression <gtsam::Point3> t_w_a(index_a);
+  gtsam::Expression <gtsam::Point3> t_w_b(index_b);
+  gtsam::Expression <gtsam::Point3> t_a_b(gtsam::between(t_w_a, t_w_b));
+  return gtsam::ExpressionFactor <gtsam::Point3
       > (noise_model, translation, t_a_b);
 }
 
@@ -244,7 +245,7 @@ bool GraphLocalizer::localize2(
 
     for (size_t i = 0u; i < num_vertices; ++i) {
       const VertexProperty& vertex_property = database_semantic_graph[i];
-      gtsam::Point3 location(database_semantic_graph[i].location_3d);
+      gtsam::Point3 location(database_semantic_graph[i].location_3d.cast<double>());
       // Add Prior factors on the database vertices.
       graph.add(gtsam::PriorFactor <gtsam::Point3>(
           gtsam::Symbol(database_semantic_graph[i].index), location, prior_noise));
@@ -282,7 +283,7 @@ bool GraphLocalizer::localize2(
     for (size_t i = 0u; i < pose_vertex_measurements_.size(); ++i) {
       // Calculate translation measurement between robot position and vertex.
       gtsam::Point3 translation(
-          pose_vertex_measurements_[i].vertex_property.location_3d
+          pose_vertex_measurements_[i].vertex_property.location_3d.cast<double>()
               - pose_vertex_measurements_[i].observer_pose.pose.getPosition());
       // Add position-vertex measurement to factor graph.
       graph.push_back(
@@ -314,7 +315,8 @@ bool GraphLocalizer::localize2(
               vv_robust_noise));
 
       // Add initial guesses for query_graph at database vertex locations.
-      gtsam::Point3 location(vertex_vertex_measurements_[i].vertex_b.location_3d);
+      gtsam::Point3 location(
+          vertex_vertex_measurements_[i].vertex_b.location_3d.cast<double>());
       initials.insert(
           gtsam::Symbol(vertex_vertex_measurements_[i].vertex_a.index), location);
     }
@@ -323,8 +325,9 @@ bool GraphLocalizer::localize2(
     // Compute initial guess for robot and vertex positions as the
     // mean location of the matched vertices.
     gtsam::Vector3 initial_robot_position = gtsam::Vector3::Zero();
-    for(int i = 0; i < vertex_vertex_measurements_.size(); ++i) {
-      initial_robot_position += vertex_vertex_measurements_[i].vertex_b.location_3d;
+    for (int i = 0; i < vertex_vertex_measurements_.size(); ++i) {
+      initial_robot_position += vertex_vertex_measurements_[i].vertex_b
+          .location_3d.cast<double>();
     }
     initial_robot_position /= vertex_vertex_measurements_.size();
 
@@ -424,8 +427,8 @@ bool GraphLocalizer::localize2(
 }
 
 void GraphLocalizer::addObservation(const VertexProperty& vertex_property,
-                                    const double distance,
-                                    const double evidence) {
+                                    const real_t distance,
+                                    const real_t evidence) {
   observations_.push_back(Observation{vertex_property, distance, evidence});
 }
 

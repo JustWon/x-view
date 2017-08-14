@@ -29,7 +29,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
   const int num_walks_per_vertex = 20;
 
   // Create multiple random graphs with different topology and test them.
-  std::vector<std::pair<int, float>> graph_statistics{
+  std::vector<std::pair<int, real_t>> graph_statistics{
       {10, 0.5},  // Graph statistic has form (num_vertices, edge_probability).
       {10, 1.0},
       {50, 0.2},
@@ -46,7 +46,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
   };
 
   int num_vertices;
-  float edge_probability;
+  real_t edge_probability;
   for (auto graph_statistic : graph_statistics) {
     std::tie(num_vertices, edge_probability) = graph_statistic;
 
@@ -78,7 +78,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       LOG(INFO) << "Generated " << num_walks_per_vertex
                 << " walks for each of " << num_vertices << " vertices "
                 << " of length " << walk_length << " in "
-                << std::chrono::duration_cast<std::chrono::duration<double>>
+                << std::chrono::duration_cast<std::chrono::duration<real_t>>
                     (t2 - t1).count() << " seconds.";
 
       testRandomWalkSequence(random_walker, graph, params);

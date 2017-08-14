@@ -3,13 +3,12 @@ project(x_view_core)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -march=native")
 
-# if no build type given, than set the build type to "Release"
+# If no build type given, than set the build type to "Release"
 IF (NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE "Release")
 ENDIF (NOT CMAKE_BUILD_TYPE)
 
-
-message(STATUS "Building XView in ${CMAKE_BUILD_TYPE} mode")
+message(STATUS "Building XView in ${CMAKE_BUILD_TYPE} mode.")
 
 IF (CMAKE_BUILD_TYPE MATCHES Debug)
     add_definitions(-DX_VIEW_DEBUG)

@@ -1,6 +1,8 @@
 #ifndef X_VIEW_BLOB_H
 #define X_VIEW_BLOB_H
 
+#include <x_view_core/x_view_types.h>
+
 #include <Eigen/Core>
 #include <opencvblobslib/blob.h>
 
@@ -25,17 +27,14 @@ class Blob {
   int instance;
 
   /// \brief Vector of pixels representing the contour of this blob.
-  std::vector<cv::Point> external_contour_pixels;
-  std::vector<std::vector<cv::Point>> internal_contour_pixels;
+  std::vector<cv::Point2i> external_contour_pixels;
+  std::vector<std::vector<cv::Point2i>> internal_contour_pixels;
 
   /// \brief Number of pixels in this blob.
-  int num_pixels;
+  uint64_t num_pixels;
 
   /// \brief Pixel representing the center of the blob.
   cv::Point2i pixel_center;
-
-  /// \brief World coordinate associated to the pixel_center.
-  Eigen::Vector3d world_coordinate;
 
   /// \brief Ellipse fitted to external contours of blob.
   cv::RotatedRect ellipse;
@@ -67,7 +66,7 @@ class Blob {
 
   /// \brief Computes the number of pixels belonging to the blob.
   void computeArea() {
-    num_pixels = static_cast<int>(c_blob_.Area(AreaMode::PIXELWISE));
+    num_pixels = static_cast<uint64_t>(c_blob_.Area(AreaMode::PIXELWISE));
   }
 
   /// \brief Computes the external bounding boxes of the blob. The bounding

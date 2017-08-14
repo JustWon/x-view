@@ -66,7 +66,7 @@ public:
     // Only get transpose once, to avoid multiple allocations,
     // as well as multiple conversions in the Quaternion case
     const Eigen::Matrix3d Rt = pose.getRotation().inverse().getRotationMatrix();
-    const gtsam::Point3 q(Rt*(p - pose.getPosition()).vector());
+    const gtsam::Point3 q(Rt*(p.vector() - pose.getPosition()));
     if (Dpose) {
       const double wx = q.x(), wy = q.y(), wz = q.z();
       (*Dpose) <<

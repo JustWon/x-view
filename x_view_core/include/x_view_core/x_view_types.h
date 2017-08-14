@@ -10,7 +10,30 @@
 
 namespace x_view {
 
-// forward declaration
+// Single or double floating point precision.
+// Change this MACRO to 0 to use single precision where possible.
+#ifndef X_VIEW_USE_DOUBLE_PRECISION
+#define X_VIEW_USE_DOUBLE_PRECISION 0
+#endif
+
+#if X_VIEW_USE_DOUBLE_PRECISION
+typedef double real_t;
+#else
+typedef float real_t;
+#endif
+
+constexpr real_t real_eps = std::numeric_limits<real_t>::epsilon();
+
+// Matrix types used in X-View.
+typedef Eigen::Matrix<real_t, 3, 1> Vector3r;
+typedef Eigen::Matrix<real_t, 1, 3> RowVector3r;
+typedef Eigen::Matrix<real_t, 3, 3> Matrix3r;
+typedef Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> MatrixXr;
+typedef Eigen::Matrix<bool, Eigen::Dynamic, 1> VectorXb;
+typedef Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> MatrixXb;
+typedef Eigen::Matrix<uchar, Eigen::Dynamic, Eigen::Dynamic> MatrixXuc;
+
+// Forward declaration of classes.
 class AbstractDataset;
 class AbstractDescriptor;
 class AbstractSemanticLandmark;
@@ -97,22 +120,22 @@ class FrameData {
 /// pixel given robot pose.
 class CameraIntrinsics {
  public:
-  CameraIntrinsics(const double focal_length, const int px, const int py) {
-    intrinsics_ = Eigen::Matrix3d::Identity();
+  CameraIntrinsics(const real_t focal_length, const int px, const int py) {
+    intrinsics_ = Matrix3r::Identity();
     intrinsics_(0, 0) = intrinsics_(1, 1) = focal_length;
     intrinsics_(0, 2) = px;
     intrinsics_(1, 2) = py;
   }
 
-  CameraIntrinsics(const double focal_length, const Eigen::Vector2i& p)
+  CameraIntrinsics(const real_t focal_length, const Eigen::Vector2i& p)
       : CameraIntrinsics(focal_length, p[0], p[1]) {}
 
-  const Eigen::Matrix3d& getCameraMatrix() const {
+  const Matrix3r& getCameraMatrix() const {
     return intrinsics_;
   }
 
  private:
-  Eigen::Matrix3d intrinsics_;
+  Matrix3r intrinsics_;
 };
 
 }

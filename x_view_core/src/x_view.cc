@@ -19,10 +19,12 @@ void XView::processFrameData(const FrameData& frame_data) {
 
   ++frame_number_;
   LOG(INFO) << "XView starts processing frame " << frame_number_ << ".";
-  const Eigen::RowVector3d origin = frame_data.getPose().getPosition();
-  const Eigen::Matrix3d rotation = frame_data.getPose().getRotationMatrix();
-  LOG(INFO) << "Associated robot pose:\n" << formatSE3(frame_data.getPose(),
-                                                       "\t\t", 3);
+  const RowVector3r origin = frame_data.getPose().getPosition().cast<real_t>();
+  const Matrix3r rotation = frame_data.getPose().getRotationMatrix()
+      .cast<real_t>();
+  LOG(INFO) << "Associated robot pose:\n"
+            << formatSE3(frame_data.getPose(), "\t\t", 3);
+
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
 
@@ -70,8 +72,7 @@ void XView::writeGraphToFile() const {
   writeToFile(graph_matcher->getGlobalGraph(), filename);
 }
 
-bool XView::localizeFrame(const FrameData& frame_data,
-                          Eigen::Vector3d* position) {
+bool XView::localizeFrame(const FrameData& frame_data, Vector3r* position) {
   LOG(INFO) << "XView tries to localizeFrame a robot by its observations.";
 
   // Generate a new semantic landmark pointer.
@@ -138,12 +139,12 @@ bool XView::localizeFrame(const FrameData& frame_data,
     if (!invalid_matches(j)) {
       LOG(INFO) << "Match between vertex " << j << " in query graph is vertex "
                 << max_index << " in global graph.";
-      const double similarity = similarity_matrix(max_index, j);
+      const real_t similarity = similarity_matrix(max_index, j);
       const VertexProperty& match_v_p = global_graph[max_index];
 
       const unsigned short depth_cm =
       depth_image.at<unsigned short> (match_v_p.center);
-      const double depth_m = depth_cm * 0.01;
+      const real_t depth_m = depth_cm * 0.01;
 
       graph_localizer.addObservation(match_v_p, depth_m, similarity);
     }
@@ -153,14 +154,14 @@ bool XView::localizeFrame(const FrameData& frame_data,
 
   bool localized = graph_localizer.localize(matching_result, query_graph,
                                             global_graph, &transformation);
-  (*position) = transformation.getPosition();
+  (*position) = transformation.getPosition().cast<real_t>();
 
   return localized;
 }
 
 bool XView::localizeGraph(const Graph& query_graph,
                           std::vector<x_view::PoseId> pose_ids,
-                          Eigen::Vector3d* position) {
+                          x_view::Vector3r* position) {
 
   // Get the existing global semantic graph before matching.
   const Graph& global_graph = getSemanticGraph();
@@ -234,7 +235,7 @@ bool XView::localizeGraph(const Graph& query_graph,
     if (max_i == -1)
       continue;
     if (!invalid_matches(j)) {
-      const double similarity = similarity_matrix(max_i, j);
+      const real_t similarity = similarity_matrix(max_i, j);
       const VertexProperty& vertex_query = query_graph[j];
       const VertexProperty& vertex_global = global_graph[max_i];
       graph_localizer.addVertexVertexMeasurement(vertex_query, vertex_global,
@@ -245,7 +246,7 @@ bool XView::localizeGraph(const Graph& query_graph,
   SE3 transformation;
   bool localized = graph_localizer.localize2(matching_result, query_graph,
                                             global_graph, &transformation);
-  (*position) = transformation.getPosition();
+  (*position) = transformation.getPosition().cast<real_t>();
 
   return localized;
 }

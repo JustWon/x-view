@@ -1,12 +1,12 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
 #include <x_view_bag_reader/x_view_pause.h>
-
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/x_view_locator.h>
+#include <x_view_core/x_view_tools.h>
+#include <x_view_core/x_view_types.h>
 
 #include <glog/logging.h>
 #include <opencv2/core/core.hpp>
-#include <x_view_core/x_view_tools.h>
 
 namespace x_view_ros {
 
@@ -121,12 +121,12 @@ bool XViewBagReader::localizeFrame(const CAMERA camera_type,
                                empty_pose_id, frame_index);
 
   bool localized = x_view_->localizeFrame(frame_data, &(locations->first));
-  locations->second = real_pose.getPosition();
+  locations->second = real_pose.getPosition().cast<x_view::real_t>();
 
   if(localized) {
-    publishRobotPosition(locations->first, Eigen::Vector3d(1.0, 0.0, 0.0),
+    publishRobotPosition(locations->first, x_view::Vector3r(1.0, 0.0, 0.0),
                          trans.stamp_, "estimated_position");
-    publishRobotPosition(locations->second, Eigen::Vector3d(0.0, 1.0, 0.0),
+    publishRobotPosition(locations->second, x_view::Vector3r(0.0, 1.0, 0.0),
                          trans.stamp_, "true_position");
   }
   bag_.close();
@@ -161,23 +161,27 @@ bool XViewBagReader::localize_graph2(const CAMERA camera_type, const int start_f
     const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
     tfTransformToSE3(trans, &pose_ids[i - start_frame].pose);
     // Use the start frame as ground truth.
-    if(i == start_frame) {
-      locations->second = pose_ids[i - start_frame].pose.getPosition();
+    if (i == start_frame) {
+      locations->second = pose_ids[i - start_frame].pose.getPosition()
+          .cast<x_view::real_t>();
     }
-    x_view::FrameData frame_data(semantic_image, depth_image, pose_ids[i-start_frame], i);
+    x_view::FrameData frame_data(semantic_image, depth_image,
+                                 pose_ids[i - start_frame], i);
     local_x_view.processFrameData(frame_data);
     // Publish all ground truth poses that contribute to the estimation.
-    const Eigen::Vector3d ground_truth_color(0.15, 0.7, 0.15);
-    publishRobotPosition(pose_ids[i-start_frame].pose.getPosition(), ground_truth_color, trans.stamp_,
-                         "true_position_" +
-                         x_view::PaddedInt(i - start_frame, 3).str());
+    const x_view::Vector3r ground_truth_color(0.15, 0.7, 0.15);
+    publishRobotPosition(
+        pose_ids[i - start_frame].pose.getPosition().cast<x_view::real_t>(),
+        ground_truth_color, trans.stamp_,
+        "true_position_" + x_view::PaddedInt(i - start_frame, 3).str());
   }
 
   const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
 
-  bool localized = x_view_->localizeGraph(local_graph, pose_ids, &(locations->first));
+  bool localized = x_view_->localizeGraph(local_graph, pose_ids,
+                                          &(locations->first));
 
-  const Eigen::Vector3d estimated_color(0.7, 0.15, 0.15);
+  const x_view::Vector3r estimated_color(0.7, 0.15, 0.15);
   publishRobotPosition(locations->first, estimated_color, time,
                        "estimated_position");
 
@@ -212,22 +216,24 @@ bool XViewBagReader::localizeGraph(
     pose_ids.push_back(pose_id);
     // Use the start frame as ground truth.
     if(i == start_frame) {
-      locations->second = pose_id.pose.getPosition();
+      locations->second = pose_id.pose.getPosition().cast<x_view::real_t>();
     }
     x_view::FrameData frame_data(semantic_image, depth_image, pose_id, i);
     local_x_view.processFrameData(frame_data);
     // Publish all ground truth poses that contribute to the estimation.
     const Eigen::Vector3d ground_truth_color(0.15, 0.7, 0.15);
-    publishRobotPosition(pose_id.pose.getPosition(), ground_truth_color, trans.stamp_,
-                         "true_position_" +
-                             x_view::PaddedInt(i - start_frame, 3).str());
+    publishRobotPosition(
+        pose_id.pose.getPosition().cast<x_view::real_t>(),
+        ground_truth_color.cast<x_view::real_t>(), trans.stamp_,
+        "true_position_" + x_view::PaddedInt(i - start_frame, 3).str());
   }
 
   const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
 
-  bool localized = x_view_->localizeGraph(local_graph, pose_ids, &(locations->first));
+  bool localized = x_view_->localizeGraph(local_graph, pose_ids,
+                                          &(locations->first));
 
-  const Eigen::Vector3d estimated_color(0.7, 0.15, 0.15);
+  const x_view::Vector3r estimated_color(0.7, 0.15, 0.15);
   publishRobotPosition(locations->first, estimated_color, time,
                        "estimated_position");
 
@@ -335,10 +341,10 @@ void XViewBagReader::tfTransformToSE3(const tf::StampedTransform& tf_transform,
 }
 
 
-void XViewBagReader::publishRobotPosition(const Eigen::Vector3d& pos,
-                                     const Eigen::Vector3d& color,
-                                     const ros::Time& stamp,
-                                     const std::string ns) {
+void XViewBagReader::publishRobotPosition(const x_view::Vector3r& pos,
+                                          const x_view::Vector3r& color,
+                                          const ros::Time& stamp,
+                                          const std::string ns) {
 
   visualization_msgs::Marker marker;
 

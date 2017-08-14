@@ -62,23 +62,34 @@ const cv::Scalar getColorFromSemanticLabel(const int semantic_label);
 
 /// \brief Generates a random rotation matrix given three uniformly sampled
 /// numbers between zero and one.
-const Eigen::Matrix3d createRotationMatrix(double r1, double r2, double r3);
-const Eigen::Matrix3d randomRotationMatrix(std::mt19937& rng);
+const Matrix3r createRotationMatrix(real_t r1, real_t r2, real_t r3);
+const Matrix3r randomRotationMatrix(std::mt19937& rng);
 
 class Statistics {
  public:
   Statistics();
 
-  void insert(const float& sample);
-  const float mean() const;
-  const float std() const;
+  void insert(const real_t& sample);
+  const real_t mean() const;
+  const real_t std() const;
 
  private:
-  std::vector<float> samples_;
-  float sum_;
-  float sum_squared_;
+  real_t sum_;
+  real_t sum_squared_;
   uint64_t num_samples_;
 };
+
+/// \brief Computes the squared distance between two points in 3D space.
+const real_t distSquared(const Vector3r& v1, const Vector3r& v2);
+
+/// \brief Computes the squared distance between two graph vertices in 3D space.
+const real_t distSquared(const VertexProperty& v_p1, const VertexProperty& v_p2);
+
+/// \brief Computes the distance between two points in 3D space.
+const real_t dist(const Vector3r& v1, const Vector3r& v2);
+
+/// \brief Computes the distance between two graph vertices in 3D space.
+const real_t dist(const VertexProperty& v_p1, const VertexProperty& v_p2);
 
 // ******************************* Logging ***********************************//
 /**
