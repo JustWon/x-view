@@ -245,16 +245,6 @@ bool GraphLocalizer::localize2(
             gtsam::Vector3::Ones() * prior_noise_);
     const uint64_t num_vertices = boost::num_vertices(database_semantic_graph);
 
-    for (size_t i = 0u; i < num_vertices; ++i) {
-      const VertexProperty& vertex_property = database_semantic_graph[i];
-      gtsam::Point3 location(database_semantic_graph[i].location_3d.cast<double>());
-      // Add Prior factors on the database vertices.
-      graph.add(gtsam::PriorFactor <gtsam::Point3>(
-          gtsam::Symbol(database_semantic_graph[i].index), location, prior_noise));
-      // Add location as initial guess to GTSAM values.
-      initials.insert(gtsam::Symbol(database_semantic_graph[i].index), location);
-    }
-
     // Treat odometry of the localization as almost perfect, therefore add relative factors
     // with only prior noise to the graph.
     gtsam::noiseModel::Diagonal::shared_ptr relative_noise_trans =
@@ -316,13 +306,24 @@ bool GraphLocalizer::localize2(
               gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_b.index),
               vv_robust_noise));
 
+      // Add database vertex factors.
+      if (!initials.exists(vertex_vertex_measurements_[i].vertex_b.index)) {
+        gtsam::Point3 location_db(
+            vertex_vertex_measurements_[i].vertex_b.location_3d.cast<double>());
+        // Add Prior factors on the database vertices.
+        graph.add(
+            gtsam::PriorFactor < gtsam::Point3
+                > (gtsam::Symbol(vertex_vertex_measurements_[i].vertex_b.index), location_db, prior_noise));
+        initials.insert(
+            gtsam::Symbol(vertex_vertex_measurements_[i].vertex_b.index),
+            location_db);
+      }
       // Add initial guesses for query_graph at database vertex locations.
       gtsam::Point3 location(
           vertex_vertex_measurements_[i].vertex_b.location_3d.cast<double>());
       initials.insert(
           gtsam::Symbol(vertex_vertex_measurements_[i].vertex_a.index), location);
     }
-
 
     // Compute initial guess for robot and vertex positions as the
     // mean location of the matched vertices.
