@@ -1,23 +1,28 @@
 #include "test_neighbor_search.h"
 
+#include <x_view_core/landmarks/graph_landmark/blob.h>
+
 #include <glog/logging.h>
 
+#include <chrono>
 
 namespace x_view_test {
 
+void testNabo2D() {
 
-void generateRandomPoints(const uint64_t N, const uint64_t D,
-                          std::uniform_real_distribution<x_view::real_t>& dist,
-                          std::mt19937& rng,
-                          x_view::MatrixXr* points) {
+  x_view::MatrixXr points;
+  const uint64_t N = 10;
+  const uint64_t D = 2;
+  const x_view::real_t lower_bound = 0;
+  const x_view::real_t upper_bound = 9;
+  generatePointsOnLine(N, D, lower_bound, upper_bound, &points);
 
-  CHECK_NOTNULL(points);
+  const Vector2r query_point(4.4, 2.0);
+  std::vector<int> expected_indices = {
+      4, 5, 3, 6
+  };
 
-  points->resize(D, N);
-  for(uint64_t j = 0; j < N; ++j)  {
-    for(uint64_t i = 0; i < D; ++i)
-    points->operator()(i, j) = dist(rng);
-  }
+  testKNN(points, query_point, expected_indices);
 }
 
 void generatePointsOnLine(const uint64_t N, const uint64_t D,
@@ -38,7 +43,7 @@ void generatePointsOnLine(const uint64_t N, const uint64_t D,
   }
 }
 
-void testKNN(const x_view::MatrixXr& points, const x_view::Vector3r& query,
+void testKNN(const x_view::MatrixXr& points, const Vector2r& query,
              const std::vector<int>& expected_indices) {
 
   CHECK(points.rows() == query.rows());
@@ -59,6 +64,80 @@ void testKNN(const x_view::MatrixXr& points, const x_view::Vector3r& query,
     CHECK(expected_indices[i] == indices(i));
   }
 
+}
+
+void testBlobNeighborPerformance() {
+  // Generate two non-neighbor blobs.
+  x_view::Blob blob_i, blob_j;
+
+  enum DIRECTION {
+    UP = 0,
+    RIGHT = 1,
+    DOWN = 2,
+    LEFT = 3
+  };
+
+  std::map<DIRECTION, cv::Point2i> step_map = {
+      {UP , cv::Point2i(0, 1)},
+      {RIGHT , cv::Point2i(1, 0)},
+      {DOWN , cv::Point2i(0, -1)},
+      {LEFT , cv::Point2i(-1, 0)},
+  };
+
+  std::uniform_int_distribution<int> step_dist(0, 4);
+  std::mt19937 rng(2);
+
+  auto nextStep = [&]() -> cv::Point2i {
+    return step_map[static_cast<DIRECTION>(step_dist(rng))];
+  };
+
+  const uint64_t num_external_pixels = 50000;
+  const int distance_threshold = 18;
+
+  cv::Point2i start_i(0, 0);
+  std::vector<cv::Point2i> external_contours_i;
+  external_contours_i.push_back(start_i);
+  for(int i = 0; i < num_external_pixels; ++i) {
+    external_contours_i.push_back(external_contours_i.back() + nextStep());
+  }
+
+  cv::Point2i start_j(20, 20);
+  std::vector<cv::Point2i> external_contours_j;
+  external_contours_j.push_back(start_j);
+  for(int i = 0; i < num_external_pixels; ++i) {
+    external_contours_j.push_back(external_contours_j.back() + nextStep());
+  }
+
+  blob_i.external_contour_pixels = external_contours_i;
+  blob_j.external_contour_pixels = external_contours_j;
+
+  const uint64_t repetitions = 1000;
+  {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < repetitions; ++i) {
+      if(i%2)
+      x_view::Blob::areNeighbors(blob_i, blob_j, distance_threshold, true);
+      else
+        x_view::Blob::areNeighbors(blob_j, blob_i, distance_threshold, true);
+    }
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::cout << "With KD-tree: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                  end_time - start_time).count() << " ms." << std::endl;
+  }
+  {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < repetitions; ++i) {
+      if(i%2)
+      x_view::Blob::areNeighbors(blob_i, blob_j, distance_threshold, false);
+      else
+        x_view::Blob::areNeighbors(blob_j, blob_i, distance_threshold, false);
+    }
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::cout << "Without KD-tree: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                  end_time - start_time).count() << " ms." << std::endl;
+  }
 }
 
 }
