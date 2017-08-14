@@ -19,9 +19,13 @@ Blob::Blob(const int semantic_label, const int instance, const CBlob& c_blob)
   computeBlobCenter();
 }
 
-bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
+bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance,
+                        const bool use_kd_tree) {
 
-  const int distance_squared = distance * distance;
+  // Compute squared pixel distance. Increase the distance by one, as if the
+  // input parameter is distance=0 we want to allows neighborhood only
+  // between touching blobs, i.e. blobs with an actual distance of 1.
+  const int distance_squared = (distance + 1) * (distance + 1);
 
   // Increase the box dimension to avoid rejecting matches between blobs in
   // case they are close but their original bounding_box's don't touch.
@@ -36,62 +40,11 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
   if ((bounding_box_i & bounding_box_j).area() == 0)
     return false;
 
-  // External contour.
-  const std::vector<cv::Point2i>& external_contour_i = bi
-      .external_contour_pixels;
-  const std::vector<cv::Point2i>& external_contour_j = bj
-      .external_contour_pixels;
-
-
-  MatrixXr external_contour_i_matrix(2, external_contour_i.size());
-  MatrixXr external_contour_j_matrix(2, external_contour_j.size());
-
-  for(uint64_t i = 0; i < external_contour_i.size(); ++i) {
-    external_contour_i_matrix(0, i) =
-        static_cast<real_t>(external_contour_i[i].x);
-    external_contour_i_matrix(1, i) =
-        static_cast<real_t>(external_contour_i[i].y);
-  }
-  for(uint64_t j = 0; j < external_contour_j.size(); ++j) {
-    external_contour_j_matrix(0, j) =
-        static_cast<real_t>(external_contour_j[j].x);
-    external_contour_j_matrix(1, j) =
-        static_cast<real_t>(external_contour_j[j].y);
-  }
-
-  typedef Nabo::NearestNeighbourSearch<real_t> NNSearch;
-  // Only search for the nearest neighbor for each pixel of one contour with
-  // respect to the other contour.
-  const int K = 1;
-  // Build a KD-tree for the pixels in external_contour_i.
-  auto* external_contour_i_tree =
-      NNSearch::createKDTreeLinearHeap(external_contour_i_matrix);
-  // For each pixel in external_contour_j there is a corresponding column in
-  // the following matrices, containing the index i of the closest pixel in
-  // external_contour_i and its associated squared distance.
-  Eigen::MatrixXi indices(K, external_contour_j_matrix.cols());
-  MatrixXr distances_squared(K, external_contour_j_matrix.cols());
-  const real_t epsilon = 0.0;
-  const uint64_t options = NNSearch::ALLOW_SELF_MATCH | NNSearch::SORT_RESULTS;
-  external_contour_i_tree->knn(external_contour_j_matrix, indices,
-                               distances_squared, K, epsilon, options);
-
-  for(int j = 0; j < external_contour_j.size(); ++j) {
-    // If closest neighbor in external_contour_i for this query pixel is closer
-    // than threshold distance, then these two blobs are neighbors.
-    if(distances_squared(0, j) <= distance_squared)
-      return true;
-  }
-  /*
-  for (const cv::Point2i& pi : external_contour_i)
-    for (const cv::Point2i& pj : external_contour_j) {
-      // Compute pixel distance.
-      cv::Point2i diff = pi - pj;
-      const int dist2 = diff.dot(diff);
-      if (dist2 <= distance_squared)
-        return true;
-    }
-    */
+  // External contours.
+  const std::vector<cv::Point2i>& external_contour_i =
+      bi.external_contour_pixels;
+  const std::vector<cv::Point2i>& external_contour_j =
+      bj.external_contour_pixels;
 
   // Internal contours.
   const std::vector<std::vector<cv::Point2i>>& internal_contours_i =
@@ -99,8 +52,107 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
   const std::vector<std::vector<cv::Point2i>>& internal_contours_j =
       bj.internal_contour_pixels;
 
-  for (const auto& internal_contour_i : internal_contours_i)
-    for (const cv::Point2i& pi : internal_contour_i)
+  if(use_kd_tree) {
+    // Compute closest distance between pixels in blob i and pixels in blob
+    // by using a KD-tree.
+
+    // Count the number of pixels belonging to blob i and blob j.
+
+    // Number of external pixels.
+    const uint64_t num_external_contour_pixels_i = external_contour_i.size();
+    const uint64_t num_external_contour_pixels_j = external_contour_j.size();
+
+    // Number of internal pixels.
+    auto countNumInternalPixels =
+        [](const std::vector<std::vector<cv::Point2i>>& internal_contours) {
+          uint64_t num_internal_pixels = 0;
+          for (const std::vector<cv::Point2i>
+                & internal_contour : internal_contours) {
+            num_internal_pixels += internal_contour.size();
+          }
+          return num_internal_pixels;
+        };
+
+    const uint64_t num_internal_contour_pixels_i =
+        countNumInternalPixels(internal_contours_i);
+    uint64_t num_internal_contour_pixels_j =
+        countNumInternalPixels(internal_contours_j);
+
+    // Total number of pixels.
+    const uint64_t num_contour_pixels_i =
+        num_external_contour_pixels_i + num_internal_contour_pixels_i;
+    const uint64_t num_contour_pixals_j =
+        num_external_contour_pixels_j + num_internal_contour_pixels_j;
+
+    // Create matrices containing the contour pixels used in nearest neighbor
+    // search.
+    MatrixXr contour_i_matrix(2, num_contour_pixels_i);
+    MatrixXr contour_j_matrix(2, num_contour_pixals_j);
+
+    // Fill up matrices with pixel coordinates.
+    auto fillPixelMatrix =
+        [](const std::vector<cv::Point2i>& external_contour,
+           const std::vector<std::vector<cv::Point2i>>& internal_contours,
+           MatrixXr* matrix) {
+          uint64_t j = 0;
+
+          for (const cv::Point2i& external_pixel : external_contour) {
+            matrix->operator()(0, j) = static_cast<real_t>(external_pixel.x);
+            matrix->operator()(1, j) = static_cast<real_t>(external_pixel.y);
+            ++j;
+          }
+          for (const std::vector<cv::Point2i>
+                & internal_contour : internal_contours) {
+            for (const cv::Point2i& internal_pixel : internal_contour) {
+              matrix->operator()(0, j) = static_cast<real_t>(internal_pixel.x);
+              matrix->operator()(1, j) = static_cast<real_t>(internal_pixel.y);
+              ++j;
+            }
+          }
+        };
+
+    fillPixelMatrix(external_contour_i, internal_contours_i, &contour_i_matrix);
+    fillPixelMatrix(external_contour_j, internal_contours_j, &contour_j_matrix);
+
+
+    // Neighbor search via libnabo library.
+    typedef Nabo::NearestNeighbourSearch<real_t> NNSearch;
+    // Only search for the nearest neighbor for each pixel of one contour with
+    // respect to the other contour.
+    const int K = 1;
+    // No approximations in neighbor computation.
+    const real_t epsilon = 0.0;
+    // Nearest neighbor search options.
+    const uint64_t
+        options = NNSearch::ALLOW_SELF_MATCH | NNSearch::SORT_RESULTS;
+
+    // Build a KD-tree for the pixels in blob i.
+    auto* kd_tree_pixels_blob_i =
+        NNSearch::createKDTreeLinearHeap(contour_i_matrix);
+
+    // For each pixel in blob j there is a corresponding column in the
+    // following matrices, containing the index i of the closest pixel in
+    // blob i and its associated squared distance.
+    Eigen::MatrixXi indices(K, contour_j_matrix.cols());
+    MatrixXr distances_squared(K, contour_j_matrix.cols());
+
+    kd_tree_pixels_blob_i->knn(contour_j_matrix, indices, distances_squared, K,
+                               epsilon, options);
+
+    for (int j = 0; j < contour_j_matrix.cols(); ++j) {
+      // If closest neighbor in blob i for this query pixel belonging to blob j
+      // is closer than threshold distance, then these two blobs are neighbors.
+      if (distances_squared(0, j) <= distance_squared)
+        return true;
+    }
+    return false;
+  } else {
+
+    // Compute closest distance between pixels in blob i and pixels in blob
+    // by using a brute force strategy, i.e. by testing each pixel of blob i
+    // against each pixel of blob j.
+
+    for (const cv::Point2i& pi : external_contour_i)
       for (const cv::Point2i& pj : external_contour_j) {
         // Compute pixel distance.
         cv::Point2i diff = pi - pj;
@@ -109,17 +161,28 @@ bool Blob::areNeighbors(const Blob& bi, const Blob& bj, const int distance) {
           return true;
       }
 
-  for (const auto& internal_contour_j : internal_contours_j)
-    for (const cv::Point2i& pj : internal_contour_j)
-      for (const cv::Point2i& pi : external_contour_i) {
-        // Compute pixel distance.
-        cv::Point2i diff = pi - pj;
-        const int dist2 = diff.dot(diff);
-        if (dist2 <= distance_squared)
-          return true;
-      }
+    for (const auto& internal_contour_i : internal_contours_i)
+      for (const cv::Point2i& pi : internal_contour_i)
+        for (const cv::Point2i& pj : external_contour_j) {
+          // Compute pixel distance.
+          cv::Point2i diff = pi - pj;
+          const int dist2 = diff.dot(diff);
+          if (dist2 <= distance_squared)
+            return true;
+        }
 
-  return false;
+    for (const auto& internal_contour_j : internal_contours_j)
+      for (const cv::Point2i& pj : internal_contour_j)
+        for (const cv::Point2i& pi : external_contour_i) {
+          // Compute pixel distance.
+          cv::Point2i diff = pi - pj;
+          const int dist2 = diff.dot(diff);
+          if (dist2 <= distance_squared)
+            return true;
+        }
+
+    return false;
+  }
 }
 
 void Blob::computeContours() {
