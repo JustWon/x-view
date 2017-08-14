@@ -59,7 +59,7 @@ void testLocalization(const int num_tests, const int num_observations,
     x_view::GraphMatcher::GraphMatchingResult matching_result;
     x_view::Graph query_graph;
     x_view::Graph database_graph;
-    graph_localizer.localize2(matching_result, query_graph, database_graph,
+    graph_localizer.localize(matching_result, query_graph, database_graph,
                              &transformation);
     const x_view::real_t d =
         (transformation.getPosition().cast<x_view::real_t>() - robot_position)
@@ -118,7 +118,7 @@ void testEvidence(const int seed) {
     x_view::GraphMatcher::GraphMatchingResult matching_result;
     x_view::Graph query_graph;
     x_view::Graph database_graph;
-    graph_localizer.localize2(matching_result, query_graph, database_graph,
+    graph_localizer.localize(matching_result, query_graph, database_graph,
                              &transformation);
     const x_view::real_t dist = (transformation.getPosition()
         .cast<x_view::real_t>() - robot_position).norm();
