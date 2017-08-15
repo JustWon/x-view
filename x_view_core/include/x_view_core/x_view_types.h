@@ -5,6 +5,9 @@
 #include <kindr/minimal/quat-transformation.h>
 #include <opencv2/core/core.hpp>
 
+// FIXME remove this include header, as it is only used in eclipsified projects.
+#include <eigen3/Eigen/Core>
+
 #include <iomanip>
 #include <memory>
 

@@ -6,6 +6,8 @@
 
 #include <boost/graph/connected_components.hpp>
 
+#include <iterator>
+
 namespace x_view {
 
 GraphMerger::GraphMerger(const Graph& database_graph,
@@ -474,6 +476,7 @@ void GraphMerger::linkUnmatchedQueryGraph() {
       }
     }
   }
+
   CHECK(closest_v_d_pair.from != 0 || closest_v_d_pair.to != 0)
   << "Function " << __FUNCTION__ << " could not determine which "
   << "vertices are the closest pair in the disconnected graph "

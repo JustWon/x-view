@@ -29,7 +29,7 @@ struct GraphMergerParameters {
   /// should be merged together. In particular, if a vertex is candidate to
   /// be merged with another, the merge only takes place if the time-distance
   /// between the two vertices is smaller or equal to the allowed time window
-  /// defind by time_window_.
+  /// defined by time_window_.
   uint64_t time_window;
 
   /// \brief Only vertices whose semantic similarity is greater than this

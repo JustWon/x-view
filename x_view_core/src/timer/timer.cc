@@ -31,10 +31,7 @@ const std::chrono::steady_clock::duration Timer::TimerNode::elapsedTime() {
   has_been_started_ = false;
   has_been_stopped_ = false;
 
-  auto return_elapsed_time = elapsed_time_;
-  elapsed_time_ = std::chrono::steady_clock::duration(0);
-
-  return return_elapsed_time;
+  return elapsed_time_;
 }
 
 Timer::Timer()
