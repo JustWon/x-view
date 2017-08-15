@@ -149,6 +149,8 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_graph_duplicate_removal.cc
         test/test_neighbor_search_main.cc
         test/test_neighbor_search.cc
+        test/test_timer_main.cc
+        test/test_timer.cc
 
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )

@@ -59,7 +59,7 @@ void TimeManager::stop(const std::string& timer_name) {
   timers_[timer_name].stop();
 }
 
-const std::chrono::steady_clock::duration TimeManager::elapsedTime(
+const std::chrono::duration<real_t, std::ratio<1, 1>> TimeManager::elapsedTime(
     const std::string& timer_name) {
   CHECK(timers_.count(timer_name) > 0)
   << "Requested timer <" << timer_name << "> without registering it "

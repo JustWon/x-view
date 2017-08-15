@@ -18,13 +18,15 @@ TEST(XViewSlamTestSuite, test_timer) {
   time_manager.start("Function1");
   waitOneSecond();
   time_manager.stop("Function1");
-  std::cout << "Elapsed time: " << time_manager.elapsedTime("Function1");
+  std::cout << "Elapsed time: "
+     << time_manager.elapsedTime("Function1").count() << " s." << std::endl;
 
 
   time_manager.start("Function2");
   waitTwoSeconds();
   time_manager.stop("Function2");
-  std::cout << "Elapsed time: " << time_manager.elapsedTime("Function2");
+  std::cout << "Elapsed time: "
+     << time_manager.elapsedTime("Function2").count() << " s." << std::endl;
 }
 
 

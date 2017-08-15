@@ -1,6 +1,7 @@
 #include "test_timer.h"
 
 #include <chrono>
+#include <thread>
 
 namespace x_view_test {
 

@@ -1,6 +1,8 @@
 #ifndef X_VIEW_TIMER_H
 #define X_VIEW_TIMER_H
 
+#include <x_view_core/x_view_types.h>
+
 #include <glog/logging.h>
 
 #include <chrono>
@@ -33,7 +35,7 @@ class TimeManager {
   bool registerTimer(const std::string& timer_name);
   void start(const std::string& timer_name);
   void stop(const std::string& timer_name);
-  const std::chrono::steady_clock::duration elapsedTime(
+  const std::chrono::duration<real_t, std::ratio<1, 1>> elapsedTime(
       const std::string& timer_name);
 
  private:
