@@ -69,7 +69,8 @@ const Graph GraphMerger::computeMergedGraph() {
 
   if (matched_vertices_.size() == 0) {
     LOG(WARNING) << "The query graph was unmatched to the database graph. "
-        "Manually creating connections based only on geometric information.";
+        "Creating connections between query and database graph based only on "
+        "geometric information.";
     linkUnmatchedQueryGraph();
     return merged_graph_;
   }
@@ -410,7 +411,8 @@ void GraphMerger::linkUnmatchedQueryGraph() {
       "disconnected components now but has " << num_components << " "
       "components.";
 
-  // Merge close vertices together.
+  // Merte togheter all vertices whose euclidean distance is smaller than a
+  // threshold passed as parameter.
   const auto& parameters = Locator::getParameters();
   const auto& matching_parameters = parameters->getChildPropertyList("matcher");
   const real_t merge_distance =
@@ -418,7 +420,7 @@ void GraphMerger::linkUnmatchedQueryGraph() {
 
   mergeDuplicates(merge_distance, &merged_graph_);
 
-  // Create new edges between close vertices.
+  // Create new edges between close vertices in 3D space.
   const real_t max_link_distance =
       matching_parameters->getFloat("max_link_distance");
   linkCloseVertices(max_link_distance, &merged_graph_);
@@ -427,7 +429,8 @@ void GraphMerger::linkUnmatchedQueryGraph() {
   components.resize(boost::num_vertices(merged_graph_));
   num_components = boost::connected_components(merged_graph_, &components[0]);
 
-  // Merging and linking close vertices was enough.
+  // Merging and linking close vertices was enough as we only have a single
+  // connected component now.
   if(num_components == 1)
     return;
 
