@@ -2,6 +2,7 @@
 #include <x_view_bag_reader/x_view_pause.h>
 
 #include <x_view_core/datasets/synthia_dataset.h>
+#include <x_view_core/timer/timer.h>
 #include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 
@@ -34,6 +35,12 @@ XViewBagReader::XViewBagReader(ros::NodeHandle& n)
   } else
     CHECK(false) << "Dataset '" << dataset_name
                  << "' is not supported" << std::endl;
+
+  // Set up a valid timer.
+  std::unique_ptr<x_view::AbstractTimer> timer(new x_view::Timer());
+
+  // Register the timer into the locator.
+  x_view::Locator::registerTimer(std::move(timer));
 
   // Create x_view only now because it has access to the parser parameters.
   x_view_ = std::unique_ptr<x_view::XView>(new x_view::XView());
@@ -78,6 +85,8 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
                                       const int from, const int to) {
   loadCurrentTopic(getTopics(camera_type));
   const int step = (from <= to ? +1 : -1);
+  auto& timer = x_view::Locator::getTimer();
+  timer->registerTimer("FrameBuilding");
   Pause pause;
   for (int i = from; step * i < step * to; ) {
     if(!pause.isPaused()) {
@@ -89,7 +98,11 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
       x_view::SE3 pose;
       tfTransformToSE3(trans, &pose);
       x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
+
+      timer->start("FrameBuilding");
       x_view_->processFrameData(frame_data);
+      timer->stop("FrameBuilding");
+      std::cout << "Took " << timer->elapsedTime("FrameBuilding").count() << " seconds." << std::endl;
       x_view_->writeGraphToFile();
 
       graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
