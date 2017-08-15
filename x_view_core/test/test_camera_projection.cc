@@ -83,7 +83,7 @@ void testRandomCameraPose() {
     x_view::SE3 pose(q, robot_position);
 
     const x_view::real_t depth =
-        x_view::dist(object_in_world_coordinates - robot_position);
+        x_view::dist(object_in_world_coordinates, robot_position);
 
     x_view::DepthProjector projector(pose, intrinsics);
 

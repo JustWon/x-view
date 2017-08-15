@@ -73,7 +73,8 @@ void XView::writeGraphToFile() const {
 }
 
 bool XView::localizeFrame(const FrameData& frame_data, Vector3r* position) {
-  LOG(INFO) << "XView tries to localizeFrame a robot by its observations.";
+  LOG(INFO) << "XView tries to localize a robot by its observations extracted"
+      " in a single frame.";
 
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
@@ -108,10 +109,18 @@ bool XView::localizeFrame(const FrameData& frame_data, Vector3r* position) {
       matching_result.getSimilarityMatrix();
   VectorXb& invalid_matches = matching_result.getInvalidMatches();
 
+  const std::string score_type_str = Locator::getParameters()
+      ->getChildPropertyList("matcher")->getString("vertex_similarity_score");
+  VertexSimilarity::SCORE_TYPE score_type;
+  if(score_type_str == "WEIGHTED")
+    score_type = VertexSimilarity::SCORE_TYPE::WEIGHTED;
+  else if(score_type_str == "SURFACE")
+    score_type = VertexSimilarity::SCORE_TYPE::SURFACE;
+  else
+    CHECK(false) << "Unrecognized score type " << score_type_str << ".";
   std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
       ->computeSimilarityMatrix(
-          random_walker, &similarity_matrix, &invalid_matches,
-          VertexSimilarity::SCORE_TYPE::WEIGHTED);
+          random_walker, &similarity_matrix, &invalid_matches, score_type);
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarities_colwise =
       matching_result.computeMaxSimilarityColwise();
@@ -184,10 +193,19 @@ bool XView::localizeGraph(const Graph& query_graph, Vector3r* position) {
       matching_result.getSimilarityMatrix();
   VectorXb& invalid_matches = matching_result.getInvalidMatches();
 
+  const std::string score_type_str = Locator::getParameters()
+      ->getChildPropertyList("matcher")->getString("vertex_similarity_score");
+  VertexSimilarity::SCORE_TYPE score_type;
+  if(score_type_str == "WEIGHTED")
+    score_type = VertexSimilarity::SCORE_TYPE::WEIGHTED;
+  else if(score_type_str == "SURFACE")
+    score_type = VertexSimilarity::SCORE_TYPE::SURFACE;
+  else
+    CHECK(false) << "Unrecognized score type " << score_type_str << ".";
+
   std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
       ->computeSimilarityMatrix(
-          random_walker, &similarity_matrix, &invalid_matches,
-          VertexSimilarity::SCORE_TYPE::WEIGHTED);
+          random_walker, &similarity_matrix, &invalid_matches, score_type);
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
       matching_result.computeMaxSimilarityRowwise().cwiseProduct(
@@ -255,6 +273,13 @@ void XView::printInfo() const {
       #else
       << " (Release)"
       #endif
+
+      #if X_VIEW_USE_DOUBLE_PRECISION
+      << " (DP)"
+      #else
+      << " (SP)"
+      #endif
+
       << "\n\n" << dataset
       << "\n\tLandmark type:\t<" + landmark_parameters->getString("type") + ">"
       << "\n\tMatcher type: \t<" + matcher_parameters->getString("type") + ">"
