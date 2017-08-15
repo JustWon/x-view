@@ -1,21 +1,23 @@
 #include <x_view_core/timer/timer.h>
 
+#include <glog/logging.h>
+
 namespace x_view {
 
-TimeManager::Timer::Timer()
+Timer::TimerNode::TimerNode()
     : has_been_started_(false),
       has_been_stopped_(false) {
 
 }
 
-void TimeManager::Timer::start() {
+void Timer::TimerNode::start() {
   CHECK(has_been_started_ == false)
         << "Starting timer twice without stopping it first.";
   has_been_started_ = true;
   start_ = std::chrono::steady_clock::now();
 }
 
-void TimeManager::Timer::stop() {
+void Timer::TimerNode::stop() {
   auto end_time = std::chrono::steady_clock::now();
   CHECK(has_been_started_ == true)
         << "Stopping timer without starting it first.";
@@ -25,7 +27,7 @@ void TimeManager::Timer::stop() {
   elapsed_time_ = (end_time - start_);
 }
 
-const std::chrono::steady_clock::duration TimeManager::Timer::elapsedTime() {
+const std::chrono::steady_clock::duration Timer::TimerNode::elapsedTime() {
   has_been_started_ = false;
   has_been_stopped_ = false;
 
@@ -35,31 +37,32 @@ const std::chrono::steady_clock::duration TimeManager::Timer::elapsedTime() {
   return return_elapsed_time;
 }
 
-TimeManager::TimeManager() {
+Timer::Timer()
+    : AbstractTimer() {
 }
 
-bool TimeManager::registerTimer(const std::string& timer_name) {
+bool Timer::registerTimer(const std::string& timer_name) {
   if(timers_.count(timer_name) > 0)
     return false;
-  timers_.insert({timer_name, Timer()});
+  timers_.insert({timer_name, TimerNode()});
   return true;
 }
 
-void TimeManager::start(const std::string& timer_name) {
+void Timer::start(const std::string& timer_name) {
   CHECK(timers_.count(timer_name) > 0)
         << "Requested timer <" << timer_name << "> without registering it "
             "first.";
   timers_[timer_name].start();
 }
 
-void TimeManager::stop(const std::string& timer_name) {
+void Timer::stop(const std::string& timer_name) {
   CHECK(timers_.count(timer_name) > 0)
   << "Requested timer <" << timer_name << "> without registering it "
       "first.";
   timers_[timer_name].stop();
 }
 
-const std::chrono::duration<real_t, std::ratio<1, 1>> TimeManager::elapsedTime(
+const std::chrono::duration<real_t, std::ratio<1, 1>> Timer::elapsedTime(
     const std::string& timer_name) {
   CHECK(timers_.count(timer_name) > 0)
   << "Requested timer <" << timer_name << "> without registering it "

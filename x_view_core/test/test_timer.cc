@@ -10,7 +10,6 @@ void waitOneSecond() {
   return;
 }
 
-
 void waitTwoSeconds() {
   std::this_thread::sleep_for(std::chrono::seconds(2));
   return;
