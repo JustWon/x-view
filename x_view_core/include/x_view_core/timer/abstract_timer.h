@@ -14,9 +14,7 @@ class AbstractTimer {
 
   virtual bool registerTimer(const std::string& timer_name) = 0;
   virtual void start(const std::string& timer_name) = 0;
-  virtual void stop(const std::string& timer_name) = 0;
-  virtual const std::chrono::duration<real_t, std::ratio<1, 1>> elapsedTime(
-      const std::string& timer_name) = 0;
+  virtual const std::chrono::duration<real_t, std::ratio<1, 1>>  stop(const std::string& timer_name) = 0;
 };
 
 

@@ -27,13 +27,13 @@ TEST(XViewSlamTestSuite, test_timer) {
 
   timer.start("Function1");
   waitFunction(sleep_duration);
-  timer.stop("Function1");
-  CHECK_NEAR(timer.elapsedTime("Function1").count(), sleep_duration.count(), static_cast<x_view::real_t>(0.001));
+  const auto duration_1 = timer.stop("Function1");
+  CHECK_NEAR(duration_1.count(), sleep_duration.count(), static_cast<x_view::real_t>(0.001));
 
   timer.start("Function2");
   waitFunction(sleep_duration * 2);
-  timer.stop("Function2");
-  CHECK_NEAR(timer.elapsedTime("Function2").count(), sleep_duration.count() * 2, static_cast<x_view::real_t>(0.001));
+  const auto duration_2 = timer.stop("Function2");
+  CHECK_NEAR(duration_2.count(), sleep_duration.count() * 2, static_cast<x_view::real_t>(0.001));
 
 
   // Check that the NullTimer does not measure any time duration.
@@ -43,9 +43,9 @@ TEST(XViewSlamTestSuite, test_timer) {
 
   null_timer.start("Function1");
   waitFunction(sleep_duration);
-  null_timer.stop("Function1");
+  const auto duration_3 = null_timer.stop("Function1");
 
-  CHECK_NEAR(null_timer.elapsedTime("Function1").count(), static_cast<x_view::real_t>(0.0), static_cast<x_view::real_t>(0.001));
+  CHECK_NEAR(duration_3.count(), static_cast<x_view::real_t>(0.0), static_cast<x_view::real_t>(0.001));
 
 }
 

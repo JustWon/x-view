@@ -15,17 +15,14 @@ class Timer : public AbstractTimer {
 
   virtual bool registerTimer(const std::string& timer_name) override;
   virtual void start(const std::string& timer_name) override;
-  virtual void stop(const std::string& timer_name) override;
-  virtual const std::chrono::duration<real_t, std::ratio<1, 1>> elapsedTime(
-      const std::string& timer_name) override;
+  virtual const std::chrono::duration<real_t, std::ratio<1, 1>> stop(const std::string& timer_name) override;
 
  private:
   class TimerNode {
    public:
     TimerNode();
     void start();
-    void stop();
-    const std::chrono::steady_clock::duration elapsedTime();
+    const std::chrono::steady_clock::duration stop();
 
    private:
 

@@ -14,23 +14,20 @@ void Timer::TimerNode::start() {
   CHECK(has_been_started_ == false)
         << "Starting timer twice without stopping it first.";
   has_been_started_ = true;
+  has_been_stopped_ = false;
   start_ = std::chrono::steady_clock::now();
 }
 
-void Timer::TimerNode::stop() {
-  auto end_time = std::chrono::steady_clock::now();
-  CHECK(has_been_started_ == true)
-        << "Stopping timer without starting it first.";
-  CHECK(has_been_stopped_ == false)
-        << "Stopping timer twice.";
-  has_been_stopped_ = true;
-  elapsed_time_ = (end_time - start_);
-}
+const std::chrono::steady_clock::duration Timer::TimerNode::stop() {
+  const auto end_time = std::chrono::steady_clock::now();
+  if(!has_been_stopped_) {
+	  CHECK(has_been_started_ == true)
+        	<< "Stopping timer without starting it first.";
+  	  has_been_stopped_ = true;
+  	  elapsed_time_ = (end_time - start_);
+  }
 
-const std::chrono::steady_clock::duration Timer::TimerNode::elapsedTime() {
   has_been_started_ = false;
-  has_been_stopped_ = false;
-
   return elapsed_time_;
 }
 
@@ -52,20 +49,11 @@ void Timer::start(const std::string& timer_name) {
   timers_[timer_name].start();
 }
 
-void Timer::stop(const std::string& timer_name) {
+const std::chrono::duration<real_t, std::ratio<1, 1>> Timer::stop(const std::string& timer_name) {
   CHECK(timers_.count(timer_name) > 0)
   << "Requested timer <" << timer_name << "> without registering it "
       "first.";
-  timers_[timer_name].stop();
+  return timers_[timer_name].stop();
 }
-
-const std::chrono::duration<real_t, std::ratio<1, 1>> Timer::elapsedTime(
-    const std::string& timer_name) {
-  CHECK(timers_.count(timer_name) > 0)
-  << "Requested timer <" << timer_name << "> without registering it "
-      "first.";
-  return timers_.at(timer_name).elapsedTime();
-}
-
 }
 

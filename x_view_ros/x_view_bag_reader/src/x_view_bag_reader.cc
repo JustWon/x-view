@@ -9,6 +9,8 @@
 #include <glog/logging.h>
 #include <opencv2/core/core.hpp>
 
+#include <iostream>
+
 
 namespace x_view_ros {
 
@@ -101,8 +103,8 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
 
       timer->start("FrameBuilding");
       x_view_->processFrameData(frame_data);
-      timer->stop("FrameBuilding");
-      std::cout << "Took " << timer->elapsedTime("FrameBuilding").count() << " seconds." << std::endl;
+      const auto frame_time = timer->stop("FrameBuilding");
+      std::cout << "Took " << frame_time.count() << " seconds." << std::endl;
       x_view_->writeGraphToFile();
 
       graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
