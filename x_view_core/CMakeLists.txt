@@ -66,6 +66,9 @@ cs_add_library(${PROJECT_NAME}
         # Parameters
         src/parameters/parameters.cc
 
+        # Timer
+        src/timer/timer.cc
+
         #### HEADER FILES ####
 
         include/x_view_core/x_view.h
@@ -112,6 +115,9 @@ cs_add_library(${PROJECT_NAME}
 
         # Parameters
         include/x_view_core/parameters/parameters.h
+
+        # Timer
+        include/x_view_core/timer/timer.h
         )
 
 
