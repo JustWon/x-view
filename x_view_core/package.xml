@@ -21,6 +21,7 @@
     <depend>opencv2_catkin</depend>
     <depend>opencv_blobs_catkin</depend>
     <depend>pcl_catkin</depend>
+    <depend>libnabo</depend>
 
 </package>
 
