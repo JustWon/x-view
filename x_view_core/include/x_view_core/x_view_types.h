@@ -13,7 +13,7 @@ namespace x_view {
 // Single or double floating point precision.
 // Change this MACRO to 0 to use single precision where possible.
 #ifndef X_VIEW_USE_DOUBLE_PRECISION
-#define X_VIEW_USE_DOUBLE_PRECISION 0
+#define X_VIEW_USE_DOUBLE_PRECISION 1
 #endif
 
 #if X_VIEW_USE_DOUBLE_PRECISION
