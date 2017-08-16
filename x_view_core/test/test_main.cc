@@ -9,7 +9,7 @@
 int main(int argc, char** argv) {
 
   x_view::setupLogging(argv);
-#ifdef X_VIEW_USE_DOUBLES
+#if X_VIEW_USE_DOUBLE_PRECISION
   LOG(INFO) << "\n============== Running X-View Tests (DP) ===============\n";
 #else
   LOG(INFO) << "\n============== Running X-View Tests (SP) ===============\n";

@@ -6,6 +6,7 @@
 #include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/matchers/vector_matcher.h>
 #include <x_view_core/x_view_tools.h>
+#include <x_view_core/x_view_types.h>
 
 namespace x_view {
 
@@ -99,6 +100,15 @@ bool XView::localizeGraph(const Graph& query_graph,
       matching_result.getSimilarityMatrix();
   VectorXb& invalid_matches = matching_result.getInvalidMatches();
 
+  const std::string score_type_str = Locator::getParameters()
+      ->getChildPropertyList("matcher")->getString("vertex_similarity_score");
+  VertexSimilarity::SCORE_TYPE score_type;
+  if(score_type_str == "WEIGHTED")
+    score_type = VertexSimilarity::SCORE_TYPE::WEIGHTED;
+  else if(score_type_str == "SURFACE")
+    score_type = VertexSimilarity::SCORE_TYPE::SURFACE;
+  else
+    CHECK(false) << "Unrecognized score type " << score_type_str << ".";
   std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
       ->computeSimilarityMatrix(
           random_walker, &similarity_matrix, &invalid_matches,
@@ -182,6 +192,13 @@ void XView::printInfo() const {
       #else
       << " (Release)"
       #endif
+
+      #if X_VIEW_USE_DOUBLE_PRECISION
+      << " (DP)"
+      #else
+      << " (SP)"
+      #endif
+
       << "\n\n" << dataset
       << "\n\tLandmark type:\t<" + landmark_parameters->getString("type") + ">"
       << "\n\tMatcher type: \t<" + matcher_parameters->getString("type") + ">"

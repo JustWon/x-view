@@ -2,6 +2,9 @@
 
 #include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/x_view_tools.h>
+#include <x_view_core/x_view_locator.h>
+
+#include <boost/graph/connected_components.hpp>
 
 namespace x_view {
 
@@ -24,6 +27,13 @@ GraphMerger::GraphMerger(const Graph& database_graph,
             << "\n\tDistance threshold:   "
             << graph_merger_parameters_.distance_threshold << ".";
 
+  // Define start vertex index of vertices being added to the merged graph.
+  current_vertex_index_ = 0;
+  const auto db_vertices = boost::vertices(database_graph_);
+  for (auto iter = db_vertices.first; iter != db_vertices.second; ++iter)
+    current_vertex_index_ =
+        std::max(current_vertex_index_, database_graph_[*iter].index);
+  ++current_vertex_index_;
 }
 
 const Graph GraphMerger::computeMergedGraph() {
@@ -57,9 +67,12 @@ const Graph GraphMerger::computeMergedGraph() {
     }
   }
 
-  // FIXME what to do when there are not matches?
   if (matched_vertices_.size() == 0) {
-    LOG(ERROR) << "Zero matched vertices!";
+    LOG(WARNING) << "The query graph was unmatched to the database graph. "
+        "Creating connections between query and database graph based only on "
+        "geometric information.";
+    linkUnmatchedQueryGraph();
+    return merged_graph_;
   }
 
   // Push all matched vertices into the queue of 'still to process' vertices.
@@ -67,15 +80,6 @@ const Graph GraphMerger::computeMergedGraph() {
   for (const VertexDescriptor v_d : matched_vertices_) {
     still_to_process_.push(v_d);
   }
-
-  // Define start vertex index of vertices being added to the merged graph.
-  current_vertex_index_ = 0;
-  const auto db_vertices = boost::vertices(database_graph_);
-  for (auto iter = db_vertices.first; iter != db_vertices.second; ++iter)
-    current_vertex_index_ =
-        std::max(current_vertex_index_, database_graph_[*iter].index);
-  ++current_vertex_index_;
-
 
   // Iterate over the still_to_process vertices and add them to the merged
   // graph. Also iterate over their neighbors and, in case they have not been
@@ -311,10 +315,10 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
       // Since this edge links an already known vertex to a new entity, we
       // set its 'num_times_seen' property to 1.
       const uint64_t num_times_seen = 1;
-      auto edge_d =
-          boost::add_edge(source_in_db_graph, neighbor_in_db_graph,
-                          {source_v_p.index, neighbor_v_p.index,
-                           num_times_seen},  merged_graph_);
+      auto edge_d = boost::add_edge(source_in_db_graph, neighbor_in_db_graph,
+                                    {source_v_p.index, neighbor_v_p.index,
+                                      num_times_seen}, merged_graph_);
+
       LOG(INFO) << "\t\tsource index: " << source_v_p.index << ", target "
           "index: " << neighbor_v_p.index << ".";
       LOG(INFO) << "\t\tadded corresponding edge "
@@ -370,6 +374,126 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
   // Since the source vertex property might have be modified, we need to set
   // it again with the updated values.
   merged_graph_[source_in_db_graph] = source_v_p;
+}
+
+void GraphMerger::linkUnmatchedQueryGraph() {
+
+  // Add the vertices of the query graph to the database graph in the
+  // merged_graph_ and update their index.
+  const auto query_vertices = boost::vertices(query_graph_);
+  for(auto iter = query_vertices.first; iter != query_vertices.second; ++iter) {
+    const VertexDescriptor vertex_in_query_graph = *iter;
+    VertexProperty v_p = query_graph_[*iter];
+    v_p.index = current_vertex_index_++;
+    const VertexDescriptor vertex_in_merged_graph =
+        boost::add_vertex(v_p, merged_graph_);
+    query_in_db_.insert({vertex_in_query_graph, vertex_in_merged_graph});
+  }
+
+  // Add edges belonging to the query graph inside the merged graph.
+  const auto query_edges = boost::edges(query_graph_);
+  for(auto iter = query_edges.first; iter != query_edges.second; ++iter) {
+    const VertexDescriptor from_in_query = boost::source(*iter, query_graph_);
+    const VertexDescriptor to_in_query = boost::target(*iter, query_graph_);
+
+    const VertexDescriptor from_in_merged = query_in_db_[from_in_query];
+    const VertexDescriptor to_in_merged = query_in_db_[to_in_query];
+
+    const uint64_t from_index = merged_graph_[from_in_merged].index;
+    const uint64_t to_index = merged_graph_[to_in_merged].index;
+
+    // Since this edge comes from the query graph, we set its num_times_seen
+    // property to 1.
+    const uint64_t num_times_seen = 1;
+    boost::add_edge(from_in_merged, to_in_merged,
+                    {from_index, to_index, num_times_seen},  merged_graph_);
+  }
+
+  // The merged_graph presents two disconnected components.
+  std::vector<int> components(boost::num_vertices(merged_graph_));
+  int num_components =
+      boost::connected_components(merged_graph_, &components[0]);
+
+  CHECK(num_components > 1) << "The merged graph should have at least two "
+      "disconnected components now but has " << num_components << " "
+      "components.";
+
+  // Merte togheter all vertices whose euclidean distance is smaller than a
+  // threshold passed as parameter.
+  const auto& parameters = Locator::getParameters();
+  const auto& matching_parameters = parameters->getChildPropertyList("matcher");
+  const real_t merge_distance =
+      matching_parameters->getFloat("merge_distance", 1.0f);
+
+  mergeDuplicates(merge_distance, &merged_graph_);
+
+  // Create new edges between close vertices in 3D space.
+  const real_t max_link_distance =
+      matching_parameters->getFloat("max_link_distance");
+  linkCloseVertices(max_link_distance, &merged_graph_);
+
+  // Check for disconnected components.
+  components.resize(boost::num_vertices(merged_graph_));
+  num_components = boost::connected_components(merged_graph_, &components[0]);
+
+  // Merging and linking close vertices was enough as we only have a single
+  // connected component now.
+  if(num_components == 1)
+    return;
+
+  // Merging and linking close vertices was not enough, thus we manually link
+  // the disconnected components with a single edge between the closest
+  // vertices belonging to different disconnected components.
+  std::vector<int> unique_components(components);
+  std::sort(unique_components.begin(), unique_components.end());
+  unique_components.erase(std::unique(unique_components.begin(),
+                                      unique_components.end()),
+                          unique_components.end());
+
+  const uint64_t num_vertices = boost::num_vertices(merged_graph_);
+
+  // Iterate over each pair of components and determine the closest pair of
+  // vertices to be connected.
+  real_t min_distance_square = std::numeric_limits<real_t>::max();
+  EdgeProperty closest_v_d_pair = {0, 0};
+  for (auto first_component = unique_components.begin();
+       first_component != unique_components.end(); ++first_component) {
+    const int first_component_id = *first_component;
+    for (auto second_component = std::next(first_component);
+         second_component != unique_components.end(); ++second_component) {
+      const int second_component_id = *second_component;
+      for (uint64_t i = 0; i < num_vertices; ++i) {
+        if (components[i] == first_component_id) {
+          const VertexProperty& v_p_i = merged_graph_[i];
+          for (uint64_t j = 0; j < num_vertices; ++j) {
+            if (components[j] == second_component_id) {
+              const VertexProperty& v_p_j = merged_graph_[j];
+              real_t dist2 = distSquared(v_p_i, v_p_j);
+              if (dist2 < min_distance_square) {
+                min_distance_square = dist2;
+                closest_v_d_pair.from = i;
+                closest_v_d_pair.to = j;
+                closest_v_d_pair.num_times_seen = 1;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  CHECK(closest_v_d_pair.from != 0 || closest_v_d_pair.to != 0)
+  << "Function " << __FUNCTION__ << " could not determine which "
+  << "vertices are the closest pair in the disconnected graph "
+  << "between component.";
+  // The closest vertices between first_component and second_component
+  // are the ones contained in closest_v_d_pair.
+  boost::add_edge(closest_v_d_pair.from, closest_v_d_pair.to,
+                  closest_v_d_pair, merged_graph_);
+
+  CHECK(boost::connected_components(merged_graph_, &components[0]) == 1)
+        << "It should now be a single component!";
+
+  return;
 }
 
 const uint64_t GraphMerger::temporalDistance(const uint64_t i,

@@ -222,7 +222,8 @@ GraphPair generateChainGraphPair(const GraphConstructionParams& construction_par
     max_index = std::max(max_index, graph_pair.base_graph[*iter].index);
   }
   GraphModifierParams updated_modifier_params = modifier_params;
-  updated_modifier_params.start_vertex_index = max_index + 1;
+
+  updated_modifier_params.start_vertex_index = int(max_index + 1);
   // Effectively add and remove vertices and edges from the graph.
   modifyGraph(&graph_pair.sub_graph, updated_modifier_params, rng);
   const uint64_t new_last_time_seen = 1;
@@ -265,7 +266,8 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
     max_index = std::max(max_index, graph_pair.base_graph[*iter].index);
   }
   GraphModifierParams updated_modifier_params = modifier_params;
-  updated_modifier_params.start_vertex_index = max_index + 1;
+
+  updated_modifier_params.start_vertex_index = int(max_index + 1);
 
   // Effectively add and remove vertices and edges from the graph.
   modifyGraph(&graph_pair.sub_graph, updated_modifier_params, rng);

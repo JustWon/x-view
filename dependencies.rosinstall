@@ -42,3 +42,6 @@
 - git:
    local-name: pcl_catkin
    uri: https://github.com/ethz-asl/pcl_catkin.git
+- git:
+   local-name: libnabo
+   uri: https://github.com/ethz-asl/libnabo.git
