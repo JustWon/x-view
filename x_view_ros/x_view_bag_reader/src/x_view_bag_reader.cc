@@ -81,8 +81,8 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
                                       const int from, const int to) {
   loadCurrentTopic(getTopics(camera_type));
   const int step = (from <= to ? +1 : -1);
-  auto& timer = x_view::Locator::getTimer();
-  timer->registerTimer("FrameBuilding");
+  const auto& timer = x_view::Locator::getTimer();
+  timer->registerTimer("ProcessFrameData");
   Pause pause;
   for (int i = from; step * i < step * to; ) {
     if(!pause.isPaused()) {
@@ -95,10 +95,9 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
       tfTransformToSE3(trans, &pose);
       x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
 
-      timer->start("FrameBuilding");
+      timer->start("ProcessFrameData");
       x_view_->processFrameData(frame_data);
-      const auto frame_time = timer->stop("FrameBuilding");
-      std::cout << "Took " << frame_time.count() << " seconds." << std::endl;
+      timer->stop("ProcessFrameData");
       x_view_->writeGraphToFile();
 
       graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());

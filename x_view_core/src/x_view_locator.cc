@@ -36,6 +36,10 @@ void Locator::registerTimer(std::unique_ptr<AbstractTimer> timer) {
   timer_ = std::move(timer);
 }
 
+AbstractTimer* Locator::removeTimer() {
+  return timer_.release();
+}
+
 
 }
 

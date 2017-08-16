@@ -1,5 +1,6 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
 #include <x_view_bag_reader/x_view_pause.h>
+#include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 #include <x_view_evaluation/x_view_evaluation.h>
 
@@ -27,6 +28,16 @@ int main(int argc, char** argv) {
   // parameters passed to the iteration function.
   bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT,
                               start_frame, end_frame);
+
+  // Extract the timer associated to the construction and store it locally.
+  x_view::AbstractTimer* construction_timer;
+  evaluation.storeTimer(&construction_timer);
+
+  std::cout
+      << dynamic_cast<x_view::Timer*>(construction_timer)->getTimingsTable()
+      << std::endl;
+
+
 
   // Try to localize the following views inside the previously constructed
   // semantic graph.

@@ -67,8 +67,8 @@ const AbstractTimer::ElapsedTimeType Timer::stop(
 
 const std::string Timer::getTimingsTable() const {
 
-  const uint64_t function_name_width = 15;
-  const uint64_t col_width = 9;
+  const uint64_t function_name_width = 25;
+  const uint64_t col_width = 7;
   const std::string col_sep = " | ";
   std::stringstream ss;
 

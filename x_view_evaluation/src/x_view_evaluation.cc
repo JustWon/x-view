@@ -62,5 +62,11 @@ Evaluation::getAllTimings() const {
   return real_timer->getAllTimings();
 };
 
+void Evaluation::storeTimer(x_view::AbstractTimer** timer) const {
+  *timer = x_view::Locator::removeTimer();
+
+  initializeTimer(params_.timer_type);
+}
+
 }
 

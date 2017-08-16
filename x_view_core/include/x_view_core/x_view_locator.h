@@ -12,9 +12,12 @@ class Locator {
   static const std::unique_ptr<Parameters>& getParameters();
   static const std::unique_ptr<AbstractDataset>& getDataset();
   static const std::unique_ptr<AbstractTimer>& getTimer();
+
   static void registerParameters(std::unique_ptr<Parameters> parameters);
   static void registerDataset(std::unique_ptr<AbstractDataset> dataset);
   static void registerTimer(std::unique_ptr<AbstractTimer> timer);
+
+  static AbstractTimer* removeTimer();
 
  private:
   static std::unique_ptr<Parameters> parameters_;
