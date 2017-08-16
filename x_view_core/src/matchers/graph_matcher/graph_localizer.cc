@@ -17,7 +17,9 @@ namespace x_view {
 
 GraphLocalizer::GraphLocalizer(const real_t prior_noise)
     : prior_noise_(prior_noise),
-      observations_(0) {
+      pose_pose_measurements_(0),
+      pose_vertex_measurements_(0),
+      vertex_vertex_measurements_(0) {
 }
 
 // Create GTSAM Expression for relative pose measurements (e.g., odometry).
@@ -299,12 +301,6 @@ bool GraphLocalizer::localize(
         << std::endl;
   }
   return false;
-}
-
-void GraphLocalizer::addObservation(const VertexProperty& vertex_property,
-                                    const real_t distance,
-                                    const real_t evidence) {
-  observations_.push_back(Observation{vertex_property, distance, evidence});
 }
 
 void GraphLocalizer::addPosePoseMeasurement(PoseId pose_id_a, PoseId pose_id_b) {

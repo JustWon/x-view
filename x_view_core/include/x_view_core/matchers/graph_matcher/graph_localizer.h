@@ -22,22 +22,31 @@ class GraphLocalizer {
   GraphLocalizer(const real_t prior_noise = 0.0);
 
   /**
-   * \brief Adds an observation to the list of factors to consider during
-   * optimization.
-   * \param vertex_property Vertex property associated to the observation.
-   * \param distance Distance measurement between unknown robot position
-   * and observed vertex.
-   * \param evidence Evidence that the observation being added is a true match.
+   * \brief Adds a pose pose measurment (odometry) to the list of factors
+   * to consider during optimization.
+   * \param pose_id_a PoseId associated to first pose.
+   * \param pose_id_b PoseId associated to second (final) pose.
    */
-  void addObservation(const VertexProperty& vertex_property,
-                      const real_t distance, const real_t evidence = 1.0);
-
   void addPosePoseMeasurement(PoseId pose_id_a, PoseId pose_id_b);
 
+  /**
+   * \brief Adds a pose vertex measurement (landmark localization) to the list
+   * of factors to consider during optimization.
+   * \param vertex_property Observed vertex.
+   * \param pose_id PoseId of vertex observer.
+   * \param evidence Evidence associated to the observation.
+   */
   void addPoseVertexMeasurement(const VertexProperty& vertex_property,
                                 const PoseId& pose_id,
                                 const double evidence = 1.0);
 
+  /**
+   * \brief Adds a vertex vertex measurement (landmark matching) to the list
+   * of factors to consider during optimization.
+   * \param vertex_property_a Vertex of query.
+   * \param vertex_property_b Vertex of database.
+   * \param similarity Similarity score between vertex A and vertex B.
+   */
   void addVertexVertexMeasurement(const VertexProperty& vertex_property_a,
                                   const VertexProperty& vertex_property_b,
                                   double similarity);
@@ -117,7 +126,6 @@ class GraphLocalizer {
   };
 
   const real_t prior_noise_;
-  std::vector<Observation> observations_;
   std::vector<PoseVertexMeasurement> pose_vertex_measurements_;
   std::vector<PosePoseMeasurement> pose_pose_measurements_;
   std::vector<VertexVertexMeasurement> vertex_vertex_measurements_;
