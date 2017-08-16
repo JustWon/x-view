@@ -5,6 +5,7 @@
 #include <x_view_core/x_view_types.h>
 
 #include <unordered_map>
+#include <vector>
 
 namespace x_view {
 
@@ -16,6 +17,7 @@ class Timer : public AbstractTimer {
 
  public:
 
+
   Timer();
 
   virtual bool registerTimer(const std::string& timer_name) override;
@@ -23,12 +25,39 @@ class Timer : public AbstractTimer {
   virtual const AbstractTimer::ElapsedTimeType stop(
       const std::string& timer_name) override;
 
+  /**
+   * \brief Generates a human readable table with information about the
+   * registered timers.
+   * \return A string containing the generated table.
+   */
+  const std::string getTimingsTable() const;
+
+  /**
+   * \brief Generates a vector containing all measured timings associated to
+   * the timer name passed as argument.
+   * \param timer_name Name of timer to be returned.
+   * \return A vector containing the raw timings associated to the timer name
+   * expressed in seconds.
+   */
+  const std::vector<x_view::real_t> getTimes(
+      const std::string& timer_name) const;
+
+  /**
+   * \brief Generates a datastructure mapping all registered timers to a
+   * vector of measured timings.
+   * \return An unordered map keyed by the timer name associated to a vector
+   * of timing measurements.
+   */
+  const std::unordered_map<std::string, std::vector<x_view::real_t>>
+  getAllTimings() const;
+
  private:
   class TimerNode {
    public:
     TimerNode();
     void start();
     const std::chrono::steady_clock::duration stop();
+    const std::chrono::steady_clock::duration elapsedTime() const;
 
    private:
 
@@ -39,7 +68,10 @@ class Timer : public AbstractTimer {
     std::chrono::steady_clock::duration elapsed_time_;
   };
 
-  std::unordered_map<std::string, TimerNode> timers_;
+  static x_view::real_t getMean(const std::vector<TimerNode>& timers);
+  static x_view::real_t getStd(const std::vector<TimerNode>& timers);
+
+  std::unordered_map<std::string, std::vector<TimerNode>> timer_map_;
 };
 
 

@@ -22,7 +22,6 @@ class NullTimer : public AbstractTimer {
   virtual void start(const std::string& timer_name) override;
   virtual const AbstractTimer::ElapsedTimeType stop(
       const std::string& timer_name) override;
-
 };
 
 

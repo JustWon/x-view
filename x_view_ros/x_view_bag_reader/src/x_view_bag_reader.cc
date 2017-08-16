@@ -38,12 +38,6 @@ XViewBagReader::XViewBagReader(ros::NodeHandle& n)
     CHECK(false) << "Dataset '" << dataset_name
                  << "' is not supported" << std::endl;
 
-  // Set up a valid timer.
-  std::unique_ptr<x_view::AbstractTimer> timer(new x_view::Timer());
-
-  // Register the timer into the locator.
-  x_view::Locator::registerTimer(std::move(timer));
-
   // Create x_view only now because it has access to the parser parameters.
   x_view_ = std::unique_ptr<x_view::XView>(new x_view::XView());
 

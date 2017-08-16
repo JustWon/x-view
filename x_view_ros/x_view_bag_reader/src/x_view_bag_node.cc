@@ -1,6 +1,7 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
 #include <x_view_bag_reader/x_view_pause.h>
 #include <x_view_core/x_view_tools.h>
+#include <x_view_evaluation/x_view_evaluation.h>
 
 int main(int argc, char** argv) {
 
@@ -13,14 +14,19 @@ int main(int argc, char** argv) {
 
   x_view_ros::XViewBagReader bag_reader(node_handle);
 
+  // Set up the evaluation.
+  x_view_evaluation::EvaluationParameters evaluation_parameters;
+  evaluation_parameters.timer_type =
+      x_view_evaluation::EvaluationParameters::TIMER_TYPE::TIMER;
+  x_view_evaluation::Evaluation evaluation(evaluation_parameters);
+
   const uint64_t start_frame = 0;
-  const uint64_t end_frame = 85;
+  const uint64_t end_frame = 15;
 
   // Build the semantic graph associated to the path specified in the
   // parameters passed to the iteration function.
   bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT,
                               start_frame, end_frame);
-
 
   // Try to localize the following views inside the previously constructed
   // semantic graph.
@@ -45,6 +51,19 @@ int main(int argc, char** argv) {
   pause.terminate();
   std::cout << "Mean localization error: " << stats.mean()
             << ".\nStandard deviation: " << stats.std() << std::endl;
+
+  std::cout << "Evaluation timings table: " << std::endl;
+  std::cout << evaluation.getTimingsTable() << std::endl;
+
+  const auto all_timings = evaluation.getAllTimings();
+  for(const auto& p : all_timings) {
+    std::cout << "Timer " << p.first << ": ";
+    for(const x_view::real_t t : p.second) {
+      std::cout << t << ", ";
+    }
+    std::cout << std::endl;
+  }
+
 
   x_view::finalizeLogging();
 
