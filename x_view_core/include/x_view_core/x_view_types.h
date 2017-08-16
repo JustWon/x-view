@@ -1,12 +1,10 @@
 #ifndef X_VIEW_X_VIEW_TYPES_H
 #define X_VIEW_X_VIEW_TYPES_H
 
+#include <Eigen/Core>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <kindr/minimal/quat-transformation.h>
 #include <opencv2/core/core.hpp>
-
-// FIXME remove this include header, as it is only used in eclipsified projects.
-#include <eigen3/Eigen/Core>
 
 #include <iomanip>
 #include <memory>

@@ -22,7 +22,7 @@ const std::chrono::steady_clock::duration Timer::TimerNode::stop() {
   const auto end_time = std::chrono::steady_clock::now();
   if(!has_been_stopped_) {
 	  CHECK(has_been_started_ == true)
-        	<< "Stopping timer without starting it first.";
+      << "Stopping timer without starting it first.";
   	  has_been_stopped_ = true;
   	  elapsed_time_ = (end_time - start_);
   }
@@ -44,15 +44,14 @@ bool Timer::registerTimer(const std::string& timer_name) {
 
 void Timer::start(const std::string& timer_name) {
   CHECK(timers_.count(timer_name) > 0)
-        << "Requested timer <" << timer_name << "> without registering it "
-            "first.";
+  << "Requested timer <" << timer_name << "> without registering it first.";
   timers_[timer_name].start();
 }
 
-const std::chrono::duration<real_t, std::ratio<1, 1>> Timer::stop(const std::string& timer_name) {
+const AbstractTimer::ElapsedTimeType Timer::stop(
+    const std::string& timer_name) {
   CHECK(timers_.count(timer_name) > 0)
-  << "Requested timer <" << timer_name << "> without registering it "
-      "first.";
+  << "Requested timer <" << timer_name << "> without registering it first.";
   return timers_[timer_name].stop();
 }
 }

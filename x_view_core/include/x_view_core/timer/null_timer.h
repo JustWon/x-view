@@ -8,14 +8,20 @@
 
 namespace x_view {
 
+/**
+ * \brief Implementation of the timer interface with does not perform any
+ * measurement.
+ */
 class NullTimer : public AbstractTimer {
 
  public:
+
   NullTimer();
 
   virtual bool registerTimer(const std::string& timer_name) override;
   virtual void start(const std::string& timer_name) override;
-  virtual const std::chrono::duration<real_t, std::ratio<1, 1>> stop(const std::string& timer_name) override;
+  virtual const AbstractTimer::ElapsedTimeType stop(
+      const std::string& timer_name) override;
 
 };
 

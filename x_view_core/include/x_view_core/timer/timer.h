@@ -8,14 +8,20 @@
 
 namespace x_view {
 
+/**
+ * \brief Implementation of the timer interface with measures the time
+ * between the start and stop function calls.
+ */
 class Timer : public AbstractTimer {
 
  public:
+
   Timer();
 
   virtual bool registerTimer(const std::string& timer_name) override;
   virtual void start(const std::string& timer_name) override;
-  virtual const std::chrono::duration<real_t, std::ratio<1, 1>> stop(const std::string& timer_name) override;
+  virtual const AbstractTimer::ElapsedTimeType stop(
+      const std::string& timer_name) override;
 
  private:
   class TimerNode {

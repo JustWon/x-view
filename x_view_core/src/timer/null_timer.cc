@@ -8,13 +8,15 @@ NullTimer::NullTimer()
 }
 
 bool NullTimer::registerTimer(const std::string& timer_name) {
+  return false;
 }
 
 void NullTimer::start(const std::string& timer_name) {
 }
 
-const std::chrono::duration<real_t, std::ratio<1, 1>> NullTimer::stop(const std::string& timer_name)  {
-  return std::chrono::duration<real_t, std::ratio<1, 1> >::zero();
+const AbstractTimer::ElapsedTimeType NullTimer::stop(
+    const std::string& timer_name)  {
+  return AbstractTimer::ElapsedTimeType::zero();
 };
 
 }
