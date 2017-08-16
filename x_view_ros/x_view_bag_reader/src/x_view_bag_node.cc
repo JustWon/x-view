@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
   for(int i = start_frame; i + local_graph_steps < end_frame;) {
     if(!pause.isPaused()) {
       x_view_ros::XViewBagReader::LocationPair locations;
-      bool localized = bag_reader.localize_graph2(x_view_ros::CAMERA::FRONT, i,
+      bool localized = bag_reader.localizeGraph(x_view_ros::CAMERA::FRONT, i,
                                                 local_graph_steps, &locations);
       if(localized) {
         std::cout << "Estimation: " << x_view::RowVector3r(locations.first) << "\n"

@@ -81,10 +81,6 @@ class XViewBagReader {
    * otherwise.
    */
   bool localizeGraph(const CAMERA camera_type, const int start_frame,
-                     const int steps,
-                     LocationPair* locations);
-
-  bool localize_graph2(const CAMERA camera_type, const int start_frame,
                       const int steps,
                       LocationPair* locations);
 
