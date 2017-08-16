@@ -68,7 +68,7 @@ const AbstractTimer::ElapsedTimeType Timer::stop(
 const std::string Timer::getTimingsTable() const {
 
   const uint64_t function_name_width = 25;
-  const uint64_t col_width = 7;
+  const uint64_t col_width = 9;
   const std::string col_sep = " | ";
   std::stringstream ss;
 
@@ -91,7 +91,6 @@ const std::string Timer::getTimingsTable() const {
     std::string center_string(remaining_space, ' ');
     return s + center_string;
   };
-
 
   ss << getRightString("Timer") << col_sep;
   ss << getLeftString("mean [s]") << col_sep;

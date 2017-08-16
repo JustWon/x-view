@@ -40,6 +40,8 @@ GraphMerger::GraphMerger(const Graph& database_graph,
 
 const Graph GraphMerger::computeMergedGraph() {
 
+  const auto& timer = Locator::getTimer();
+
   const uint64_t num_query_vertices = boost::num_vertices(query_graph_);
   const uint64_t num_db_vertices = boost::num_vertices(database_graph_);
 
@@ -50,6 +52,8 @@ const Graph GraphMerger::computeMergedGraph() {
   // query graph to the corresponding vertex descriptor in the database_graph.
   query_in_db_.clear();
 
+  timer->registerTimer("GraphMatching");
+  timer->start("GraphMatching");
   // Loop over the vertices of the query graph.
   for (uint64_t j = 0; j < num_query_vertices; ++j) {
     // Loop over the vertices of the database graph.
@@ -68,6 +72,7 @@ const Graph GraphMerger::computeMergedGraph() {
       }
     }
   }
+  timer->stop("GraphMatching");
 
   if (matched_vertices_.size() == 0) {
     LOG(WARNING) << "The query graph was unmatched to the database graph. "
@@ -86,6 +91,8 @@ const Graph GraphMerger::computeMergedGraph() {
   // Iterate over the still_to_process vertices and add them to the merged
   // graph. Also iterate over their neighbors and, in case they have not been
   // processed yet add them to the still_to_process queue.
+  timer->registerTimer("GraphMerging");
+  timer->start("GraphMerging");
   while (!still_to_process_.empty()) {
     const VertexDescriptor source_in_query_graph = still_to_process_.front();
     // Remove the element from the queue.
@@ -95,6 +102,7 @@ const Graph GraphMerger::computeMergedGraph() {
               << query_graph_[source_in_query_graph].index << ").";
     addVertexToMergedGraph(source_in_query_graph);
   }
+  timer->stop("GraphMerging");
 
   return merged_graph_;
 }
