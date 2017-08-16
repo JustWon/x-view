@@ -39,6 +39,7 @@ gtsam::ExpressionFactor<SE3> GraphLocalizer::absolutePoseFactor(
   return gtsam::ExpressionFactor<SE3> (noise_model, pose_measurement, T_w);
 }
 
+// Create GTSAM expression for relative point measurements (e.g., translation).
 gtsam::ExpressionFactor<gtsam::Point3> GraphLocalizer::relativePointFactor(
     const gtsam::Point3& translation, int index_a, int index_b,
     gtsam::noiseModel::Base::shared_ptr noise_model) const {

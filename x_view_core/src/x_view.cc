@@ -111,8 +111,7 @@ bool XView::localizeGraph(const Graph& query_graph,
     CHECK(false) << "Unrecognized score type " << score_type_str << ".";
   std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
       ->computeSimilarityMatrix(
-          random_walker, &similarity_matrix, &invalid_matches,
-          VertexSimilarity::SCORE_TYPE::WEIGHTED);
+          random_walker, &similarity_matrix, &invalid_matches, score_type);
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
       matching_result.computeMaxSimilarityRowwise().cwiseProduct(
