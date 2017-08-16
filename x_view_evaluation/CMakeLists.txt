@@ -14,6 +14,10 @@ IF (CMAKE_BUILD_TYPE MATCHES Debug)
     add_definitions(-DX_VIEW_DEBUG)
 ENDIF ()
 
+find_package(catkin_simple 0.1.0 REQUIRED COMPONENTS
+        roscpp
+        )
+
 catkin_simple(ALL_DEPS_REQUIRED)
 
 cs_add_library(${PROJECT_NAME}
