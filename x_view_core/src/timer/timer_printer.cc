@@ -35,12 +35,13 @@ const std::string TimerPrinter::getTimingsTable(const Timer& timer) {
     return s + center_string;
   };
 
-  ss << getRightString("Timer") << col_sep;
-  ss << getLeftString("mean [s]") << col_sep;
-  ss << getLeftString("std [s]") << col_sep;
-  ss << getLeftString("num");
+  ss << boldify(getRightString("Timer")) << col_sep;
+  ss << boldify(getLeftString("mean [s]")) << col_sep;
+  ss << boldify(getLeftString("std [s]")) << col_sep;
+  ss << boldify(getLeftString("num"));
   ss << "\n";
-  const uint64_t line_width = ss.str().length();
+  // Line witdh removing escape chars for boldification.
+  const uint64_t line_width = ss.str().length() - 4 * 8;
   ss << std::setfill('=') << std::setw(line_width);
   ss << "\n";
 
@@ -53,12 +54,15 @@ const std::string TimerPrinter::getTimingsTable(const Timer& timer) {
     ss << "\n";
   }
 
-  return ss.str();
+  std::string s = color(boldify("======== TIME TABLE ========"), COLOR::BLUE);
+  s += "\n\n";
+  return s + ss.str();
 }
 
 const std::string TimerPrinter::getTimingsTree(const Timer& timer) {
-  std::string s;
-  // Generate a list of TimeNode which have no parents (roots)
+  std::string s = color(boldify("======== TIME TREE ========"), COLOR::BLUE);
+  s+= "\n\n";
+
   const std::set<std::string>& root_timers = timer.children_timers_.at("root");
   const std::string& root_indentation = TIMER_INDENTATION;
 
@@ -67,7 +71,7 @@ const std::string TimerPrinter::getTimingsTree(const Timer& timer) {
     s += color("mean: ", COLOR::RED);
     s += std::to_string(Timer::getMean(timer.timer_map_.at(root_timer))) + "s, ";
     s += color("std: ", COLOR::RED);
-    s += std::to_string(Timer::getStd(timer.timer_map_.at(root_timer))) + "s ,";
+    s += std::to_string(Timer::getStd(timer.timer_map_.at(root_timer))) + "s, ";
     s += color("#: ", COLOR::RED);
     s += std::to_string(timer.timer_map_.at(root_timer).size());
 
@@ -89,7 +93,8 @@ const std::string TimerPrinter::getSubTreeTimings(
         Timer::getMean(timer.timer_map_.at(parent_timer));
     std::string s;
     for (const std::string& children_timer : children_timers) {
-      s += "\n" + indentation + "|\n" + indentation + "+--";
+      s += "\n" + indentation;
+      s += "|\n" + indentation + "+--";
       const x_view::real_t children_mean =
           Timer::getMean(timer.timer_map_.at(children_timer));
       const x_view::real_t percent = (100 * children_mean) / parent_mean;
