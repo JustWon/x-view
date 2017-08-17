@@ -37,51 +37,88 @@ class Evaluation {
 
   Evaluation(const EvaluationParameters& params);
 
-  // ============================ Timer ============================ //
-
   /**
-   * \brief Generates a string containing the measurements performed by the
-   * current active timer (i.e. timer located at x_view::Locator::timer_).
-   * \return The table containing timing measurements under the form of a
-   * human readable string.
+   * \brief Evaluation of timings.
    */
-  const std::string getTimingsTable() const;
+  class TimerEvaluation {
 
-  const std::string getTimingsTree() const;
+    friend class Evaluation;
 
-  /**
-   * \brief Gets the timings performed by the current active timer (i.e.
-   * timer located at x_view::Locator::timer_).
-   * \return An unordered map keyed by the timer names corresponding to a
-   * vector of measurements expressed in seconds.
-   */
-  const std::unordered_map<std::string, std::vector<x_view::real_t>>
-      getAllTimings() const;
+   public:
 
-  /**
-   * \brief This function allows to retrieve and store locally the current
-   * active timer. A new empty timer of type params_.timer_type is registered
-   * at his place under x_view::Locator::timer_.
-   * \param timer A pointer to a pointer to an x_view::AbstractTimer object.
-   * \code{cpp}
-   * Evaluation evaluation(...);
-   * { // Perform some measurements }
-   * x_view::AbstractTimer* first_timer;
-   * evaluation.storeTimer(&first_timer);
-   * { // Perform new measurements }
-   * x_view::AbstractTimer* second_timer;
-   * evaluation.storeTimer(&second_timer);
-   * \endcode
-   */
-  void storeTimer(x_view::AbstractTimer** timer) const;
+    /**
+    * \brief Generates a string containing the measurements performed by the
+    * current active timer (i.e. timer located at x_view::Locator::timer_).
+    * \return The table containing timing measurements under the form of a
+    * human readable string.
+    */
+    const std::string getTimingsTable() const;
 
-  // ========================== Estimation ======================== //
-  // TODO: create functions to query estimation properties.
+    /**
+     * \brief Generates a string containing the measurements performed by the
+     * current active timer (i.e. timer located at x_view::Locator::timer_).
+     * \return The tree structure containing timing measurements under the form
+     * of a human readable string.
+     */
+    const std::string getTimingsTree() const;
+
+    /**
+     * \brief Gets the timings performed by the current active timer (i.e.
+     * timer located at x_view::Locator::timer_).
+     * \return An unordered map keyed by the timer names corresponding to a
+     * vector of measurements expressed in seconds.
+     */
+    const std::unordered_map<std::string, std::vector<x_view::real_t>>
+    getAllTimings() const;
+
+    /**
+     * \brief This function allows to retrieve and store locally the current
+     * active timer. A new empty timer of type params_.timer_type is registered
+     * at his place under x_view::Locator::timer_.
+     * \param timer A pointer to a pointer to an x_view::AbstractTimer object.
+     * \code{cpp}
+     * Evaluation evaluation(...);
+     * { // Perform some measurements }
+     * x_view::AbstractTimer* first_timer;
+     * evaluation.time.storeTimer(&first_timer);
+     * { // Perform new measurements }
+     * x_view::AbstractTimer* second_timer;
+     * evaluation.time.storeTimer(&second_timer);
+     * \endcode
+     */
+    void storeTimer(x_view::AbstractTimer** timer) const;
+
+   private:
+    TimerEvaluation(const EvaluationParameters* params)
+        : params_(params) {}
+
+    /// \brief Function called by the Evaluation constructor which makes sure
+    /// x_view::Locator has a valid timer registered.
+    static void initializeTimer(const TIMER_TYPE timer_type);
+
+    const EvaluationParameters* params_;
+  };
+
+  /// \brief Instance of TimerEvaluation accessible publicly.
+  TimerEvaluation time;
+
+  class LocalizationEvaluation {
+
+    friend class Evaluation;
+
+   public:
+
+   private:
+    LocalizationEvaluation(const EvaluationParameters* params)
+        : params_(params) {}
+
+    const EvaluationParameters* params_;
+  };
+
+  /// \brief Instance of LocalizationEvaluation accessible publicly.
+  LocalizationEvaluation localization;
 
  private:
-  /// \brief Function called by the Evaluation constructor which makes sure
-  /// x_view::Locator has a valid timer registered.
-  static void initializeTimer(const TIMER_TYPE timer_type);
 
   /// \brief Parameters used for this evaluation.
   const EvaluationParameters params_;

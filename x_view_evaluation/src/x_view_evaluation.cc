@@ -10,12 +10,14 @@ EvaluationParameters::EvaluationParameters()
 }
 
 Evaluation::Evaluation(const EvaluationParameters& params)
-: params_(params) {
+: params_(params),
+  time(&params_),
+  localization(&params_) {
 
-  Evaluation::initializeTimer(params_.timer_type);
+  Evaluation::TimerEvaluation::initializeTimer(params_.timer_type);
 }
 
-void Evaluation::initializeTimer(const TIMER_TYPE timer_type) {
+void Evaluation::TimerEvaluation::initializeTimer(const TIMER_TYPE timer_type) {
 
   switch(timer_type) {
     case TIMER_TYPE::NULL_TIMER: {
@@ -33,9 +35,9 @@ void Evaluation::initializeTimer(const TIMER_TYPE timer_type) {
   }
 }
 
-const std::string Evaluation::getTimingsTable() const {
+const std::string Evaluation::TimerEvaluation::getTimingsTable() const {
   const auto& timer = x_view::Locator::getTimer();
-  if(params_.timer_type == EvaluationParameters::TIMER_TYPE::NULL_TIMER) {
+  if(params_->timer_type == EvaluationParameters::TIMER_TYPE::NULL_TIMER) {
     return "Registered timer is of <nonMeasuring> type, this means that the "
         "registered instance does not measure any time.";
   }
@@ -48,9 +50,9 @@ const std::string Evaluation::getTimingsTable() const {
   return x_view::TimerPrinter::getTimingsTable(*real_timer);
 }
 
-const std::string Evaluation::getTimingsTree() const {
+const std::string Evaluation::TimerEvaluation::getTimingsTree() const {
   const auto& timer = x_view::Locator::getTimer();
-  if(params_.timer_type == EvaluationParameters::TIMER_TYPE::NULL_TIMER) {
+  if(params_->timer_type == EvaluationParameters::TIMER_TYPE::NULL_TIMER) {
     return "Registered timer is of <nonMeasuring> type, this means that the "
         "registered instance does not measure any time.";
   }
@@ -64,9 +66,9 @@ const std::string Evaluation::getTimingsTree() const {
 }
 
 const std::unordered_map<std::string, std::vector<x_view::real_t>>
-Evaluation::getAllTimings() const {
+Evaluation::TimerEvaluation::getAllTimings() const {
   const auto& timer = x_view::Locator::getTimer();
-  if(params_.timer_type == EvaluationParameters::TIMER_TYPE::NULL_TIMER) {
+  if(params_->timer_type == EvaluationParameters::TIMER_TYPE::NULL_TIMER) {
     return {{"No measurements where made", {}}};
   }
 
@@ -78,10 +80,10 @@ Evaluation::getAllTimings() const {
   return real_timer->getAllTimings();
 };
 
-void Evaluation::storeTimer(x_view::AbstractTimer** timer) const {
+void Evaluation::TimerEvaluation::storeTimer(x_view::AbstractTimer** timer) const {
   *timer = x_view::Locator::removeTimer();
 
-  initializeTimer(params_.timer_type);
+  initializeTimer(params_->timer_type);
 }
 
 }

@@ -29,12 +29,12 @@ int main(int argc, char** argv) {
   bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT,
                               start_frame, end_frame);
 
-  std::cout << "Timings table:\n" << evaluation.getTimingsTree() << std::endl;
-  std::cout << "Timings tree:\n" << evaluation.getTimingsTable() << std::endl;
+  std::cout <<  evaluation.time.getTimingsTree() << std::endl;
+  std::cout <<  evaluation.time.getTimingsTable() << std::endl;
 
   // Extract the timer associated to the construction and store it locally.
   x_view::AbstractTimer* construction_timer;
-  evaluation.storeTimer(&construction_timer);
+  evaluation.time.storeTimer(&construction_timer);
 
   // Try to localize the following views inside the previously constructed
   // semantic graph.
@@ -60,10 +60,11 @@ int main(int argc, char** argv) {
   std::cout << "Mean localization error: " << stats.mean()
             << ".\nStandard deviation: " << stats.std() << std::endl;
 
-  std::cout << "Timings table: " << std::endl;
-  std::cout << evaluation.getTimingsTable() << std::endl;
+  std::cout <<  evaluation.time.getTimingsTree() << std::endl;
+  std::cout <<  evaluation.time.getTimingsTable() << std::endl;
 
-  const auto all_timings = evaluation.getAllTimings();
+  std::cout << "All timings: " << std::endl;
+  const auto all_timings = evaluation.time.getAllTimings();
   for(const auto& p : all_timings) {
     std::cout << "Timer " << p.first << ": ";
     for(const x_view::real_t t : p.second) {

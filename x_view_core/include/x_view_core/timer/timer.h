@@ -66,10 +66,20 @@ class Timer : public AbstractTimer {
     std::chrono::steady_clock::duration elapsed_time_;
   };
 
+  /// \brief Computes and returns the mean measured time associated to the
+  /// vector of TimerNodes passed as argument expressed in seconds.
   static x_view::real_t getMean(const std::vector<TimerNode>& timers);
+
+  /// \brief Computes and returns the standard deviation of the measured time
+  /// associated to the vector of TimerNodes passed as argument expressed in
+  /// seconds.
   static x_view::real_t getStd(const std::vector<TimerNode>& timers);
 
+  /// \brief A map mapping strings (timer names) to the vector of measured
+  /// timers.
   std::unordered_map<std::string, std::vector<TimerNode>> timer_map_;
+
+  /// \brief Vector keeping track of the timer registration order.
   std::vector<std::string> insertion_order_;
 };
 
