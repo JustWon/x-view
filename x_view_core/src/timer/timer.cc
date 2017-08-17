@@ -2,9 +2,6 @@
 
 #include <glog/logging.h>
 
-#include <iomanip>
-#include <sstream>
-
 namespace x_view {
 
 Timer::TimerNode::TimerNode()
@@ -40,14 +37,17 @@ const std::chrono::steady_clock::duration Timer::TimerNode::elapsedTime() const 
   return elapsed_time_;
 }
 
-Timer::Timer()
-    : AbstractTimer() {
+Timer::Timer() {
 }
 
-bool Timer::registerTimer(const std::string& timer_name) {
+bool Timer::registerTimer(const std::string& timer_name,
+                          const std::string& parent_timer_name) {
   if (timer_map_.count(timer_name) > 0)
     return false;
-  timer_map_.insert({timer_name, {}});
+  timer_map_[timer_name] = {};
+  insertion_order_.push_back(timer_name);
+  parent_timer_[timer_name] = parent_timer_name;
+  children_timers_[parent_timer_name].insert(timer_name);
   return true;
 }
 
@@ -63,53 +63,6 @@ const AbstractTimer::ElapsedTimeType Timer::stop(
   CHECK(timer_map_.count(timer_name) > 0)
   << "Requested timer <" << timer_name << "> without registering it first.";
   return timer_map_[timer_name].back().stop();
-}
-
-const std::string Timer::getTimingsTable() const {
-
-  const uint64_t function_name_width = 25;
-  const uint64_t col_width = 9;
-  const std::string col_sep = " | ";
-  std::stringstream ss;
-
-  auto getRightString = [&](const std::string& s) -> std::string {
-    const uint64_t string_length = s.length();
-    if (string_length > function_name_width)
-      return s.substr(0, function_name_width - 1) + ".";
-
-    const uint64_t remaining_space = function_name_width - string_length;
-    std::string center_string(remaining_space, ' ');
-    return center_string + s;
-  };
-
-  auto getLeftString = [&](const std::string& s) -> std::string {
-    const uint64_t string_length = s.length();
-    if (string_length > col_width)
-      return s.substr(0, col_width - 1) + ".";
-
-    const uint64_t remaining_space = col_width - string_length;
-    std::string center_string(remaining_space, ' ');
-    return s + center_string;
-  };
-
-  ss << getRightString("Timer") << col_sep;
-  ss << getLeftString("mean [s]") << col_sep;
-  ss << getLeftString("std [s]") << col_sep;
-  ss << getLeftString("num");
-  ss << "\n";
-  const uint64_t line_width = ss.str().length();
-  ss << std::setfill('=') << std::setw(line_width);
-  ss << "\n";
-
-  for (const auto& p : timer_map_) {
-    ss << getRightString(p.first) << col_sep;
-    ss << getLeftString(std::to_string(getMean(p.second))) << col_sep;
-    ss << getLeftString(std::to_string(getStd(p.second))) << col_sep;
-    ss << getLeftString(std::to_string(p.second.size()));
-    ss << "\n";
-  }
-
-  return ss.str();
 }
 
 const std::vector<x_view::real_t> Timer::getTimes(

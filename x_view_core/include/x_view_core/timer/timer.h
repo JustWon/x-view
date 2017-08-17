@@ -15,22 +15,20 @@ namespace x_view {
  */
 class Timer : public AbstractTimer {
 
- public:
+  // Timer printer class is a friend class as it can have access to all
+  // private variables of the Timer class.
 
+  friend class TimerPrinter;
+
+ public:
 
   Timer();
 
-  virtual bool registerTimer(const std::string& timer_name) override;
+  virtual bool registerTimer(const std::string& timer_name,
+                             const std::string& parent_timer_name = "root")  override;
   virtual void start(const std::string& timer_name) override;
   virtual const AbstractTimer::ElapsedTimeType stop(
       const std::string& timer_name) override;
-
-  /**
-   * \brief Generates a human readable table with information about the
-   * registered timers.
-   * \return A string containing the generated table.
-   */
-  const std::string getTimingsTable() const;
 
   /**
    * \brief Generates a vector containing all measured timings associated to
@@ -72,6 +70,7 @@ class Timer : public AbstractTimer {
   static x_view::real_t getStd(const std::vector<TimerNode>& timers);
 
   std::unordered_map<std::string, std::vector<TimerNode>> timer_map_;
+  std::vector<std::string> insertion_order_;
 };
 
 

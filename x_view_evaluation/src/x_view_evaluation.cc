@@ -1,5 +1,6 @@
 #include <x_view_evaluation/x_view_evaluation.h>
 
+#include <x_view_core/timer/timer_printer.h>
 #include <x_view_core/x_view_locator.h>
 
 namespace x_view_evaluation {
@@ -44,7 +45,22 @@ const std::string Evaluation::getTimingsTable() const {
         << "Function " << __FUNCTION__ << " is only supported for timers of "
             "type <x_view::Timer>";
 
-  return real_timer->getTimingsTable();
+  return x_view::TimerPrinter::getTimingsTable(*real_timer);
+}
+
+const std::string Evaluation::getTimingsTree() const {
+  const auto& timer = x_view::Locator::getTimer();
+  if(params_.timer_type == EvaluationParameters::TIMER_TYPE::NULL_TIMER) {
+    return "Registered timer is of <nonMeasuring> type, this means that the "
+        "registered instance does not measure any time.";
+  }
+
+  x_view::Timer* real_timer = dynamic_cast<x_view::Timer*>(timer.get());
+  CHECK(real_timer != nullptr)
+  << "Function " << __FUNCTION__ << " is only supported for timers of "
+      "type <x_view::Timer>";
+
+  return x_view::TimerPrinter::getTimingsTree(*real_timer);
 }
 
 const std::unordered_map<std::string, std::vector<x_view::real_t>>

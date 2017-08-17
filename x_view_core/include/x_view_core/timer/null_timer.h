@@ -18,7 +18,8 @@ class NullTimer : public AbstractTimer {
 
   NullTimer();
 
-  virtual bool registerTimer(const std::string& timer_name) override;
+  virtual bool registerTimer(const std::string& timer_name,
+                             const std::string& parent_timer_name = "") override;
   virtual void start(const std::string& timer_name) override;
   virtual const AbstractTimer::ElapsedTimeType stop(
       const std::string& timer_name) override;

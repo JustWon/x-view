@@ -69,6 +69,7 @@ cs_add_library(${PROJECT_NAME}
         # Timer
         src/timer/null_timer.cc
         src/timer/timer.cc
+        src/timer/timer_printer.cc
 
         #### HEADER FILES ####
 
@@ -121,6 +122,7 @@ cs_add_library(${PROJECT_NAME}
         include/x_view_core/timer/abstract_timer.h
         include/x_view_core/timer/null_timer.h
         include/x_view_core/timer/timer.h
+        include/x_view_core/timer/timer_printer.h
         )
 
 

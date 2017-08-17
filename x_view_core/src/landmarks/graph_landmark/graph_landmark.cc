@@ -48,7 +48,7 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
                << "> as 'blob_filter_type' parameter.";
   }
 
-  timer->registerTimer("BlobExtraction");
+  timer->registerTimer("BlobExtraction", "SemanticLandmarkExtraction");
   timer->start("BlobExtraction");
   image_blobs_ = BlobExtractor::extractBlobs(semantic_image_,
                                              blob_extractor_params);
@@ -79,7 +79,7 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
                << graph_extraction_type << ">.";
   }
 
-  timer->registerTimer("GraphBuilding");
+  timer->registerTimer("GraphBuilding", "SemanticLandmarkExtraction");
   timer->start("GraphBuilding");
   descriptor = GraphBuilder::extractSemanticGraph(frame_data,
                                                   image_blobs_,

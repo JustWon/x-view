@@ -2,12 +2,11 @@
 
 namespace x_view {
 
-NullTimer::NullTimer()
- : AbstractTimer() {
-
+NullTimer::NullTimer() {
 }
 
-bool NullTimer::registerTimer(const std::string& timer_name) {
+bool NullTimer::registerTimer(const std::string& timer_name,
+                              const std::string& parent_timer_name) {
   return false;
 }
 

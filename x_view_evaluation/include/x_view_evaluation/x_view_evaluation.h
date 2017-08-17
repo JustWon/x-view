@@ -47,6 +47,8 @@ class Evaluation {
    */
   const std::string getTimingsTable() const;
 
+  const std::string getTimingsTree() const;
+
   /**
    * \brief Gets the timings performed by the current active timer (i.e.
    * timer located at x_view::Locator::timer_).

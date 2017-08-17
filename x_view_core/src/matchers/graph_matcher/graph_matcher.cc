@@ -165,13 +165,16 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
 
   const auto& timer = Locator::getTimer();
 
+  timer->registerTimer("GraphMatching", "ProcessFrameData");
+  timer->start("GraphMatching");
+
   // Extract the random walks of the query graph using the same parameters as
   // the ones used for the global database graph.
   RandomWalker random_walker(query_semantic_graph, random_walker_params_);
-  timer->registerTimer("RandomWalksGeneration");
-  timer->start("RandomWalksGeneration");
+  timer->registerTimer("QueryRandomWalksGeneration", "GraphMatching");
+  timer->start("QueryRandomWalksGeneration");
   random_walker.generateRandomWalks();
-  timer->stop("RandomWalksGeneration");
+  timer->stop("QueryRandomWalksGeneration");
 
   // Create a matching result pointer which will be returned by this
   // function which stores the similarity matrix.
@@ -201,12 +204,11 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
 
   // Merge the query graph onto the global semantic graph. The result of this
   // operation is the new global semantic graph.
-  timer->registerTimer("MergingWithNewDescriptors");
-  timer->registerTimer("MergingWithoutNewDescriptors");
-  timer->start("MergingWithNewDescriptors");
-  timer->start("MergingWithoutNewDescriptors");
+
+  timer->registerTimer("GraphGrowing", "GraphMatching");
+  timer->start("GraphGrowing");
   global_semantic_graph_ = graph_merger.computeMergedGraph();
-  timer->stop("MergingWithoutNewDescriptors");
+  timer->stop("GraphGrowing");
 
   // Clean the newly generated global semantic graph by removing duplicate
   // vertices.
@@ -215,7 +217,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   if(should_merge_duplicates) {
     const real_t merge_distance =
         matching_parameters->getFloat("merge_distance", 0.1f);
-    timer->registerTimer("DuplicateMerging");
+    timer->registerTimer("DuplicateMerging", "GraphMatching");
     timer->start("DuplicateMerging");
     GraphMerger::mergeDuplicates(merge_distance, &global_semantic_graph_);
     timer->stop("DuplicateMerging");
@@ -226,7 +228,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   if(should_link_vertices) {
     const real_t max_link_distance =
         matching_parameters->getFloat("max_link_distance");
-    timer->registerTimer("VertexLinking");
+    timer->registerTimer("VertexLinking", "GraphMatching");
     timer->start("VertexLinking");
     GraphMerger::linkCloseVertices(max_link_distance, &global_semantic_graph_);
     timer->stop("VertexLinking");
@@ -235,12 +237,14 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   // Regenerate the random walks of the new global graph
   RandomWalker global_random_walker(global_semantic_graph_,
                                     random_walker_params_);
-  timer->registerTimer("GlobalGraphRandomWalksGeneration");
-  timer->start("GlobalGraphRandomWalksGeneration");
+  timer->registerTimer("GlobalRandomWalksGeneration", "GraphMatching");
+  timer->start("GlobalRandomWalksGeneration");
   global_random_walker.generateRandomWalks();
-  timer->stop("GlobalGraphRandomWalksGeneration");
-  timer->stop("MergingWithNewDescriptors");
+  timer->stop("GlobalRandomWalksGeneration");
+
   global_walk_map_vector_ = global_random_walker.getMappedWalks();
+
+  timer->stop("GraphMatching");
 
   // Return the matching result filled with the matches.
   return matching_result;
@@ -330,10 +334,7 @@ void GraphMatcher::addDescriptor(const Graph& graph) {
   const auto& timer = Locator::getTimer();
 
   RandomWalker random_walker(graph, random_walker_params_);
-  timer->registerTimer("RandomWalksGeneration");
-  timer->start("RandomWalksGeneration");
   random_walker.generateRandomWalks();
-  timer->stop("RandomWalksGeneration");
 
   global_semantic_graph_.clear();
   global_semantic_graph_ = graph;

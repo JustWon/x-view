@@ -25,14 +25,15 @@ void XView::processFrameData(const FrameData& frame_data) {
   LOG(INFO) << "Associated robot pose:\n"
             << formatSE3(frame_data.getPose(), "\t\t", 3);
 
-  // Register a new timer to measure the extraction time.
   const auto& timer = Locator::getTimer();
-  timer->registerTimer("SemanticLandmarkExtraction");
+  timer->registerTimer("ProcessFrameData");
+  timer->start("ProcessFrameData");
 
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
 
   // Extract semantics associated to the semantic image and pose.
+  timer->registerTimer("SemanticLandmarkExtraction", "ProcessFrameData");
   timer->start("SemanticLandmarkExtraction");
   createSemanticLandmark(frame_data, landmark_ptr);
   timer->stop("SemanticLandmarkExtraction");
@@ -50,6 +51,8 @@ void XView::processFrameData(const FrameData& frame_data) {
   }
   // Add the semantic landmark to the database.
   semantics_db_.push_back(landmark_ptr);
+
+  timer->stop("ProcessFrameData");
 
   LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
 }
