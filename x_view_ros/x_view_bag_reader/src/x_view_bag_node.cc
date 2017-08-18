@@ -4,6 +4,7 @@
 #include <x_view_core/x_view_tools.h>
 #include <x_view_evaluation/x_view_evaluation.h>
 
+
 int main(int argc, char** argv) {
 
   x_view::setupLogging(argv);
@@ -39,7 +40,6 @@ int main(int argc, char** argv) {
   // Try to localize the following views inside the previously constructed
   // semantic graph.
   x_view_ros::Pause pause;
-  x_view::Statistics stats;
   const uint64_t local_graph_steps = 5;
   for(int i = start_frame; i + local_graph_steps < end_frame;) {
     if(!pause.isPaused()) {
@@ -49,7 +49,9 @@ int main(int argc, char** argv) {
       if(localized) {
         std::cout << "Estimation: " << x_view::RowVector3r(locations.first) << "\n"
                   << "True: " << x_view::RowVector3r(locations.second) << std::endl;
-        stats.insert((locations.second - locations.first).norm());
+        evaluation.localization.addLocalization("LocalizationEstimation",
+                                                locations.second,
+                                                locations.first);
       } else {
         std::cout << "Localization was not effective." << std::endl;
       }
@@ -57,11 +59,11 @@ int main(int argc, char** argv) {
     }
   }
   pause.terminate();
-  std::cout << "Mean localization error: " << stats.mean()
-            << ".\nStandard deviation: " << stats.std() << std::endl;
 
   std::cout <<  evaluation.time.getTimingsTree() << std::endl;
   std::cout <<  evaluation.time.getTimingsTable() << std::endl;
+
+  std::cout << evaluation.localization.getStatisticsTable() << std::endl;
 
   std::cout << "All timings: " << std::endl;
   const auto all_timings = evaluation.time.getAllTimings();

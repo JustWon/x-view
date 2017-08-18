@@ -117,27 +117,6 @@ const Matrix3r randomRotationMatrix(std::mt19937& rng) {
   return createRotationMatrix(dist(rng), dist(rng), dist(rng));
 }
 
-Statistics::Statistics()
-    : sum_(0.0),
-      sum_squared_(0.0),
-      num_samples_(0) {
-}
-
-void Statistics::insert(const real_t& sample) {
-  ++num_samples_;
-  sum_ += sample;
-  sum_squared_ += sample * sample;
-}
-
-const real_t Statistics::mean() const {
-  return sum_ / num_samples_;
-}
-
-const real_t Statistics::std() const {
-  const real_t m = mean();
-  return std::sqrt(sum_squared_ / num_samples_ - m * m);
-}
-
 const real_t distSquared(const Vector3r& v1, const Vector3r& v2) {
   return (v1 - v2).squaredNorm();
 }

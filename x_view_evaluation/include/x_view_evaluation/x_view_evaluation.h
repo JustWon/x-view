@@ -1,6 +1,7 @@
 #ifndef X_VIEW_EVALUATION_H
 #define X_VIEW_EVALUATION_H
 
+#include <x_view_evaluation/statistics.h>
 #include <x_view_core/timer/null_timer.h>
 #include <x_view_core/timer/timer.h>
 
@@ -11,6 +12,10 @@ namespace x_view_evaluation {
  */
 struct EvaluationParameters {
 
+  /// \brief Default constructor which initializes the variables on their
+  /// default value.
+  EvaluationParameters();
+
   /// \brief Enum defining which type of timer should be used when running
   /// X-View.
   enum TIMER_TYPE {
@@ -19,11 +24,6 @@ struct EvaluationParameters {
     /// \brief A real timer that measures execution time.
     TIMER
   };
-
-  /// \brief Default constructor which initializes the variables on their
-  /// default value.
-  EvaluationParameters();
-
 
   /// \brief Type of timer to be used when running X-View.
   TIMER_TYPE timer_type;
@@ -108,9 +108,45 @@ class Evaluation {
 
    public:
 
+    /**
+     * \brief Adds the pair of positions to the statistic object referred to
+     * by the string passed as argument. This allows to compute different
+     * statistics simultaneously without mixing the samples.
+     * \param statistics_name Name used as key to refer to the statistics
+     * where to store the samples passed as argument.
+     * \param true_position Ground true position of the robot.
+     * \param estimated_position Estimated position of the robot.
+     */
+    void addLocalization(const std::string& statistics_name,
+                         const x_view::Vector3r& true_position,
+                         const x_view::Vector3r& estimated_position);
+
+
+    /**
+     * \brief Computes the mean squared distance of the samples added to the
+     * statistics associated with the statistics name passed as argument.
+     * \param statistics_name Name used as key to refer to the statistics
+     * for which the mean squared distance to the ground truths is to be
+     * computed.
+     * \return The mean distance squared of the measurements to the
+     * corresponding ground truths.
+     */
+    const x_view::real_t MSD(const std::string& statistics_name) const;
+
+    /**
+     * \brief Generates a table of statistics containing information
+     * associated with the computed statistics.
+     * \return A string representing a table of statistic and associated
+     * information in a human readable way.
+     */
+    const std::string getStatisticsTable() const;
+
+
    private:
     LocalizationEvaluation(const EvaluationParameters* params)
         : params_(params) {}
+
+    std::unordered_map<std::string, Statistics> statistics_map_;
 
     const EvaluationParameters* params_;
   };
