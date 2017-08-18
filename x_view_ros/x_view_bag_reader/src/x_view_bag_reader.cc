@@ -100,6 +100,11 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
   pause.terminate();
 }
 
+void XViewBagReader::relabelGlobalGraphVertices(const x_view::real_t percentage,
+                                                const uint64_t seed) {
+  x_view_->relabelGlobalGraphVertices(percentage, seed);
+}
+
 bool XViewBagReader::localizeFrame(const CAMERA camera_type,
                                    const int frame_index,
                                    LocationPair* locations) {

@@ -21,6 +21,7 @@ int main(int argc, char** argv) {
   bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT,
                               start_frame, end_frame);
 
+  bag_reader.relabelGlobalGraphVertices(0.1, 0);
 
   // Try to localize the following views inside the previously constructed
   // semantic graph.

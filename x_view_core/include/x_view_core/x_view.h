@@ -40,10 +40,16 @@ class XView {
   void processFrameData(const FrameData& frame_data);
 
   /**
-   * \brief Returns a reference to the current global semantic graph.
-   * \return A reference to the current global semantic graph.
+   * \brief Returns a const reference to the current global semantic graph.
+   * \return A const reference to the current global semantic graph.
    */
   const Graph& getSemanticGraph() const;
+
+  /**
+  * \brief Returns a reference to the current global semantic graph.
+  * \return A reference to the current global semantic graph.
+  */
+  Graph& getSemanticGraph();
 
   /**
    * \brief Writes the current global semantic graph to a file.
@@ -71,6 +77,18 @@ class XView {
    * \return Success in localization.
    */
   bool localizeGraph(const Graph& query_graph, Vector3r* position);
+
+  /**
+   * \brief Relabels a set of randomly choosen vertices of the current global
+   * semantic graph.
+   * \param percentage Percentage value between 0 and 1 of vertices to be
+   * relabeled randomly.
+   * \param seed Seed to be used for the random number generator.
+   * \note Since relabeling vertices affects the semantic descriptors of the
+   * semantic graph, the random walks of all vertices are recomputed.
+   */
+  void relabelGlobalGraphVertices(const x_view::real_t percentage,
+                                  const uint64_t seed = 0);
 
  private:
   /// \brief Prints XView info.

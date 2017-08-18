@@ -55,6 +55,15 @@ class XViewBagReader {
                         const int from, const int to);
 
   /**
+   * \brief Relabels a set of randomly selected vertices of the global
+   * semantic graph.
+   * \param percentage Percentage of vertices to be relabeled.
+   * \param seed Seed to be used for the random number generator.
+   */
+  void relabelGlobalGraphVertices(const x_view::real_t percentage,
+                                  const uint64_t seed = 0);
+
+  /**
    * \brief Localizes the robot seeing the scene at frame_index through the
    * camera camera_type.
    * \param camera_type Camera type to be used in this localization.

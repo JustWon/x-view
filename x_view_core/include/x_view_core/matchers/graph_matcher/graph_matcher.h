@@ -77,6 +77,13 @@ class GraphMatcher : public AbstractMatcher {
    */
   MatchingResultPtr match(const Graph& query_semantic_graph);
 
+
+  /**
+   * \brief Recomputes the random walks for all vertices belonging to the
+   * global semantic graph.
+   */
+  void recomputeGlobalRandomWalks();
+
   /**
    * \brief Function that filters the Matches between graphs for geometric
    * consistency.
@@ -127,6 +134,7 @@ class GraphMatcher : public AbstractMatcher {
                                VertexSimilarity::SCORE_TYPE::WEIGHTED) const;
 
   const Graph& getGlobalGraph() const  { return global_semantic_graph_; }
+  Graph& getGlobalGraph() { return global_semantic_graph_; }
   void setGlobalGraph(const Graph& global_graph) {
     global_semantic_graph_ = global_graph;
   }
