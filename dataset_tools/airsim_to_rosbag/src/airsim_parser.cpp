@@ -258,6 +258,17 @@ bool AirsimParser::getCameraPoseAtEntry(uint64_t entry, uint64_t id,
 //      return false;
 //    }
     if (convertVectorToPose(parsed_doubles, pose)) {
+      if (id == 0) {
+        // Forward-facing camera on ground.
+        pose->getPosition() += Eigen::Vector3d(0, 0, 2.5);
+      } else if (id == 1) {
+        // Birds-eye down-facing camera.
+        pose->getPosition() += Eigen::Vector3d(0, 0, 50);
+        pose->getRotation() = airsim::Rotation(0.7071067811865476, 0, 0.7071067811865475, 0);
+      } else {
+        std::cout << "Requested invalid camera id: " << id <<"." << std::endl;
+        return false;
+      }
       return true;
     }
   }
