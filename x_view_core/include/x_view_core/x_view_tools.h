@@ -38,9 +38,9 @@ int twoBytesToInt(const unsigned char* b);
 cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel);
 
 // ******************************* Utility ***********************************//
-class padded_int {
+class PaddedInt {
  public:
-  padded_int(const int64_t value, const int pad = 0, const char fill = '0');
+  PaddedInt(const int64_t value, const int pad = 0, const char fill = '0');
 
   const std::string& str() const;
 
@@ -51,8 +51,8 @@ class padded_int {
   std::string str_;
 };
 
-std::string operator + (const std::string& l, const padded_int& r);
-std::string operator + (const padded_int& l, const std::string& r);
+std::string operator + (const std::string& l, const PaddedInt& r);
+std::string operator + (const PaddedInt& l, const std::string& r);
 
 const std::string formatSE3(const SE3& se3, const std::string& indent = "",
                             const int precision = Eigen::StreamPrecision);
@@ -62,8 +62,34 @@ const cv::Scalar getColorFromSemanticLabel(const int semantic_label);
 
 /// \brief Generates a random rotation matrix given three uniformly sampled
 /// numbers between zero and one.
-const Eigen::Matrix3d createRotationMatrix(double r1, double r2, double r3);
-const Eigen::Matrix3d randomRotationMatrix(std::mt19937& rng);
+const Matrix3r createRotationMatrix(real_t r1, real_t r2, real_t r3);
+const Matrix3r randomRotationMatrix(std::mt19937& rng);
+
+class Statistics {
+ public:
+  Statistics();
+
+  void insert(const real_t& sample);
+  const real_t mean() const;
+  const real_t std() const;
+
+ private:
+  real_t sum_;
+  real_t sum_squared_;
+  uint64_t num_samples_;
+};
+
+/// \brief Computes the squared distance between two points in 3D space.
+const real_t distSquared(const Vector3r& v1, const Vector3r& v2);
+
+/// \brief Computes the squared distance between two graph vertices in 3D space.
+const real_t distSquared(const VertexProperty& v_p1, const VertexProperty& v_p2);
+
+/// \brief Computes the distance between two points in 3D space.
+const real_t dist(const Vector3r& v1, const Vector3r& v2);
+
+/// \brief Computes the distance between two graph vertices in 3D space.
+const real_t dist(const VertexProperty& v_p1, const VertexProperty& v_p2);
 
 // ******************************* Logging ***********************************//
 /**
@@ -146,6 +172,11 @@ void removeRandomVertexFromGraph(Graph* graph, std::mt19937& rng);
  * \param rng Instance of mersenne twister random number generator
  */
 void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng);
+
+class KeyGenerator {
+ public:
+  static size_t getNextKey();
+};
 
 }
 

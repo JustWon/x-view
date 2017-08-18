@@ -15,12 +15,12 @@ struct GraphMergerParameters {
   GraphMergerParameters()
     : time_window(std::numeric_limits<uint64_t>::max()),
       similarity_threshold(0.f),
-      distance_threshold(std::numeric_limits<float>::max())
+      distance_threshold(std::numeric_limits<real_t>::max())
   {}
 
   GraphMergerParameters(const uint64_t time_window,
-                        const float similarity_threshold,
-                        const float distance_threshold)
+                        const real_t similarity_threshold,
+                        const real_t distance_threshold)
       : time_window(time_window),
         similarity_threshold(similarity_threshold),
         distance_threshold(distance_threshold) {}
@@ -34,11 +34,11 @@ struct GraphMergerParameters {
 
   /// \brief Only vertices whose semantic similarity is greater than this
   /// parameter are considered in the routine merging two graphs together.
-  float similarity_threshold;
+  real_t similarity_threshold;
 
   /// \brief Only allow to match vertices if their euclidean distance is
   /// smaller than this threshold.
-  float distance_threshold;
+  real_t distance_threshold;
 };
 
 /**
@@ -85,15 +85,27 @@ class GraphMerger {
    * \brief This function cleans the graph passed as argument by merging
    * together all pairs of vertices which fulfill proximity/similarity
    * properties.
-   * \param graph Graph to be cleaned.
    * \param merge_distance Vertices whose Euclidean distance is larger than
    * this parameter are not merged together.
+   * \param graph Graph to be cleaned.
    * \details Given two vertices v_1 and v_2, if their euclidean distance is
    * small enough, and their semantic label is identical, this function
    * merges them together. The resulting vertex v_m is a vertex whose edges
    * correspond to the union of the edges of v_1 and v_2.
    */
-  static void mergeDuplicates(Graph* graph, const float merge_distance);
+  static void mergeDuplicates(const real_t merge_distance, Graph* graph);
+
+  /**
+   * \brief This function creates an edge between each pair of vertices
+   * belonging to the graph passed as argument whose Euclidean distance is
+   * smaller than the parameter passed as argument.
+   * \param max_link_distance Parameter specifying which vertex pair should
+   * be linked together by a new edge. If vertex v_i and vertex v_j have a
+   * lie at a distance closer than this parameter, a new edge (if non
+   * existing) is added to the graph linking them.
+   * \param graph Graph to be modified by adding edges where necessary.
+   */
+  static void linkCloseVertices(const real_t max_link_distance, Graph* graph);
 
   /**
    * \brief Function to test if the vertices associated to the vertex
@@ -105,7 +117,7 @@ class GraphMerger {
    * queried for merging.
    * \param graph Const reference to the graph structure containing the
    * vertices passed as argument.
-   * \param merge_distance Vertices whose euclidean distance is larget than
+   * \param merge_distance Vertices whose euclidean distance is larger than
    * this parameter are not merged together.
    * \return True if the vertices associated with the passed parameters
    * should be merged together, false otherwise.
@@ -116,7 +128,7 @@ class GraphMerger {
   static const bool verticesShouldBeMerged(const VertexDescriptor v_d_1,
                                            const VertexDescriptor v_d_2,
                                            const Graph& graph,
-                                           const float merge_distance);
+                                           const real_t merge_distance);
 
  private:
 
@@ -145,7 +157,7 @@ class GraphMerger {
   std::unordered_map<VertexDescriptor, VertexDescriptor> query_in_db_;
 
   /// \brief Index assigned to the vertices being added to the merged graph.
-  int current_vertex_index_;
+  uint64_t current_vertex_index_;
 
   /// \brief Vector containign references to vertices belonging to the query
   /// graph which have been matched to a vertex of the database graph.
@@ -156,6 +168,14 @@ class GraphMerger {
   const GraphMergerParameters& graph_merger_parameters_;
 
   void addVertexToMergedGraph(const VertexDescriptor& source_in_query_graph);
+
+  /**
+   * \brief This function tries to merge the query_graph_ to the
+   * merged_graph_ by merging and linking together close vertices.
+   * This function is executed whenever no matches are found between the
+   * query and the database graph.
+   */
+  void linkUnmatchedQueryGraph();
 
   /**
    * \brief Computes the temporal distance between the i-th vertex of the
@@ -179,7 +199,7 @@ class GraphMerger {
    * 'location_3d' property of the database vertex from the 'location_3d'
    * value of the query vertex and by taking its norm.
    */
-  const double spatialDistance(const uint64_t i, const uint64_t j) const;
+  const real_t spatialDistance(const uint64_t i, const uint64_t j) const;
 
 };
 

@@ -8,9 +8,9 @@ int SimilarityPlotter::desired_image_size_ = 500;
 int SimilarityPlotter::colormap_ = cv::COLORMAP_OCEAN;
 
 cv::Mat SimilarityPlotter::getImageFromSimilarityMatrix(
-    const Eigen::MatrixXf& similarity_matrix, bool auto_size) {
+    const MatrixXr& similarity_matrix, bool auto_size) {
 
-  Eigen::MatrixXuc uchar_similarity =
+  MatrixXuc uchar_similarity =
       (similarity_matrix * 255.f).cast <uchar>();
 
   cv::Mat cv_scores, color_scores;
@@ -27,7 +27,7 @@ cv::Mat SimilarityPlotter::getImageFromSimilarityMatrix(
 }
 
 cv::Mat SimilarityPlotter::getImageFromSimilarityMatrix(
-    const Eigen::MatrixXb& max_similarity_matrix, bool auto_size) {
+    const MatrixXb& max_similarity_matrix, bool auto_size) {
 
   cv::Mat cv_scores(max_similarity_matrix.rows(),
                     max_similarity_matrix.cols(), CV_8UC1);

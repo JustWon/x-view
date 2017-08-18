@@ -7,6 +7,7 @@
 #include <boost/graph/random.hpp>
 #include <glog/logging.h>
 
+#include <atomic>
 #include <iomanip>
 #include <sstream>
 
@@ -35,7 +36,7 @@ cv::Mat extractChannelFromImage(const cv::Mat& image, const int channel) {
 }
 
 // ******************************* Utility ***********************************//
-padded_int::padded_int(const int64_t value, const int pad, const char fill)
+PaddedInt::PaddedInt(const int64_t value, const int pad, const char fill)
     : value_(value), pad_(pad), fill_(fill) {
   const std::string value_string = std::to_string(value_);
   const int num_digits = value_string.length();
@@ -49,14 +50,14 @@ padded_int::padded_int(const int64_t value, const int pad, const char fill)
   str_ = ss.str();
 }
 
-const std::string& padded_int::str() const {
+const std::string& PaddedInt::str() const {
   return str_;
 }
 
-std::string operator+(const std::string& l, const padded_int& r) {
+std::string operator+(const std::string& l, const PaddedInt& r) {
   return l + r.str();
 }
-std::string operator+(const padded_int& l, const std::string& r) {
+std::string operator+(const PaddedInt& l, const std::string& r) {
   return l.str() + l;
 }
 
@@ -69,7 +70,7 @@ const std::string formatSE3(const SE3& se3, const std::string& indent,
 
   std::stringstream ss;
   ss << std::setfill(' ')
-     << Eigen::RowVector3d(se3.getPosition()).format(format);
+      << RowVector3r(se3.getPosition().cast<real_t>()).format(format);
   s += ss.str();
   ss.str(std::string());
 
@@ -93,31 +94,67 @@ const cv::Scalar getColorFromSemanticLabel(const int semantic_label) {
   return color;
 }
 
-const Eigen::Matrix3d createRotationMatrix(double r1, double r2, double r3) {
+const Matrix3r createRotationMatrix(real_t r1, real_t r2, real_t r3) {
   r1 = r1 * 2.0 * M_PI;
   r2 = r2 * 2.0 * M_PI;
   r3 = r3 * 2.0;
 
-  double r = std::sqrt(r3);
-  double vx = std::sin(r2) * r;
-  double vy = std::cos(r2) * r;
-  double vz = std::sqrt(2.0 - r3);
+  real_t r = std::sqrt(r3);
+  real_t vx = std::sin(r2) * r;
+  real_t vy = std::cos(r2) * r;
+  real_t vz = std::sqrt(2.0 - r3);
 
-  double st = std::sin(r1);
-  double ct = std::cos(r1);
+  real_t st = std::sin(r1);
+  real_t ct = std::cos(r1);
 
-  Eigen::Matrix3d R;
+  Matrix3r R;
   R << ct, st, 0, -st, ct, 0, 0, 0, 1;
 
-  Eigen::Matrix3d M =
-      (Eigen::Vector3d(vx, vy, vz) * Eigen::RowVector3d(vx, vy, vz)
-          - Eigen::Matrix3d::Identity()) * R;
+  Matrix3r M =  (Vector3r(vx, vy, vz) * RowVector3r(vx, vy, vz) - Matrix3r::Identity()) * R;
   return M;
 }
 
-const Eigen::Matrix3d randomRotationMatrix(std::mt19937& rng) {
-  std::uniform_real_distribution<double> dist(0, 1);
+const Matrix3r randomRotationMatrix(std::mt19937& rng) {
+  std::uniform_real_distribution<real_t> dist(0, 1);
   return createRotationMatrix(dist(rng), dist(rng), dist(rng));
+}
+
+Statistics::Statistics()
+    : sum_(0.0),
+      sum_squared_(0.0),
+      num_samples_(0) {
+}
+
+void Statistics::insert(const real_t& sample) {
+  ++num_samples_;
+  sum_ += sample;
+  sum_squared_ += sample * sample;
+}
+
+const real_t Statistics::mean() const {
+  return sum_ / num_samples_;
+}
+
+const real_t Statistics::std() const {
+  const real_t m = mean();
+  return std::sqrt(sum_squared_ / num_samples_ - m * m);
+}
+
+const real_t distSquared(const Vector3r& v1, const Vector3r& v2) {
+  return (v1 - v2).squaredNorm();
+}
+
+const real_t distSquared(const VertexProperty& v_p1,
+                         const VertexProperty& v_p2) {
+  return distSquared(v_p1.location_3d, v_p2.location_3d);
+}
+
+const real_t dist(const Vector3r& v1, const Vector3r& v2) {
+  return (v1 - v2).norm();
+}
+
+const real_t dist(const VertexProperty& v_p1, const VertexProperty& v_p2) {
+  return dist(v_p1.location_3d, v_p2.location_3d);
 }
 
 // ******************************* Logging ***********************************//
@@ -210,7 +247,9 @@ void addRandomVertexToGraph(Graph* graph, std::mt19937& rng,
   for (const VertexDescriptor& v_d : vertices_to_link) {
     const VertexProperty& v_p = (*graph)[v_d];
     LOG(INFO) << "--> linked to existing vertex " << v_p.index << std::endl;
-    boost::add_edge(v_d, new_vertex_d, {v_p.index, new_vertex.index}, *graph);
+    const uint64_t num_times_seen = 1;
+    boost::add_edge(v_d, new_vertex_d,
+                    {v_p.index, new_vertex.index, num_times_seen}, *graph);
   }
 }
 
@@ -313,6 +352,12 @@ void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng) {
 
     }
   }
+}
+
+size_t KeyGenerator::getNextKey() {
+  static std::atomic<size_t> key(0u);
+  size_t new_key = key++;
+  return new_key;
 }
 
 };

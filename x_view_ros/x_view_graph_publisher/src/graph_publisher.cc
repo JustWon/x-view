@@ -2,7 +2,6 @@
 #include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 
-
 namespace x_view_ros {
 
 GraphPublisher::GraphPublisher(ros::NodeHandle& nh,
@@ -57,7 +56,7 @@ void GraphPublisher::publishVertices(const x_view::Graph& graph,
     const cv::Scalar color = x_view::getColorFromSemanticLabel(semantic_label);
     const std::string semantic_name =
         x_view::Locator::getDataset()->label(semantic_label);
-    const Eigen::Vector3d& position = v_p.location_3d;
+    const x_view::Vector3r& position = v_p.location_3d;
 
     marker.header.frame_id = "/world";
     marker.header.stamp = time;
@@ -76,111 +75,60 @@ void GraphPublisher::publishVertices(const x_view::Graph& graph,
     marker.scale.x = 0.8;
     marker.scale.y = 0.8;
     marker.scale.z = 0.8;
-    marker.color.a = 1.0; // Don't forget to set the alpha!
+    marker.color.a = 1.0;
     marker.color.r = static_cast<float>(color[2] / 255);
     marker.color.g = static_cast<float>(color[1] / 255);
     marker.color.b = static_cast<float>(color[0] / 255);
 
-    if(v_p.last_time_seen_ == last_time_index) {
+    if (v_p.last_time_seen_ == last_time_index) {
       marker.type = visualization_msgs::Marker::SPHERE;
       marker.scale.x *= 2;
       marker.scale.y *= 2;
       marker.scale.z *= 2;
-    } else if(v_p.last_time_seen_ == last_time_index - 1) {
-      marker.action = visualization_msgs::Marker::DELETE;
     }
-
     vertex_publisher_.publish(marker);
   }
-
-  /*
-  // A container keyed by the semantic label referencing a list of all
-  // vertices with the given semantic label. This separation is useful as it
-  // allows to show only vertices of a given type in RViz.
-  std::map<int, visualization_msgs::Marker> vertices_of_semantic_label;
-  for(int i = 0; i < x_view::Locator::getDataset()->numSemanticClasses(); ++i) {
-    visualization_msgs::Marker point_list;
-    // All coordinates are expressed in the world frame.
-    point_list.header.frame_id = "/world";
-    point_list.header.stamp = time;
-
-    point_list.ns = x_view::Locator::getDataset()->label(i);
-    // Since the ID is the same over multiple frames, RViz visualizes only
-    // the last received message, which in case of global semantic graph
-    // results in a correct behaviour as the global graph needs to be updated
-    // in each frame and overwrites previous graphs.
-    point_list.id = i;
-
-    point_list.type = visualization_msgs::Marker::POINTS;
-
-    point_list.action = visualization_msgs::Marker::ADD;
-
-    point_list.scale.x = 0.8;
-    point_list.scale.y = 0.8;
-
-    // Each semantic label is colored differently.
-    cv::Scalar color = x_view::getColorFromSemanticLabel(i);
-    point_list.color.r = static_cast<float>(color[2] / 255);
-    point_list.color.g = static_cast<float>(color[1] / 255);
-    point_list.color.b = static_cast<float>(color[0] / 255);
-    point_list.color.a = 1.0;
-
-    point_list.lifetime = ros::Duration();
-
-    vertices_of_semantic_label[i] = point_list;
-  }
-
-
-  const auto vertices = boost::vertices(graph);
-  for (auto iter = vertices.first; iter != vertices.second; ++iter) {
-    const x_view::VertexProperty& v_p = graph[*iter];
-    const int semantic_label = v_p.semantic_label;
-
-    // Set the 3D location of the semantic entity.
-    geometry_msgs::Point vertex;
-
-    vertex.x = v_p.location_3d[0];
-    vertex.y = v_p.location_3d[1];
-    vertex.z = v_p.location_3d[2];
-
-    // Store the vertex in the corresponding point list.
-    vertices_of_semantic_label[semantic_label].points.push_back(vertex);
-  }
-
-  // Publish all lists separately.
-  for(const auto& v : vertices_of_semantic_label)
-    vertex_publisher_.publish(v.second);
-
-  */
 
 }
 
 void GraphPublisher::publishEdges(const x_view::Graph& graph,
                                   const ros::Time& time) const {
 
-  visualization_msgs::Marker line_list;
-  // All coordinates are expressed in the world frame.
-  line_list.header.frame_id = "/world";
-  line_list.header.stamp = time;
-
-  line_list.ns = "semantic_graph_edges";
-  line_list.id = 0;
-
-  line_list.type = visualization_msgs::Marker::LINE_LIST;
-
-  line_list.action = visualization_msgs::Marker::ADD;
-
-  line_list.scale.x = 0.1;
-
-  line_list.color.r = 1.0;
-  line_list.color.g = 189.f / 255.f;
-  line_list.color.b = 50.f / 255.f;
-  line_list.color.a = 0.7f;
-
-  line_list.lifetime = ros::Duration();
-
   const auto edges = boost::edges(graph);
+
+  // Compute the maximal number of time an edge has been seen.
+  uint64_t max_times_seen = 0;
   for (auto iter = edges.first; iter != edges.second; ++iter) {
+    max_times_seen = std::max(max_times_seen, graph[*iter].num_times_seen);
+  }
+
+  const float normalization = 1.0f / max_times_seen;
+
+  int edge_index = 0;
+  for (auto iter = edges.first; iter != edges.second; ++iter) {
+
+    visualization_msgs::Marker marker;
+    // All coordinates are expressed in the world frame.
+    marker.header.frame_id = "/world";
+    marker.header.stamp = time;
+
+    marker.ns = "semantic_graph_edges";
+    marker.id = edge_index++;
+
+    marker.type = visualization_msgs::Marker::LINE_LIST;
+
+    marker.action = visualization_msgs::Marker::ADD;
+
+    const float width = graph[*iter].num_times_seen * normalization;
+    marker.scale.x = std::max(0.2f, width);
+
+    marker.color.r = std::pow(0.5f, 1.f / width) + 0.5f;
+    marker.color.g = std::pow(95.f / 255.f, 1.f / width) + 95.f / 255.f;
+    marker.color.b = std::pow(25.f / 255.f, 1.f/ width) + 25.f / 255.f;
+    marker.color.a = 0.7f;
+
+    marker.lifetime = ros::Duration();
+
     const auto& v_d_from = boost::source(*iter, graph);
     const auto& v_d_to = boost::target(*iter, graph);
 
@@ -197,11 +145,11 @@ void GraphPublisher::publishEdges(const x_view::Graph& graph,
     p_to.y = v_p_to.location_3d[1];
     p_to.z = v_p_to.location_3d[2];
 
-    line_list.points.push_back(p_from);
-    line_list.points.push_back(p_to);
-  }
+    marker.points.push_back(p_from);
+    marker.points.push_back(p_to);
 
-  edge_publisher_.publish(line_list);
+    edge_publisher_.publish(marker);
+  }
 
 }
 

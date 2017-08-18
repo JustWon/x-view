@@ -51,37 +51,18 @@ class XView {
   void writeGraphToFile() const;
 
   /**
-   * \brief Localizes the robot making the observations contained in the
-   * frame_data object passed as parameter by matching the associated
-   * semantic descriptors with the global database graph. The pose_ member of
-   * frame_data is ignored.
-   * \param frame_data Data passed to XView containing the observations
-   * of the robot to be localized.
-   * \param position An estimation of the pose of the robot.
+   * \brief Localizes the graph passed as argument by matching it against the
+   * global semantic graph.
+   * \param query_graph Semantic graph which is localized.
+   * \param pose_ids PosesIds of robot, assumed to be in consecutive order.
+   * \param position An estimation of the pose of the query graph passed as
+   * argument.
    * \return Success in localization.
    */
-  bool localize(const FrameData& frame_data, Eigen::Vector3d* position);
+  bool localizeGraph(const Graph& query_graph, std::vector<x_view::PoseId> pose_ids,
+                x_view::Vector3r* position);
 
  private:
-  /// \brief Prints XView info.
-  void printInfo() const;
-
-  /// \brief Initializes all variables based on the parameters located in
-  /// Locator::getParameters().
-  void initialize();
-
-  /// \brief Initializes the landmark factory based on the value retrieved
-  /// from Locator::getParameters()->getChildPropertyList("landmark")->getString("type")
-  void initializeLandmarkFactory();
-
-  /// \brief Initializes the matchert based on the value retrieved
-  /// from Locator::getParameters()->getChildPropertyList("matcher")->getString("type")
-  void initializeMatcher();
-
-  //=======================================================================//
-  //        FUNCTIONS CALLED BY 'processFrameData' FUNCTION                //
-  //=======================================================================//
-
   /**
    * \brief Extract semantic descriptor from semantics image and creates a
    * semantic landamark associated to it.
@@ -93,6 +74,25 @@ class XView {
    */
   void createSemanticLandmark(const FrameData& frame_data,
                               SemanticLandmarkPtr& semantics_out) const;
+
+  /// \brief Prints XView info.
+  void printInfo() const;
+
+  /// \brief Initializes all variables based on the parameters located in
+  /// Locator::getParameters().
+  void initialize();
+
+  /// \brief Initializes the landmark factory based on the value retrieved
+  /// from Locator::getParameters()->getChildPropertyList("landmark")->getString("type")
+  void initializeLandmarkFactory();
+
+  /// \brief Initializes the matchers based on the value retrieved
+  /// from Locator::getParameters()->getChildPropertyList("matcher")->getString("type")
+  void initializeMatcher();
+
+  //=======================================================================//
+  //        FUNCTIONS CALLED BY 'processFrameData' FUNCTION                //
+  //=======================================================================//
 
   /// \brief Match semantics instance to database and return score.
   void matchSemantics(const SemanticLandmarkPtr& semantics_a,

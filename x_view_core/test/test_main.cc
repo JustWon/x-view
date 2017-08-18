@@ -9,7 +9,12 @@
 int main(int argc, char** argv) {
 
   x_view::setupLogging(argv);
-  LOG(INFO) << "\n================== Running X-View Tests ==================\n";
+#if X_VIEW_USE_DOUBLE_PRECISION
+  LOG(INFO) << "\n============== Running X-View Tests (DP) ===============\n";
+#else
+  LOG(INFO) << "\n============== Running X-View Tests (SP) ===============\n";
+#endif
+
 
   testing::InitGoogleTest(&argc, argv);
 

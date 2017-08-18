@@ -65,22 +65,19 @@ void testChainGraph(const uint64_t seed) {
   // Match the subgraph to the entire graph.
   auto matching_result = graph_matcher_ptr->match(graph_pair_chain.sub_graph);
 
-  const float accuracy = similarityAccuracy(graph_pair_chain, matching_result);
+  const real_t accuracy = similarityAccuracy(graph_pair_chain, matching_result);
   std::cout << "Chain matching has accuracy of " << accuracy << std::endl;
 
 #ifdef X_VIEW_DEBUG
   // Compute similarity matrices.
   const GraphMatcher::SimilarityMatrixType& similarity_matrix =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->getSimilarityMatrix();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->getSimilarityMatrix();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_colwise =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->computeMaxSimilarityColwise();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->computeMaxSimilarityColwise();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_rowwise =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->computeMaxSimilarityRowwise();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->computeMaxSimilarityRowwise();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
       max_similarity_colwise.cwiseProduct(max_similarity_rowwise);
@@ -157,7 +154,7 @@ void testRandomGraph(const uint64_t seed) {
   // Match the subgraph to the entire graph.
   auto matching_result = graph_matcher_ptr->match(graph_pair_random.sub_graph);
 
-  const float accuracy =
+  const real_t accuracy =
       similarityAccuracy(graph_pair_random, matching_result);
 
   std::cout << "Random matching has accuracy of " << accuracy << std::endl;
@@ -165,16 +162,13 @@ void testRandomGraph(const uint64_t seed) {
 #ifdef X_VIEW_DEBUG
   // Compute similarity matrices.
   const GraphMatcher::SimilarityMatrixType& similarity_matrix =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->getSimilarityMatrix();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->getSimilarityMatrix();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_colwise =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->computeMaxSimilarityColwise();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->computeMaxSimilarityColwise();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_rowwise =
-      std::dynamic_pointer_cast<const GraphMatcher::GraphMatchingResult>
-          (matching_result)->computeMaxSimilarityRowwise();
+      CAST(matching_result, const GraphMatcher::GraphMatchingResult)->computeMaxSimilarityRowwise();
 
   const GraphMatcher::MaxSimilarityMatrixType max_similarity_agree =
       max_similarity_colwise.cwiseProduct(max_similarity_rowwise);
@@ -222,13 +216,14 @@ GraphPair generateChainGraphPair(const GraphConstructionParams& construction_par
   // existing ones: newly existing vertices have indices starting at the
   // maximal value of the base graph indices. In this way there are no two
   // vertices with the same index.
-  int max_index = std::numeric_limits<int>::min();
+  uint64_t max_index = 0;
   const auto vertices = boost::vertices(graph_pair.base_graph);
   for(auto iter = vertices.first; iter != vertices.second; ++iter) {
     max_index = std::max(max_index, graph_pair.base_graph[*iter].index);
   }
   GraphModifierParams updated_modifier_params = modifier_params;
-  updated_modifier_params.start_vertex_index = max_index + 1;
+
+  updated_modifier_params.start_vertex_index = int(max_index + 1);
   // Effectively add and remove vertices and edges from the graph.
   modifyGraph(&graph_pair.sub_graph, updated_modifier_params, rng);
   const uint64_t new_last_time_seen = 1;
@@ -265,13 +260,14 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
   // existing ones: newly existing vertices have indices starting at the
   // maximal value of the base graph indices. In this way there are no two
   // vertices with the same index.
-  int max_index = std::numeric_limits<int>::min();
+  uint64_t max_index = 0;
   const auto vertices = boost::vertices(graph_pair.base_graph);
   for(auto iter = vertices.first; iter != vertices.second; ++iter) {
     max_index = std::max(max_index, graph_pair.base_graph[*iter].index);
   }
   GraphModifierParams updated_modifier_params = modifier_params;
-  updated_modifier_params.start_vertex_index = max_index + 1;
+
+  updated_modifier_params.start_vertex_index = int(max_index + 1);
 
   // Effectively add and remove vertices and edges from the graph.
   modifyGraph(&graph_pair.sub_graph, updated_modifier_params, rng);
@@ -286,7 +282,7 @@ GraphPair generateRandomGraphPair(const GraphConstructionParams& construction_pa
   return graph_pair;
 }
 
-float similarityAccuracy(const GraphPair& graph_pair,
+real_t similarityAccuracy(const GraphPair& graph_pair,
                          const AbstractMatcher::MatchingResultPtr& matching_result_ptr) {
   const Graph& base_graph = graph_pair.base_graph;
   const Graph& sub_graph = graph_pair.sub_graph;
@@ -320,7 +316,7 @@ float similarityAccuracy(const GraphPair& graph_pair,
       }
     }
   }
-  return static_cast<float>(correct_matches) / num_proposed_matches;
+  return static_cast<real_t>(correct_matches) / num_proposed_matches;
 }
 
 }

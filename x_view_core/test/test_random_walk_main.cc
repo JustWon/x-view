@@ -29,7 +29,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
   const int num_walks_per_vertex = 20;
 
   // Create multiple random graphs with different topology and test them.
-  std::vector<std::pair<int, float>> graph_statistics{
+  std::vector<std::pair<int, real_t>> graph_statistics{
       {10, 0.5},  // Graph statistic has form (num_vertices, edge_probability).
       {10, 1.0},
       {50, 0.2},
@@ -40,11 +40,13 @@ TEST(XViewSlamTestSuite, test_random_walk) {
   };
   std::vector<RandomWalkerParams::SAMPLING_TYPE> sampling_types{
       RandomWalkerParams::SAMPLING_TYPE::UNIFORM,
-      RandomWalkerParams::SAMPLING_TYPE::AVOIDING
+      RandomWalkerParams::SAMPLING_TYPE::AVOIDING,
+      RandomWalkerParams::SAMPLING_TYPE::WEIGHTED,
+      RandomWalkerParams::SAMPLING_TYPE::NON_RETURNING
   };
 
   int num_vertices;
-  float edge_probability;
+  real_t edge_probability;
   for (auto graph_statistic : graph_statistics) {
     std::tie(num_vertices, edge_probability) = graph_statistic;
 
@@ -54,7 +56,7 @@ TEST(XViewSlamTestSuite, test_random_walk) {
     construction_params.num_semantic_classes = num_semantic_classes;
     construction_params.seed = seed;
 
-    Graph graph = generateRandomGraph(construction_params);
+    const Graph graph = generateRandomGraph(construction_params);
 
     for (const auto sampling_type : sampling_types) {
 
@@ -76,20 +78,27 @@ TEST(XViewSlamTestSuite, test_random_walk) {
       LOG(INFO) << "Generated " << num_walks_per_vertex
                 << " walks for each of " << num_vertices << " vertices "
                 << " of length " << walk_length << " in "
-                << std::chrono::duration_cast<std::chrono::duration<double>>
+                << std::chrono::duration_cast<std::chrono::duration<real_t>>
                     (t2 - t1).count() << " seconds.";
 
-      // Retrieve the parameters passed to the RandomWalker as some of them
-      // might have changed due to input coherence.
-      params = random_walker.params();
       testRandomWalkSequence(random_walker, graph, params);
       if (params.random_sampling_type ==
           RandomWalkerParams::SAMPLING_TYPE::AVOIDING)
         testAvoidingStrategy(random_walker, graph, params);
 
+      if(params.random_sampling_type ==
+          RandomWalkerParams::SAMPLING_TYPE::NON_RETURNING) {
+        testNonReturningStrategy(random_walker, graph, params);
+      }
+
     }
-    LOG(INFO) << "Test passed.";
   }
+
+  // Test the 'WEIGHTED' random walk sampling strategy by analyzing the
+  // statistic properties of its random walks.
+  testWeightedStrategyStatistics();
+
+  LOG(INFO) << "Test passed.";
 
 }
 

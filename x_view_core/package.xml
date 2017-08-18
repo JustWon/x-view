@@ -18,9 +18,11 @@
     <depend>glog_catkin</depend>
     <depend>gtsam_catkin</depend>
     <depend>minkindr</depend>
+    <depend>minkindr_gtsam</depend>
     <depend>opencv2_catkin</depend>
     <depend>opencv_blobs_catkin</depend>
     <depend>pcl_catkin</depend>
+    <depend>libnabo</depend>
 
 </package>
 

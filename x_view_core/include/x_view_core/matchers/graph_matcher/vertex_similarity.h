@@ -2,6 +2,7 @@
 #define X_VIEW_VERTEX_SIMILARITY_H
 
 #include <x_view_core/matchers/graph_matcher/random_walker.h>
+#include <x_view_core/x_view_types.h>
 
 namespace x_view {
 
@@ -30,7 +31,7 @@ class VertexSimilarity {
    * This means the score function must accept two WalkMap references as
    * arguments and compute a floating point score value which is returned.
    */
-  typedef std::function< const float(
+  typedef std::function< const real_t(
   const RandomWalker::WalkMap&,  const RandomWalker::WalkMap&)>
   ScoreFunctionType;
 
@@ -103,11 +104,11 @@ class VertexSimilarity {
    * \code{.cpp}
    * RandomWalker random_walker(graph, random_walker_params);
    * const auto& mapped_walks = random_walker.getMappedWalks();
-   * float similarity_i_j =
+   * real_t similarity_i_j =
    *    VertexSimilarity::score(mapped_walks[i], mapped_walks[j]);
    * \endcode
    */
-  static const float score_weighted(const RandomWalker::WalkMap& node1,
+  static const real_t score_weighted(const RandomWalker::WalkMap& node1,
                                     const RandomWalker::WalkMap& node2);
 
   /**
@@ -154,12 +155,12 @@ class VertexSimilarity {
    * \code{.cpp}
    * RandomWalker random_walker(graph, random_walker_params);
    * const auto& mapped_walks = random_walker.getMappedWalks();
-   * float similarity_i_j =
+   * real_t similarity_i_j =
    *    VertexSimilarity::score(mapped_walks[i], mapped_walks[j]);
    * \endcode
    */
-  static const float score_surface(const RandomWalker::WalkMap& node1,
-  const RandomWalker::WalkMap& node2);
+  static const real_t score_surface(const RandomWalker::WalkMap& node1,
+                                    const RandomWalker::WalkMap& node2);
 
 };
 

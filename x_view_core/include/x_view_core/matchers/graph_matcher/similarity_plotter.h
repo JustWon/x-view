@@ -1,16 +1,11 @@
 #ifndef X_VIEW_SIMILARITY_PLOTTER_H
 #define X_VIEW_SIMILARITY_PLOTTER_H
 
+#include <x_view_core/x_view_types.h>
+
 #include <Eigen/Core>
 #include <opencv2/opencv.hpp>
 
-
-namespace Eigen {
-
-typedef Matrix<uchar, Eigen::Dynamic, Eigen::Dynamic> MatrixXuc;
-typedef Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> MatrixXb;
-
-}
 
 namespace x_view {
 
@@ -43,10 +38,10 @@ class SimilarityPlotter {
    * converted to a dense format. For large matrices this should be avoided.
    */
   static cv::Mat getImageFromSimilarityMatrix(
-      const Eigen::MatrixXf& similarity_matrix, bool auto_size = true);
+      const MatrixXr& similarity_matrix, bool auto_size = true);
 
   static cv::Mat getImageFromSimilarityMatrix(
-      const Eigen::MatrixXb& max_similarity_matrix, bool auto_size = true);
+      const MatrixXb& max_similarity_matrix, bool auto_size = true);
 
   /**
    * \brief Sets the colormap of the plotted similarity matrix.

@@ -169,14 +169,14 @@ void BlobExtractor::dilateAndErode(cv::Mat* image,
 
   CHECK_NOTNULL(image);
 
-  cv::dilate(*image, *image, cv::Mat(), cv::Point(-1, -1),
+  cv::dilate(*image, *image, cv::Mat(), cv::Point2i(-1, -1),
              params.num_dilate_reps);
-  cv::erode(*image, *image, cv::Mat(), cv::Point(-1, -1),
+  cv::erode(*image, *image, cv::Mat(), cv::Point2i(-1, -1),
             params.num_erode_reps);
 }
 
-void BlobExtractor::collectInstancesFromImage(const cv::Mat& image,
-                                              std::unordered_set<unsigned char>* instance_set) {
+void BlobExtractor::collectInstancesFromImage(
+    const cv::Mat& image, std::unordered_set<unsigned char>* instance_set) {
   CHECK_NOTNULL(instance_set);
 
   instance_set->clear();

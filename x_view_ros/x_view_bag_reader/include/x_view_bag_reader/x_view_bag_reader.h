@@ -3,6 +3,7 @@
 
 #include <x_view_bag_reader/x_view_topic_view.h>
 #include <x_view_core/x_view.h>
+#include <x_view_core/x_view_types.h>
 #include <x_view_graph_publisher/graph_publisher.h>
 #include <x_view_parser/parser.h>
 
@@ -23,6 +24,10 @@ namespace x_view_ros {
 class XViewBagReader {
 
  public:
+  /// \brief Pair used in localization functions, the first element in the
+  /// pair corresponds to the Estimated location, the second element to the
+  /// ground truth location.
+  typedef std::pair<x_view::Vector3r, x_view::Vector3r> LocationPair;
 
   /// \brief Parameters needed by XViewBagReader.
   struct XViewBagReaderParams {
@@ -49,9 +54,22 @@ class XViewBagReader {
   void iterateBagFromTo(const CAMERA camera_type,
                         const int from, const int to);
 
-  /// \brief Localizes the robot seeing the scene at frame_index through the
-  /// camera camera_type.
-  void localize(const CAMERA camera_type, const int frame_index);
+  /**
+   * \brief Localizes the semantic graph being build between the frames
+   * delimited by the passed arguments by matching it to the global semantic
+   * graph of x_view_.
+   * \param camera_type Camera type to be used in this localization.
+   * \param start_frame Lower index for graph being localized.
+   * \param steps Number of steps (frames) to iterate over for the
+   * construction of the local graph which must be localized.
+   * \param locations A pair of 3D coordinates representing the estimated and
+   * true robot location respectively.
+   * \return A boolean which is true if the localization was effective, false
+   * otherwise.
+   */
+  bool localizeGraph(const CAMERA camera_type, const int start_frame,
+                      const int steps,
+                      LocationPair* locations);
 
  private:
 
@@ -61,15 +79,11 @@ class XViewBagReader {
   /// \brief Returns the topics associated with the camera type passed as
   /// argument.
   const CameraTopics& getTopics(const CAMERA camera_type) const {
-    switch(camera_type) {
-      case CAMERA::BACK:
-        return params_.back;
-      case CAMERA::RIGHT:
-        return params_.right;
-      case CAMERA::FRONT:
-        return params_.front;
-      default:
-        LOG(ERROR) << "Unrecognized camera type.";
+    switch (camera_type) {
+      case CAMERA::BACK:return params_.back;
+      case CAMERA::RIGHT:return params_.right;
+      case CAMERA::FRONT:return params_.front;
+      default:LOG(ERROR) << "Unrecognized camera type.";
     }
   }
 
@@ -80,10 +94,10 @@ class XViewBagReader {
   void tfTransformToSE3(const tf::StampedTransform& tf_transform,
                         x_view::SE3* pose);
 
-  void publishPosition(const Eigen::Vector3d& pos,
-                       const Eigen::Vector3d& color,
-                       const ros::Time& stamp,
-                       const std::string ns);
+  void publishRobotPosition(const x_view::Vector3r& pos,
+                            const x_view::Vector3r& color,
+                            const ros::Time& stamp,
+                            const std::string ns);
 
   std::unique_ptr<x_view::XView> x_view_;
 
