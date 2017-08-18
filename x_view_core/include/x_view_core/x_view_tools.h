@@ -159,6 +159,11 @@ void removeRandomVertexFromGraph(Graph* graph, std::mt19937& rng);
  */
 void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng);
 
+class KeyGenerator {
+ public:
+  static size_t getNextKey();
+};
+
 }
 
 #endif //X_VIEW_X_VIEW_TOOLS_H
