@@ -5,6 +5,8 @@
 #include <x_view_core/timer/null_timer.h>
 #include <x_view_core/timer/timer.h>
 
+#include <fstream>
+
 namespace x_view_evaluation {
 
 /**
@@ -36,6 +38,15 @@ class Evaluation {
   typedef EvaluationParameters::TIMER_TYPE TIMER_TYPE;
 
   Evaluation(const EvaluationParameters& params);
+  
+  /**
+   * \brief Writes all data collected by the evaluation into the directory
+   * specified by the passed argument.
+   * \param folder_name Path to the folder where to write all results
+   * contained in this Evaluation instance.
+   * \return Boolen flag indicating writing success.
+   */
+  bool writeToFolder(const std::string& folder_name) const;
 
   /**
    * \brief Evaluation of timings.
@@ -47,11 +58,11 @@ class Evaluation {
    public:
 
     /**
-    * \brief Generates a string containing the measurements performed by the
-    * current active timer (i.e. timer located at x_view::Locator::timer_).
-    * \return The table containing timing measurements under the form of a
-    * human readable string.
-    */
+     * \brief Generates a string containing the measurements performed by the
+     * current active timer (i.e. timer located at x_view::Locator::timer_).
+     * \return The table containing timing measurements under the form of a
+     * human readable string.
+     */
     const std::string getTimingsTable() const;
 
     /**

@@ -18,6 +18,10 @@ Evaluation::Evaluation(const EvaluationParameters& params)
   Evaluation::TimerEvaluation::initializeTimer(params_.timer_type);
 }
 
+bool Evaluation::writeToFolder(const std::string& folder_name) const {
+   // TODO write the evaluarion to to files in the folder passed as arg.
+}
+
 const std::string Evaluation::TimerEvaluation::getTimingsTable() const {
   const auto& timer = x_view::Locator::getTimer();
   if(params_->timer_type == EvaluationParameters::TIMER_TYPE::NULL_TIMER) {
