@@ -7,6 +7,7 @@
 #include <boost/graph/random.hpp>
 #include <glog/logging.h>
 
+#include <atomic>
 #include <iomanip>
 #include <sstream>
 
@@ -68,7 +69,8 @@ const std::string formatSE3(const SE3& se3, const std::string& indent,
   s += std::string("origin:\n") + indent;
 
   std::stringstream ss;
-  ss << std::setfill(' ') << RowVector3r(se3.getPosition()).format(format);
+  ss << std::setfill(' ')
+      << RowVector3r(se3.getPosition().cast<real_t>()).format(format);
   s += ss.str();
   ss.str(std::string());
 
@@ -350,6 +352,12 @@ void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng) {
 
     }
   }
+}
+
+size_t KeyGenerator::getNextKey() {
+  static std::atomic<size_t> key(0u);
+  size_t new_key = key++;
+  return new_key;
 }
 
 };

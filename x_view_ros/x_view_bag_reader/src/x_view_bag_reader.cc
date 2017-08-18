@@ -1,13 +1,13 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
 #include <x_view_bag_reader/x_view_pause.h>
-
 #include <x_view_core/datasets/synthia_dataset.h>
+#include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
+#include <x_view_core/x_view_types.h>
 
 #include <glog/logging.h>
 #include <opencv2/core/core.hpp>
-
 
 namespace x_view_ros {
 
@@ -86,9 +86,11 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
       const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
       const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
       const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
-      x_view::SE3 pose;
-      tfTransformToSE3(trans, &pose);
-      x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
+      x_view::PoseId pose_id;
+      pose_id.id = x_view::KeyGenerator::getNextKey();
+      tfTransformToSE3(trans, &pose_id.pose);
+
+      x_view::FrameData frame_data(semantic_image, depth_image, pose_id, i);
       x_view_->processFrameData(frame_data);
       x_view_->writeGraphToFile();
 
@@ -100,40 +102,8 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
   pause.terminate();
 }
 
-bool XViewBagReader::localizeFrame(const CAMERA camera_type,
-                                   const int frame_index,
-                                   LocationPair* locations) {
-  CHECK_NOTNULL(locations);
-
-  loadCurrentTopic(getTopics(camera_type));
-
-  std::cout << "Localizing robot at frame " << frame_index << std::endl;
-  parseParameters();
-  const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(frame_index);
-  const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(frame_index);
-  const tf::StampedTransform trans = transform_view_->getDataAtFrame(frame_index);
-  x_view::SE3 real_pose, empty_pose;
-  tfTransformToSE3(trans, &real_pose);
-  x_view::FrameData frame_data(semantic_image, depth_image,
-                               empty_pose, frame_index);
-
-  bool localized = x_view_->localizeFrame(frame_data, &(locations->first));
-  locations->second = real_pose.getPosition();
-
-  if(localized) {
-    publishRobotPosition(locations->first, x_view::Vector3r(1.0, 0.0, 0.0),
-                         trans.stamp_, "estimated_position");
-    publishRobotPosition(locations->second, x_view::Vector3r(0.0, 1.0, 0.0),
-                         trans.stamp_, "true_position");
-  }
-  bag_.close();
-
-  return localized;
-}
-
-bool XViewBagReader::localizeGraph(const CAMERA camera_type,
-                                   const int start_frame, const int steps,
-                                   LocationPair* locations) {
+bool XViewBagReader::localizeGraph(const CAMERA camera_type, const int start_frame, const int steps,
+    LocationPair* locations) {
 
   CHECK_NOTNULL(locations);
 
@@ -143,30 +113,41 @@ bool XViewBagReader::localizeGraph(const CAMERA camera_type,
   // against the global semantic graph built by x_view_.
   x_view::XView local_x_view;
   ros::Time time;
+  std::vector<x_view::PoseId> pose_ids;
+
+  // Write pose ids.
+  for (int i = start_frame; i < start_frame + steps; ++i) {
+    x_view::PoseId pose_id;
+    pose_id.id = x_view::KeyGenerator::getNextKey();
+    pose_ids.push_back(pose_id);
+  }
 
   for(int i = start_frame; i < start_frame + steps; ++i) {
     parseParameters();
     const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
     const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
     const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
-    x_view::SE3 pose;
-    tfTransformToSE3(trans, &pose);
+    tfTransformToSE3(trans, &pose_ids[i - start_frame].pose);
     // Use the start frame as ground truth.
-    if(i == start_frame) {
-      locations->second = pose.getPosition();
+    if (i == start_frame) {
+      locations->second = pose_ids[i - start_frame].pose.getPosition()
+          .cast<x_view::real_t>();
     }
-    x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
+    x_view::FrameData frame_data(semantic_image, depth_image,
+                                 pose_ids[i - start_frame], i);
     local_x_view.processFrameData(frame_data);
     // Publish all ground truth poses that contribute to the estimation.
     const x_view::Vector3r ground_truth_color(0.15, 0.7, 0.15);
-    publishRobotPosition(pose.getPosition(), ground_truth_color, trans.stamp_,
-                         "true_position_" +
-                             x_view::PaddedInt(i - start_frame, 3).str());
+    publishRobotPosition(
+        pose_ids[i - start_frame].pose.getPosition().cast<x_view::real_t>(),
+        ground_truth_color, trans.stamp_,
+        "true_position_" + x_view::PaddedInt(i - start_frame, 3).str());
   }
 
   const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
 
-  bool localized = x_view_->localizeGraph(local_graph, &(locations->first));
+  bool localized = x_view_->localizeGraph(local_graph, pose_ids,
+                                          &(locations->first));
 
   const x_view::Vector3r estimated_color(0.7, 0.15, 0.15);
   publishRobotPosition(locations->first, estimated_color, time,

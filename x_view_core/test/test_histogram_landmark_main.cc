@@ -36,7 +36,7 @@ TEST(XViewSlamTestSuite, test_histogram_landmark) {
 
   // Black image.
   cv::Mat black(ROWS, COLS, CV_8UC3, cv::Scalar(0, 0, 0));
-  FrameData frame_data_black(black, cv::Mat(), SE3(), frame_index);
+  FrameData frame_data_black(black, cv::Mat(), PoseId(), frame_index);
   SemanticLandmarkPtr black_land = HistogramLandmark::create(frame_data_black);
   // Expect to have 100% votes for label 0.
   std::vector<std::pair<int, real_t>> bExpected = {
@@ -46,7 +46,7 @@ TEST(XViewSlamTestSuite, test_histogram_landmark) {
 
   // White image.
   cv::Mat white(ROWS, COLS, CV_8UC3, cv::Scalar(1, 0, 0));
-  FrameData frame_data_white(white, cv::Mat(), SE3(), frame_index);
+  FrameData frame_data_white(white, cv::Mat(), PoseId(), frame_index);
   SemanticLandmarkPtr white_land = HistogramLandmark::create(frame_data_white);
   // Expect to have 100% votes for label 1.
   std::vector<std::pair<int, real_t>> wExpected = {
@@ -61,7 +61,7 @@ TEST(XViewSlamTestSuite, test_histogram_landmark) {
       half.at<cv::Vec3b>(i, j) = cv::Vec3b(1, 0, 0);
     }
   }
-  FrameData frame_data_half(half, cv::Mat(), SE3(), frame_index);
+  FrameData frame_data_half(half, cv::Mat(), PoseId(), frame_index);
   SemanticLandmarkPtr half_land = HistogramLandmark::create(frame_data_half);
   // Expect to have 50% votes for label 0 and 50% for label 1.
   std::vector<std::pair<int, real_t>> hExpected = {

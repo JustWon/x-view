@@ -31,7 +31,7 @@ cv::Point2i DepthProjector::getPixelCoordinates(const Vector3r& coordinate) cons
 }
 
 Vector3r DepthProjector::worldToCamera(const Vector3r& world_coordinate) const {
-    return pose_.inverseTransform(world_coordinate);
+    return pose_.inverseTransform(world_coordinate.cast<double>()).cast<real_t>();
 }
 
 Eigen::Vector2i DepthProjector::cameraToPixel(
@@ -55,7 +55,7 @@ Vector3r DepthProjector::pixelToCamera( const Eigen::Vector2i& pixel_coordinate,
 }
 
 Vector3r DepthProjector::cameraToWorld(const Vector3r& camera_coordinate) const {
-  return pose_.transform(camera_coordinate);
+  return pose_.transform(camera_coordinate.cast<double>()).cast<real_t>();
 }
 
 }
