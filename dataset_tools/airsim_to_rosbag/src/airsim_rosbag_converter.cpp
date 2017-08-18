@@ -82,6 +82,7 @@ bool AirsimBagConverter::convertEntry(uint64_t entry) {
     path_msg.header.frame_id = world_frame_id_;
     path_msg.header.stamp = timestamp_ros;
 
+    std::cout << "entry " << entry << std::endl;
     airsim::poseToRos(pose, &pose_msg);
     airsim::transformToRos(pose, &transform_msg);
     bag_.write(pose_topic_, timestamp_ros, pose_msg);
@@ -91,7 +92,7 @@ bool AirsimBagConverter::convertEntry(uint64_t entry) {
     airsim::posesToPath(poses_, &path_msg);
     bag_.write(path_topic_, timestamp_ros, path_msg);
 
-    // Get all camera poses.
+//     Get all camera poses.
     for (size_t id = 0u; id < parser_.getNumCameras(); ++id) {
       airsim::Transformation camera_pose;
       if(!parser_.getCameraPoseAtEntry(entry, id, &camera_pose)) {
@@ -151,8 +152,8 @@ bool AirsimBagConverter::convertEntry(uint64_t entry) {
       parser_.convertDepthImageToDepthCloud(depth_image_msg, image_msg,
                                             cam_info, &ptcloud_msg);
 
-      bag_.write(parser_.getCameraPath(cam_id) + "/image_raw", timestamp_ros,
-                 image_msg);
+//      bag_.write(parser_.getCameraPath(cam_id) + "/image_raw", timestamp_ros,
+//                 image_msg);
       bag_.write(parser_.getCameraPath(cam_id) + "/depth", timestamp_ros,
                  depth_image_msg);
       bag_.write(parser_.getCameraPath(cam_id) + "/labels_image", timestamp_ros,
@@ -161,8 +162,8 @@ bool AirsimBagConverter::convertEntry(uint64_t entry) {
                  labels_msg);
       bag_.write(parser_.getCameraPath(cam_id) + "/camera_info", timestamp_ros,
                  cam_info);
-      bag_.write(parser_.getCameraPath(cam_id) + "/depth_cloud", timestamp_ros,
-                 ptcloud_msg);
+//      bag_.write(parser_.getCameraPath(cam_id) + "/depth_cloud", timestamp_ros,
+//                 ptcloud_msg);
     }
   }
 

@@ -35,7 +35,7 @@ AirsimParser::AirsimParser(const std::string& dataset_path, bool rectified)
 
 bool AirsimParser::loadCalibration() {
 
-  camera_calibrations_.resize(8);
+  camera_calibrations_.resize(2);
   size_t cam_id = 0u;
   for (auto&& calibration : camera_calibrations_) {
     // Intrinsics.
@@ -63,7 +63,7 @@ bool AirsimParser::loadCalibration() {
 bool AirsimParser::parseVectorOfDoubles(const std::string& input,
                                         std::vector<double>* output) const {
   output->clear();
-  // Parse the line as a stringstream for space-delimeted doubles.
+  // Parse the line as a stringstream for comma-delimeted doubles.
   std::stringstream line_stream(input);
   if (line_stream.eof()) {
     return false;
@@ -71,7 +71,7 @@ bool AirsimParser::parseVectorOfDoubles(const std::string& input,
 
   while (!line_stream.eof()) {
     std::string element;
-    std::getline(line_stream, element, ' ');
+    std::getline(line_stream, element, ',');
     if (element.empty()) {
       continue;
     }
@@ -87,12 +87,12 @@ bool AirsimParser::parseVectorOfDoubles(const std::string& input,
 
 void AirsimParser::loadTimestampMaps() {
 
-  std::string file_path = dataset_path_ + kDepthFolder + "/"
+  std::string file_path = dataset_path_ + "/" + kDepthFolder + "/"
       + kForwardCameraFolder;
-  size_t num_files = 0u;
+  size_t num_files = 1u;
   for(boost::filesystem::directory_iterator it(file_path);
       it != boost::filesystem::directory_iterator(); ++it) {
-    timestamps_ns_.push_back(1 + num_files * 1e8);
+    timestamps_ns_.push_back(num_files * 1e8);
     num_files++;
   }
 }
@@ -175,26 +175,28 @@ bool AirsimParser::getPoseAtEntry(uint64_t entry, uint64_t* timestamp,
   // Parse camera 0.
   std::string line_0, line_1;
   int lineNumber = 0;
-  bool parsed_0;
+  bool parsed_0 = false;
   if (import_file_cam0.is_open()) {
     while (getline(import_file_cam0, line_0)) {
-      lineNumber++;
       if(lineNumber == entry) {
         parsed_0 = parseVectorOfDoubles(line_0, &parsed_doubles_0);
+        break;
       }
+      lineNumber++;
     }
     import_file_cam0.close();
   }
 
   // Parse camera 1.
   lineNumber = 0;
-  bool parsed_1;
+  bool parsed_1 = false;
   if (import_file_cam1.is_open()) {
     while (getline(import_file_cam1, line_1)) {
-      lineNumber++;
       if(lineNumber == entry) {
         parsed_1 = parseVectorOfDoubles(line_1, &parsed_doubles_1);
+        break;
       }
+      lineNumber++;
     }
     import_file_cam1.close();
   }
@@ -208,9 +210,9 @@ bool AirsimParser::getPoseAtEntry(uint64_t entry, uint64_t* timestamp,
 
     // todo(gawela): Interpolation maybe not the best idea here.
     // Make position between two cameras.
-    parsed_doubles_0[12] = (parsed_doubles_0[12] + parsed_doubles_1[12]) / 2;
-    parsed_doubles_0[13] = (parsed_doubles_0[13] + parsed_doubles_1[13]) / 2;
-    parsed_doubles_0[14] = (parsed_doubles_0[14] + parsed_doubles_1[14]) / 2;
+//    parsed_doubles_0[12] = (parsed_doubles_0[12] + parsed_doubles_1[12]) / 2;
+//    parsed_doubles_0[13] = (parsed_doubles_0[13] + parsed_doubles_1[13]) / 2;
+//    parsed_doubles_0[14] = (parsed_doubles_0[14] + parsed_doubles_1[14]) / 2;
 
     if (convertVectorToPose(parsed_doubles_0, pose)) {
       return true;
@@ -241,10 +243,10 @@ bool AirsimParser::getCameraPoseAtEntry(uint64_t entry, uint64_t id,
   bool parsed;
   if (import_file_cam.is_open()) {
     while (getline(import_file_cam, line)) {
-      lineNumber++;
       if(lineNumber == entry) {
         parsed = parseVectorOfDoubles(line, &parsed_doubles);
       }
+      lineNumber++;
     }
     import_file_cam.close();
   }
@@ -285,8 +287,8 @@ uint64_t AirsimParser::getPoseTimestampAtEntry(uint64_t entry) {
 bool AirsimParser::getImageAtEntry(uint64_t entry, uint64_t cam_id,
                                    uint64_t* timestamp, cv::Mat* image) {
   // Get the timestamp for this first.
-  std::string filename = dataset_path_ + kRGBFolder + cam_paths_[cam_id]
-      + "/rgb_" + std::to_string(entry) + ".png";
+  std::string filename = dataset_path_ + "/" + kRGBFolder + "/"
+      + cam_paths_[cam_id] + "/rgb_" + std::to_string(entry) + ".png";
 
   *image = cv::imread(filename, CV_LOAD_IMAGE_UNCHANGED);
 
@@ -301,8 +303,8 @@ bool AirsimParser::getDepthImageAtEntry(uint64_t entry, uint64_t cam_id,
                                         uint64_t* timestamp, cv::Mat* depth_image) {
   // Get the timestamp for this first.
 
-  std::string filename = dataset_path_ + kDepthFolder + cam_paths_[cam_id]
-      + "/depth_" + std::to_string(entry) + ".png";
+  std::string filename = dataset_path_ + "/" + kDepthFolder + "/"
+      + cam_paths_[cam_id] + "/depth_" + std::to_string(entry) + ".png";
 
   *depth_image = cv::imread(filename, CV_LOAD_IMAGE_ANYDEPTH);
 
@@ -318,7 +320,7 @@ bool AirsimParser::getLabelImageAtEntry(uint64_t entry, uint64_t cam_id,
   // Get the timestamp for this first.
   *timestamp = timestamps_ns_[entry];
 
-  std::string filename = dataset_path_ + "/GT/COLOR/" + cam_paths_[cam_id]
+  std::string filename = dataset_path_ + "/GT/COLORS/" + cam_paths_[cam_id]
       + "/segmentation_color_" + std::to_string(entry) + ".png";
 
   *label_image = cv::imread(filename, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
