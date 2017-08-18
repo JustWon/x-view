@@ -34,6 +34,12 @@ int main(int argc, char** argv) {
   std::cout <<  evaluation.time.getTimingsTree() << std::endl;
   std::cout <<  evaluation.time.getTimingsTable() << std::endl;
 
+  std::string graph_construction_folder =
+      x_view::getOutputDirectory() + "graph_construction/";
+  bool write_success = evaluation.writeToFolder(graph_construction_folder);
+  std::cout << "Could " << (write_success ? "" : "not ") << "write evaluation"
+      " results to " << graph_construction_folder << std::endl;
+
   // Extract the timer associated to the construction and store it locally.
   x_view::AbstractTimer* construction_timer;
   evaluation.time.storeTimer(&construction_timer);

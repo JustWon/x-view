@@ -15,7 +15,7 @@ IF (CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF ()
 
 # Flag used by XView to know the path of where it is located.
-add_definitions(-DX_VIEW_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR})
+add_definitions(-DX_VIEW_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/)
 add_definitions(-DX_VIEW_LOG_DIR=${CMAKE_CURRENT_SOURCE_DIR}/logs/)
 add_definitions(-DX_VIEW_OUT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/output/)
 

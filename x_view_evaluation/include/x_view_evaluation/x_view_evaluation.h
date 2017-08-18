@@ -57,6 +57,8 @@ class Evaluation {
 
    public:
 
+    bool writeToFile(const std::string& filename) const;
+
     /**
      * \brief Generates a string containing the measurements performed by the
      * current active timer (i.e. timer located at x_view::Locator::timer_).
@@ -118,6 +120,8 @@ class Evaluation {
     friend class Evaluation;
 
    public:
+
+    bool writeToFile(const std::string& filename) const;
 
     /**
      * \brief Adds the pair of positions to the statistic object referred to

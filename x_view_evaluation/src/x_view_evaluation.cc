@@ -19,7 +19,32 @@ Evaluation::Evaluation(const EvaluationParameters& params)
 }
 
 bool Evaluation::writeToFolder(const std::string& folder_name) const {
-   // TODO write the evaluarion to to files in the folder passed as arg.
+
+  CHECK(folder_name.back() == '/')
+        << "Folder name <" << folder_name << "> passed to "
+        << __FUNCTION__ << " does not end with '/'.";
+
+  // Create and delete all content of the new folder.
+  system(("mkdir -p " + folder_name).c_str());
+  system(("rm -rf " + folder_name + "*").c_str());
+
+  bool success = true;
+  success &= time.writeToFile(folder_name + "time.dat");
+  success &= localization.writeToFile(folder_name + "localization.dat");
+
+  return success;
+}
+
+bool Evaluation::TimerEvaluation::writeToFile(const std::string& filename) const {
+  std::ofstream out(filename.c_str());
+  if(!out.is_open()) {
+    LOG(ERROR) << "Could not open file <" << filename << ">.";
+    return false;
+  }
+
+  out << "Timer evaluation results.";
+
+  return true;
 }
 
 const std::string Evaluation::TimerEvaluation::getTimingsTable() const {
@@ -90,6 +115,18 @@ void Evaluation::TimerEvaluation::initializeTimer(const TIMER_TYPE timer_type) {
     default:
       LOG(ERROR) << "Undefined timer type passed to " << __FUNCTION__ << ".";
   }
+}
+
+bool Evaluation::LocalizationEvaluation::writeToFile(const std::string& filename) const {
+  std::ofstream out(filename.c_str());
+  if(!out.is_open()) {
+    LOG(ERROR) << "Could not open file <" << filename << ">.";
+    return false;
+  }
+
+  out << "Localization evaluation results.";
+
+  return true;
 }
 
 void Evaluation::LocalizationEvaluation::addLocalization(
