@@ -38,7 +38,7 @@ class XViewWorker {
   struct XViewWorkerMessage {
     cv::Mat semantic_image;
     cv::Mat depth_image;
-    x_view::SE3 pose;
+    x_view::PoseId pose_id;
 
     // Flags telling if the corresponding data has already been handled.
     bool semantic_set = false;
@@ -59,7 +59,8 @@ class XViewWorker {
     void reset() {
       semantic_image = cv::Mat();
       depth_image = cv::Mat();
-      pose = x_view::SE3();
+      pose_id.pose = x_view::SE3();
+      pose_id.id = 0;
       semantic_set = depth_set = pose_set = false;
     }
   };
