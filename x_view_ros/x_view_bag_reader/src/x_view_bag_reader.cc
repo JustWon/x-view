@@ -102,53 +102,6 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
   pause.terminate();
 }
 
-bool XViewBagReader::localizeFrame(const CAMERA camera_type,
-                                   const int frame_index,
-                                   LocationPair* locations) {
-  CHECK_NOTNULL(locations);
-
-  loadCurrentTopic(getTopics(camera_type));
-
-  std::cout << "Localizing robot at frame " << frame_index << std::endl;
-  parseParameters();
-  const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(frame_index);
-  const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(frame_index);
-  const tf::StampedTransform trans = transform_view_->getDataAtFrame(frame_index);
-  x_view::SE3 real_pose;
-  x_view::PoseId pose_id;
-  pose_id.id = x_view::KeyGenerator::getNextKey();
-  tfTransformToSE3(trans, &real_pose);
-  x_view::FrameData frame_data(semantic_image, depth_image,
-                               pose_id, frame_index);
-
-  // Build local graph from frame.
-  x_view::SemanticLandmarkPtr landmark_ptr;
-
-  // Extract semantics associated to the semantic image and pose.
-  x_view_->createSemanticLandmark(frame_data, landmark_ptr);
-
-  const x_view::Graph& query_graph = std::dynamic_pointer_cast<
-      const x_view::GraphDescriptor>(
-          std::dynamic_pointer_cast < x_view::GraphLandmark
-          > (landmark_ptr)->getDescriptor())->getDescriptor();
-
-  // Localize robot.
-  std::vector<x_view::PoseId> pose_ids;
-  pose_ids.push_back(pose_id);
-  bool localized = x_view_->localizeGraph(query_graph, pose_ids, &(locations->first));
-  locations->second = real_pose.getPosition().cast<x_view::real_t>();
-
-  if(localized) {
-    publishRobotPosition(locations->first, x_view::Vector3r(1.0, 0.0, 0.0),
-                         trans.stamp_, "estimated_position");
-    publishRobotPosition(locations->second, x_view::Vector3r(0.0, 1.0, 0.0),
-                         trans.stamp_, "true_position");
-  }
-  bag_.close();
-
-  return localized;
-}
-
 bool XViewBagReader::localizeGraph(const CAMERA camera_type, const int start_frame, const int steps,
     LocationPair* locations) {
 

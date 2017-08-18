@@ -1,10 +1,8 @@
 #include <x_view_core/datasets/abstract_dataset.h>
 #include <x_view_core/landmarks/graph_landmark/blob.h>
 #include <x_view_core/landmarks/graph_landmark/depth_projector.h>
+#include <x_view_core/landmarks/graph_landmark/graph_builder.h>
 #include <x_view_core/x_view_tools.h>
-
-#include "x_view_core/x_view_tools.h"
-#include "x_view_core/landmarks/graph_landmark/graph_builder.h"
 
 #include <boost/graph/connected_components.hpp>
 
@@ -188,7 +186,6 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
 
       // Set the last_time_seen_ property of the newly created vertex to be
       // the current frame.
-      // todo(gawela) does this need to be the poseId id?
       vertex.last_time_seen_ = frame_data.getID();
 
       // Store the location of the observer.

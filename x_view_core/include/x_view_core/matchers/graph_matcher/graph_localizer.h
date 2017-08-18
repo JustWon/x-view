@@ -67,34 +67,20 @@ class GraphLocalizer {
                 const Graph& query_semantic_graph,
                 const Graph& database_semantic_graph, SE3* transformation);
 
-  gtsam::ExpressionFactor<SE3> relativeFactor(const SE3& relative_pose,
-                                              int index_a,
-                                              int index_b,
-                                              gtsam::noiseModel::Base::shared_ptr noise_model) const;
+  gtsam::ExpressionFactor<SE3> relativeFactor(
+      const SE3& relative_pose, gtsam::Symbol index_a, gtsam::Symbol index_b,
+      gtsam::noiseModel::Base::shared_ptr noise_model) const;
 
-  gtsam::ExpressionFactor<SE3> absolutePoseFactor(const SE3& pose_measurement,
-                                                  int index,
-                                                  gtsam::noiseModel::Base::shared_ptr noise_model) const;
+  gtsam::ExpressionFactor<SE3> absolutePoseFactor(
+      const SE3& pose_measurement, gtsam::Symbol index,
+      gtsam::noiseModel::Base::shared_ptr noise_model) const;
 
-  gtsam::ExpressionFactor<gtsam::Point3> relativePointFactor(const gtsam::Point3& translation,
-                                                             int index_a,
-                                                             int index_b,
-                                                             gtsam::noiseModel::Base::shared_ptr noise_model) const;
+  gtsam::ExpressionFactor<gtsam::Point3> relativePointFactor(
+      const gtsam::Point3& translation, gtsam::Symbol index_a,
+      gtsam::Symbol index_b,
+      gtsam::noiseModel::Base::shared_ptr noise_model) const;
 
  private:
-  struct Observation {
-    /// \brief Vertex property associated to the observation. Its 3D location
-    /// is used for localization.
-    VertexProperty vertex_property;
-    /// \brief Observed distance from the camera to the semantic entity
-    /// associated with the vertex property.
-    real_t distance;
-    /// \brief Evidence associated to the observation. This value could be
-    /// associated to the vertex similarity computed during graph matching
-    /// and is used in the localization procedure for the computation of the
-    /// noise model associated to the observation factors.
-    real_t evidence;
-  };
 
   struct PoseVertexMeasurement {
     /// \brief Vertex property associated to the observation. Its 3D location

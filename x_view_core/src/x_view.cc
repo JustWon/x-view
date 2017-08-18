@@ -113,10 +113,8 @@ bool XView::localizeGraph(const Graph& query_graph,
       ->computeSimilarityMatrix(
           random_walker, &similarity_matrix, &invalid_matches, score_type);
 
-  const GraphMatcher::MaxSimilarityMatrixType max_similarity_matrix =
-      matching_result.computeMaxSimilarityRowwise().cwiseProduct(
-          matching_result.computeMaxSimilarityColwise()
-      );
+  const GraphMatcher::MaxSimilarityMatrixType max_similarities_colwise =
+        matching_result.computeMaxSimilarityColwise();
 
   // Filter matches with geometric consistency.
   if (Locator::getParameters()->getChildPropertyList("matcher")->getBoolean(
@@ -151,9 +149,9 @@ bool XView::localizeGraph(const Graph& query_graph,
   }
 
   // Add all vertex-to-vertex observations.
-  for (int j = 0; j < max_similarity_matrix.cols(); ++j) {
+  for (int j = 0; j < max_similarities_colwise.cols(); ++j) {
     int max_i = -1;
-    max_similarity_matrix.col(j).maxCoeff(&max_i);
+    max_similarities_colwise.col(j).maxCoeff(&max_i);
     if (max_i == -1)
       continue;
     if (!invalid_matches(j)) {
