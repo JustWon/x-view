@@ -62,6 +62,7 @@ class XView {
   bool localizeGraph(const Graph& query_graph, std::vector<x_view::PoseId> pose_ids,
                 x_view::Vector3r* position);
 
+ private:
   /**
    * \brief Extract semantic descriptor from semantics image and creates a
    * semantic landamark associated to it.
@@ -74,7 +75,6 @@ class XView {
   void createSemanticLandmark(const FrameData& frame_data,
                               SemanticLandmarkPtr& semantics_out) const;
 
- private:
   /// \brief Prints XView info.
   void printInfo() const;
 
