@@ -12,15 +12,15 @@ namespace x_view_test {
 void transformsExample() {
 
   // Position of robot expressed in world coordinates.
-  x_view::Vector3r robot_position_in_world_frame;
+  Eigen::Vector3d robot_position_in_world_frame;
   robot_position_in_world_frame << 10.0, 50.0, 200.0;
 
-  x_view::Matrix3r rotation;
+  Eigen::Matrix3d rotation;
   rotation << 0.0, 0.0, 1.0,
               1.0, 0.0, 0.0,
               0.0, 1.0, 0.0;
 
-  Eigen::Quaternion<x_view::real_t> q(rotation);
+  Eigen::Quaternion<double> q(rotation);
   x_view::SE3 pose(q, robot_position_in_world_frame);
 
   std::cout << "Pose:\n" << pose << std::endl;
@@ -32,10 +32,14 @@ void transformsExample() {
   };
   for(const auto& v : positions) {
     std::cout << x_view::RowVector3r(v) << " in robot frame expressed in "
-        "world's frame: " << x_view::RowVector3r(pose.transform(v))
-              << std::endl;
+        "world's frame: "
+        << x_view::RowVector3r(
+            pose.transform(v.cast<double>()).cast<x_view::real_t>())
+        << std::endl;
     std::cout << x_view::RowVector3r(v) << " in world frame expressed in "
-        << "robot's frame: " << x_view::RowVector3r(pose.inverseTransform(v))
+        << "robot's frame: "
+        << x_view::RowVector3r(
+            pose.inverseTransform(v.cast<double>()).cast<x_view::real_t>())
         << std::endl << std::endl;
   }
 }
@@ -80,7 +84,7 @@ void testRandomCameraPose() {
 
     // Pose construction.
     Eigen::Quaternion<x_view::real_t> q(robot_in_world_frame);
-    x_view::SE3 pose(q, robot_position);
+    x_view::SE3 pose(q.cast<double>(), robot_position.cast<double>());
 
     const x_view::real_t depth =
         x_view::dist(object_in_world_coordinates, robot_position);

@@ -279,6 +279,13 @@ void GraphMerger::addVertexToMergedGraph(const VertexDescriptor& source_in_query
 
   source_v_p.last_time_seen_ = new_time_stamp;
 
+  // Add observers of vertex to database graph.
+  for (size_t i = 0u; i < query_graph_[source_in_query_graph].observers.size();
+      ++i) {
+    source_v_p.observers.push_back(
+        query_graph_[source_in_query_graph].observers[i]);
+  }
+
   LOG(INFO) << "\tIterating over its "
             << boost::degree(source_in_query_graph, query_graph_)
             << " neighbors in query graph.";

@@ -1,6 +1,7 @@
 #include <x_view_node/x_view_worker.h>
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/x_view_locator.h>
+#include <x_view_core/x_view_tools.h>
 
 #include <opencv2/highgui/highgui.hpp>
 
@@ -84,7 +85,8 @@ void XViewWorker::semanticsImageCallback(const sensor_msgs::ImageConstPtr& msg) 
   tf_transform.getRotation().normalize();
   tfTransformToSE3(tf_transform, &pose);
 
-  message_.pose = pose;
+  message_.pose_id.pose = pose;
+  message_.pose_id.id = x_view::KeyGenerator::getNextKey();
   message_.pose_set = true;
 
   if(message_.isReady())
@@ -114,7 +116,7 @@ void XViewWorker::depthImageCallback(const sensor_msgs::ImageConstPtr& msg) {
 void XViewWorker::processData() {
   x_view::FrameData frame_data(message_.semantic_image,
                                message_.depth_image,
-                               message_.pose, frame_id_++);
+                               message_.pose_id, frame_id_++);
   x_view_->processFrameData(frame_data);
   x_view_->writeGraphToFile();
 

@@ -51,28 +51,30 @@ class XView {
   void writeGraphToFile() const;
 
   /**
-   * \brief Localizes the robot making the observations contained in the
-   * frame_data object passed as parameter by matching the associated
-   * semantic descriptors with the global database graph. The pose_ member of
-   * frame_data is ignored.
-   * \param frame_data Data passed to XView containing the observations
-   * of the robot to be localized.
-   * \param position An estimation of the pose of the robot.
-   * \return Success in localization.
-   */
-  bool localizeFrame(const FrameData& frame_data, Vector3r* position);
-
-  /**
    * \brief Localizes the graph passed as argument by matching it against the
    * global semantic graph.
    * \param query_graph Semantic graph which is localized.
+   * \param pose_ids PosesIds of robot, assumed to be in consecutive order.
    * \param position An estimation of the pose of the query graph passed as
    * argument.
    * \return Success in localization.
    */
-  bool localizeGraph(const Graph& query_graph, Vector3r* position);
+  bool localizeGraph(const Graph& query_graph, std::vector<x_view::PoseId> pose_ids,
+                x_view::Vector3r* position);
 
  private:
+  /**
+   * \brief Extract semantic descriptor from semantics image and creates a
+   * semantic landamark associated to it.
+   * \param frame_data Data to be processed associated to the current frame.
+   * \param semantics_out Generated landmark.
+   * \details Depending on the XView parameters passed to the class
+   * constructor, the dynamic type of the object pointed by semantics_out
+   * will be different.
+   */
+  void createSemanticLandmark(const FrameData& frame_data,
+                              SemanticLandmarkPtr& semantics_out) const;
+
   /// \brief Prints XView info.
   void printInfo() const;
 
@@ -91,18 +93,6 @@ class XView {
   //=======================================================================//
   //        FUNCTIONS CALLED BY 'processFrameData' FUNCTION                //
   //=======================================================================//
-
-  /**
-   * \brief Extract semantic descriptor from semantics image and creates a
-   * semantic landamark associated to it.
-   * \param frame_data Data to be processed associated to the current frame.
-   * \param semantics_out Generated landmark.
-   * \details Depending on the XView parameters passed to the class
-   * constructor, the dynamic type of the object pointed by semantics_out
-   * will be different.
-   */
-  void createSemanticLandmark(const FrameData& frame_data,
-                              SemanticLandmarkPtr& semantics_out) const;
 
   /// \brief Match semantics instance to database and return score.
   void matchSemantics(const SemanticLandmarkPtr& semantics_a,
