@@ -136,7 +136,7 @@ const {
 
   ss << getRightString("Statistics") << col_sep;
   ss << getLeftString("MSQ") << col_sep;
-  ss << getLeftString("#");
+  ss << getLeftString("num");
   ss << "\n";
 
   const uint64_t line_width = ss.str().length();

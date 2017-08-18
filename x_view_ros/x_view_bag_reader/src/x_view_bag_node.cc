@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
   x_view_evaluation::EvaluationParameters evaluation_parameters;
   evaluation_parameters.timer_type =
       x_view_evaluation::EvaluationParameters::TIMER_TYPE::TIMER;
+
   x_view_evaluation::Evaluation evaluation(evaluation_parameters);
 
   const uint64_t start_frame = 0;
@@ -74,7 +75,6 @@ int main(int argc, char** argv) {
     }
     std::cout << std::endl;
   }
-
 
   x_view::finalizeLogging();
 
