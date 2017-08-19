@@ -34,7 +34,7 @@ Matcher: {
 }
 
 Localizer: {
-    type: "ESTIMATION" # OPTIMIZATION or ESTIMATION",
+    type: "OPTIMIZATION" # OPTIMIZATION or ESTIMATION",
 }
 
 # Parameters read exclusively by XViewBagReader

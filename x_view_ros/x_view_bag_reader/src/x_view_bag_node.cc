@@ -20,7 +20,11 @@ int main(int argc, char** argv) {
   // parameters passed to the iteration function.
   bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT,
                               start_frame, end_frame);
-
+                              
+  const x_view::real_t vertex_relabeling_percentage = 0.8;
+  const uint64_t vertex_relabeling_seed = 0;
+  bag_reader.relabelGlobalGraphVertices(
+     vertex_relabeling_percentage, vertex_relabeling_seed);
 
   // Try to localize the following views inside the previously constructed
   // semantic graph.
