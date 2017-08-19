@@ -57,21 +57,21 @@ int main(int argc, char** argv) {
 Consisting of several UAV flights over a simulated static rural environment with different viewpoints (front / bird's eye).
 The environment features the following semantic classes with respective labels:
 
-misc: 0
-street: 1
-building: 2
-car: 3
-sign: 4
-fence: 5
-hedge: 6
-tree: 7
-wall: 8
-bench: 9
-powerline: 10
-rock: 11
-pool: 12
+* misc: 0
+* street: 1
+* building: 2
+* car: 3
+* sign: 4
+* fence: 5
+* hedge: 6
+* tree: 7
+* wall: 8
+* bench: 9
+* powerline: 10
+* rock: 11
+* pool: 12
 
 The camera intrinsic parameters are:
-kx = ky = 512
-px = 512
-py = 288
+* kx = ky = 512
+* px = 512
+* py = 288
