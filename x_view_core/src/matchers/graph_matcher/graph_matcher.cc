@@ -234,6 +234,20 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
     timer->stop("VertexLinking");
   }
 
+  // Recompute the global random walks as some vertices have new neighbors,
+  // and thus we need to update their semantic descriptors.
+  recomputeGlobalRandomWalks();
+
+  timer->stop("GraphMatching");
+
+  // Return the matching result filled with the matches.
+  return matching_result;
+}
+
+void GraphMatcher::recomputeGlobalRandomWalks() {
+
+  const auto& timer = Locator::getTimer();
+
   // Regenerate the random walks of the new global graph
   RandomWalker global_random_walker(global_semantic_graph_,
                                     random_walker_params_);
@@ -244,10 +258,6 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
 
   global_walk_map_vector_ = global_random_walker.getMappedWalks();
 
-  timer->stop("GraphMatching");
-
-  // Return the matching result filled with the matches.
-  return matching_result;
 }
 
 bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,

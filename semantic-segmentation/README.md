@@ -5,8 +5,9 @@ Requires python 2.7, python3 is not tested
     cd .../xview/semantic-segmentation
     pip install -r requirements.txt
     pip install .
+    sh download_data.sh <path to data base-directory>
 
-If you want to use the package while developing, consider installing it (instead than the last line above) like this:
+If you want to use the package while developing, consider installing it (instead than the 3rd line above) like this:
     
     pip install -e .
 
@@ -23,10 +24,10 @@ Models are implemented following the sklearn interface, while context handling i
               'dropout_probability': 0.2}
     with FCN(config, <output-directory for checkpoints and summaries>) as net:
         
-        # train the network for 10 iterations on data
+        # Train the network for 10 iterations on data.
         net.fit(data, 10)
-        # alternatively load existing weigths
+        # Alternatively, load existing weigths.
         net.load(<path to weights checkpoint>)
-        # now you can use it to produce classifications
+        # Now you can use it to produce classifications.
         semantic_map = net.predict({'rgb': <rgb image blob>, 'depth': <depth image blob>})
 

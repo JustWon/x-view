@@ -8,6 +8,10 @@
 #include <x_view_core/x_view_tools.h>
 #include <x_view_core/x_view_types.h>
 
+#include <boost/graph/random.hpp>
+
+#include <random>
+
 namespace x_view {
 
 XView::XView()
@@ -59,6 +63,22 @@ void XView::processFrameData(const FrameData& frame_data) {
 }
 
 const Graph& XView::getSemanticGraph() const {
+  CHECK(Locator::getParameters()->getChildPropertyList("matcher")->
+      getString("type") == "GRAPH")
+  << "Function " << __FUNCTION__ << " can only be used when X-View runs the "
+  << "'GRAPH' matcher type, currently using "
+  << Locator::getParameters()->getChildPropertyList("matcher")->
+      getString("type") << ".";
+
+  const auto graph_matcher =
+      std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_);
+
+  CHECK_NOTNULL(graph_matcher.get());
+
+  return graph_matcher->getGlobalGraph();
+}
+
+Graph& XView::getSemanticGraph() {
   CHECK(Locator::getParameters()->getChildPropertyList("matcher")->
       getString("type") == "GRAPH")
   << "Function " << __FUNCTION__ << " can only be used when X-View runs the "
@@ -179,6 +199,47 @@ bool XView::localizeGraph(const Graph& query_graph,
   (*position) = transformation.getPosition().cast<real_t>();
 
   return localized;
+}
+
+void XView::relabelGlobalGraphVertices(const x_view::real_t percentage,
+                                       const uint64_t seed) {
+
+  const auto& dataset = Locator::getDataset();
+
+  Graph& graph = getSemanticGraph();
+  const uint64_t num_vertices = boost::num_vertices(graph);
+  const uint64_t num_relabeled =
+      static_cast<uint64_t>(std::round(percentage *  num_vertices));
+
+  std::mt19937 rng(seed);
+  std::uniform_int_distribution<int> label_generator(
+      0, dataset->numSemanticClasses() -1);
+
+  std::set<VertexDescriptor> vertices_to_be_relabeled;
+  while(vertices_to_be_relabeled.size() != num_relabeled) {
+    const VertexDescriptor random_vertex_descriptor =
+        boost::random_vertex(graph, rng);
+    vertices_to_be_relabeled.insert(random_vertex_descriptor);
+  }
+
+  LOG(INFO) << "Relabeling " << vertices_to_be_relabeled.size()
+            << " vertices out of " << num_vertices << ".";
+
+  for(const VertexDescriptor random_vertex_descriptor :
+      vertices_to_be_relabeled) {
+    int new_label = label_generator(rng);
+    // Make sure the new label is different from the original one
+    while(new_label == graph[random_vertex_descriptor].semantic_label) {
+      new_label = label_generator(rng);
+    }
+    graph[random_vertex_descriptor].semantic_label = new_label;
+    graph[random_vertex_descriptor].semantic_entity_name =
+        dataset->label(new_label);
+  }
+
+  // Recompute the random walks of the global semantic graph.
+  std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
+      ->recomputeGlobalRandomWalks();
 }
 
 void XView::printInfo() const {

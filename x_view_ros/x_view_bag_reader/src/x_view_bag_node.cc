@@ -34,6 +34,7 @@ int main(int argc, char** argv) {
   std::cout <<  evaluation.time.getTimingsTree() << std::endl;
   std::cout <<  evaluation.time.getTimingsTable() << std::endl;
 
+  // Store the evaluation to a file.
   std::string graph_construction_folder =
       x_view::getOutputDirectory() + "graph_construction/";
   bool write_success = evaluation.writeToFolder(graph_construction_folder);
@@ -43,6 +44,13 @@ int main(int argc, char** argv) {
   // Extract the timer associated to the construction and store it locally.
   x_view::AbstractTimer* construction_timer;
   evaluation.time.storeTimer(&construction_timer);
+
+  // Introduce noise to the global semantic graphby relabeling some vertices.
+  const x_view::real_t vertex_relabeling_percentage = 0.0;
+  const uint64_t vertex_relabeling_seed = 0;
+  bag_reader.relabelGlobalGraphVertices(
+     vertex_relabeling_percentage, vertex_relabeling_seed);
+
 
   // Try to localize the following views inside the previously constructed
   // semantic graph.
