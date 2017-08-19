@@ -341,8 +341,6 @@ void GraphMatcher::addDescriptor(const Graph& graph) {
   CHECK(boost::num_vertices(graph) > 0)
   << "You are adding a graph with 0 vertices to the GraphMatcher.";
 
-  const auto& timer = Locator::getTimer();
-
   RandomWalker random_walker(graph, random_walker_params_);
   random_walker.generateRandomWalks();
 
