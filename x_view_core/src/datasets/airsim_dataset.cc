@@ -14,17 +14,17 @@ AirsimDataset::AirsimDataset()
   // {name, id, is_to_include_in_graph, is_static, is_to_render}
   semantic_entities_ = {
       {"misc", 0, false, true, false},
-      {"street", 1, true, true, false},
+      {"street", 1, true, true, true},
       {"building", 2, true, true, true},
       {"car", 3, true, true, true},
       {"sign", 4, true, true, true},
       {"fence", 5, true, true, true},
       {"hedge", 6, true, true, true},
       {"tree", 7, true, true, true},
-      {"wall", 8, true, false, true},
+      {"wall", 8, true, true, true},
       {"bench", 9, true, true, true},
-      {"powerline", 10, false, false, true},
-      {"rock", 11, true, false, true},
+      {"powerline", 10, false, true, true},
+      {"rock", 11, true, true, true},
       {"pool", 12, true, true, true}
   };
 
