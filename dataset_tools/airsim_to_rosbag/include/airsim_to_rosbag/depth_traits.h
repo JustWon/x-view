@@ -67,8 +67,8 @@ struct DepthTraits<float>
 {
   static inline bool valid(float depth) {return std::isfinite(depth);}
   static inline float toMeters(float depth) {
-    return 100.0 * 256 / (depth + 1);}
-  static inline float fromMeters(float depth) {return depth; }
+    return 100.0 / 256.0 * (depth + 1);}
+  static inline float fromMeters(float depth) {return 100.0 / 256.0 * (depth + 1); }
 
   static inline void initializeBuffer(std::vector<uint8_t>& buffer) {
     float* start = reinterpret_cast<float*>(&buffer[0]);
