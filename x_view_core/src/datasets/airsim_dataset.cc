@@ -89,7 +89,7 @@ cv::Mat AirsimDataset::convertSemanticImage(
       cv::Vec3b values;
       values[2] = static_cast<uchar>(0);
       values[1] = static_cast<uchar>(twoBytesToInt(&(msg->data[idx + 1])) - 1);
-      values[0] = static_cast<unsigned int>(msg->data[idx + 1]);//static_cast<uchar>(twoBytesToInt(&(msg->data[idx + 2])));
+      values[0] = static_cast<unsigned int>(msg->data[idx + 1]);
 
       labelImage.at<cv::Vec3b>(cv::Point2i(j, i)) = values;
     }
