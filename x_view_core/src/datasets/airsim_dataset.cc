@@ -42,10 +42,19 @@ AirsimDataset::AirsimDataset()
                                         airsim_px, airsim_py);
 
   // Set up camera-to-image rotation.
-  // Flipped z-axis and flipped y-axis
-  camera_to_image_rotation_ << 1.0,  0.0,  0.0,
-      0.0, -1.0,  0.0,
-      0.0,  0.0, -1.0;
+  Matrix3r y_rotation;
+  y_rotation <<
+      0.0, 0.0, -1.0,
+      0.0, 1.0,  0.0,
+      1.0, 0.0,  0.0;
+  Matrix3r x_rotation;
+  x_rotation <<
+      1.0, 0.0,  0.0,
+      0.0, 0.0, -1.0,
+      0.0, 1.0,  1.0;
+
+  camera_to_image_rotation_ = y_rotation * x_rotation;
+
 }
 
 cv::Mat AirsimDataset::convertSemanticImage(
@@ -71,24 +80,16 @@ cv::Mat AirsimDataset::convertSemanticImage(
   for (int i = 0; i < rows; ++i) {
     // Loop over the cols of the image implicitly stored into msg.
     for (int j = 0; j < cols; ++j) {
-      // Index of the pixel, need to have "6*j" because each pixel value is
-      // stored into two consecutive bytes and there are three channels.
+      // Index of the pixel, need to have "3*j" because each pixel value is
+      // stored into a single byte and there are three channels.
       int idx = step_size * i + 3 * j;
       CHECK(idx < msg_size)
       << "Computed index is larger or equal to message size";
 
       cv::Vec3b values;
       values[2] = static_cast<uchar>(0);
-      values[1] = static_cast<uchar>(twoBytesToInt(&(msg->data[idx + 2])));
-      values[0] = static_cast<uchar>(
-          std::max(
-              0,
-              std::min(
-                  twoBytesToInt(&(msg->data[idx + 2 * 2])),
-                  numSemanticClasses() - 1
-              )
-          )
-      );
+      values[1] = static_cast<uchar>(twoBytesToInt(&(msg->data[idx + 1])) - 1);
+      values[0] = static_cast<unsigned int>(msg->data[idx + 1]);//static_cast<uchar>(twoBytesToInt(&(msg->data[idx + 2])));
 
       labelImage.at<cv::Vec3b>(cv::Point2i(j, i)) = values;
     }

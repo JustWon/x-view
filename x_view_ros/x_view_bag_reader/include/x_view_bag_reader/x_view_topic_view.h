@@ -13,9 +13,10 @@ namespace x_view_ros {
 
 /// \brief Keys determining which type of camera we are using.
 enum class CAMERA {
-  FRONT,
-  RIGHT,
-  BACK
+  FRONT = 0,
+  RIGHT = 1,
+  BACK = 2,
+  DOWN = 1
 };
 
 /// \brief Topics related to a single camera.

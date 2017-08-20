@@ -91,6 +91,7 @@ Graph GraphBuilder::extractSemanticGraphOn3DSpace(
     const FrameData& frame_data, const ImageBlobs& blobs,
     const GraphBuilderParams& params) {
 
+
   Graph graph;
 
   // Vector containing references to the created graph vertices.
@@ -149,6 +150,7 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
   const cv::Mat& depth_image = frame_data.getDepthImage();
   const SE3& pose = frame_data.getPose();
 
+
   const real_t max_depth_m =
       Locator::getParameters()->getChildPropertyList("landmark")->getFloat(
           "depth_clip", 10000.f
@@ -157,6 +159,9 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
   // Create a projector object, which projects pixels back to 3D coordinates
   // expressed in world frame.
   DepthProjector projector(pose, Locator::getDataset()->getCameraIntrinsics());
+
+  // Retrieve dataset name, as depth encodings vary for datasets.
+  std::string dataset_name = Locator::getDataset()->datasetName();
 
   vertex_descriptors->clear();
   blob_vector->clear();
@@ -169,10 +174,33 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
       size_t key = KeyGenerator::getNextKey();
       VertexProperty vertex =
           GraphBuilder::blobToGraphVertex(key, blob);
+
       // Extract the depth associated to the vertex.
-      const unsigned short depth_cm =
-          depth_image.at<unsigned short>(vertex.center);
-      const real_t depth_m = depth_cm * 0.01;
+      real_t depth_m;
+      if (dataset_name == "Airsim Dataset") {
+        // Depth is encoded in 8bit for 0..100m = 0..255.
+        // Depth is stored in point depth and needs to be converted to
+        // plane depth as shown  in
+        // https://gist.github.com/edz-o/84d63fec2fc2d70721e775337c07e9c9.
+        const uint8_t point_depth_m =
+            depth_image.at<uint8_t>(vertex.center);
+        int i_c = vertex.center.y / 2 - 1;
+        int j_c = vertex.center.x / 2 - 1;
+        int rows = 576;
+        int cols = 1024;
+        double dist_from_center = sqrt(
+            (rows - i_c) * (rows - i_c) + (cols - j_c) * (cols - j_c));
+        depth_m = point_depth_m
+            / sqrt(1 + (dist_from_center / 512) * (dist_from_center / 512));
+      } else if (dataset_name == "Synthia Dataset") {
+        // Convert cm to m.
+        const unsigned short depth_cm =
+            depth_image.at<unsigned short>(vertex.center);
+        depth_m = depth_cm * 0.01;
+      } else {
+        CHECK(false) << "Dataset " << dataset_name
+            << " is unknown. Optiona are: Synthia dataset or Airsim dataset.";
+      }
 
       // If the projected center of the blob is too distant, set it as invalid.
       if (depth_m >= max_depth_m) {
