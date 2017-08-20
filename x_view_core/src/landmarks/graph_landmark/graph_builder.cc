@@ -91,7 +91,6 @@ Graph GraphBuilder::extractSemanticGraphOn3DSpace(
     const FrameData& frame_data, const ImageBlobs& blobs,
     const GraphBuilderParams& params) {
 
-
   Graph graph;
 
   // Vector containing references to the created graph vertices.
@@ -149,7 +148,6 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
 
   const cv::Mat& depth_image = frame_data.getDepthImage();
   const SE3& pose = frame_data.getPose();
-
 
   const real_t max_depth_m =
       Locator::getParameters()->getChildPropertyList("landmark")->getFloat(
