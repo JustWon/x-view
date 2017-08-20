@@ -198,16 +198,16 @@ bool GraphLocalizer::localize(
     // Add robot pose initials to GTSAM.
     if (pose_pose_measurements_.size() > 0) {
       initials.insert(gtsam::Symbol('p', pose_pose_measurements_[0].pose_a.id),
-                      SE3(initial_robot_position, SO3(1,0,0,0)));
+                      SE3(initial_robot_position, SO3(1 ,0, 0, 0)));
       for (size_t i = 0u; i < pose_pose_measurements_.size(); ++i) {
         initials.insert(gtsam::Symbol('p', pose_pose_measurements_[i].pose_b.id),
-                        SE3(initial_robot_position, SO3(1,0,0,0)));
+                        SE3(initial_robot_position, SO3(1, 0, 0, 0)));
       }
       // If no intra-pose measurements, take the observer of the first vertex.
     } else {
       initials.insert(
           gtsam::Symbol('p', pose_vertex_measurements_[0].observer_pose.id),
-          SE3(initial_robot_position, SO3(1,0,0,0)));
+          SE3(initial_robot_position, SO3(1, 0, 0, 0)));
     }
 
     // Add graph to optimizer object and estimate transformation.
