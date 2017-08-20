@@ -1,4 +1,5 @@
 #include <x_view_node/x_view_worker.h>
+#include <x_view_core/datasets/airsim_dataset.h>
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
@@ -34,9 +35,14 @@ XViewWorker::XViewWorker(ros::NodeHandle& n)
     std::unique_ptr<x_view::AbstractDataset> dataset(
         new x_view::SynthiaDataset());
     x_view::Locator::registerDataset(std::move(dataset));
-  } else
+  } else if (dataset_name == "AIRSIM") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::AirsimDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else {
     CHECK(false) << "Dataset '" << dataset_name
                  << "' is not supported" << std::endl;
+  }
 
   // Subscribe to semantic image topic.
   semantics_image_sub_ = nh_.subscribe(params_.semantics_image_topic, 1,
@@ -159,9 +165,14 @@ void XViewWorker::parseParameters() const {
     std::unique_ptr<x_view::AbstractDataset> dataset(
         new x_view::SynthiaDataset());
     x_view::Locator::registerDataset(std::move(dataset));
-  } else
+  } else if (dataset_name == "AIRSIM") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::AirsimDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else {
     CHECK(false) << "Dataset '" << dataset_name
-                 << "' is not supported" << std::endl;
+        << "' is not supported" << std::endl;
+  }
 }
 
 void XViewWorker::getXViewWorkerParameters() {

@@ -195,9 +195,12 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
         const unsigned short depth_cm =
             depth_image.at<unsigned short>(vertex.center);
         depth_m = depth_cm * 0.01;
+      } else if (dataset_name == "Abstract Dataset") {
+        depth_m = depth_image.at<unsigned short>(vertex.center);
+        LOG(WARNING) << "Using Abstract dataset may lead to unknown behavior.";
       } else {
         CHECK(false) << "Dataset " << dataset_name
-            << " is unknown. Optiona are: Synthia dataset or Airsim dataset.";
+            << " is unknown. Options are: Abstract Dataset, Airsim dataset, or Synthia dataset.";
       }
 
       // If the projected center of the blob is too distant, set it as invalid.
