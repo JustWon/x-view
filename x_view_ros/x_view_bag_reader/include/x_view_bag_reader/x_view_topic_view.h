@@ -16,7 +16,7 @@ enum class CAMERA {
   FRONT = 0,
   RIGHT = 1,
   BACK = 2,
-  DOWN = 1
+  DOWN = RIGHT
 };
 
 /// \brief Topics related to a single camera.

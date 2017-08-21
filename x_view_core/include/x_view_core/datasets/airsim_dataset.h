@@ -18,7 +18,12 @@ class AirsimDataset : public AbstractDataset {
 
   virtual ~AirsimDataset() {}
 
-  cv::Mat convertSemanticImage(const sensor_msgs::ImageConstPtr& msg) const;
+  virtual cv::Mat convertSemanticImage(
+      const sensor_msgs::ImageConstPtr& msg) const override;
+
+  virtual const x_view::real_t getDepth(const cv::Point2i& pixel,
+                                        const cv::Mat& depth_image) const
+                                            override;
 
   virtual const std::string datasetName() const override {
     return std::string("Airsim Dataset");

@@ -93,6 +93,12 @@ cv::Mat AirsimDataset::convertSemanticImage(
   return labelImage;
 }
 
+const x_view::real_t AirsimDataset::getDepth(const cv::Point2i& pixel,
+                                             const cv::Mat& depth_image) const {
+  const uint8_t point_depth = depth_image.at<uint8_t>(pixel);
+  return point_depth * 100.0 / 256.0;
+}
+
 #undef AIRSIM_NUM_SEMANTIC_CLASSES
 
 }

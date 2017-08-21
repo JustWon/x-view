@@ -158,9 +158,6 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
   // expressed in world frame.
   DepthProjector projector(pose, Locator::getDataset()->getCameraIntrinsics());
 
-  // Retrieve dataset name, as depth encodings vary for datasets.
-  std::string dataset_name = Locator::getDataset()->datasetName();
-
   vertex_descriptors->clear();
   blob_vector->clear();
 
@@ -174,24 +171,8 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
           GraphBuilder::blobToGraphVertex(key, blob);
 
       // Extract the depth associated to the vertex.
-      real_t depth_m;
-      if (dataset_name == "Airsim Dataset") {
-        // Depth is encoded in 8bit for 0..100m = 0..255.
-        const uint8_t point_depth_m =
-            depth_image.at<uint8_t>(vertex.center);
-        depth_m = point_depth_m * 100.0 / 256.0;
-      } else if (dataset_name == "Synthia Dataset") {
-        // Convert cm to m.
-        const unsigned short depth_cm =
-            depth_image.at<unsigned short>(vertex.center);
-        depth_m = depth_cm * 0.01;
-      } else if (dataset_name == "Abstract Dataset") {
-        depth_m = depth_image.at<unsigned short>(vertex.center);
-        LOG(WARNING) << "Using Abstract dataset may lead to unknown behavior.";
-      } else {
-        CHECK(false) << "Dataset " << dataset_name
-            << " is unknown. Options are: Abstract Dataset, Airsim dataset, or Synthia dataset.";
-      }
+      const real_t depth_m = Locator::getDataset()->getDepth(vertex.center,
+                                                             depth_image);
 
       // If the projected center of the blob is too distant, set it as invalid.
       if (depth_m >= max_depth_m) {
