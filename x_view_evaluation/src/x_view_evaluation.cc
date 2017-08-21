@@ -27,6 +27,8 @@ bool Evaluation::writeToFolder(const std::string& folder_name) const {
   // Create and delete all dat file contained the new folder.
   system(("mkdir -p " + folder_name).c_str());
   system(("rm -rf " + folder_name + "*.dat").c_str());
+  
+  LOG(INFO) << "Writing evaluation results to folder <" << folder_name << ">.";
 
   bool success = true;
   success &= time.writeToFile(folder_name);
