@@ -24,30 +24,59 @@ bool Evaluation::writeToFolder(const std::string& folder_name) const {
         << "Folder name <" << folder_name << "> passed to "
         << __FUNCTION__ << " does not end with '/'.";
 
-  // Create and delete all content of the new folder.
+  // Create and delete all dat file contained the new folder.
   system(("mkdir -p " + folder_name).c_str());
-  system(("rm -rf " + folder_name + "*").c_str());
+  system(("rm -rf " + folder_name + "*.dat").c_str());
 
   bool success = true;
-  success &= time.writeToFile(folder_name + "time.dat");
-  success &= localization.writeToFile(folder_name + "localization.dat");
+  success &= time.writeToFile(folder_name);
+  success &= localization.writeToFile(folder_name);
 
   return success;
 }
 
-bool Evaluation::TimerEvaluation::writeToFile(const std::string& filename) const {
-  std::ofstream out(filename.c_str());
-  if(!out.is_open()) {
-    LOG(ERROR) << "Could not open file <" << filename << ">.";
+bool Evaluation::TimerEvaluation::writeToFile(const std::string& folder_name) const {
+
+  // Disable color coding for plain output text.
+  const bool use_colors = false;
+
+  // Write the time table to file.
+  std::ofstream out_table((folder_name + "time_table.dat").c_str());
+  if(!out_table.is_open()) {
+    LOG(ERROR) << "Could not open file <" << folder_name << "time_table.dat>.";
+    return false;
+  }
+  out_table << getTimingsTable(use_colors);
+
+  // Write the time tree to file.
+  std::ofstream out_tree((folder_name + "time_tree.dat").c_str());
+  if(!out_table.is_open()) {
+    LOG(ERROR) << "Could not open file <" << folder_name << "time_tree.dat>.";
+    return false;
+  }
+  out_tree << getTimingsTree(use_colors);
+
+  // Write all measurements to file.
+  std::ofstream out_all_times((folder_name + "all_timings.dat").c_str());
+  if(!out_table.is_open()) {
+    LOG(ERROR) << "Could not open file <" << folder_name << "time_tree.dat>.";
     return false;
   }
 
-  out << "Timer evaluation results.";
+  const auto all_timings = getAllTimings();
+  for(const auto& p : all_timings) {
+    out_all_times <<  p.first << " \t ";
+    for(const x_view::real_t t : p.second) {
+      out_all_times << t << " \t ";
+    }
+    out_all_times << std::endl;
+  }
 
   return true;
 }
 
-const std::string Evaluation::TimerEvaluation::getTimingsTable() const {
+const std::string Evaluation::TimerEvaluation::getTimingsTable(
+    const bool use_colors) const {
   const auto& timer = x_view::Locator::getTimer();
   if(params_->timer_type == EvaluationParameters::TIMER_TYPE::NULL_TIMER) {
     return "Registered timer is of <nonMeasuring> type, this means that the "
@@ -59,10 +88,12 @@ const std::string Evaluation::TimerEvaluation::getTimingsTable() const {
         << "Function " << __FUNCTION__ << " is only supported for timers of "
             "type <x_view::Timer>";
 
+  x_view::TimerPrinter::USE_COLORS = use_colors;
   return x_view::TimerPrinter::getTimingsTable(*real_timer);
 }
 
-const std::string Evaluation::TimerEvaluation::getTimingsTree() const {
+const std::string Evaluation::TimerEvaluation::getTimingsTree(
+    const bool use_colors) const {
   const auto& timer = x_view::Locator::getTimer();
   if(params_->timer_type == EvaluationParameters::TIMER_TYPE::NULL_TIMER) {
     return "Registered timer is of <nonMeasuring> type, this means that the "
@@ -74,6 +105,7 @@ const std::string Evaluation::TimerEvaluation::getTimingsTree() const {
   << "Function " << __FUNCTION__ << " is only supported for timers of "
       "type <x_view::Timer>";
 
+  x_view::TimerPrinter::USE_COLORS = use_colors;
   return x_view::TimerPrinter::getTimingsTree(*real_timer);
 }
 
@@ -117,14 +149,22 @@ void Evaluation::TimerEvaluation::initializeTimer(const TIMER_TYPE timer_type) {
   }
 }
 
-bool Evaluation::LocalizationEvaluation::writeToFile(const std::string& filename) const {
-  std::ofstream out(filename.c_str());
+bool Evaluation::LocalizationEvaluation::writeToFile(
+    const std::string& folder_name) const {
+
+  std::ofstream out((folder_name + "localization_table.dat").c_str());
   if(!out.is_open()) {
-    LOG(ERROR) << "Could not open file <" << filename << ">.";
+    LOG(ERROR) << "Could not open file <" << folder_name << "localization_table.dat>.";
     return false;
   }
 
-  out << "Localization evaluation results.";
+
+  // If there are no localization info, then write an empty file.
+  if(statistics_map_.size() == 0)
+    out << "No statistics on localization, as no localization data was "
+        "registered.";
+  else
+    out << getStatisticsTable();
 
   return true;
 }
@@ -177,8 +217,6 @@ const x_view::real_t Evaluation::LocalizationEvaluation::MSA(
   for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
     const x_view::real_t angle = x_view::angle(p.estimated_pose, p.true_pose);
     mean_squared_angle += angle * angle;
-
-    std::cout << "Mean squared angle is: " << mean_squared_angle << std::endl;
   }
 
   const uint64_t num_obs = statistics_map_.at(statistics_name).size();

@@ -32,15 +32,13 @@ int main(int argc, char** argv) {
   bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT,
                               start_frame, end_frame);
 
-  std::cout <<  evaluation.time.getTimingsTree() << std::endl;
-  std::cout <<  evaluation.time.getTimingsTable() << std::endl;
-
-  // Store the evaluation to a file.
+  // Store the graph construction evaluation to a file.
   std::string graph_construction_folder =
       x_view::getOutputDirectory() + "graph_construction/";
   bool write_success = evaluation.writeToFolder(graph_construction_folder);
-  std::cout << "Could " << (write_success ? "" : "not ") << "write evaluation"
-      " results to " << graph_construction_folder << std::endl;
+  std::cout << "Could " << (write_success ? "" : "not ")
+            << "write localization evaluation results to "
+            << graph_construction_folder << std::endl;
 
   // Extract the timer associated to the construction and store it locally.
   x_view::AbstractTimer* construction_timer;
@@ -78,20 +76,13 @@ int main(int argc, char** argv) {
   }
   pause.terminate();
 
-  std::cout <<  evaluation.time.getTimingsTree() << std::endl;
-  std::cout <<  evaluation.time.getTimingsTable() << std::endl;
-
-  std::cout << evaluation.localization.getStatisticsTable() << std::endl;
-
-  std::cout << "All timings: " << std::endl;
-  const auto all_timings = evaluation.time.getAllTimings();
-  for(const auto& p : all_timings) {
-    std::cout << "Timer " << p.first << ": ";
-    for(const x_view::real_t t : p.second) {
-      std::cout << t << ", ";
-    }
-    std::cout << std::endl;
-  }
+  // Store the localization evaluation to a file.
+  std::string graph_localization_folder =
+      x_view::getOutputDirectory() + "graph_localization/";
+  write_success = evaluation.writeToFolder(graph_localization_folder);
+  std::cout << "Could " << (write_success ? "" : "not ")
+            << "write localization evaluation results to "
+            << graph_localization_folder << std::endl;
 
   x_view::finalizeLogging();
 

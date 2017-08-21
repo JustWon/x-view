@@ -58,23 +58,27 @@ class Evaluation {
 
    public:
 
-    bool writeToFile(const std::string& filename) const;
+    bool writeToFile(const std::string& folder_name) const;
 
     /**
      * \brief Generates a string containing the measurements performed by the
      * current active timer (i.e. timer located at x_view::Locator::timer_).
+     * \param use_colors Boolean flag to indicate if the generated string
+     * should be colorcoded (nicer for terminal output).
      * \return The table containing timing measurements under the form of a
      * human readable string.
      */
-    const std::string getTimingsTable() const;
+    const std::string getTimingsTable(const bool use_colors = false) const;
 
     /**
      * \brief Generates a string containing the measurements performed by the
      * current active timer (i.e. timer located at x_view::Locator::timer_).
+     * \param use_colors Boolean flag to indicate if the generated string
+     * should be colorcoded (nicer for terminal output).
      * \return The tree structure containing timing measurements under the form
      * of a human readable string.
      */
-    const std::string getTimingsTree() const;
+    const std::string getTimingsTree(const bool use_colors = false) const;
 
     /**
      * \brief Gets the timings performed by the current active timer (i.e.
@@ -122,7 +126,7 @@ class Evaluation {
 
    public:
 
-    bool writeToFile(const std::string& filename) const;
+    bool writeToFile(const std::string& folder_name) const;
 
     /**
      * \brief Adds the pair of poses to the statistic object referred to

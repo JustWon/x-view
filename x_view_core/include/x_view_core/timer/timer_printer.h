@@ -12,6 +12,9 @@ namespace x_view {
 class TimerPrinter {
 
  public:
+
+  static bool USE_COLORS;
+
   /**
    * \brief Generates a human readable table with information about the
    * registered timers.

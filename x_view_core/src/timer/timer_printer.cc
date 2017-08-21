@@ -5,6 +5,8 @@
 
 namespace x_view {
 
+bool TimerPrinter::USE_COLORS = false;
+
 const std::string TimerPrinter::TIMER_INDENTATION = "|  ";
 
 
@@ -40,8 +42,10 @@ const std::string TimerPrinter::getTimingsTable(const Timer& timer) {
   ss << boldify(getLeftString("std [s]")) << col_sep;
   ss << boldify(getLeftString("num"));
   ss << "\n";
-  // Line witdh removing escape chars for boldification.
-  const uint64_t line_width = ss.str().length() - 4 * 8;
+  // Line width removing escape chars for boldification.
+  uint64_t line_width = ss.str().length();
+  if(USE_COLORS)
+    line_width -= 4 * 8;
   ss << std::setfill('=') << std::setw(line_width);
   ss << "\n";
 
@@ -122,13 +126,17 @@ const std::string TimerPrinter::getSubTreeTimings(
 }
 
 const std::string TimerPrinter::boldify(const std::string& s) {
-  return "\e[1m" + s + "\e[0m";
+  if(USE_COLORS)
+    return "\e[1m" + s + "\e[0m";
+  return s;
 }
 
 const std::string TimerPrinter::color(const std::string& s,
                                       const COLOR color) {
-  return "\033[" + std::to_string(color) + "m" + s +
-      "\033[" + std::to_string(COLOR::DEF) + "m";
+  if(USE_COLORS)
+    return "\033[" + std::to_string(color) + "m" + s +
+        "\033[" + std::to_string(COLOR::DEF) + "m";
+  return s;
 }
 
 }
