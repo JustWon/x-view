@@ -38,6 +38,7 @@ bool Evaluation::TimerEvaluation::writeToFolder(
 
   // Create the new folder.
   system(("mkdir -p " + folder_name).c_str());
+  LOG(INFO) << "Creating directory <" << folder_name << ">.";
 
   // Disable color coding for plain output text.
   const bool use_colors = false;

@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
   x_view_evaluation::Evaluation evaluation(evaluation_parameters);
 
   const uint64_t start_frame = 0;
-  const uint64_t end_frame = 25;
+  const uint64_t end_frame = 200;
 
   // Build the semantic graph associated to the path specified in the
   // parameters passed to the iteration function.
@@ -40,6 +40,8 @@ int main(int argc, char** argv) {
   if(!evaluation.time.writeToFolder(evaluation_output_dir, "graph_building"))
     LOG(ERROR) << "Impossible to log time evaluation to "
                << evaluation_output_dir << ".";
+
+  return 0;
 
   // Extract the timer associated to the construction and store it locally.
   x_view::AbstractTimer* construction_timer;

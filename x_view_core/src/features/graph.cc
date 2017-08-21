@@ -115,6 +115,9 @@ void writeToFile(const Graph& graph, const std::string& filename) {
     return;
   }
 
+  out << "// Num vertices: " << boost::num_vertices(graph) << std::endl;
+  out << "// Num edges: " << boost::num_edges(graph) << std::endl;
+
   auto scalarToHexString = [](const double s) {
     std::stringstream ss;
     ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(s);

@@ -80,9 +80,9 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
                                       const int from, const int to) {
   loadCurrentTopic(getTopics(camera_type));
   const int step = (from <= to ? +1 : -1);
-  Pause pause;
+  //Pause pause;
   for (int i = from; step * i < step * to; ) {
-    if(!pause.isPaused()) {
+    //if(!pause.isPaused()) {
       std::cout << "Processing semantic image at index " << i << std::endl;
       parseParameters();
       const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
@@ -98,10 +98,10 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
 
       graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
       i += step;
-    }
+   // }
   }
   bag_.close();
-  pause.terminate();
+  //pause.terminate();
 }
 
 void XViewBagReader::relabelGlobalGraphVertices(const x_view::real_t percentage,
