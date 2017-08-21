@@ -216,14 +216,20 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
     GraphMerger::linkCloseVertices(max_link_distance, &global_semantic_graph_);
   }
 
+  // Recompute the global random walks as some vertices have new neighbors,
+  // and thus we need to update their semantic descriptors.
+  recomputeGlobalRandomWalks();
+
+  // Return the matching result filled with the matches.
+  return matching_result;
+}
+
+void GraphMatcher::recomputeGlobalRandomWalks() {
   // Regenerate the random walks of the new global graph
   RandomWalker global_random_walker(global_semantic_graph_,
                                     random_walker_params_);
   global_random_walker.generateRandomWalks();
   global_walk_map_vector_ = global_random_walker.getMappedWalks();
-
-  // Return the matching result filled with the matches.
-  return matching_result;
 }
 
 bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
