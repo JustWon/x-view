@@ -177,19 +177,9 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
       real_t depth_m;
       if (dataset_name == "Airsim Dataset") {
         // Depth is encoded in 8bit for 0..100m = 0..255.
-        // Depth is stored in point depth and needs to be converted to
-        // plane depth as shown  in
-        // https://gist.github.com/edz-o/84d63fec2fc2d70721e775337c07e9c9.
         const uint8_t point_depth_m =
             depth_image.at<uint8_t>(vertex.center);
-        int i_c = vertex.center.y / 2 - 1;
-        int j_c = vertex.center.x / 2 - 1;
-        int rows = 576;
-        int cols = 1024;
-        double dist_from_center = sqrt(
-            (rows - i_c) * (rows - i_c) + (cols - j_c) * (cols - j_c));
-        depth_m = point_depth_m
-            / sqrt(1 + (dist_from_center / 512) * (dist_from_center / 512));
+        depth_m = point_depth_m * 100.0 / 256.0;
       } else if (dataset_name == "Synthia Dataset") {
         // Convert cm to m.
         const unsigned short depth_cm =

@@ -42,19 +42,14 @@ AirsimDataset::AirsimDataset()
                                         airsim_px, airsim_py);
 
   // Set up camera-to-image rotation.
-  Matrix3r y_rotation;
-  y_rotation <<
-      0.0, 0.0, -1.0,
-      0.0, 1.0,  0.0,
-      1.0, 0.0,  0.0;
-  Matrix3r x_rotation;
-  x_rotation <<
-      1.0, 0.0,  0.0,
-      0.0, 0.0, -1.0,
-      0.0, 1.0,  1.0;
+  Matrix3r rotation;
+  rotation <<
+      0.0, -1.0,  0.0,
+      0.0,  0.0, -1.0,
+      1.0,  0.0,  0.0;
 
-  camera_to_image_rotation_ = y_rotation * x_rotation;
 
+  camera_to_image_rotation_ = rotation;
 }
 
 cv::Mat AirsimDataset::convertSemanticImage(
@@ -89,7 +84,7 @@ cv::Mat AirsimDataset::convertSemanticImage(
       cv::Vec3b values;
       values[2] = static_cast<uchar>(0);
       values[1] = static_cast<uchar>(twoBytesToInt(&(msg->data[idx + 1])) - 1);
-      values[0] = static_cast<unsigned int>(msg->data[idx + 1]);
+      values[0] = static_cast<uchar>(msg->data[idx + 2]);
 
       labelImage.at<cv::Vec3b>(cv::Point2i(j, i)) = values;
     }
