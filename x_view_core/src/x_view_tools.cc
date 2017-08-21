@@ -136,6 +136,11 @@ const real_t dist(const VertexProperty& v_p1, const VertexProperty& v_p2) {
   return dist(v_p1.location_3d, v_p2.location_3d);
 }
 
+const real_t angle(const SE3& p1, const SE3& p2) {
+  const Eigen::Matrix3d relative_rot = (p1.inverse() * p2).getRotationMatrix();
+  return std::acos((relative_rot.trace() - 1) * 0.5);
+}
+
 // ******************************* Logging ***********************************//
 
 const std::string& getRootDirectory() {

@@ -131,12 +131,8 @@ bool Evaluation::LocalizationEvaluation::writeToFile(const std::string& filename
 
 void Evaluation::LocalizationEvaluation::addLocalization(
     const std::string& statistics_name,
-    const x_view::Vector3r& true_position,
-    const x_view::Vector3r& estimated_position) {
-
-  const x_view::real_t distance_squared =
-      x_view::distSquared(true_position, estimated_position);
-    statistics_map_[statistics_name].insert(distance_squared);
+    const x_view::LocalizationPair& localization_pair) {
+  statistics_map_[statistics_name].push_back(localization_pair);
 }
 
 const x_view::real_t Evaluation::LocalizationEvaluation::MSD(
@@ -145,13 +141,95 @@ const x_view::real_t Evaluation::LocalizationEvaluation::MSD(
         << "Requested MSD for statistics <" << statistics_name << "> but no "
             "statistic with that key has been registered.";
 
-  return statistics_map_.at(statistics_name).mean();
+  x_view::real_t mean_squared_distance = static_cast<x_view::real_t>(0.0);
+  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+    mean_squared_distance += x_view::distSquared(p.estimated_pose.getPosition(),
+                                                 p.true_pose.getPosition());
+  }
+
+  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  return mean_squared_distance / num_obs;
+}
+
+const x_view::real_t Evaluation::LocalizationEvaluation::MD(
+    const std::string& statistics_name) const {
+  CHECK(statistics_map_.count(statistics_name) > 0)
+  << "Requested MD for statistics <" << statistics_name << "> but no "
+      "statistic with that key has been registered.";
+
+  x_view::real_t mean_distance = static_cast<x_view::real_t>(0.0);
+  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+    mean_distance += x_view::dist(p.estimated_pose.getPosition(),
+                                  p.true_pose.getPosition());
+  }
+
+  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  return mean_distance / num_obs;
+}
+
+const x_view::real_t Evaluation::LocalizationEvaluation::MSA(
+    const std::string& statistics_name) const {
+  CHECK(statistics_map_.count(statistics_name) > 0)
+  << "Requested MSA for statistics <" << statistics_name << "> but no "
+      "statistic with that key has been registered.";
+
+  x_view::real_t mean_squared_angle = static_cast<x_view::real_t>(0.0);
+  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+    const x_view::real_t angle = x_view::angle(p.estimated_pose, p.true_pose);
+    mean_squared_angle += angle * angle;
+
+    std::cout << "Mean squared angle is: " << mean_squared_angle << std::endl;
+  }
+
+  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  return mean_squared_angle / num_obs;
+}
+
+
+const x_view::real_t Evaluation::LocalizationEvaluation::
+standardDeviationMeanSquaredDistance(const std::string& statistics_name) const {
+  const x_view::real_t msd = MSD(statistics_name);
+  x_view::real_t s = static_cast<x_view::real_t>(0.0);
+  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+    const x_view::real_t squared_distance =
+        x_view::distSquared(p.estimated_pose.getPosition(),
+                            p.true_pose.getPosition());
+    s += (squared_distance - msd) * (squared_distance - msd);
+  }
+  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  return static_cast<x_view::real_t>(1.0 / (num_obs - 1) * std::sqrt(s));
+}
+
+const x_view::real_t Evaluation::LocalizationEvaluation::
+standardDeviationMeanDistance(const std::string& statistics_name) const {
+  const x_view::real_t md = MD(statistics_name);
+  x_view::real_t s = static_cast<x_view::real_t>(0.0);
+  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+    const x_view::real_t distance = x_view::dist(p.estimated_pose.getPosition(),
+                                                 p.true_pose.getPosition());
+    s += (distance - md) * (distance - md);
+  }
+  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  return static_cast<x_view::real_t>(1.0 / (num_obs - 1) * std::sqrt(s));
+}
+
+const x_view::real_t Evaluation::LocalizationEvaluation::
+standardDeviationMeanSquaredAngles(const std::string& statistics_name) const {
+  const x_view::real_t msa = MSA(statistics_name);
+  x_view::real_t s = static_cast<x_view::real_t>(0.0);
+  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+    const x_view::real_t angle = x_view::angle(p.estimated_pose, p.true_pose);
+    const x_view::real_t squared_angle = angle * angle;
+    s += (squared_angle - msa) * (squared_angle - msa);
+  }
+  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  return static_cast<x_view::real_t>(1.0 / (num_obs - 1) * std::sqrt(s));
 }
 
 const std::string Evaluation::LocalizationEvaluation::getStatisticsTable()
 const {
   const uint64_t statistics_name_length = 15;
-  const uint64_t col_width = 9;
+  const uint64_t col_width = 7;
   const std::string col_sep = " | ";
   std::stringstream ss;
 
@@ -176,7 +254,12 @@ const {
   };
 
   ss << getRightString("Statistics") << col_sep;
-  ss << getLeftString("MSQ") << col_sep;
+  ss << getLeftString("MSD") << col_sep;
+  ss << getLeftString("std") << col_sep;
+  ss << getLeftString("MD") << col_sep;
+  ss << getLeftString("std") << col_sep;
+  ss << getLeftString("MSA") << col_sep;
+  ss << getLeftString("std") << col_sep;
   ss << getLeftString("num");
   ss << "\n";
 
@@ -186,11 +269,15 @@ const {
 
   for(const auto& p : statistics_map_) {
     const std::string& statistics_name = p.first;
-    const Statistics& statistic = p.second;
 
     ss << getRightString(statistics_name) << col_sep;
     ss << getLeftString(std::to_string(MSD(statistics_name))) << col_sep;
-    ss << getLeftString(std::to_string(statistic.numSamples()));
+    ss << getLeftString(std::to_string(standardDeviationMeanSquaredDistance(statistics_name))) << col_sep;
+    ss << getLeftString(std::to_string(MD(statistics_name))) << col_sep;
+    ss << getLeftString(std::to_string(standardDeviationMeanDistance(statistics_name))) << col_sep;
+    ss << getLeftString(std::to_string(MSA(statistics_name))) << col_sep;
+    ss << getLeftString(std::to_string(standardDeviationMeanSquaredAngles(statistics_name))) << col_sep;
+    ss << getLeftString(std::to_string(p.second.size()));
     ss << "\n";
   }
 

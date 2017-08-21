@@ -2,6 +2,7 @@
 #include <x_view_bag_reader/x_view_pause.h>
 #include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
+#include <x_view_core/x_view_types.h>
 #include <x_view_evaluation/x_view_evaluation.h>
 
 
@@ -24,7 +25,7 @@ int main(int argc, char** argv) {
   x_view_evaluation::Evaluation evaluation(evaluation_parameters);
 
   const uint64_t start_frame = 0;
-  const uint64_t end_frame = 200;
+  const uint64_t end_frame = 25;
 
   // Build the semantic graph associated to the path specified in the
   // parameters passed to the iteration function.
@@ -58,15 +59,17 @@ int main(int argc, char** argv) {
   const uint64_t local_graph_steps = 5;
   for(int i = start_frame; i + local_graph_steps < end_frame;) {
     if(!pause.isPaused()) {
-      x_view_ros::XViewBagReader::LocationPair locations;
+      x_view::LocalizationPair locations;
       bool localized = bag_reader.localizeGraph(x_view_ros::CAMERA::FRONT, i,
                                                 local_graph_steps, &locations);
       if(localized) {
-        std::cout << "Estimation: " << x_view::RowVector3r(locations.first) << "\n"
-                  << "True: " << x_view::RowVector3r(locations.second) << std::endl;
+        std::cout << "Estimation: \n"
+                  << x_view::formatSE3(locations.estimated_pose, "\t") << "\n"
+                  << "True: \n"
+                  << x_view::formatSE3(locations.true_pose, "\t") << std::endl;
+
         evaluation.localization.addLocalization("LocalizationEstimation",
-                                                locations.second,
-                                                locations.first);
+                                                locations);
       } else {
         std::cout << "Localization was not effective." << std::endl;
       }

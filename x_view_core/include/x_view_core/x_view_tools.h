@@ -77,6 +77,10 @@ const real_t dist(const Vector3r& v1, const Vector3r& v2);
 /// \brief Computes the distance between two graph vertices in 3D space.
 const real_t dist(const VertexProperty& v_p1, const VertexProperty& v_p2);
 
+/// \brief Computes the angle between two poses.
+/// \note See here: http://www.continuummechanics.org/transformmatrix.html
+const real_t angle(const SE3& p1, const SE3& p2);
+
 // ******************************* Logging ***********************************//
 /**
  * \brief Stringification macros used to transform preprocessor strings into

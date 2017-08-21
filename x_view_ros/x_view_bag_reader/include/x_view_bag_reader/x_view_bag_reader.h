@@ -24,10 +24,6 @@ namespace x_view_ros {
 class XViewBagReader {
 
  public:
-  /// \brief Pair used in localization functions, the first element in the
-  /// pair corresponds to the Estimated location, the second element to the
-  /// ground truth location.
-  typedef std::pair<x_view::Vector3r, x_view::Vector3r> LocationPair;
 
   /// \brief Parameters needed by XViewBagReader.
   struct XViewBagReaderParams {
@@ -77,8 +73,7 @@ class XViewBagReader {
    * otherwise.
    */
   bool localizeGraph(const CAMERA camera_type, const int start_frame,
-                      const int steps,
-                      LocationPair* locations);
+                     const int steps, x_view::LocalizationPair* locations);
 
  private:
 
