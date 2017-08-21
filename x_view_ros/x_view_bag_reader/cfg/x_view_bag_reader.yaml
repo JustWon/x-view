@@ -19,7 +19,7 @@ Matcher: {
     type: "GRAPH",
     vertex_similarity_score: "WEIGHTED",
     random_walk_sampling_type: "NON_RETURNING",
-    num_walks: 500,
+    num_walks: 250,
     walk_length: 3,
     time_window: 10,
     similarity_threshold: 0.3,

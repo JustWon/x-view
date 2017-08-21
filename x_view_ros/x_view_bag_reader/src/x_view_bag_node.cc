@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
   x_view_evaluation::Evaluation evaluation(evaluation_parameters);
 
   const uint64_t start_frame = 0;
-  const uint64_t end_frame = 15;
+  const uint64_t end_frame = 200;
 
   // Build the semantic graph associated to the path specified in the
   // parameters passed to the iteration function.
@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
   x_view::AbstractTimer* construction_timer;
   evaluation.time.storeTimer(&construction_timer);
 
-  // Introduce noise to the global semantic graphby relabeling some vertices.
+  // Introduce noise to the global semantic graph by relabeling some vertices.
   const x_view::real_t vertex_relabeling_percentage = 0.0;
   const uint64_t vertex_relabeling_seed = 0;
   bag_reader.relabelGlobalGraphVertices(
