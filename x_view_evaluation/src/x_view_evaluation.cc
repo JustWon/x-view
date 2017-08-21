@@ -24,26 +24,29 @@ bool Evaluation::writeToFolder(const std::string& folder_name) const {
         << "Folder name <" << folder_name << "> passed to "
         << __FUNCTION__ << " does not end with '/'.";
 
-  // Create and delete all dat file contained the new folder.
-  system(("mkdir -p " + folder_name).c_str());
-  system(("rm -rf " + folder_name + "*.dat").c_str());
-  
   LOG(INFO) << "Writing evaluation results to folder <" << folder_name << ">.";
 
   bool success = true;
-  success &= time.writeToFile(folder_name);
-  success &= localization.writeToFile(folder_name);
+  success &= time.writeToFolder(folder_name);
+  success &= localization.writeToFolder(folder_name);
 
   return success;
 }
 
-bool Evaluation::TimerEvaluation::writeToFile(const std::string& folder_name) const {
+bool Evaluation::TimerEvaluation::writeToFolder(
+    const std::string& folder_name, const std::string& suffix) const {
+
+  // Create the new folder.
+  system(("mkdir -p " + folder_name).c_str());
 
   // Disable color coding for plain output text.
   const bool use_colors = false;
 
   // Write the time table to file.
-  std::ofstream out_table((folder_name + "time_table.dat").c_str());
+  const std::string table_file_name =
+      folder_name + "time_table" +
+          (suffix == "" ? "" : "_" + suffix + "_") + ".dat";
+  std::ofstream out_table(table_file_name.c_str());
   if(!out_table.is_open()) {
     LOG(ERROR) << "Could not open file <" << folder_name << "time_table.dat>.";
     return false;
@@ -51,7 +54,10 @@ bool Evaluation::TimerEvaluation::writeToFile(const std::string& folder_name) co
   out_table << getTimingsTable(use_colors);
 
   // Write the time tree to file.
-  std::ofstream out_tree((folder_name + "time_tree.dat").c_str());
+  const std::string tree_file_name =
+      folder_name + "time_tree" +
+          (suffix == "" ? "" : "_" + suffix + "_") + ".dat";
+  std::ofstream out_tree(tree_file_name.c_str());
   if(!out_table.is_open()) {
     LOG(ERROR) << "Could not open file <" << folder_name << "time_tree.dat>.";
     return false;
@@ -59,7 +65,10 @@ bool Evaluation::TimerEvaluation::writeToFile(const std::string& folder_name) co
   out_tree << getTimingsTree(use_colors);
 
   // Write all measurements to file.
-  std::ofstream out_all_times((folder_name + "all_timings.dat").c_str());
+  const std::string all_timings_file_name =
+      folder_name + "all_timings" +
+          (suffix == "" ? "" : "_" + suffix + "_") + ".dat";
+  std::ofstream out_all_times(all_timings_file_name.c_str());
   if(!out_table.is_open()) {
     LOG(ERROR) << "Could not open file <" << folder_name << "time_tree.dat>.";
     return false;
@@ -151,10 +160,16 @@ void Evaluation::TimerEvaluation::initializeTimer(const TIMER_TYPE timer_type) {
   }
 }
 
-bool Evaluation::LocalizationEvaluation::writeToFile(
-    const std::string& folder_name) const {
+bool Evaluation::LocalizationEvaluation::writeToFolder(
+    const std::string& folder_name,  const std::string& suffix) const {
 
-  std::ofstream out((folder_name + "localization_table.dat").c_str());
+  // Create the new folder.
+  system(("mkdir -p " + folder_name).c_str());
+
+  const std::string file_name =
+      folder_name + "localization_table" +
+          (suffix == "" ? "" : "_" + suffix + "_") + ".dat";
+  std::ofstream out(file_name.c_str());
   if(!out.is_open()) {
     LOG(ERROR) << "Could not open file <" << folder_name << "localization_table.dat>.";
     return false;

@@ -4,7 +4,7 @@
 #include <x_view_core/x_view_tools.h>
 #include <x_view_core/x_view_types.h>
 #include <x_view_evaluation/x_view_evaluation.h>
-
+#include <x_view_evaluation/directory.h>
 
 int main(int argc, char** argv) {
 
@@ -32,13 +32,14 @@ int main(int argc, char** argv) {
   bag_reader.iterateBagFromTo(x_view_ros::CAMERA::FRONT,
                               start_frame, end_frame);
 
-  // Store the graph construction evaluation to a file.
-  std::string graph_construction_folder =
-      x_view::getOutputDirectory() + "graph_construction/";
-  bool write_success = evaluation.writeToFolder(graph_construction_folder);
-  std::cout << "Could " << (write_success ? "" : "not ")
-            << "write localization evaluation results to "
-            << graph_construction_folder << std::endl;
+  // Store the evaluation to disk.
+  const std::string evaluation_output_dir =
+      x_view_evaluation::Directory::generateDirectoryPath(node_handle,
+      "Example_run");
+
+  if(!evaluation.time.writeToFolder(evaluation_output_dir, "graph_building"))
+    LOG(ERROR) << "Impossible to log time evaluation to "
+               << evaluation_output_dir << ".";
 
   // Extract the timer associated to the construction and store it locally.
   x_view::AbstractTimer* construction_timer;
@@ -76,13 +77,13 @@ int main(int argc, char** argv) {
   }
   pause.terminate();
 
-  // Store the localization evaluation to a file.
-  std::string graph_localization_folder =
-      x_view::getOutputDirectory() + "graph_localization/";
-  write_success = evaluation.writeToFolder(graph_localization_folder);
-  std::cout << "Could " << (write_success ? "" : "not ")
-            << "write localization evaluation results to "
-            << graph_localization_folder << std::endl;
+  if(!evaluation.time.writeToFolder(evaluation_output_dir, "localization"))
+    LOG(ERROR) << "Impossible to log time evaluation to "
+               << evaluation_output_dir << ".";
+
+  if(!evaluation.localization.writeToFolder(evaluation_output_dir, "localization"))
+    LOG(ERROR) << "Impossible to log time evaluation to "
+               << evaluation_output_dir << ".";
 
   x_view::finalizeLogging();
 

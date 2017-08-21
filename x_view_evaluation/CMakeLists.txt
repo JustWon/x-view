@@ -22,8 +22,10 @@ catkin_simple(ALL_DEPS_REQUIRED)
 
 cs_add_library(${PROJECT_NAME}
         src/x_view_evaluation.cc
+        src/directory.cc
 
         include/x_view_evaluation/x_view_evaluation.h
+        include/x_view_evaluation/directory.h
         )
 
 cs_install()

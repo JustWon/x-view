@@ -132,6 +132,7 @@ class Parameters {
   const std::string& name() const {
     return name_;
   }
+
   /// \brief Indentation to be used for current Parameters instance when
   /// being written to a string.
   std::string indentation;
@@ -167,6 +168,7 @@ class Parameters {
   std::unordered_map<std::string, Property> properties_;
   std::list<std::string> insertion_order_;
   const std::string name_;
+
 };
 
 }

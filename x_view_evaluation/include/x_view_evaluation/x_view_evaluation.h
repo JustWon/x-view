@@ -58,7 +58,16 @@ class Evaluation {
 
    public:
 
-    bool writeToFile(const std::string& folder_name) const;
+    /**
+     * \brief Writes the data collected by the TimerEvaluation into the
+     * folder specified by the path passed as argument.
+     * \param folder_name Absolute path of the folder where to write the time
+     * measurements.
+     * \param suffix Suffix string to add to all generated files.
+     * \return Success flag.
+     */
+    bool writeToFolder(const std::string& folder_name,
+                       const std::string& suffix = "") const;
 
     /**
      * \brief Generates a string containing the measurements performed by the
@@ -126,7 +135,16 @@ class Evaluation {
 
    public:
 
-    bool writeToFile(const std::string& folder_name) const;
+    /**
+     * \brief Writes the data collected by the LocalizationEvaluation into the
+     * folder specified by the path passed as argument.
+     * \param folder_name Absolute path of the folder where to write the time
+     * measurements.
+     * \param suffix Suffix string to add to all generated files.
+     * \return Success flag.
+     */
+    bool writeToFolder(const std::string& folder_name,
+                       const std::string& suffix = "") const;
 
     /**
      * \brief Adds the pair of poses to the statistic object referred to
