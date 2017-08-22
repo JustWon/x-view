@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
   x_view_evaluation::Evaluation evaluation(evaluation_parameters);
 
   const uint64_t start_frame = 0;
-  const uint64_t end_frame = 80;
+  const uint64_t end_frame = 40;
 
   // Build the semantic graph associated to the path specified in the
   // parameters passed to the iteration function.
@@ -36,11 +36,12 @@ int main(int argc, char** argv) {
                               start_frame, end_frame);
 
   // Store the evaluation to disk.
+  const std::string run_name = "Example_run";
   const std::string evaluation_output_dir =
-      x_view_evaluation::Path::generateDirectoryPath(node_handle,
-      "Example_run");
+      x_view_evaluation::Path::generateDirectoryPath(node_handle, run_name);
 
-  if(!evaluation.time.writeToFolder(evaluation_output_dir, "graph_building"))
+  const std::string graph_building_suffix = "graph_building";
+  if(!evaluation.time.writeToFolder(evaluation_output_dir, graph_building_suffix))
     LOG(ERROR) << "Impossible to log time evaluation to "
                << evaluation_output_dir << ".";
 
@@ -70,8 +71,7 @@ int main(int argc, char** argv) {
                   << "True: \n"
                   << x_view::formatSE3(locations.true_pose, "\t") << std::endl;
 
-        evaluation.localization.addLocalization("LocalizationEstimation",
-                                                locations);
+        evaluation.localization.addLocalization(locations);
       } else {
         std::cout << "Localization was not effective." << std::endl;
       }
@@ -80,11 +80,12 @@ int main(int argc, char** argv) {
   }
   pause.terminate();
 
-  if(!evaluation.time.writeToFolder(evaluation_output_dir, "localization"))
+  const std::string localization_suffix = "localization";
+  if(!evaluation.time.writeToFolder(evaluation_output_dir, localization_suffix))
     LOG(ERROR) << "Impossible to log time evaluation to "
                << evaluation_output_dir << ".";
 
-  if(!evaluation.localization.writeToFolder(evaluation_output_dir, "localization"))
+  if(!evaluation.localization.writeToFolder(evaluation_output_dir, localization_suffix))
     LOG(ERROR) << "Impossible to log time evaluation to "
                << evaluation_output_dir << ".";
 

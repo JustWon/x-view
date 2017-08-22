@@ -45,7 +45,7 @@ class Evaluation {
    * specified by the passed argument.
    * \param folder_name Path to the folder where to write all results
    * contained in this Evaluation instance.
-   * \return Boolen flag indicating writing success.
+   * \return Boolean flag indicating writing success.
    */
   bool writeToFolder(const std::string& folder_name) const;
 
@@ -73,7 +73,7 @@ class Evaluation {
      * \brief Generates a string containing the measurements performed by the
      * current active timer (i.e. timer located at x_view::Locator::timer_).
      * \param use_colors Boolean flag to indicate if the generated string
-     * should be colorcoded (nicer for terminal output).
+     * should be color-coded (nicer for terminal output).
      * \return The table containing timing measurements under the form of a
      * human readable string.
      */
@@ -83,7 +83,7 @@ class Evaluation {
      * \brief Generates a string containing the measurements performed by the
      * current active timer (i.e. timer located at x_view::Locator::timer_).
      * \param use_colors Boolean flag to indicate if the generated string
-     * should be colorcoded (nicer for terminal output).
+     * should be color-coded (nicer for terminal output).
      * \return The tree structure containing timing measurements under the form
      * of a human readable string.
      */
@@ -150,77 +150,55 @@ class Evaluation {
      * \brief Adds the pair of poses to the statistic object referred to
      * by the string passed as argument. This allows to compute different
      * statistics simultaneously without mixing the samples.
-     * \param statistics_name Name used as key to refer to the statistics
-     * where to store the samples passed as argument.
      * \param localization_pair Localization pair resulting from a
      * localization query to X-View.
      */
-    void addLocalization(const std::string& statistics_name,
-                         const x_view::LocalizationPair& localization_pair);
+    void addLocalization(const x_view::LocalizationPair& localization_pair);
 
 
     /**
      * \brief Computes the mean squared distance of the samples added to the
      * statistics associated with the statistics name passed as argument.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the mean squared distance to the ground truths is to be
-     * computed.
      * \return The mean distance squared of the measurements to the
      * corresponding ground truths.
      */
-    const x_view::real_t MSD(const std::string& statistics_name) const;
+    const x_view::real_t MSD() const;
 
     /**
      * \brief Computes the mean distance of the samples added to the
      * statistics associated with the statistics name passed as argument.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the mean squared distance to the ground truths is to be
-     * computed.
      * \return The mean distance of the measurements to the corresponding
      * ground truths.
      */
-    const x_view::real_t MD(const std::string& statistics_name) const;
+    const x_view::real_t MD() const;
 
     /**
      * \brief Computes the mean squared angle of the samples added to the
      * statistics associated with the statistics name passed as argument.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the mean squared angle to the ground truths is to be
-     * computed.
      * \return The mean angle of the measurements to the corresponding
      * ground truths.
      */
-    const x_view::real_t MSA(const std::string& statistics_name) const;
+    const x_view::real_t MSA() const;
 
     /**
      * \brief Computes the empirical standard deviation on the squared
      * distances.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the standard deviation on the squared distances is to be
-     * computed.
      * \return The empirical standard deviation of the squared distances.
      */
-    const x_view::real_t standardDeviationMeanSquaredDistance(
-        const std::string& statistics_name) const;
+    const x_view::real_t standardDeviationMeanSquaredDistance() const;
 
     /**
      * \brief Computes the empirical standard deviation on the distances.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the standard deviation on the distances is to be computed.
      * \return The empirical standard deviation of the distances.
      */
-    const x_view::real_t standardDeviationMeanDistance(
-        const std::string& statistics_name) const;
+    const x_view::real_t standardDeviationMeanDistance() const;
 
     /**
      * \brief Computes the empirical standard deviation on the squared angle
      * deviations.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the standard deviation on the squared angles is to be computed.
      * \return The empirical standard deviation of the squared angles.
      */
-    const x_view::real_t standardDeviationMeanSquaredAngles(
-        const std::string& statistics_name) const;
+    const x_view::real_t standardDeviationMeanSquaredAngles() const;
 
     /**
      * \brief Generates a table of statistics containing information
@@ -235,8 +213,7 @@ class Evaluation {
     LocalizationEvaluation(const EvaluationParameters* params)
         : params_(params) {}
 
-    std::unordered_map<std::string, std::vector<x_view::LocalizationPair>>
-        statistics_map_;
+    std::vector<x_view::LocalizationPair> localizations_vector_;
 
     const EvaluationParameters* params_;
   };

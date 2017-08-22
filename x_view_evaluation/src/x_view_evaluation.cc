@@ -167,118 +167,136 @@ bool Evaluation::LocalizationEvaluation::writeToFolder(
   // Create the new folder.
   system(("mkdir -p " + folder_name).c_str());
 
-  const std::string file_name =
+  const std::string localization_table_file_name =
       folder_name + "localization_table" +
           (suffix == "" ? "" : "_" + suffix + "_") + ".dat";
-  std::ofstream out(file_name.c_str());
+  std::ofstream out(localization_table_file_name.c_str());
   if(!out.is_open()) {
-    LOG(ERROR) << "Could not open file <" << folder_name << "localization_table.dat>.";
+    LOG(ERROR) << "Could not open file <"
+               << localization_table_file_name << ">.";
     return false;
   }
 
-
   // If there are no localization info, then write an empty file.
-  if(statistics_map_.size() == 0)
+  if(localizations_vector_.size() == 0)
     out << "No statistics on localization, as no localization data was "
         "registered.";
   else
     out << getStatisticsTable();
 
+
+  // Write all measurements to file.
+  const std::string all_localization_file_name =
+      folder_name + "all_localizations" +
+          (suffix == "" ? "" : "_" + suffix + "_") + ".dat";
+  std::ofstream out_all_localizations(all_localization_file_name.c_str());
+  if(!out_all_localizations.is_open()) {
+    LOG(ERROR) << "Could not open file <" << all_localization_file_name << ">";
+    return false;
+  }
+
+  // Converts a pose to a stirng of the form  "x y z r11 r12 r13 r21 .... r33"
+  auto poseToString = [](const x_view::SE3& pose) -> std::string {
+    const auto position = pose.getPosition();
+    const auto rotation = pose.getRotationMatrix();
+
+    std::stringstream ss;
+    Eigen::IOFormat plain_format(Eigen::StreamPrecision, Eigen::DontAlignCols,
+                                 " ", " ", "", "", "", "");
+    ss << position.format(plain_format) << " " << rotation.format(plain_format);
+    return ss.str();
+  };
+
+  for(const x_view::LocalizationPair& localization_pair : localizations_vector_) {
+    const x_view::SE3& ground_truth = localization_pair.true_pose;
+    const x_view::SE3& estimation = localization_pair.estimated_pose;
+
+    out_all_localizations << poseToString(ground_truth) << "\n"
+                          << poseToString(estimation) << "\n";
+  }
+
   return true;
 }
 
 void Evaluation::LocalizationEvaluation::addLocalization(
-    const std::string& statistics_name,
     const x_view::LocalizationPair& localization_pair) {
-  statistics_map_[statistics_name].push_back(localization_pair);
+  localizations_vector_.push_back(localization_pair);
 }
 
-const x_view::real_t Evaluation::LocalizationEvaluation::MSD(
-    const std::string& statistics_name) const {
-  CHECK(statistics_map_.count(statistics_name) > 0)
-        << "Requested MSD for statistics <" << statistics_name << "> but no "
-            "statistic with that key has been registered.";
+const x_view::real_t Evaluation::LocalizationEvaluation::MSD() const {
 
   x_view::real_t mean_squared_distance = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+  for(const x_view::LocalizationPair& p : localizations_vector_) {
     mean_squared_distance += x_view::distSquared(p.estimated_pose.getPosition(),
                                                  p.true_pose.getPosition());
   }
 
-  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  const uint64_t num_obs = localizations_vector_.size();
   return mean_squared_distance / num_obs;
 }
 
-const x_view::real_t Evaluation::LocalizationEvaluation::MD(
-    const std::string& statistics_name) const {
-  CHECK(statistics_map_.count(statistics_name) > 0)
-  << "Requested MD for statistics <" << statistics_name << "> but no "
-      "statistic with that key has been registered.";
+const x_view::real_t Evaluation::LocalizationEvaluation::MD() const {
 
   x_view::real_t mean_distance = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+  for(const x_view::LocalizationPair& p : localizations_vector_) {
     mean_distance += x_view::dist(p.estimated_pose.getPosition(),
                                   p.true_pose.getPosition());
   }
 
-  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  const uint64_t num_obs = localizations_vector_.size();
   return mean_distance / num_obs;
 }
 
-const x_view::real_t Evaluation::LocalizationEvaluation::MSA(
-    const std::string& statistics_name) const {
-  CHECK(statistics_map_.count(statistics_name) > 0)
-  << "Requested MSA for statistics <" << statistics_name << "> but no "
-      "statistic with that key has been registered.";
+const x_view::real_t Evaluation::LocalizationEvaluation::MSA() const {
 
   x_view::real_t mean_squared_angle = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+  for(const x_view::LocalizationPair& p : localizations_vector_) {
     const x_view::real_t angle = x_view::angle(p.estimated_pose, p.true_pose);
     mean_squared_angle += angle * angle;
   }
 
-  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  const uint64_t num_obs = localizations_vector_.size();
   return mean_squared_angle / num_obs;
 }
 
 
 const x_view::real_t Evaluation::LocalizationEvaluation::
-standardDeviationMeanSquaredDistance(const std::string& statistics_name) const {
-  const x_view::real_t msd = MSD(statistics_name);
+standardDeviationMeanSquaredDistance() const {
+  const x_view::real_t msd = MSD();
   x_view::real_t s = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+  for(const x_view::LocalizationPair& p : localizations_vector_) {
     const x_view::real_t squared_distance =
         x_view::distSquared(p.estimated_pose.getPosition(),
                             p.true_pose.getPosition());
     s += (squared_distance - msd) * (squared_distance - msd);
   }
-  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  const uint64_t num_obs = localizations_vector_.size();
   return static_cast<x_view::real_t>(1.0 / (num_obs - 1) * std::sqrt(s));
 }
 
 const x_view::real_t Evaluation::LocalizationEvaluation::
-standardDeviationMeanDistance(const std::string& statistics_name) const {
-  const x_view::real_t md = MD(statistics_name);
+standardDeviationMeanDistance() const {
+  const x_view::real_t md = MD();
   x_view::real_t s = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+  for(const x_view::LocalizationPair& p : localizations_vector_) {
     const x_view::real_t distance = x_view::dist(p.estimated_pose.getPosition(),
                                                  p.true_pose.getPosition());
     s += (distance - md) * (distance - md);
   }
-  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  const uint64_t num_obs = localizations_vector_.size();
   return static_cast<x_view::real_t>(1.0 / (num_obs - 1) * std::sqrt(s));
 }
 
 const x_view::real_t Evaluation::LocalizationEvaluation::
-standardDeviationMeanSquaredAngles(const std::string& statistics_name) const {
-  const x_view::real_t msa = MSA(statistics_name);
+standardDeviationMeanSquaredAngles() const {
+  const x_view::real_t msa = MSA();
   x_view::real_t s = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : statistics_map_.at(statistics_name)) {
+  for(const x_view::LocalizationPair& p : localizations_vector_) {
     const x_view::real_t angle = x_view::angle(p.estimated_pose, p.true_pose);
     const x_view::real_t squared_angle = angle * angle;
     s += (squared_angle - msa) * (squared_angle - msa);
   }
-  const uint64_t num_obs = statistics_map_.at(statistics_name).size();
+  const uint64_t num_obs = localizations_vector_.size();
   return static_cast<x_view::real_t>(1.0 / (num_obs - 1) * std::sqrt(s));
 }
 
@@ -323,19 +341,16 @@ const {
   ss << std::setfill('=') << std::setw(line_width);
   ss << "\n";
 
-  for(const auto& p : statistics_map_) {
-    const std::string& statistics_name = p.first;
 
-    ss << getRightString(statistics_name) << col_sep;
-    ss << getLeftString(std::to_string(MSD(statistics_name))) << col_sep;
-    ss << getLeftString(std::to_string(standardDeviationMeanSquaredDistance(statistics_name))) << col_sep;
-    ss << getLeftString(std::to_string(MD(statistics_name))) << col_sep;
-    ss << getLeftString(std::to_string(standardDeviationMeanDistance(statistics_name))) << col_sep;
-    ss << getLeftString(std::to_string(MSA(statistics_name))) << col_sep;
-    ss << getLeftString(std::to_string(standardDeviationMeanSquaredAngles(statistics_name))) << col_sep;
-    ss << getLeftString(std::to_string(p.second.size()));
-    ss << "\n";
-  }
+  ss << getRightString(" ") << col_sep;
+  ss << getLeftString(std::to_string(MSD())) << col_sep;
+  ss << getLeftString(std::to_string(standardDeviationMeanSquaredDistance())) << col_sep;
+  ss << getLeftString(std::to_string(MD())) << col_sep;
+  ss << getLeftString(std::to_string(standardDeviationMeanDistance())) << col_sep;
+  ss << getLeftString(std::to_string(MSA())) << col_sep;
+  ss << getLeftString(std::to_string(standardDeviationMeanSquaredAngles())) << col_sep;
+  ss << getLeftString(std::to_string(localizations_vector_.size()));
+  ss << "\n";
 
   std::string s = "======== STATISTICS TABLE ========";
   s += "\n\n";
