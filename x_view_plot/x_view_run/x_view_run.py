@@ -1,5 +1,6 @@
 import os
 import select
+import subprocess
 import sys
 
 
@@ -54,16 +55,22 @@ class XViewRun:
 
         current_run_dir = os.path.join(self._evaluation_storage_dir, "run{0:03d}".format(run_number))
         if os.path.exists(current_run_dir):
-            os.system("rm -rf {}".format(current_run_dir))
+            task = ["rm", "-rf", current_run_dir]
+            subprocess.call(task)
         os.mkdir(current_run_dir)
 
         # Copy the current config file.
-        os.system("cp {} {}".format(self._x_view_config_file, current_run_dir))
+        task = ["cp", self._x_view_config_file, current_run_dir]
+        subprocess.call(task)
 
         # Copy the evaluation folder.
-        os.system("cp -rf {} {}".format(self._x_view_evaluation_output_dir, os.path.join(current_run_dir, "eval")))
+        task = ["cp", "-rf", self._x_view_evaluation_output_dir, os.path.join(current_run_dir, "eval")]
+        subprocess.call(task)
 
         # Copy the generated graphs.
         graph_dir = os.path.join(current_run_dir, "graphs")
         os.mkdir(graph_dir)
-        os.system("cp -rf {} {}".format(os.path.join(self._x_view_graph_output_dir, "*.dot"), graph_dir))
+        for graph_file in os.listdir(self._x_view_graph_output_dir):
+            if graph_file.split(".")[-1] == "dot":
+                task = ["cp", os.path.join(self._x_view_graph_output_dir, graph_file), graph_dir]
+                subprocess.call(task)

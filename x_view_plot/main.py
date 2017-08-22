@@ -1,9 +1,10 @@
 from x_view_run import XViewRun, XViewConfig
-from x_view_data import getTimes, getLastResultsDir, getVertices, getEdges
+from x_view_data import getTimes, getLastResultsDir, getVertices, getEdges, getLocalizations
 
 import time
 from matplotlib import pylab as plt
 import os
+import sys
 import numpy as np
 import seaborn as sns
 
@@ -26,17 +27,20 @@ x_view_produced_dir = "/home/carlo/x-view_ws_release/src/x-view/x_view_core/outp
 # Path to folder containing generated graphs (.dot files)
 x_view_produced_graph_dir = "/home/carlo/x-view_ws_release/src/x-view/x_view_core/output"
 
+# Path to directory containing this file
+current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
+
 # Resource directory containing all destination_dir s
-resources_dir = "/home/carlo/Desktop/x_view_plot/resources/"
+resources_dir = os.path.join(current_dir, "resources")
 
 # Path to folder used to collect generated data (local path).
 destination_dir = os.path.join(resources_dir, "auto_run{}/".format(time.strftime('%H-%M-%S')))
 
 # Path to folder used for generated graphs.
-output_folder = "/home/carlo/Desktop/x_view_plot/results/"
+output_folder = os.path.join(current_dir, "results")
 
 
-def launchXView():
+def launchXView(runs):
     # Create a config file generator.
     x_view_config = XViewConfig(x_view_config_file=x_view_cfg_file)
 
@@ -54,11 +58,11 @@ def launchXView():
                           evaluation_storage_dir=destination_dir)
 
     # Run XView with the current arguments for num_runs times and store the evaluations.
-    x_view_run.run(num_runs=4, store_eval=True)
+    x_view_run.run(num_runs=runs, store_eval=True)
 
 
 def plotLastResults():
-    lastDirectory = getLastResultsDir("/home/carlo/Desktop/x_view_plot/resources/")
+    lastDirectory = getLastResultsDir(resources_dir)
 
     num_vertices = getVertices(base_path=lastDirectory)
     num_edges = getEdges(base_path=lastDirectory)
@@ -99,8 +103,11 @@ def plotLastResults():
 
         f.savefig(os.path.join(output_folder, "num_vertices_vs_{}.pdf".format(time_name)), bbox_inches='tight')
 
+    gt, es = getLocalizations(base_path=lastDirectory, localization_file_name="all_localizations_localization_.dat")
+    print(gt[0]["position"], es[0]["rotation"])
+
 
 if __name__ == '__main__':
-    # launchXView()
+    # launchXView(runs = 1)
 
     plotLastResults()

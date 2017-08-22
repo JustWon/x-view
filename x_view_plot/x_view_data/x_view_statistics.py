@@ -4,6 +4,7 @@ import numpy as np
 def getLastResultsDir(resource_path):
 
     all_dirs = [os.path.join(resource_path, d) for d in os.listdir(resource_path)]
+    all_dirs = [d for d in all_dirs if os.path.isdir(d)]
     all_dirs.sort(key=lambda x: -os.path.getmtime(x))
     last_result = all_dirs[0]
     return last_result
@@ -15,6 +16,8 @@ def getTimes(base_path, time_name, timings_file_name):
 
     for run_folder in os.listdir(base_path):
         run_folder_path = os.path.join(base_path, run_folder)
+        if not os.path.isdir(run_folder_path):
+            continue
         eval_path = os.path.join(run_folder_path, "eval")
         all_timings_path = os.path.join(eval_path, timings_file_name)
 
@@ -45,6 +48,8 @@ def getVertices(base_path):
 
     for run_folder in os.listdir(base_path):
         run_folder_path = os.path.join(base_path, run_folder)
+        if not os.path.isdir(run_folder_path):
+            continue
         graph_path = os.path.join(run_folder_path, "graphs")
 
         if not os.path.exists(graph_path):
@@ -75,12 +80,15 @@ def getVertices(base_path):
 
     return vertices_array
 
+
 def getEdges(base_path):
 
     edges = []
 
     for run_folder in os.listdir(base_path):
         run_folder_path = os.path.join(base_path, run_folder)
+        if not os.path.isdir(run_folder_path):
+            continue
         graph_path = os.path.join(run_folder_path, "graphs")
 
         if not os.path.exists(graph_path):
@@ -111,3 +119,44 @@ def getEdges(base_path):
 
     return edges_array
 
+
+def getLocalizations(base_path, localization_file_name):
+
+    ground_truths = []
+    estimations = []
+
+    for run_folder in os.listdir(base_path):
+        run_folder_path = os.path.join(base_path, run_folder)
+        if not os.path.isdir(run_folder_path):
+            continue
+        eval_path = os.path.join(run_folder_path, "eval")
+        all_evaluations_path = os.path.join(eval_path, localization_file_name)
+
+        if not os.path.exists(all_evaluations_path):
+            print("Path {} does not exist.".format(all_evaluations_path))
+
+        def stringToPose(pose_string):
+            list_of_strings = pose_string.split(" ")
+            list_of_strings = list_of_strings[0:12]
+            position = np.array(list(map(float, list_of_strings[0:3])))
+            rotation = np.array(list(map(float, list_of_strings[3:12]))).reshape((3,3))
+
+            return position, rotation
+
+        with open(all_evaluations_path, 'r') as file:
+            while True:
+                ground_truth_string = file.readline()
+                estimation_string = file.readline()
+                if not estimation_string:
+                    break  # EOF
+
+                ground_truth_position, ground_truth_rotation = stringToPose(ground_truth_string)
+                estimation_position, estimation_rotation = stringToPose(estimation_string)
+                ground_truths.append({"position": ground_truth_position, "rotation": ground_truth_rotation})
+                estimations.append({"position": estimation_position, "rotation": estimation_rotation})
+
+    if len(ground_truths) == 0:
+        print("Could not extract localizations from folder {}".format(base_path))
+        return []
+
+    return ground_truths, estimations

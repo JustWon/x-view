@@ -142,6 +142,16 @@ class Evaluation {
      * measurements.
      * \param suffix Suffix string to add to all generated files.
      * \return Success flag.
+     * \note All localizations are written to a file in the following format:
+     * "
+     * x_gt y_gt z_gt r11_gt r12_gt r13_gt ... r33_gt
+     * x_es y_es z_es r11_es r12_es r13_es ... r33_es
+     * ...
+     * x_gt y_gt z_gt r11_gt r12_gt r13_gt ... r33_gt
+     * x_es y_es z_es r11_es r12_es r13_es ... r33_es
+     * "
+     * where each pair of consecutive lines corresponds to the ground truth
+     * pose followed by the estimated pose.
      */
     bool writeToFolder(const std::string& folder_name,
                        const std::string& suffix = "") const;
