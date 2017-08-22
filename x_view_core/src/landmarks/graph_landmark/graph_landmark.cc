@@ -12,6 +12,7 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
   const auto& parameters = Locator::getParameters();
   const auto& landmark_parameters =
       parameters->getChildPropertyList("landmark");
+  const auto& timer = Locator::getTimer();
 
   // Graph descriptor filled up by this function
   Graph descriptor;
@@ -47,8 +48,11 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
                << "> as 'blob_filter_type' parameter.";
   }
 
+  timer->registerTimer("BlobExtraction", "SemanticLandmarkExtraction");
+  timer->start("BlobExtraction");
   image_blobs_ = BlobExtractor::extractBlobs(semantic_image_,
                                              blob_extractor_params);
+  timer->stop("BlobExtraction");
 
 
   // *********** Graph generation ********** //
@@ -75,9 +79,12 @@ GraphLandmark::GraphLandmark(const FrameData& frame_data)
                << graph_extraction_type << ">.";
   }
 
+  timer->registerTimer("GraphBuilding", "SemanticLandmarkExtraction");
+  timer->start("GraphBuilding");
   descriptor = GraphBuilder::extractSemanticGraph(frame_data,
                                                   image_blobs_,
                                                   graph_builder_params);
+  timer->stop("GraphBuilding");
 
   // Create the descriptor stored in this landmark by generating a
   // VectorDescriptor containing the graph data.

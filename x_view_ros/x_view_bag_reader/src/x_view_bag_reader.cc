@@ -2,13 +2,15 @@
 #include <x_view_bag_reader/x_view_pause.h>
 #include <x_view_core/datasets/airsim_dataset.h>
 #include <x_view_core/datasets/synthia_dataset.h>
-#include <x_view_core/landmarks/graph_landmark.h>
+#include <x_view_core/timer/timer.h>
 #include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 #include <x_view_core/x_view_types.h>
 
 #include <glog/logging.h>
 #include <opencv2/core/core.hpp>
+
+#include <iostream>
 
 namespace x_view_ros {
 
@@ -113,12 +115,15 @@ void XViewBagReader::relabelGlobalGraphVertices(const x_view::real_t percentage,
   x_view_->relabelGlobalGraphVertices(percentage, seed);
 }
 
-bool XViewBagReader::localizeGraph(const CAMERA camera_type, const int start_frame, const int steps,
-    LocationPair* locations) {
+bool XViewBagReader::localizeGraph(const CAMERA camera_type,
+                                   const int start_frame, const int steps,
+                                   x_view::LocalizationPair* locations) {
 
   CHECK_NOTNULL(locations);
 
   loadCurrentTopic(getTopics(camera_type));
+
+  const auto& timer = x_view::Locator::getTimer();
 
   // Local X-View object used to generate local graph which will be localized
   // against the global semantic graph built by x_view_.
@@ -133,6 +138,9 @@ bool XViewBagReader::localizeGraph(const CAMERA camera_type, const int start_fra
     pose_ids.push_back(pose_id);
   }
 
+  timer->registerTimer("QueryGraphConstruction");
+  timer->start("QueryGraphConstruction");
+
   for(int i = start_frame; i < start_frame + steps; ++i) {
     parseParameters();
     const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
@@ -141,8 +149,7 @@ bool XViewBagReader::localizeGraph(const CAMERA camera_type, const int start_fra
     tfTransformToSE3(trans, &pose_ids[i - start_frame].pose);
     // Use the start frame as ground truth.
     if (i == start_frame) {
-      locations->second = pose_ids[i - start_frame].pose.getPosition()
-          .cast<x_view::real_t>();
+      locations->true_pose = pose_ids[i - start_frame].pose;
     }
     x_view::FrameData frame_data(semantic_image, depth_image,
                                  pose_ids[i - start_frame], i);
@@ -155,15 +162,21 @@ bool XViewBagReader::localizeGraph(const CAMERA camera_type, const int start_fra
         "true_position_" + x_view::PaddedInt(i - start_frame, 3).str());
   }
 
+  timer->stop("QueryGraphConstruction");
+
   const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
 
-  bool localized = x_view_->localizeGraph(local_graph, pose_ids,
-                                          &(locations->first));
+  timer->registerTimer("GraphLocalization");
+  timer->start("GraphLocalization");
+  bool localized =x_view_->localizeGraph(local_graph, pose_ids,
+                                         &(locations->estimated_pose));
+  timer->stop("GraphLocalization");
 
   const x_view::Vector3r estimated_color(0.7, 0.15, 0.15);
-  publishRobotPosition(locations->first, estimated_color, time,
+  publishRobotPosition(locations->estimated_pose.getPosition()
+                           .cast<x_view::real_t>(),
+                       estimated_color, time,
                        "estimated_position");
-
 
   bag_.close();
 

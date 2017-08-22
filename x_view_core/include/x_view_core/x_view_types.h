@@ -1,6 +1,7 @@
 #ifndef X_VIEW_X_VIEW_TYPES_H
 #define X_VIEW_X_VIEW_TYPES_H
 
+#include <Eigen/Core>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <kindr/minimal/quat-transformation.h>
 #include <opencv2/core/core.hpp>
@@ -45,6 +46,19 @@ typedef gtsam::NonlinearFactorGraph FactorGraph;
 /// \brief 3D pose (position + orientation).
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef kindr::minimal::RotationQuaternionTemplate<double> SO3;
+
+/// \brief Pair of 3D poses used in localization.
+struct LocalizationPair {
+
+  LocalizationPair() {}
+  LocalizationPair(const x_view::SE3& true_pose,
+                   const x_view::SE3& estimated_pose)
+      : true_pose(true_pose),
+        estimated_pose(estimated_pose) {}
+
+  x_view::SE3 true_pose;
+  x_view::SE3 estimated_pose;
+};
 
 /// \brief Pointer to feature.
 typedef std::shared_ptr<const AbstractDescriptor> ConstDescriptorPtr;

@@ -23,6 +23,7 @@
   <depend>x_view_core</depend>
   <depend>x_view_parser</depend>
   <depend>x_view_graph_publisher</depend>
+  <depend>x_view_evaluation</depend>
   
 </package>
 

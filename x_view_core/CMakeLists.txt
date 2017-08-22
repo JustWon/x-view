@@ -15,7 +15,7 @@ IF (CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF ()
 
 # Flag used by XView to know the path of where it is located.
-add_definitions(-DX_VIEW_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR})
+add_definitions(-DX_VIEW_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/)
 add_definitions(-DX_VIEW_LOG_DIR=${CMAKE_CURRENT_SOURCE_DIR}/logs/)
 add_definitions(-DX_VIEW_OUT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/output/)
 
@@ -66,6 +66,11 @@ cs_add_library(${PROJECT_NAME}
         # Parameters
         src/parameters/parameters.cc
 
+        # Timer
+        src/timer/null_timer.cc
+        src/timer/timer.cc
+        src/timer/timer_printer.cc
+
         #### HEADER FILES ####
 
         include/x_view_core/x_view.h
@@ -112,6 +117,12 @@ cs_add_library(${PROJECT_NAME}
 
         # Parameters
         include/x_view_core/parameters/parameters.h
+
+        # Timer
+        include/x_view_core/timer/abstract_timer.h
+        include/x_view_core/timer/null_timer.h
+        include/x_view_core/timer/timer.h
+        include/x_view_core/timer/timer_printer.h
         )
 
 
@@ -143,6 +154,8 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_graph_duplicate_removal.cc
         test/test_neighbor_search_main.cc
         test/test_neighbor_search.cc
+        test/test_timer_main.cc
+        test/test_timer.cc
 
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )

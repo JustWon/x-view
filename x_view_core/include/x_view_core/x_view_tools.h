@@ -65,20 +65,6 @@ const cv::Scalar getColorFromSemanticLabel(const int semantic_label);
 const Matrix3r createRotationMatrix(real_t r1, real_t r2, real_t r3);
 const Matrix3r randomRotationMatrix(std::mt19937& rng);
 
-class Statistics {
- public:
-  Statistics();
-
-  void insert(const real_t& sample);
-  const real_t mean() const;
-  const real_t std() const;
-
- private:
-  real_t sum_;
-  real_t sum_squared_;
-  uint64_t num_samples_;
-};
-
 /// \brief Computes the squared distance between two points in 3D space.
 const real_t distSquared(const Vector3r& v1, const Vector3r& v2);
 
@@ -90,6 +76,10 @@ const real_t dist(const Vector3r& v1, const Vector3r& v2);
 
 /// \brief Computes the distance between two graph vertices in 3D space.
 const real_t dist(const VertexProperty& v_p1, const VertexProperty& v_p2);
+
+/// \brief Computes the angle between two poses.
+/// \note See here: http://www.continuummechanics.org/transformmatrix.html
+const real_t angle(const SE3& p1, const SE3& p2);
 
 // ******************************* Logging ***********************************//
 /**

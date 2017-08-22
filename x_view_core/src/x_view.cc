@@ -30,11 +30,19 @@ void XView::processFrameData(const FrameData& frame_data) {
   LOG(INFO) << "Associated robot pose:\n"
             << formatSE3(frame_data.getPose(), "\t\t", 3);
 
+  const auto& timer = Locator::getTimer();
+  timer->registerTimer("ProcessFrameData");
+  timer->start("ProcessFrameData");
+
   // Generate a new semantic landmark pointer.
   SemanticLandmarkPtr landmark_ptr;
 
   // Extract semantics associated to the semantic image and pose.
+  timer->registerTimer("SemanticLandmarkExtraction", "ProcessFrameData");
+  timer->start("SemanticLandmarkExtraction");
   createSemanticLandmark(frame_data, landmark_ptr);
+  timer->stop("SemanticLandmarkExtraction");
+
   // Compute the matches between the new feature and the ones
   // stored in the database.
   if (frame_number_ == 0) {
@@ -48,6 +56,8 @@ void XView::processFrameData(const FrameData& frame_data) {
   }
   // Add the semantic landmark to the database.
   semantics_db_.push_back(landmark_ptr);
+
+  timer->stop("ProcessFrameData");
 
   LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
 }
@@ -95,7 +105,7 @@ void XView::writeGraphToFile() const {
 
 bool XView::localizeGraph(const Graph& query_graph,
                           std::vector<x_view::PoseId> pose_ids,
-                          x_view::Vector3r* position) {
+                          SE3* pose) {
 
   // Get the existing global semantic graph before matching.
   const Graph& global_graph = getSemanticGraph();
@@ -183,10 +193,8 @@ bool XView::localizeGraph(const Graph& query_graph,
     }
   }
 
-  SE3 transformation;
   bool localized = graph_localizer.localize(matching_result, query_graph,
-                                            global_graph, &transformation);
-  (*position) = transformation.getPosition().cast<real_t>();
+                                            global_graph, pose);
 
   return localized;
 }

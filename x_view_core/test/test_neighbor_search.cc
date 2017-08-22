@@ -89,7 +89,7 @@ void testBlobNeighborPerformance() {
     return step_map[static_cast<DIRECTION>(step_dist(rng))];
   };
 
-  const uint64_t num_external_pixels = 50000;
+  const uint64_t num_external_pixels = 1000;
   const int distance_threshold = 18;
 
   cv::Point2i start_i(0, 0);
