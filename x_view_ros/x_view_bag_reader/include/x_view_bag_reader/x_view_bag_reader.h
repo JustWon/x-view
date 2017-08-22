@@ -32,9 +32,10 @@ class XViewBagReader {
   /// \brief Parameters needed by XViewBagReader.
   struct XViewBagReaderParams {
     XViewBagReaderParams()
-        : front(CAMERA::FRONT),
-          right(CAMERA::RIGHT),
-          back(CAMERA::BACK) {}
+    : front(CAMERA::FRONT),
+      right(CAMERA::RIGHT),
+      back(CAMERA::BACK),
+      down(CAMERA::RIGHT) {}
 
     /// \brief Bag filename of the rosbag file to be read.
     std::string bag_file_name;
@@ -42,6 +43,7 @@ class XViewBagReader {
     CameraTopics front;
     CameraTopics right;
     CameraTopics back;
+    CameraTopics down;
 
     std::string transform_topic;
     std::string world_frame;
