@@ -105,7 +105,7 @@ void XView::writeGraphToFile() const {
 
 bool XView::localizeGraph(const Graph& query_graph,
                           std::vector<x_view::PoseId> pose_ids,
-                          x_view::Vector3r* position) {
+                          SE3* pose) {
 
   // Get the existing global semantic graph before matching.
   const Graph& global_graph = getSemanticGraph();
@@ -193,10 +193,8 @@ bool XView::localizeGraph(const Graph& query_graph,
     }
   }
 
-  SE3 transformation;
   bool localized = graph_localizer.localize(matching_result, query_graph,
-                                            global_graph, &transformation);
-  (*position) = transformation.getPosition().cast<real_t>();
+                                            global_graph, pose);
 
   return localized;
 }

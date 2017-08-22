@@ -1,0 +1,446 @@
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <boost/filesystem.hpp>
+#include "ros/ros.h"
+
+#include <eigen-checks/gtest.h>
+#include <gflags/gflags.h>
+#include <glog/logging.h>
+#include <gtest/gtest.h>
+
+#include <opencv2/highgui/highgui.hpp>
+
+#include <image_geometry/pinhole_camera_model.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
+
+#include "airsim_to_rosbag/airsim_parser.h"
+#include "airsim_to_rosbag/depth_traits.h"
+
+namespace airsim {
+
+const std::string AirsimParser::kDepthFolder = "Depth";
+const std::string AirsimParser::kSemanticsGTFolder = "GT";
+const std::string AirsimParser::kRGBFolder = "RGB";
+const std::string AirsimParser::kForwardCameraFolder = "camera_forward";
+const std::string AirsimParser::kDownwardCameraFolder = "camera_downward";
+
+AirsimParser::AirsimParser(const std::string& dataset_path, bool rectified)
+: dataset_path_(dataset_path),
+  rectified_(rectified),
+  initial_pose_set_(false) {
+  cam_paths_.push_back(kForwardCameraFolder);
+  cam_paths_.push_back(kDownwardCameraFolder);
+}
+
+bool AirsimParser::loadCalibration() {
+
+  camera_calibrations_.resize(2);
+  size_t cam_id = 0u;
+  for (auto&& calibration : camera_calibrations_) {
+    // Intrinsics.
+    calibration.image_size << 1024, 576;
+    calibration.rect_mat = Eigen::Matrix3d::Identity();
+    calibration.projection_mat = Eigen::Matrix<double, 3, 4>::Identity();
+    calibration.K = Eigen::Matrix3d::Identity();
+    calibration.K(0,0) = 512;
+    calibration.K(1,1) = 512;
+    calibration.K(0,2) = 512;
+    calibration.K(1,2) = 288;
+
+    calibration.projection_mat(0,0) = 512;
+    calibration.projection_mat(1,1) = 512;
+    calibration.projection_mat(0,2) = 512;
+    calibration.projection_mat(1,2) = 288;
+
+    calibration.D = Eigen::Matrix<double, 1, 5>::Zero();
+
+    // Extrinsics are loaded from file.
+  }
+  return true;
+}
+
+bool AirsimParser::parseVectorOfDoubles(const std::string& input,
+                                        std::vector<double>* output) const {
+  output->clear();
+  // Parse the line as a stringstream for comma-delimeted doubles.
+  std::stringstream line_stream(input);
+  if (line_stream.eof()) {
+    return false;
+  }
+
+  while (!line_stream.eof()) {
+    std::string element;
+    std::getline(line_stream, element, ',');
+    if (element.empty()) {
+      continue;
+    }
+    try {
+      output->emplace_back(std::stod(element));
+    } catch (const std::exception& exception) {
+      std::cout << "Could not parse number in import file.\n";
+      return false;
+    }
+  }
+  return true;
+}
+
+void AirsimParser::loadTimestampMaps() {
+
+  std::string file_path = dataset_path_ + "/" + kDepthFolder + "/"
+      + kForwardCameraFolder;
+  size_t num_files = 1u;
+  for(boost::filesystem::directory_iterator it(file_path);
+      it != boost::filesystem::directory_iterator(); ++it) {
+    timestamps_ns_.push_back(num_files * 1e8);
+    num_files++;
+  }
+}
+
+bool AirsimParser::getCameraCalibration(uint64_t cam_id,
+                                        airsim::CameraCalibration* cam) const {
+  if (cam_id >= camera_calibrations_.size()) {
+    return false;
+  }
+  *cam = camera_calibrations_[cam_id];
+  return true;
+}
+
+bool AirsimParser::convertDepthImageToDepthCloud(const sensor_msgs::Image& depth_image_msg,
+                                                 const sensor_msgs::Image& rgb_image_msg,
+                                                 const sensor_msgs::CameraInfo& cam_info,
+                                                 sensor_msgs::PointCloud2* ptcloud) {
+  // Function adapted from https://github.com/ros-perception/image_pipeline/tree/indigo/depth_image_proc.
+  image_geometry::PinholeCameraModel model;
+  model.fromCameraInfo(cam_info);
+  // Use correct principal point from calibration
+  float center_x = model.cx();
+  float center_y = model.cy();
+
+  // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
+  double unit_scaling = DepthTraits<uint16_t>::toMeters( uint16_t(1) );
+  float constant_x = unit_scaling / model.fx();
+  float constant_y = unit_scaling / model.fy();
+  float bad_point = std::numeric_limits<float>::quiet_NaN();
+
+  sensor_msgs::PointCloud2Modifier pcd_modifier(*ptcloud);
+  pcd_modifier.setPointCloud2FieldsByString(2, "xyz", "rgb");
+  sensor_msgs::PointCloud2Iterator<float> iter_x(*ptcloud, "x");
+  sensor_msgs::PointCloud2Iterator<float> iter_y(*ptcloud, "y");
+  sensor_msgs::PointCloud2Iterator<float> iter_z(*ptcloud, "z");
+  sensor_msgs::PointCloud2Iterator<uint8_t> iter_r(*ptcloud, "r");
+  sensor_msgs::PointCloud2Iterator<uint8_t> iter_g(*ptcloud, "g");
+  sensor_msgs::PointCloud2Iterator<uint8_t> iter_b(*ptcloud, "b");
+
+  const uint8_t* depth_row = reinterpret_cast<const uint8_t*>(&depth_image_msg.data[0]);
+  int row_step = depth_image_msg.step / sizeof(uint16_t);
+
+  for (int v = 0; v < (int)ptcloud->height; ++v, depth_row += row_step)
+  {
+    for (int u = 0; u < (int)ptcloud->width; ++u, ++iter_x, ++iter_y,
+    ++iter_z)
+    {
+      uint8_t depth = uint8_t(depth_row[u]);
+      // TODO(gawela): Presently arbitrary distance to crop point cloud (needed for sky removal).
+      if (DepthTraits<uint8_t>::toMeters(depth) < 100) {
+        // Fill in XYZ
+        *iter_x = (u - center_x) * depth * constant_x;
+        *iter_y = (v - center_y) * depth * constant_y;
+        *iter_z = DepthTraits<uint8_t>::toMeters(depth);
+      }
+    }
+  }
+
+  return true;
+}
+
+bool AirsimParser::getPoseAtEntry(uint64_t entry, uint64_t* timestamp,
+                                  airsim::Transformation* pose) {
+  // Read in both camera poses and spawn one in between.
+  std::string filename_cam0 = dataset_path_ + "/waypoints_neighbourhood_forward.csv";
+  std::string filename_cam1 = dataset_path_ + "/waypoints_neighbourhood_downward.csv";
+
+  std::ifstream import_file_cam0(filename_cam0, std::ios::in);
+  std::ifstream import_file_cam1(filename_cam1, std::ios::in);
+  if (!import_file_cam0 || !import_file_cam1) {
+    return false;
+  }
+  if (timestamps_ns_.size() <= entry) {
+    return false;
+  }
+  *timestamp = timestamps_ns_[entry];
+
+  std::vector<double> parsed_doubles_0, parsed_doubles_1;
+
+  // Parse camera 0.
+  std::string line_0, line_1;
+  int lineNumber = 0;
+  bool parsed_0 = false;
+  if (import_file_cam0.is_open()) {
+    while (getline(import_file_cam0, line_0)) {
+      if(lineNumber == entry) {
+        parsed_0 = parseVectorOfDoubles(line_0, &parsed_doubles_0);
+        break;
+      }
+      lineNumber++;
+    }
+    import_file_cam0.close();
+  }
+
+  // Parse camera 1.
+  lineNumber = 0;
+  bool parsed_1 = false;
+  if (import_file_cam1.is_open()) {
+    while (getline(import_file_cam1, line_1)) {
+      if(lineNumber == entry) {
+        parsed_1 = parseVectorOfDoubles(line_1, &parsed_doubles_1);
+        break;
+      }
+      lineNumber++;
+    }
+    import_file_cam1.close();
+  }
+
+  if (parsed_0 && parsed_1) {
+    // todo(gawela) Flipping necessary?
+    // Flip z,y.
+//    if (!flipYZ(&parsed_doubles_0) || !flipYZ(&parsed_doubles_1)) {
+//      return false;
+//    }
+
+    // todo(gawela): Interpolation maybe not the best idea here.
+    // Make position between two cameras.
+//    parsed_doubles_0[12] = (parsed_doubles_0[12] + parsed_doubles_1[12]) / 2;
+//    parsed_doubles_0[13] = (parsed_doubles_0[13] + parsed_doubles_1[13]) / 2;
+//    parsed_doubles_0[14] = (parsed_doubles_0[14] + parsed_doubles_1[14]) / 2;
+
+    if (convertVectorToPose(parsed_doubles_0, pose)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool AirsimParser::getCameraPoseAtEntry(uint64_t entry, uint64_t id,
+                                        airsim::Transformation* pose) {
+  // Read in both camera poses and spawn one in between.
+  std::string filename_cam;
+  if (id == 0) {
+    filename_cam = dataset_path_ + "/waypoints_neighbourhood_forward.csv";
+  } else if (id == 1) {
+    filename_cam = dataset_path_ + "/waypoints_neighbourhood_downward.csv";
+  } else {
+    return false;
+  }
+
+  std::ifstream import_file_cam(filename_cam, std::ios::in);
+  if (!import_file_cam) {
+    return false;
+  }
+  std::vector<double> parsed_doubles;
+  std::string line;
+  int lineNumber = 0;
+  bool parsed;
+  if (import_file_cam.is_open()) {
+    while (getline(import_file_cam, line)) {
+      if(lineNumber == entry) {
+        parsed = parseVectorOfDoubles(line, &parsed_doubles);
+      }
+      lineNumber++;
+    }
+    import_file_cam.close();
+  }
+
+  if (parsed) {
+    // todo(gawela) Flipping necessary?
+    // Flip z,y.
+//    if (!flipYZ(&parsed_doubles)) {
+//      return false;
+//    }
+    if (convertVectorToPose(parsed_doubles, pose)) {
+      if (id == 0) {
+        // Forward-facing camera on ground.
+        pose->getPosition() += Eigen::Vector3d(0, 0, 2.5);
+      } else if (id == 1) {
+        // Birds-eye down-facing camera.
+        pose->getPosition() += Eigen::Vector3d(0, 0, 50);
+        pose->getRotation() = airsim::Rotation(0.7071067811865476, 0, 0.7071067811865475, 0);
+      } else {
+        std::cout << "Requested invalid camera id: " << id <<"." << std::endl;
+        return false;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+
+//bool AirsimParser::flipYZ(std::vector<double>* parsed_doubles) {
+//  if (parsed_doubles->size() == 16) {
+//    std::iter_swap(parsed_doubles->begin() + 1,parsed_doubles->begin() + 2);
+//    std::iter_swap(parsed_doubles->begin() + 5,parsed_doubles->begin() + 6);
+//    std::iter_swap(parsed_doubles->begin() + 9,parsed_doubles->begin() + 10);
+//    std::iter_swap(parsed_doubles->begin() + 13,parsed_doubles->begin() + 14);
+//    return true;
+//  } else {
+//    return false;
+//  }
+//}
+
+uint64_t AirsimParser::getPoseTimestampAtEntry(uint64_t entry) {
+  if (timestamps_ns_.size() <= entry) {
+    return 0;
+  }
+  return timestamps_ns_[entry];
+}
+
+bool AirsimParser::getImageAtEntry(uint64_t entry, uint64_t cam_id,
+                                   uint64_t* timestamp, cv::Mat* image) {
+  // Get the timestamp for this first.
+  std::string filename = dataset_path_ + "/" + kRGBFolder + "/"
+      + cam_paths_[cam_id] + "/rgb_" + std::to_string(entry) + ".png";
+
+  *image = cv::imread(filename, CV_LOAD_IMAGE_UNCHANGED);
+
+  if (!image->data) {
+    std::cout << "Could not load image data.\n";
+    return false;
+  }
+  return true;
+}
+
+bool AirsimParser::getDepthImageAtEntry(uint64_t entry, uint64_t cam_id,
+                                        uint64_t* timestamp, cv::Mat* depth_image) {
+  // Get the timestamp for this first.
+
+  std::string filename = dataset_path_ + "/" + kDepthFolder + "/"
+      + cam_paths_[cam_id] + "/depth_" + std::to_string(entry) + ".png";
+
+  *depth_image = cv::imread(filename, CV_LOAD_IMAGE_ANYDEPTH);
+
+  if (!depth_image->data) {
+    std::cout << "Could not load depth image data.\n";
+    return false;
+  }
+  return true;
+}
+
+bool AirsimParser::getLabelImageAtEntry(uint64_t entry, uint64_t cam_id,
+                                        uint64_t* timestamp, cv::Mat* label_image) {
+  // Get the timestamp for this first.
+  *timestamp = timestamps_ns_[entry];
+
+  std::string filename = dataset_path_ + "/GT/COLORS/" + cam_paths_[cam_id]
+      + "/segmentation_color_" + std::to_string(entry) + ".png";
+
+  *label_image = cv::imread(filename, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
+
+  if (!label_image->data) {
+    std::cout << "Could not load labels image data.\n";
+    return false;
+  }
+  return true;
+}
+
+bool AirsimParser::getLabelsAtEntry(uint64_t entry, uint64_t cam_id,
+                                    uint64_t* timestamp, cv::Mat* label_image) {
+  // Get the timestamp for this first.
+  std::string filename = dataset_path_ + "/GT/LABELS/" + cam_paths_[cam_id]
+      + "/segmentation_label_" + std::to_string(entry) + ".png";
+
+  *label_image = cv::imread(filename, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
+
+  if (!label_image->data) {
+    std::cout << "Could not load image data.\n";
+    return false;
+  }
+  return true;
+}
+
+bool AirsimParser::convertVectorToPose(const std::vector<double>& pose_7,
+                                       airsim::Transformation* pose) {
+  if (pose_7.size() < 7) {
+    return false;
+  }
+  airsim::Transformation t_temp(
+      Eigen::Vector3d(pose_7[0], pose_7[1], pose_7[2]),
+      airsim::Rotation(pose_7[3], pose_7[4], pose_7[5], pose_7[6]));
+  *pose = t_temp;
+
+  return true;
+}
+
+// From the MATLAB raw data dev kit.
+double AirsimParser::latToScale(double lat) const {
+  return cos(lat * M_PI / 180.0);
+}
+
+// From the MATLAB raw data dev kit.
+void AirsimParser::latlonToMercator(double lat, double lon, double scale,
+                                    Eigen::Vector2d* mercator) const {
+  double er = 6378137;
+  mercator->x() = scale * lon * M_PI * er / 180.0;
+  mercator->y() = scale * er * log(tan((90.0 + lat) * M_PI / 360.0));
+}
+
+std::string AirsimParser::getFilenameForEntry(uint64_t entry) const {
+  char buffer[20];
+  sprintf(buffer, "%06d", entry);
+  return std::string(buffer);
+}
+
+airsim::Transformation AirsimParser::T_camN_vel(int cam_number) const {
+  return camera_calibrations_[cam_number].T_cam0_cam.inverse() * T_cam0_vel_;
+}
+
+airsim::Transformation AirsimParser::T_camN_imu(int cam_number) const {
+  return T_camN_vel(cam_number) * T_vel_imu_;
+}
+
+airsim::Transformation AirsimParser::T_cam0_vel() const { return T_cam0_vel_; }
+
+airsim::Transformation AirsimParser::T_vel_imu() const { return T_vel_imu_; }
+
+bool AirsimParser::interpolatePoseAtTimestamp(uint64_t timestamp,
+                                              airsim::Transformation* pose) {
+  // Look up the closest 2 timestamps to this.
+  size_t left_index = timestamps_ns_.size();
+  for (size_t i = 0; i < timestamps_ns_.size(); ++i) {
+    if (timestamps_ns_[i] > timestamp) {
+      if (i == 0) {
+        // Then we can't interpolate the pose since we're outside the range.
+        return false;
+      }
+      left_index = i - 1;
+      break;
+    }
+  }
+  if (left_index >= timestamps_ns_.size()) {
+    return false;
+  }
+  // Figure out what 't' should be, where t = 0 means 100% left boundary,
+  // and t = 1 means 100% right boundary.
+  double t = (timestamp - timestamps_ns_[left_index]) /
+      static_cast<double>(timestamps_ns_[left_index + 1] -
+                          timestamps_ns_[left_index]);
+
+  // Load the two transformations.
+  uint64_t timestamp_left, timestamp_right;
+  airsim::Transformation transform_left, transform_right;
+  if (!getPoseAtEntry(left_index, &timestamp_left, &transform_left) ||
+      !getPoseAtEntry(left_index + 1, &timestamp_right, &transform_right)) {
+    // For some reason couldn't load the poses.
+    return false;
+  }
+
+  // Interpolate between them.
+  *pose = airsim::interpolateTransformations(transform_left, transform_right, t);
+  return true;
+}
+
+size_t AirsimParser::getNumCameras() const {
+  return camera_calibrations_.size();
+}
+
+}  // namespace airsim

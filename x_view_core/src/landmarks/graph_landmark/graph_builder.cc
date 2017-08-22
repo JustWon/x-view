@@ -169,10 +169,10 @@ void GraphBuilder::addBlobsToGraph(const FrameData& frame_data,
       size_t key = KeyGenerator::getNextKey();
       VertexProperty vertex =
           GraphBuilder::blobToGraphVertex(key, blob);
+
       // Extract the depth associated to the vertex.
-      const unsigned short depth_cm =
-          depth_image.at<unsigned short>(vertex.center);
-      const real_t depth_m = depth_cm * 0.01;
+      const real_t depth_m = Locator::getDataset()->getDepth(vertex.center,
+                                                             depth_image);
 
       // If the projected center of the blob is too distant, set it as invalid.
       if (depth_m >= max_depth_m) {

@@ -97,6 +97,12 @@ cv::Mat SynthiaDataset::convertSemanticImage(
   return labelImage;
 }
 
+const x_view::real_t SynthiaDataset::getDepth(const cv::Point2i& pixel,
+                                              const cv::Mat& depth_image) const {
+  const unsigned short point_depth_cm = depth_image.at<unsigned short>(pixel);
+  return point_depth_cm * static_cast<real_t>(0.01);
+}
+
 #undef SYNTHIA_NUM_SEMANTIC_CLASSES
 
 }
