@@ -1,0 +1,16 @@
+======== TIME TABLE ========
+
+                    Timer | mean [s]  | std [s]   | num      
+=============================================================
+         ProcessFrameData | 0.627564  | 0.345075  | 200      
+SemanticLandmarkExtracti. | 0.089678  | 0.016696  | 200      
+           BlobExtraction | 0.088522  | 0.016638  | 200      
+            GraphBuilding | 0.000140  | 0.000059  | 200      
+            GraphMatching | 0.538143  | 0.343670  | 199      
+QueryRandomWalksGenerati. | 0.034338  | 0.021099  | 199      
+             GraphGrowing | 0.003109  | 0.001454  | 199      
+           VertexMatching | 0.000010  | 0.000005  | 199      
+            VertexMerging | 0.002102  | 0.001128  | 192      
+         DuplicateMerging | 0.000566  | 0.000636  | 199      
+            VertexLinking | 0.000188  | 0.000181  | 199      
+GlobalRandomWalksGenerat. | 0.491457  | 0.332948  | 199      

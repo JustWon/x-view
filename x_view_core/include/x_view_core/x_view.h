@@ -61,12 +61,12 @@ class XView {
    * global semantic graph.
    * \param query_graph Semantic graph which is localized.
    * \param pose_ids PosesIds of robot, assumed to be in consecutive order.
-   * \param position An estimation of the pose of the query graph passed as
+   * \param pose An estimation of the pose of the query graph passed as
    * argument.
    * \return Success in localization.
    */
   bool localizeGraph(const Graph& query_graph, std::vector<x_view::PoseId> pose_ids,
-                x_view::Vector3r* position);
+                SE3* pose);
 
   /**
    * \brief Relabels a set of randomly choosen vertices of the current global

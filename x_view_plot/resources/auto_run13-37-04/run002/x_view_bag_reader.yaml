@@ -1,0 +1,61 @@
+Dataset: {
+    name: "SYNTHIA",
+}
+
+Landmark: {
+    type : "GRAPH",
+    blob_filter_type: "ABSOLUTE",
+    min_blob_size: 500,
+    dilate_and_erode: true,
+    num_dilate: 4,
+    num_erode: 4,
+    extraction_type: "3D_SPACE",
+    max_euclidean_distance: 12.0,
+    blob_neighbor_distance: 10,
+    depth_clip: 50.0
+}
+
+Matcher: {
+    type: "GRAPH",
+    vertex_similarity_score: "WEIGHTED",
+    random_walk_sampling_type: "NON_RETURNING",
+    num_walks: 300,
+    walk_length: 3,
+    time_window: 10,
+    similarity_threshold: 0.3,
+    distance_threshold: 5.0,
+    merge_close_vertices: True,
+    merge_distance: 2.0,
+    link_close_vertices: True,
+    max_link_distance: 5.0,
+    outlier_rejection: False,
+    consistency_threshold: 5.0,
+    consistency_size: 2.0
+}
+
+Localizer: {
+    type: "OPTIMIZATION"
+}
+
+# Parameters read exclusively by XViewBagReader
+XViewBagReader: {
+  bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/Synthia_3_cams.bag",
+  back: {
+    semantics_image_topic: "/Stereo_Left/Omni_B/labels",
+    depth_image_topic: "/Stereo_Left/Omni_B/depth",
+    sensor_frame: "cam02"
+  },
+  right: {
+    semantics_image_topic: "/Stereo_Left/Omni_R/labels",
+    depth_image_topic: "/Stereo_Left/Omni_R/depth",
+    sensor_frame: "cam01"
+  },
+  front: {
+    semantics_image_topic: "/Stereo_Left/Omni_F/labels",
+    depth_image_topic: "/Stereo_Left/Omni_F/depth",
+    sensor_frame: "cam00"
+  },
+
+  transform_topic: "/tf",
+  world_frame: "world"
+}

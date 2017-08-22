@@ -1,0 +1,29 @@
+======== TIME TREE ========
+
+ProcessFrameData: mean: 0.626547s, std: 0.340384s, #: 200
+|  |
+|  +--[85.74%] GraphMatching: mean: 0.537180s, std: 0.340054s, #: 199
+|  |  |
+|  |  +--[0.10%] DuplicateMerging: mean: 0.000554s, std: 0.000614s, #: 199
+|  |  |
+|  |  +--[91.21%] GlobalRandomWalksGeneration: mean: 0.489959s, std: 0.329901s, #: 199
+|  |  |
+|  |  +--[0.59%] GraphGrowing: mean: 0.003149s, std: 0.001427s, #: 199
+|  |  |  |
+|  |  |  +--[0.31%] VertexMatching: mean: 0.000010s, std: 0.000005s, #: 199
+|  |  |  |
+|  |  |  +--[68.32%] VertexMerging: mean: 0.002151s, std: 0.001165s, #: 192
+|  |  |  
+|  |  |
+|  |  +--[6.48%] QueryRandomWalksGeneration: mean: 0.034824s, std: 0.020982s, #: 199
+|  |  |
+|  |  +--[0.03%] VertexLinking: mean: 0.000186s, std: 0.000173s, #: 199
+|  |  
+|  |
+|  +--[14.31%] SemanticLandmarkExtraction: mean: 0.089648s, std: 0.016038s, #: 200
+|  |  |
+|  |  +--[98.71%] BlobExtraction: mean: 0.088492s, std: 0.015990s, #: 200
+|  |  |
+|  |  +--[0.16%] GraphBuilding: mean: 0.000140s, std: 0.000060s, #: 200
+|  |  
+|  

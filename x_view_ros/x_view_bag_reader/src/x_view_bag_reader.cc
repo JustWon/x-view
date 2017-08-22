@@ -123,6 +123,8 @@ bool XViewBagReader::localizeGraph(const CAMERA camera_type,
 
   loadCurrentTopic(getTopics(camera_type));
 
+  const auto& timer = x_view::Locator::getTimer();
+
   // Local X-View object used to generate local graph which will be localized
   // against the global semantic graph built by x_view_.
   x_view::XView local_x_view;
@@ -135,6 +137,9 @@ bool XViewBagReader::localizeGraph(const CAMERA camera_type,
     pose_id.id = x_view::KeyGenerator::getNextKey();
     pose_ids.push_back(pose_id);
   }
+
+  timer->registerTimer("QueryGraphConstruction");
+  timer->start("QueryGraphConstruction");
 
   for(int i = start_frame; i < start_frame + steps; ++i) {
     parseParameters();
@@ -157,15 +162,15 @@ bool XViewBagReader::localizeGraph(const CAMERA camera_type,
         "true_position_" + x_view::PaddedInt(i - start_frame, 3).str());
   }
 
+  timer->stop("QueryGraphConstruction");
+
   const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
 
-  // FIXME localizeGraph should return a pose not a position!
-  bool localized = x_view_->localizeGraph(local_graph, pose_ids,
-                                          &(locations->estimated_pose
-                                              .getPosition()));
-  // FIXME: set the estimated rotation to be equal to the true rotation
-  // should be removed.
-  locations->estimated_pose.getRotation() = locations->true_pose.getRotation();
+  timer->registerTimer("GraphLocalization");
+  timer->start("GraphLocalization");
+  bool localized =x_view_->localizeGraph(local_graph, pose_ids,
+                                         &(locations->estimated_pose));
+  timer->stop("GraphLocalization");
 
   const x_view::Vector3r estimated_color(0.7, 0.15, 0.15);
   publishRobotPosition(locations->estimated_pose.getPosition()

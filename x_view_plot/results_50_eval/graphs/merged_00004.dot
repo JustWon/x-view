@@ -1,0 +1,42 @@
+// Num vertices: 11
+// Num edges: 27
+graph semantic_graph {
+	2 [ label="2: road (T: 4)", fillcolor="#ffff00", fontcolor="#0000ff", pos = "36.7961, 109.279!", style=filled ] // 3D pos: 36.7961 109.279 2.03078 // Observers: 0,12,24,36,48,
+	3 [ label="3: road (T: 4)", fillcolor="#ffff00", fontcolor="#0000ff", pos = "41.6663, 117.619!", style=filled ] // 3D pos: 41.6663 117.619 1.64904 // Observers: 0,12,24,36,48,
+	4 [ label="4: sidewalk (T: 4)", fillcolor="#0000ff", fontcolor="#ffff00", pos = "40.5764, 113.915!", style=filled ] // 3D pos: 40.5764 113.915 2.08299 // Observers: 0,12,24,36,48,
+	5 [ label="5: sidewalk (T: 4)", fillcolor="#0000ff", fontcolor="#ffff00", pos = "39.7301, 122.02!", style=filled ] // 3D pos: 39.7301  122.02 2.08752 // Observers: 0,12,24,36,48,
+	6 [ label="6: fence (T: 4)", fillcolor="#ff00ff", fontcolor="#00ff00", pos = "35.2888, 126.488!", style=filled ] // 3D pos: 35.2888 126.488 2.75901 // Observers: 0,12,24,36,48,
+	7 [ label="7: pole (T: 3)", fillcolor="#ffffff", fontcolor="#000000", pos = "40.7771, 121.359!", style=filled ] // 3D pos: 40.7771 121.359 2.32973 // Observers: 0,12,24,36,
+	8 [ label="8: car (T: 4)", fillcolor="#000000", fontcolor="#ffffff", pos = "36.3176, 120.909!", style=filled ] // 3D pos: 36.3176 120.909 2.31108 // Observers: 0,12,24,36,48,
+	9 [ label="9: car (T: 4)", fillcolor="#000000", fontcolor="#ffffff", pos = "29.7477, 120.81!", style=filled ] // 3D pos: 29.7477  120.81 2.33007 // Observers: 0,12,24,36,48,
+	10 [ label="10: car (T: 4)", fillcolor="#000000", fontcolor="#ffffff", pos = "22.5979, 120.637!", style=filled ] // 3D pos: 22.5979 120.637 2.38508 // Observers: 0,12,24,36,48,
+	11 [ label="11: car (T: 4)", fillcolor="#000000", fontcolor="#ffffff", pos = "6.30613, 119.093!", style=filled ] // 3D pos: 6.30613 119.093 2.39058 // Observers: 0,12,24,36,48,
+	12 [ label="12: building (T: 4)", fillcolor="#00ff00", fontcolor="#ff00ff", pos = "4.7421, 112.976!", style=filled ] // 3D pos:  4.7421 112.976 12.6003 // Observers: 12,12,24,36,48,
+	2--3 [ penwidth=5 ]
+	2--4 [ penwidth=5 ]
+	2--8 [ penwidth=5 ]
+	3--4 [ penwidth=5 ]
+	3--5 [ penwidth=5 ]
+	3--6 [ penwidth=5 ]
+	3--7 [ penwidth=4 ]
+	3--8 [ penwidth=5 ]
+	4--5 [ penwidth=5 ]
+	4--7 [ penwidth=4 ]
+	4--8 [ penwidth=5 ]
+	5--6 [ penwidth=5 ]
+	5--7 [ penwidth=4 ]
+	5--8 [ penwidth=5 ]
+	5--9 [ penwidth=5 ]
+	6--7 [ penwidth=4 ]
+	6--8 [ penwidth=5 ]
+	6--9 [ penwidth=5 ]
+	7--8 [ penwidth=4 ]
+	7--9 [ penwidth=4 ]
+	8--9 [ penwidth=5 ]
+	9--10 [ penwidth=5 ]
+	10--11 [ penwidth=5 ]
+	11--12 [ penwidth=4 ]
+	4--6 [ penwidth=1 ]
+	3--9 [ penwidth=2 ]
+	4--9 [ penwidth=1 ]
+}
