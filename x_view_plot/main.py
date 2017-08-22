@@ -34,7 +34,7 @@ current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 resources_dir = os.path.join(current_dir, "resources")
 
 # Path to folder used to collect generated data (local path).
-destination_dir = os.path.join(resources_dir, "auto_run{}/".format(time.strftime('%H-%M-%S')))
+destination_dir = os.path.join(resources_dir, "auto_run")
 
 # Path to folder used for generated graphs.
 output_folder = os.path.join(current_dir, "results")
@@ -44,21 +44,33 @@ def launchXView(runs):
     # Create a config file generator.
     x_view_config = XViewConfig(x_view_config_file=x_view_cfg_file)
 
-    # With custom arguments.
-    custom_arguments = {
-        "vertex_similarity_score": "WEIGHTED"
-    }
+    extraction_types = ["IMAGE", "3D_SPACE"]
+    similarity_scores = ["WEIGHTED", "SURFACE"]
+    sampling_types = ["UNIFORM", "AVOIDING", "NON_RETURNING", "WEIGHTED"]
 
-    # Write the config file to the x_view_config_file.
-    x_view_config.writeConfigFile(custom_arguments)
+    for extraction_type in extraction_types:
+        for similarity_score in similarity_scores:
+            for sampling_type in sampling_types:
+                custom_arguments = {
+                    "extraction_type": extraction_type,
+                    "vertex_similarity_score": similarity_score,
+                    "random_walk_sampling_type": sampling_type
+                }
 
-    # Create an XView executer.
-    x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir, x_view_evaluation_output_dir=x_view_produced_dir,
-                          x_view_graph_output_dir=x_view_produced_graph_dir, x_view_config_file=x_view_cfg_file,
-                          evaluation_storage_dir=destination_dir)
+                # Write the config file to the x_view_config_file.
+                x_view_config.writeConfigFile(custom_arguments)
 
-    # Run XView with the current arguments for num_runs times and store the evaluations.
-    x_view_run.run(num_runs=runs, store_eval=True)
+                # Create an XView executer.
+                folder_suffix = extraction_type + "_" + similarity_score + "_" + sampling_type
+                configuration_destination_dir = os.path.join(resources_dir, folder_suffix)
+                x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
+                                      x_view_evaluation_output_dir=x_view_produced_dir,
+                                      x_view_graph_output_dir=x_view_produced_graph_dir,
+                                      x_view_config_file=x_view_cfg_file,
+                                      evaluation_storage_dir=configuration_destination_dir)
+
+                # Run XView with the current arguments for num_runs times and store the evaluations.
+                x_view_run.run(num_runs=runs, store_eval=True)
 
 
 def plotLastResults():
@@ -108,6 +120,6 @@ def plotLastResults():
 
 
 if __name__ == '__main__':
-    # launchXView(runs = 1)
+    launchXView(runs=5)
 
-    plotLastResults()
+    # plotLastResults()
