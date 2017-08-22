@@ -83,6 +83,16 @@ class AbstractDataset {
   }
 
   /**
+   * \brief returns depth value of pixel, depending on the dataset as depth
+   * may be encoded differently depending on the dataset.
+   * \param pixel The pixel location.
+   * \param depth_image The corresponding depth image.
+   * \return Depth value of the pixel in [m].
+   */
+  virtual const x_view::real_t getDepth(const cv::Point2i& pixel,
+                                        const cv::Mat& depth_image) const;
+
+  /**
    * \brief Function called by ROS each time a new semantic image is available.
    * \details This function is called by the x_view worker before passing the
    * image to the x_view.
