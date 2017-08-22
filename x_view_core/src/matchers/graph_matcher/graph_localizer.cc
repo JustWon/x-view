@@ -105,7 +105,6 @@ bool GraphLocalizer::localize(
     for (size_t i = 0u; i < pose_pose_measurements_.size(); ++i) {
       SE3 T_a_b = pose_pose_measurements_[i].pose_a.pose.inverted()
           * pose_pose_measurements_[i].pose_b.pose;
-      gtsam::Point3 t_a_b(T_a_b.getPosition());
       // Add odometry as relative movement between poses.
       graph.push_back(
           relativeFactor (T_a_b, gtsam::Symbol('p', pose_pose_measurements_[i].pose_a.id), gtsam::Symbol(
