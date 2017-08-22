@@ -1,16 +1,14 @@
-#include <x_view_evaluation/directory.h>
+#include <x_view_evaluation/path.h>
 
 #include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
 
 #include <glog/logging.h>
 
-#include <regex>
-
 namespace x_view_evaluation {
 
-const std::string Directory::generateDirectoryPath(const ros::NodeHandle& nh,
-                                                   const std::string& dir_name) {
+const std::string Path::generateDirectoryPath(const ros::NodeHandle& nh,
+                                              const std::string& dir_name) {
 
   // The base directory is the default output directory.
   std::string base_evaluation_output_dir = x_view::getOutputDirectory();

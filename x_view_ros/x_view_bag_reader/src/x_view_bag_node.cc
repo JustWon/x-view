@@ -4,7 +4,7 @@
 #include <x_view_core/x_view_tools.h>
 #include <x_view_core/x_view_types.h>
 #include <x_view_evaluation/x_view_evaluation.h>
-#include <x_view_evaluation/directory.h>
+#include <x_view_evaluation/path.h>
 
 int main(int argc, char** argv) {
 
@@ -16,6 +16,9 @@ int main(int argc, char** argv) {
   LOG(INFO) << "\n=============== Running X-View Bag Reader ================\n";
 
   x_view_ros::XViewBagReader bag_reader(node_handle);
+
+  // Ignore or activate the pause functions.
+  x_view_ros::Pause::activate(false);
 
   // Set up the evaluation.
   x_view_evaluation::EvaluationParameters evaluation_parameters;
@@ -34,14 +37,12 @@ int main(int argc, char** argv) {
 
   // Store the evaluation to disk.
   const std::string evaluation_output_dir =
-      x_view_evaluation::Directory::generateDirectoryPath(node_handle,
+      x_view_evaluation::Path::generateDirectoryPath(node_handle,
       "Example_run");
 
   if(!evaluation.time.writeToFolder(evaluation_output_dir, "graph_building"))
     LOG(ERROR) << "Impossible to log time evaluation to "
                << evaluation_output_dir << ".";
-
-  return 0;
 
   // Extract the timer associated to the construction and store it locally.
   x_view::AbstractTimer* construction_timer;

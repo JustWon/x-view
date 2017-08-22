@@ -1,5 +1,5 @@
-#ifndef X_VIEW_EVALUATION_DIRECTORY_H
-#define X_VIEW_EVALUATION_DIRECTORY_H
+#ifndef X_VIEW_EVALUATION_PATH_H
+#define X_VIEW_EVALUATION_PATH_H
 
 #include <ros/ros.h>
 
@@ -7,7 +7,7 @@
 
 namespace x_view_evaluation {
 
-class Directory {
+class Path {
 
  public:
 

@@ -4,11 +4,19 @@
 
 namespace x_view_ros {
 
+bool Pause::ACTIVE = true;
+
 Pause::Pause(const char c, const std::chrono::milliseconds& wait)
     : paused_(false),
       is_running_(true),
-      wait_(wait),
-      key_listener(&Pause::keyListener, this, c) {
+      wait_(wait) {
+  if (ACTIVE) {
+    key_listener = std::thread(&Pause::keyListener, this, c);
+  }
+}
+
+void Pause::activate(const bool active) {
+  ACTIVE = active;
 }
 
 bool Pause::isPaused() const {
@@ -17,18 +25,20 @@ bool Pause::isPaused() const {
   return paused_;
 }
 
-void Pause::terminate()  {
-  std::cout << "Press any key to continue." << std::endl;
-  is_running_ = false;
-  key_listener.join();
+void Pause::terminate() {
+  if (ACTIVE) {
+    std::cout << "Press any key to continue." << std::endl;
+    is_running_ = false;
+    key_listener.join();
+  }
 }
 
 void Pause::keyListener(const char c) {
   disableEnter();
   char input;
-  while(is_running_) {
+  while (is_running_) {
     std::cin >> std::noskipws >> input;
-    if(input == c) {
+    if (input == c) {
       paused_ = !paused_;
     }
   }

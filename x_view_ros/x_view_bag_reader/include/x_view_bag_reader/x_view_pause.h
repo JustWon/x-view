@@ -22,6 +22,28 @@ class Pause {
   Pause(const char c = ' ',
         const std::chrono::milliseconds& wait = std::chrono::milliseconds(200));
 
+  /**
+   * \brief Activates or deactivates the Pause behaviour.
+   * \param active Boolean flag, if set to true, the Pause behaviour of new
+   * Pause instances is valid, otherwise the instances do nothing.
+   * \note This function can be called to deactivate/activate the Pause
+   * instances globally without needing to remove them from the code.
+   * \code{cpp}
+   * Pause::activate(false);
+   * Pause firstPause;
+   * for(int i = 0; ..)
+   * { // Press space bar won't affect the code, as the pause is disabled. }
+   * firstPause.terminate()
+   *
+   * Pause::activate(true);
+   * Pause secondPause;
+   * for(int i = 0; ..)
+   * { // Press space bar will affect the code, as the pause is enabled. }
+   * secondPause.terminate()
+   * \endcode
+   */
+  static void activate(const bool active = true);
+
   bool isPaused() const;
   void terminate();
 
@@ -34,6 +56,10 @@ class Pause {
 
   void keyListener(const char c);
   void disableEnter() const;
+
+  /// \brief Flag which can be disabled to avoid the pause to work.
+  static bool ACTIVE;
+
 };
 }
 
