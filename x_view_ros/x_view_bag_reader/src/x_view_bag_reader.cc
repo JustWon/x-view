@@ -1,5 +1,6 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
 #include <x_view_bag_reader/x_view_pause.h>
+#include <x_view_core/datasets/airsim_dataset.h>
 #include <x_view_core/datasets/synthia_dataset.h>
 #include <x_view_core/timer/timer.h>
 #include <x_view_core/x_view_locator.h>
@@ -33,9 +34,14 @@ XViewBagReader::XViewBagReader(ros::NodeHandle& n)
     std::unique_ptr<x_view::AbstractDataset> dataset(
         new x_view::SynthiaDataset());
     x_view::Locator::registerDataset(std::move(dataset));
-  } else
+  } else if (dataset_name == "AIRSIM") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::AirsimDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else {
     CHECK(false) << "Dataset '" << dataset_name
-                 << "' is not supported" << std::endl;
+        << "' is not supported" << std::endl;
+  }
 
   // Create x_view only now because it has access to the parser parameters.
   x_view_ = std::unique_ptr<x_view::XView>(new x_view::XView());
@@ -187,9 +193,14 @@ void XViewBagReader::parseParameters() const {
     std::unique_ptr<x_view::AbstractDataset> dataset(
         new x_view::SynthiaDataset());
     x_view::Locator::registerDataset(std::move(dataset));
-  } else
+  } else if (dataset_name == "AIRSIM") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::AirsimDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else {
     CHECK(false) << "Dataset '" << dataset_name
-                 << "' is not supported" << std::endl;
+        << "' is not supported" << std::endl;
+  }
 }
 
 void XViewBagReader::getXViewBagReaderParameters() {

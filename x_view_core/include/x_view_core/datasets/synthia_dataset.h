@@ -19,8 +19,11 @@ class SynthiaDataset : public AbstractDataset {
     return std::string("Synthia Dataset");
   }
 
-  virtual cv::Mat convertSemanticImage(const sensor_msgs::ImageConstPtr&
-  msg) const override;
+  virtual cv::Mat convertSemanticImage(
+      const sensor_msgs::ImageConstPtr& msg) const override;
+
+  virtual const x_view::real_t getDepth(const cv::Point2i& pixel,
+                                        const cv::Mat& depth_image) const override;
 
 };
 
