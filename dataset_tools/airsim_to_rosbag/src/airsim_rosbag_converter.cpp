@@ -56,6 +56,7 @@ AirsimBagConverter::AirsimBagConverter(const std::string& dataset_path,
 
 void AirsimBagConverter::convertAll() {
   uint64_t entry = 0;
+  while (convertEntry(entry)) {
     entry = entry + 5;
   }
   std::cout << "Converted " << entry << " entries into a rosbag.\n";
