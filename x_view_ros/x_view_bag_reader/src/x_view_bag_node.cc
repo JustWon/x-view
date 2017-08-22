@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
   x_view_evaluation::Evaluation evaluation(evaluation_parameters);
 
   const uint64_t start_frame = 0;
-  const uint64_t end_frame = 200;
+  const uint64_t end_frame = 40;
 
   // Build the semantic graph associated to the path specified in the
   // parameters passed to the iteration function.

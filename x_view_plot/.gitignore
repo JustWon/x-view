@@ -1,2 +1,4 @@
-results/
-ressources/
+.idea/
+resources/*
+results_50_eval/
+results/*
