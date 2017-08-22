@@ -43,3 +43,6 @@ ENV/
 # local folders
 fig/
 data/
+
+# smantic segmentation system-specific settings
+semantic-segmentation/xview/settings.py
