@@ -58,4 +58,18 @@ XViewBagReader: {{
 
   transform_topic: "/tf",
   world_frame: "world"
+
+  start_frame: {start_frame},
+  end_frame: {end_frame},
+
+  pause_active: False,
+
+  timer_type: "TIMER",
+  relabeling_percentage: {relabeling_percentage},
+
+  graph_construction_camera: "{graph_construction_camera}",
+  localization_camera: "{localization_camera}",
+
+  local_graph_steps: {local_graph_steps},
+  run_name: "{run_name}"
 }}

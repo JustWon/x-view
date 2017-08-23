@@ -35,7 +35,15 @@ class XViewConfig:
             "outlier_rejection": False,
             "consistency_threshold": 5.0,
             "consistency_size": 2.0,
-            "localizer_type": "OPTIMIZATION"
+            "localizer_type": "OPTIMIZATION",
+            "start_frame": 0,
+            "end_frame": 200,
+            "relabeling_percentage": 0.0,
+            "graph_construction_camera": "FRONT",
+            "localization_camera": "FRONT",
+            "local_graph_steps": 5,
+            "run_name": "Example_run"
+
         }
 
     def _loadDefaultConfigFile(self):

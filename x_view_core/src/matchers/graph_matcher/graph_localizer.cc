@@ -235,8 +235,9 @@ real_t GraphLocalizer::localize(
     (*transformation) = robot_position;
 
     // Compute the residual of the optimization (unnormalized).
-    const real_t residual = graph.error(results);
-    return residual;
+    const real_t unnormalized_residual = graph.error(results);
+    const uint64_t num_factors = graph.nrFactors();
+    return unnormalized_residual / num_factors;
 
   } else if (localizer_type == "ESTIMATION") {
 
