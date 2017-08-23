@@ -60,16 +60,16 @@ XViewBagReader: {
   world_frame: "world",
 
   start_frame: 0,
-  end_frame: 100,
+  end_frame: 10,
 
   pause_active: False,
 
   timer_type: "TIMER",
   relabeling_percentage: 0.0,
 
-  graph_construction_camera: "FRONT",
-  localization_camera: "FRONT",
+  graph_construction_camera: "BACK",
+  localization_camera: "BACK",
 
-  local_graph_steps: 5,
-  run_name: "AutoRun-15-39-54"
+  local_graph_steps: 10,
+  run_name: "AutoRun-15-54-29"
 }

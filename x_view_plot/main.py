@@ -51,45 +51,51 @@ def launchXView(runs):
     similarity_scores = ["WEIGHTED"]  # ["WEIGHTED", "SURFACE"]
     sampling_types = ["UNIFORM", "WEIGHTED"]  # ["UNIFORM", "AVOIDING", "NON_RETURNING", "WEIGHTED"]
     localization_steps = [1, 5, 10]
+    construction_cameras = ["FRONT", "BACK"]
+    localization_cameras = ["FRONT", "BACK"]
 
     for extraction_type in extraction_types:
         for similarity_score in similarity_scores:
             for sampling_type in sampling_types:
                 for localization_step in localization_steps:
-                    custom_arguments = {
-                        "run_name": run_name,
-                        "extraction_type": extraction_type,
-                        "vertex_similarity_score": similarity_score,
-                        "random_walk_sampling_type": sampling_type,
-                        "local_graph_steps": localization_step,
-                        "end_frame": 100
-                    }
+                    for construction_camera in construction_cameras:
+                        for localization_camera in localization_cameras:
+                            custom_arguments = {
+                                "run_name": run_name,
+                                "extraction_type": extraction_type,
+                                "vertex_similarity_score": similarity_score,
+                                "random_walk_sampling_type": sampling_type,
+                                "local_graph_steps": localization_step,
+                                "graph_construction_camera": construction_camera,
+                                "localization_camera": localization_camera,
+                                "end_frame": 10
+                            }
 
-                    # Write the config file to the x_view_config_file.
-                    x_view_config.writeConfigFile(custom_arguments)
+                            # Write the config file to the x_view_config_file.
+                            x_view_config.writeConfigFile(custom_arguments)
 
-                    # Create an XView executer.
-                    folder_suffix = ""
-                    for key in custom_arguments:
-                        if key is not "run_name":
-                            folder_suffix += "_" + str(custom_arguments[key])
-                    run_folder_name = run_name + folder_suffix
-                    run_folder_name = os.path.join(resources_dir, run_folder_name)
-                    x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
-                                          x_view_evaluation_output_dir=x_view_evaluation_dir,
-                                          x_view_graph_output_dir=x_view_produced_graph_dir,
-                                          x_view_config_file=x_view_cfg_file,
-                                          evaluation_storage_dir=run_folder_name)
+                            # Create an XView executer.
+                            folder_suffix = ""
+                            for key in custom_arguments:
+                                if key is not "run_name":
+                                    folder_suffix += "_" + str(custom_arguments[key])
+                            run_folder_name = run_name + folder_suffix
+                            run_folder_name = os.path.join(resources_dir, run_folder_name)
+                            x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
+                                                  x_view_evaluation_output_dir=x_view_evaluation_dir,
+                                                  x_view_graph_output_dir=x_view_produced_graph_dir,
+                                                  x_view_config_file=x_view_cfg_file,
+                                                  evaluation_storage_dir=run_folder_name)
 
-                    # Run XView with the current arguments for num_runs times and store the evaluations.
-                    x_view_run.run(num_runs=runs, store_eval=True)
+                            # Run XView with the current arguments for num_runs times and store the evaluations.
+                            x_view_run.run(num_runs=runs, store_eval=True)
 
 
-def plotLastResults():
+def plotLastTimings():
     lastDirectory = getLastResultsDir(resources_dir)
 
     num_vertices = getVertices(base_path=lastDirectory)
-    num_edges = getEdges(base_path=lastDirectory)
+    # num_edges = getEdges(base_path=lastDirectory)
 
     time_names = ["DuplicateMerging",
                   "GraphGrowing",
@@ -132,8 +138,8 @@ def plotPR():
     num_dirs = len(os.listdir(resources_dir))
     current_palette = sns.color_palette("colorblind", num_dirs)
     sns.set_palette(current_palette)
+
     for d in sorted(os.listdir(resources_dir)):
-        print(d)
         full_config_dir = os.path.join(resources_dir, d)
         run_directory = getLastResultsDir(full_config_dir)
         eval_directory = os.path.join(run_directory, "eval")
