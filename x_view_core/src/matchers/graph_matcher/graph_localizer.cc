@@ -51,7 +51,7 @@ gtsam::ExpressionFactor<gtsam::Point3> GraphLocalizer::relativePointFactor(
       > (noise_model, translation, t_a_b);
 }
 
-bool GraphLocalizer::localize(
+real_t GraphLocalizer::localize(
     const GraphMatcher::GraphMatchingResult& matching_result,
     const Graph& query_semantic_graph, const Graph& database_semantic_graph,
     SE3* transformation) {
@@ -71,7 +71,8 @@ bool GraphLocalizer::localize(
           "observations! Given observations: "
           << pose_pose_measurements_.size() + pose_vertex_measurements_.size()
           + vertex_vertex_measurements_.size() << ".";
-      return false;
+      // Localization failed, return maximal residual.
+      return std::numeric_limits<real_t>::max();
     }
 
     if (pose_vertex_measurements_.size() < 7) {
@@ -232,7 +233,10 @@ bool GraphLocalizer::localize(
     }
 
     (*transformation) = robot_position;
-    return true;
+
+    // Compute the residual of the optimization (unnormalized).
+    const real_t residual = graph.error(results);
+    return residual;
 
   } else if (localizer_type == "ESTIMATION") {
 
@@ -246,7 +250,7 @@ bool GraphLocalizer::localize(
 
     if (num_valids == 0) {
       LOG(WARNING) << "Unable to estimate transformation, only invalid matches.";
-      return false;
+      return std::numeric_limits<real_t>::max();
     }
 
     // todo(gawela): Should we generally use PCL types for points /
@@ -292,12 +296,13 @@ bool GraphLocalizer::localize(
         transform.block(0, 0, 3, 3).cast<double>());
     (*transformation) = SE3(transform.block(0, 3, 3, 1).cast<double>(),
                             proper_rotation);
-    return true;
+    // FIXME what is the residual here?
+    return static_cast<real_t>(0);
   } else {
     CHECK(false) << "Unrecognized localizer type <" << localizer_type << ">"
         << std::endl;
   }
-  return false;
+  return std::numeric_limits<real_t>::max();
 }
 
 void GraphLocalizer::addPosePoseMeasurement(PoseId pose_id_a, PoseId pose_id_b) {

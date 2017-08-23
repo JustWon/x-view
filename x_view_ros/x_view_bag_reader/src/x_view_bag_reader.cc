@@ -115,9 +115,9 @@ void XViewBagReader::relabelGlobalGraphVertices(const x_view::real_t percentage,
   x_view_->relabelGlobalGraphVertices(percentage, seed);
 }
 
-bool XViewBagReader::localizeGraph(const CAMERA camera_type,
-                                   const int start_frame, const int steps,
-                                   x_view::LocalizationPair* locations) {
+x_view::real_t XViewBagReader::localizeGraph(
+    const CAMERA camera_type, const int start_frame, const int steps,
+    x_view::LocalizationPair* locations) {
 
   CHECK_NOTNULL(locations);
 
@@ -168,7 +168,7 @@ bool XViewBagReader::localizeGraph(const CAMERA camera_type,
 
   timer->registerTimer("GraphLocalization");
   timer->start("GraphLocalization");
-  bool localized =x_view_->localizeGraph(local_graph, pose_ids,
+  x_view::real_t error  = x_view_->localizeGraph(local_graph, pose_ids,
                                          &(locations->estimated_pose));
   timer->stop("GraphLocalization");
 
@@ -180,7 +180,7 @@ bool XViewBagReader::localizeGraph(const CAMERA camera_type,
 
   bag_.close();
 
-  return localized;
+  return error;
 }
 
 void XViewBagReader::parseParameters() const {

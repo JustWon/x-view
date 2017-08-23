@@ -61,9 +61,9 @@ class GraphLocalizer {
    * \param database_semantic_graph Const reference to the (global) database
    * semantic graph
    * \param transformation Return value of the transformation.
-   * \return Indicator if localization succeeded.
+   * \return Residual from optimization.
    */
-  bool localize(const GraphMatcher::GraphMatchingResult& matching_result,
+  real_t localize(const GraphMatcher::GraphMatchingResult& matching_result,
                 const Graph& query_semantic_graph,
                 const Graph& database_semantic_graph, SE3* transformation);
 

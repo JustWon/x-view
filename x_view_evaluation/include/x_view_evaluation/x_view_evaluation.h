@@ -146,12 +146,15 @@ class Evaluation {
      * "
      * x_gt y_gt z_gt r11_gt r12_gt r13_gt ... r33_gt
      * x_es y_es z_es r11_es r12_es r13_es ... r33_es
+     * localization_error
      * ...
      * x_gt y_gt z_gt r11_gt r12_gt r13_gt ... r33_gt
      * x_es y_es z_es r11_es r12_es r13_es ... r33_es
+     * localization_error
      * "
-     * where each pair of consecutive lines corresponds to the ground truth
-     * pose followed by the estimated pose.
+     * where each triplet of consecutive lines corresponds to the ground truth
+     * pose followed by the estimated pose, followed by the localization error.
+     * pose followed by the estimated pose, followed by the localization error.
      */
     bool writeToFolder(const std::string& folder_name,
                        const std::string& suffix = "") const;
@@ -162,9 +165,10 @@ class Evaluation {
      * statistics simultaneously without mixing the samples.
      * \param localization_pair Localization pair resulting from a
      * localization query to X-View.
+     * \param error Error associated to the localization estimate.
      */
-    void addLocalization(const x_view::LocalizationPair& localization_pair);
-
+    void addLocalization(const x_view::LocalizationPair& localization_pair,
+                         const x_view::real_t error);
 
     /**
      * \brief Computes the mean squared distance of the samples added to the
@@ -223,7 +227,18 @@ class Evaluation {
     LocalizationEvaluation(const EvaluationParameters* params)
         : params_(params) {}
 
-    std::vector<x_view::LocalizationPair> localizations_vector_;
+    struct LocalizationSample {
+      LocalizationSample() {}
+      LocalizationSample(
+          const x_view::LocalizationPair& localization_pair,
+          const x_view::real_t error)
+          : localization_pair(localization_pair),
+            error(error) {
+      }
+      x_view::LocalizationPair localization_pair;
+      x_view::real_t error;
+    };
+    std::vector<LocalizationSample> localizations_vector_;
 
     const EvaluationParameters* params_;
   };

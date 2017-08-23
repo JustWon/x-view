@@ -71,11 +71,11 @@ class XViewBagReader {
    * construction of the local graph which must be localized.
    * \param locations A pair of 3D coordinates representing the estimated and
    * true robot location respectively.
-   * \return A boolean which is true if the localization was effective, false
-   * otherwise.
+   * \return Error in localization.
    */
-  bool localizeGraph(const CAMERA camera_type, const int start_frame,
-                     const int steps, x_view::LocalizationPair* locations);
+  x_view::real_t localizeGraph(const CAMERA camera_type, const int start_frame,
+                               const int steps,
+                               x_view::LocalizationPair* locations);
 
  private:
 

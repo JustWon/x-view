@@ -195,7 +195,7 @@ bool Evaluation::LocalizationEvaluation::writeToFolder(
     return false;
   }
 
-  // Converts a pose to a stirng of the form  "x y z r11 r12 r13 r21 .... r33"
+  // Converts a pose to a string of the form  "x y z r11 r12 r13 r21 .... r33"
   auto poseToString = [](const x_view::SE3& pose) -> std::string {
     const auto position = pose.getPosition();
     const auto rotation = pose.getRotationMatrix();
@@ -207,28 +207,33 @@ bool Evaluation::LocalizationEvaluation::writeToFolder(
     return ss.str();
   };
 
-  for(const x_view::LocalizationPair& localization_pair : localizations_vector_) {
-    const x_view::SE3& ground_truth = localization_pair.true_pose;
-    const x_view::SE3& estimation = localization_pair.estimated_pose;
+  for(const LocalizationSample& p : localizations_vector_) {
+    const x_view::LocalizationPair& l = p.localization_pair;
+    const x_view::SE3& ground_truth = l.true_pose;
+    const x_view::SE3& estimation = l.estimated_pose;
+    const x_view::real_t error = p.error;
 
     out_all_localizations << poseToString(ground_truth) << "\n"
-                          << poseToString(estimation) << "\n";
+                          << poseToString(estimation) << "\n"
+                          << error << "\n";
   }
 
   return true;
 }
 
 void Evaluation::LocalizationEvaluation::addLocalization(
-    const x_view::LocalizationPair& localization_pair) {
-  localizations_vector_.push_back(localization_pair);
+    const x_view::LocalizationPair& localization_pair,
+    const x_view::real_t error) {
+  localizations_vector_.push_back(LocalizationSample(localization_pair, error));
 }
 
 const x_view::real_t Evaluation::LocalizationEvaluation::MSD() const {
 
   x_view::real_t mean_squared_distance = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : localizations_vector_) {
-    mean_squared_distance += x_view::distSquared(p.estimated_pose.getPosition(),
-                                                 p.true_pose.getPosition());
+  for(const LocalizationSample& p : localizations_vector_) {
+    const x_view::LocalizationPair& l = p.localization_pair;
+    mean_squared_distance += x_view::distSquared(l.estimated_pose.getPosition(),
+                                                 l.true_pose.getPosition());
   }
 
   const uint64_t num_obs = localizations_vector_.size();
@@ -238,9 +243,10 @@ const x_view::real_t Evaluation::LocalizationEvaluation::MSD() const {
 const x_view::real_t Evaluation::LocalizationEvaluation::MD() const {
 
   x_view::real_t mean_distance = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : localizations_vector_) {
-    mean_distance += x_view::dist(p.estimated_pose.getPosition(),
-                                  p.true_pose.getPosition());
+  for(const LocalizationSample& p : localizations_vector_) {
+    const x_view::LocalizationPair& l = p.localization_pair;
+    mean_distance += x_view::dist(l.estimated_pose.getPosition(),
+                                  l.true_pose.getPosition());
   }
 
   const uint64_t num_obs = localizations_vector_.size();
@@ -250,8 +256,9 @@ const x_view::real_t Evaluation::LocalizationEvaluation::MD() const {
 const x_view::real_t Evaluation::LocalizationEvaluation::MSA() const {
 
   x_view::real_t mean_squared_angle = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : localizations_vector_) {
-    const x_view::real_t angle = x_view::angle(p.estimated_pose, p.true_pose);
+  for(const LocalizationSample& p : localizations_vector_) {
+    const x_view::LocalizationPair& l = p.localization_pair;
+    const x_view::real_t angle = x_view::angle(l.estimated_pose, l.true_pose);
     mean_squared_angle += angle * angle;
   }
 
@@ -264,10 +271,11 @@ const x_view::real_t Evaluation::LocalizationEvaluation::
 standardDeviationMeanSquaredDistance() const {
   const x_view::real_t msd = MSD();
   x_view::real_t s = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : localizations_vector_) {
+  for(const LocalizationSample& p : localizations_vector_) {
+    const x_view::LocalizationPair& l = p.localization_pair;
     const x_view::real_t squared_distance =
-        x_view::distSquared(p.estimated_pose.getPosition(),
-                            p.true_pose.getPosition());
+        x_view::distSquared(l.estimated_pose.getPosition(),
+                            l.true_pose.getPosition());
     s += (squared_distance - msd) * (squared_distance - msd);
   }
   const uint64_t num_obs = localizations_vector_.size();
@@ -278,9 +286,10 @@ const x_view::real_t Evaluation::LocalizationEvaluation::
 standardDeviationMeanDistance() const {
   const x_view::real_t md = MD();
   x_view::real_t s = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : localizations_vector_) {
-    const x_view::real_t distance = x_view::dist(p.estimated_pose.getPosition(),
-                                                 p.true_pose.getPosition());
+  for(const LocalizationSample& p : localizations_vector_) {
+    const x_view::LocalizationPair& l = p.localization_pair;
+    const x_view::real_t distance = x_view::dist(l.estimated_pose.getPosition(),
+                                                 l.true_pose.getPosition());
     s += (distance - md) * (distance - md);
   }
   const uint64_t num_obs = localizations_vector_.size();
@@ -291,8 +300,9 @@ const x_view::real_t Evaluation::LocalizationEvaluation::
 standardDeviationMeanSquaredAngles() const {
   const x_view::real_t msa = MSA();
   x_view::real_t s = static_cast<x_view::real_t>(0.0);
-  for(const x_view::LocalizationPair& p : localizations_vector_) {
-    const x_view::real_t angle = x_view::angle(p.estimated_pose, p.true_pose);
+  for(const LocalizationSample& p : localizations_vector_) {
+    const x_view::LocalizationPair& l = p.localization_pair;
+    const x_view::real_t angle = x_view::angle(l.estimated_pose, l.true_pose);
     const x_view::real_t squared_angle = angle * angle;
     s += (squared_angle - msa) * (squared_angle - msa);
   }

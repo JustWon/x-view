@@ -103,7 +103,7 @@ void XView::writeGraphToFile() const {
   writeToFile(graph_matcher->getGlobalGraph(), filename);
 }
 
-bool XView::localizeGraph(const Graph& query_graph,
+real_t XView::localizeGraph(const Graph& query_graph,
                           std::vector<x_view::PoseId> pose_ids,
                           SE3* pose) {
 
@@ -193,10 +193,10 @@ bool XView::localizeGraph(const Graph& query_graph,
     }
   }
 
-  bool localized = graph_localizer.localize(matching_result, query_graph,
-                                            global_graph, pose);
+  const real_t error = graph_localizer.localize(matching_result, query_graph,
+                                                global_graph, pose);
 
-  return localized;
+  return error;
 }
 
 void XView::relabelGlobalGraphVertices(const x_view::real_t percentage,
