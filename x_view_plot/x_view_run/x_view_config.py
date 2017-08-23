@@ -40,7 +40,7 @@ class XViewConfig:
 
     def _loadDefaultConfigFile(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        default_config_path = os.path.join(os.path.join(current_dir, "resources"), "default_config_skeleton.cfg")
+        default_config_path = os.path.join(os.path.join(current_dir, "resources"), "default_config_skeleton.txt")
         with open(default_config_path, 'r') as file:
             file_content = file.read()
             return file_content

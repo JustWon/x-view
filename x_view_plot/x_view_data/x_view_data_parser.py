@@ -120,6 +120,7 @@ def getEdges(base_path):
 def getLocalizations(localization_file_name):
     ground_truths = []
     estimations = []
+    errors = []
 
     if not os.path.exists(localization_file_name):
         print("File {} does not exist.".format(localization_file_name))
@@ -136,16 +137,18 @@ def getLocalizations(localization_file_name):
         while True:
             ground_truth_string = file.readline()
             estimation_string = file.readline()
-            if not estimation_string:
+            error_string = file.readline()
+            if not error_string:
                 break  # EOF
 
             ground_truth_position, ground_truth_rotation = stringToPose(ground_truth_string)
             estimation_position, estimation_rotation = stringToPose(estimation_string)
             ground_truths.append({"position": ground_truth_position, "rotation": ground_truth_rotation})
             estimations.append({"position": estimation_position, "rotation": estimation_rotation})
+            errors.append(float(error_string))
 
     if len(ground_truths) == 0:
         print("Could not extract localizations from file {}".format(localization_file_name))
         return []
 
-    return ground_truths, estimations
+    return ground_truths, estimations, errors
