@@ -60,17 +60,17 @@ def launchXView(runs):
                 # Write the config file to the x_view_config_file.
                 x_view_config.writeConfigFile(custom_arguments)
 
-    # Create an XView executer.
-    folder_suffix = extraction_type + "_" + similarity_score + "_" + sampling_type
-    configuration_destination_dir = os.path.join(resources_dir, folder_suffix)
-    x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
-                          x_view_evaluation_output_dir=x_view_produced_dir,
-                          x_view_graph_output_dir=x_view_produced_graph_dir,
-                          x_view_config_file=x_view_cfg_file,
-                          evaluation_storage_dir=configuration_destination_dir)
+                # Create an XView executer.
+                folder_suffix = extraction_type + "_" + similarity_score + "_" + sampling_type
+                configuration_destination_dir = os.path.join(resources_dir, folder_suffix)
+                x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
+                                      x_view_evaluation_output_dir=x_view_produced_dir,
+                                      x_view_graph_output_dir=x_view_produced_graph_dir,
+                                      x_view_config_file=x_view_cfg_file,
+                                      evaluation_storage_dir=configuration_destination_dir)
 
-    # Run XView with the current arguments for num_runs times and store the evaluations.
-    x_view_run.run(num_runs=runs, store_eval=True)
+                # Run XView with the current arguments for num_runs times and store the evaluations.
+                x_view_run.run(num_runs=runs, store_eval=True)
 
 
 def plotLastResults():
@@ -116,17 +116,27 @@ def plotLastResults():
         f.savefig(os.path.join(output_folder, "num_vertices_vs_{}.pdf".format(time_name)), bbox_inches='tight')
 
 def plotPR():
-    lastDirectory = getLastResultsDir(resources_dir)
-    run_directory = getLastResultsDir(lastDirectory)
-    eval_directory = os.path.join(run_directory, "eval")
-    localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
 
-    x_view_pr = XViewPR(filename=localization_file_name, true_threshold=1.5)
-    PR = x_view_pr.computePR()
+    num_dirs = len(os.listdir(resources_dir))
+    current_palette = sns.color_palette("colorblind", num_dirs)
+    sns.set_palette(current_palette)
+    for d in sorted(os.listdir(resources_dir)):
+        print(d)
+        full_config_dir = os.path.join(resources_dir, d)
+        run_directory = getLastResultsDir(full_config_dir)
+        eval_directory = os.path.join(run_directory, "eval")
+        localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
 
-    plt.plot(PR[:, 1], PR[:, 0])
+        x_view_pr = XViewPR(filename=localization_file_name, true_threshold=5)
+        PR = x_view_pr.computePR()
+
+        plt.plot(PR[:, 1], PR[:, 0], label=d)
+        print("Done")
+
+
     plt.xlabel("Recall")
     plt.ylabel("Precision")
+    plt.legend()
     plt.show()
 
 

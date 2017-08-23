@@ -17,8 +17,8 @@ Landmark: {
 
 Matcher: {
     type: "GRAPH",
-    vertex_similarity_score: "SURFACE",
-    random_walk_sampling_type: "WEIGHTED",
+    vertex_similarity_score: "WEIGHTED",
+    random_walk_sampling_type: "NON_RETURNING",
     num_walks: 300,
     walk_length: 3,
     time_window: 10,
@@ -28,7 +28,7 @@ Matcher: {
     merge_distance: 2.0,
     link_close_vertices: True,
     max_link_distance: 5.0,
-    outlier_rejection: False,
+    outlier_rejection: True,
     consistency_threshold: 5.0,
     consistency_size: 2.0
 }

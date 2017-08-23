@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
   x_view_evaluation::Evaluation evaluation(evaluation_parameters);
 
   const uint64_t start_frame = 0;
-  const uint64_t end_frame = 35;
+  const uint64_t end_frame = 80;
 
   // Build the semantic graph associated to the path specified in the
   // parameters passed to the iteration function.
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     if(!pause.isPaused()) {
       x_view::LocalizationPair locations;
       x_view::real_t error =
-          bag_reader.localizeGraph(x_view_ros::CAMERA::FRONT, i,
+          bag_reader.localizeGraph(x_view_ros::CAMERA::BACK, i,
                                    local_graph_steps, &locations);
       std::cout << "Estimation: \n"
                 << x_view::formatSE3(locations.estimated_pose, "\t") << "\n"
