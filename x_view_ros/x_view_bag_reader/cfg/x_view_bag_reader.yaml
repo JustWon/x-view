@@ -18,7 +18,7 @@ Landmark: {
 Matcher: {
     type: "GRAPH",
     vertex_similarity_score: "WEIGHTED",
-    random_walk_sampling_type: "NON_RETURNING",
+    random_walk_sampling_type: "WEIGHTED",
     num_walks: 300,
     walk_length: 3,
     time_window: 10,
@@ -60,7 +60,7 @@ XViewBagReader: {
   world_frame: "world",
 
   start_frame: 0,
-  end_frame: 60,
+  end_frame: 100,
 
   pause_active: False,
 
@@ -70,6 +70,6 @@ XViewBagReader: {
   graph_construction_camera: "FRONT",
   localization_camera: "FRONT",
 
-  local_graph_steps: 4,
-  run_name: "Example_run"
+  local_graph_steps: 5,
+  run_name: "AutoRun-15-39-54"
 }

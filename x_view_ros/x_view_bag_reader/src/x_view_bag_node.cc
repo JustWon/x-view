@@ -177,7 +177,9 @@ int main(int argc, char** argv) {
       x_view::real_t error =
           bag_reader.localizeGraph(bag_node_parameters.localization_camera, i,
                                    local_graph_steps, &locations);
-      std::cout << "Estimation: \n"
+      std::cout << "Localization " << i - start_frame << " of "
+                << end_frame - local_graph_steps - start_frame << std::endl;
+      LOG(INFO) << "Estimation: \n"
                 << x_view::formatSE3(locations.estimated_pose, "\t") << "\n"
                 << "True: \n"
                 << x_view::formatSE3(locations.true_pose, "\t") << "\n"

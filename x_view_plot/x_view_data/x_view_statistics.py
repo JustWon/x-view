@@ -14,7 +14,7 @@ class XViewPR:
 
         true_threshold_ = true_threshold
         if true_threshold_ is None:
-            true_threshold_ = 2.5
+            true_threshold_ = 0.05
         self._true_threshold = true_threshold_
 
     def computePR(self, true_threshold=None):

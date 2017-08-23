@@ -27,6 +27,7 @@ class XViewRun:
     def run(self, num_runs=1, store_eval=True):
 
         for i in range(num_runs):
+            self._deleteExistingGraphFiles()
             os.system(self._run_command)
             if store_eval is True:
                 self._copyEvaluationResults(run_number=i)
@@ -43,7 +44,7 @@ class XViewRun:
             i, _, _ = select.select([sys.stdin], [], [], 10)
             if i:
                 input_string = sys.stdin.readline().strip()
-                if input_string in ['n', 'N']:
+                if input_string not in ['y', 'Y']:
                     print("Aborting")
                     exit(0)
                 else:
@@ -74,3 +75,10 @@ class XViewRun:
             if graph_file.split(".")[-1] == "dot":
                 task = ["cp", os.path.join(self._x_view_graph_output_dir, graph_file), graph_dir]
                 subprocess.call(task)
+
+    def _deleteExistingGraphFiles(self):
+        for item in os.listdir(self._x_view_graph_output_dir):
+            if item.endswith(".dot"):
+                os.remove(os.path.join(self._x_view_graph_output_dir, item))
+
+

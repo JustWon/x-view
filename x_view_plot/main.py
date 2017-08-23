@@ -18,11 +18,14 @@ error_color = "#ed8d30"
 # Path from where to launch roslaunch.
 x_view_launch_dir = "/home/carlo/x-view_ws_release"
 
-# File path of config file read by XView
+# File path of config file read by XView, overwritten by this script using new parameters.
 x_view_cfg_file = "/home/carlo/x-view_ws_release/src/x-view/x_view_ros/x_view_bag_reader/cfg/x_view_bag_reader.yaml"
 
-# Path to folder containing results of evaluation.
-x_view_produced_dir = "/home/carlo/x-view_ws_release/src/x-view/x_view_core/output/Example_run"
+current_time = time.strftime('%H-%M-%S')
+run_name = "AutoRun-{}".format(current_time)
+
+# Path to folder containing results of evaluation written by XView.
+x_view_evaluation_dir = "/home/carlo/x-view_ws_release/src/x-view/x_view_core/output/{}".format(run_name)
 
 # Path to folder containing generated graphs (.dot files)
 x_view_produced_graph_dir = "/home/carlo/x-view_ws_release/src/x-view/x_view_core/output"
@@ -34,7 +37,7 @@ current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 resources_dir = os.path.join(current_dir, "new_resources")
 
 # Path to folder used to collect generated data (local path).
-destination_dir = os.path.join(resources_dir, "auto_run")
+destination_dir = os.path.join(resources_dir, run_name)
 
 # Path to folder used for generated graphs.
 output_folder = os.path.join(current_dir, "results")
@@ -44,33 +47,42 @@ def launchXView(runs):
     # Create a config file generator.
     x_view_config = XViewConfig(x_view_config_file=x_view_cfg_file)
 
-    extraction_types = ["IMAGE", "3D_SPACE"]
-    similarity_scores = ["WEIGHTED", "SURFACE"]
-    sampling_types = ["UNIFORM", "AVOIDING", "NON_RETURNING", "WEIGHTED"]
+    extraction_types = ["3D_SPACE"]  # ["IMAGE", "3D_SPACE"]
+    similarity_scores = ["WEIGHTED"]  # ["WEIGHTED", "SURFACE"]
+    sampling_types = ["UNIFORM", "WEIGHTED"]  # ["UNIFORM", "AVOIDING", "NON_RETURNING", "WEIGHTED"]
+    localization_steps = [1, 5, 10]
 
     for extraction_type in extraction_types:
         for similarity_score in similarity_scores:
             for sampling_type in sampling_types:
-                custom_arguments = {
-                    "extraction_type": extraction_type,
-                    "vertex_similarity_score": similarity_score,
-                    "random_walk_sampling_type": sampling_type
-                }
+                for localization_step in localization_steps:
+                    custom_arguments = {
+                        "run_name": run_name,
+                        "extraction_type": extraction_type,
+                        "vertex_similarity_score": similarity_score,
+                        "random_walk_sampling_type": sampling_type,
+                        "local_graph_steps": localization_step,
+                        "end_frame": 100
+                    }
 
-                # Write the config file to the x_view_config_file.
-                x_view_config.writeConfigFile(custom_arguments)
+                    # Write the config file to the x_view_config_file.
+                    x_view_config.writeConfigFile(custom_arguments)
 
-                # Create an XView executer.
-                folder_suffix = extraction_type + "_" + similarity_score + "_" + sampling_type
-                configuration_destination_dir = os.path.join(resources_dir, folder_suffix)
-                x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
-                                      x_view_evaluation_output_dir=x_view_produced_dir,
-                                      x_view_graph_output_dir=x_view_produced_graph_dir,
-                                      x_view_config_file=x_view_cfg_file,
-                                      evaluation_storage_dir=configuration_destination_dir)
+                    # Create an XView executer.
+                    folder_suffix = ""
+                    for key in custom_arguments:
+                        if key is not "run_name":
+                            folder_suffix += "_" + str(custom_arguments[key])
+                    run_folder_name = run_name + folder_suffix
+                    run_folder_name = os.path.join(resources_dir, run_folder_name)
+                    x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
+                                          x_view_evaluation_output_dir=x_view_evaluation_dir,
+                                          x_view_graph_output_dir=x_view_produced_graph_dir,
+                                          x_view_config_file=x_view_cfg_file,
+                                          evaluation_storage_dir=run_folder_name)
 
-                # Run XView with the current arguments for num_runs times and store the evaluations.
-                x_view_run.run(num_runs=runs, store_eval=True)
+                    # Run XView with the current arguments for num_runs times and store the evaluations.
+                    x_view_run.run(num_runs=runs, store_eval=True)
 
 
 def plotLastResults():
@@ -115,8 +127,8 @@ def plotLastResults():
 
         f.savefig(os.path.join(output_folder, "num_vertices_vs_{}.pdf".format(time_name)), bbox_inches='tight')
 
-def plotPR():
 
+def plotPR():
     num_dirs = len(os.listdir(resources_dir))
     current_palette = sns.color_palette("colorblind", num_dirs)
     sns.set_palette(current_palette)
@@ -133,7 +145,6 @@ def plotPR():
         plt.plot(PR[:, 1], PR[:, 0], label=d)
         print("Done")
 
-
     plt.xlabel("Recall")
     plt.ylabel("Precision")
     plt.legend()
@@ -141,8 +152,8 @@ def plotPR():
 
 
 if __name__ == '__main__':
-    # launchXView(runs=1)
+    launchXView(runs=1)
 
     # plotLastResults()
 
-    plotPR()
+    # plotPR()
