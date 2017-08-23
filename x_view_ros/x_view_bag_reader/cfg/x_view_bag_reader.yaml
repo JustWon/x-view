@@ -9,7 +9,7 @@ Landmark: {
     dilate_and_erode: true,
     num_dilate: 4,
     num_erode: 4,
-    extraction_type: "IMAGE",
+    extraction_type: "3D_SPACE",
     max_euclidean_distance: 12.0,
     blob_neighbor_distance: 10,
     depth_clip: 50.0
@@ -17,8 +17,8 @@ Landmark: {
 
 Matcher: {
     type: "GRAPH",
-    vertex_similarity_score: "WEIGHTED",
-    random_walk_sampling_type: "UNIFORM",
+    vertex_similarity_score: "SURFACE",
+    random_walk_sampling_type: "WEIGHTED",
     num_walks: 300,
     walk_length: 3,
     time_window: 10,

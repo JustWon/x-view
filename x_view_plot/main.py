@@ -1,5 +1,5 @@
 from x_view_run import XViewRun, XViewConfig
-from x_view_data import getTimes, getLastResultsDir, getVertices, getEdges, getLocalizations
+from x_view_data import getTimes, getLastResultsDir, getVertices, getEdges, XViewPR
 
 import time
 from matplotlib import pylab as plt
@@ -114,9 +114,6 @@ def plotLastResults():
         plt.xlim([np.min(np.min(num_vertices)) - 3, np.max(np.max(num_vertices)) + 3])
 
         f.savefig(os.path.join(output_folder, "num_vertices_vs_{}.pdf".format(time_name)), bbox_inches='tight')
-
-    gt, es = getLocalizations(base_path=lastDirectory, localization_file_name="all_localizations_localization_.dat")
-    print(gt[0]["position"], es[0]["rotation"])
 
 
 if __name__ == '__main__':
