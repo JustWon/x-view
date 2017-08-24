@@ -53,8 +53,7 @@ XViewBagReader::XViewBagReader(ros::NodeHandle& n)
 }
 
 void XViewBagReader::loadCurrentTopic(const CameraTopics& current_topics) {
-  std::cout << "Loading topic " << current_topics.depth_image_topic <<
-                                                                    std::endl;
+
   bag_.open(params_.bag_file_name, rosbag::bagmode::Read);
 
   // Dataset used to parse the images.
