@@ -318,6 +318,10 @@ std::unique_ptr<Parameters> Parser::parseLocalizer() const {
   addString(nh_, "/Localizer/type", "type", localizer_parameters,
             "OPTIMIZATION");
 
+  // Whether to use or not robust noise models.
+  addBool(nh_, "/Localizer/use_robust_noise", "use_robust_noise",
+          localizer_parameters, false);
+
   return std::move(localizer_parameters);
 }
 
