@@ -169,12 +169,14 @@ real_t XView::localizeGraph(const Graph& query_graph,
   const uint64_t num_vertices = boost::num_vertices(query_graph);
 
   for (size_t i = 0u; i < num_vertices; ++i) {
-    const VertexProperty& vertex_property = query_graph[i];
-    // Add a pose-node observation for each observer of node.
-    for (size_t i_pose = 0u; i_pose < vertex_property.observers.size();
-        ++i_pose) {
-      graph_localizer.addPoseVertexMeasurement(
-          vertex_property, vertex_property.observers[i_pose]);
+    if (!invalid_matches(i)) {
+      const VertexProperty& vertex_property = query_graph[i];
+      // Add a pose-node observation for each observer of node.
+      for (size_t i_pose = 0u; i_pose < vertex_property.observers.size();
+           ++i_pose) {
+        graph_localizer.addPoseVertexMeasurement(
+            vertex_property, vertex_property.observers[i_pose]);
+      }
     }
   }
 
