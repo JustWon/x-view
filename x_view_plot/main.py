@@ -10,7 +10,8 @@ import seaborn as sns
 
 # Seaborn setup.
 sns.set_style("darkgrid", {"axes.facecolor": ".9", "axes.labelcolor": "0"})
-sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.5, "lines.markersize": 5})
+sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.5, "lines.markersize": 5,
+                                             "legend.fontsize": 6})
 
 line_color = "#218092"
 error_color = "#ed8d30"
@@ -47,6 +48,7 @@ def launchXView(runs):
     # Create a config file generator.
     x_view_config = XViewConfig(x_view_config_file=x_view_cfg_file)
 
+    """
     extraction_types = ["3D_SPACE"]  # ["IMAGE", "3D_SPACE"]
     similarity_scores = ["WEIGHTED"]  # ["WEIGHTED", "SURFACE"]
     sampling_types = ["UNIFORM", "WEIGHTED"]  # ["UNIFORM", "AVOIDING", "NON_RETURNING", "WEIGHTED"]
@@ -70,26 +72,42 @@ def launchXView(runs):
                                 "localization_camera": localization_camera,
                                 "end_frame": 100
                             }
+    """
 
-                            # Write the config file to the x_view_config_file.
-                            x_view_config.writeConfigFile(custom_arguments)
+    use_robust_noise_model = [False, True]
 
-                            # Create an XView executer.
-                            folder_suffix = ""
-                            for key in custom_arguments:
-                                if key is not "run_name":
-                                    folder_suffix += "_" + str(custom_arguments[key])
+    for noise in use_robust_noise_model:
+        custom_arguments = {
+            "run_name": run_name,
+            "extraction_type": "3D_SPACE",
+            "local_graph_steps": 5,
+            "graph_construction_camera": "FRONT",
+            "localization_camera": "FRONT",
+            "end_frame": 600,
+            "use_robust_noise": noise
+        }
 
-                            run_folder_name = run_name + folder_suffix
-                            run_folder_name = os.path.join(resources_dir, run_folder_name)
-                            x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
-                                                  x_view_evaluation_output_dir=x_view_evaluation_dir,
-                                                  x_view_graph_output_dir=x_view_produced_graph_dir,
-                                                  x_view_config_file=x_view_cfg_file,
-                                                  evaluation_storage_dir=run_folder_name)
+        # Write the config file to the x_view_config_file.
+        x_view_config.writeConfigFile(custom_arguments)
 
-                            # Run XView with the current arguments for num_runs times and store the evaluations.
-                            x_view_run.run(num_runs=runs, store_eval=True)
+        # Create an XView executer.
+        folder_suffix = ""
+        for key in sorted(custom_arguments.keys()):
+            if key is not "run_name":
+                folder_suffix += "_" + str(custom_arguments[key])
+
+        run_folder_name = run_name + folder_suffix
+        run_folder_name = os.path.join(resources_dir, run_folder_name)
+        x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
+                              x_view_evaluation_output_dir=x_view_evaluation_dir,
+                              x_view_graph_output_dir=x_view_produced_graph_dir,
+                              x_view_config_file=x_view_cfg_file,
+                              evaluation_storage_dir=run_folder_name)
+
+        # Run XView with the current arguments for num_runs times and store the evaluations.
+        x_view_run.run(num_runs=runs, store_eval=True)
+
+
 
 
 def plotLastTimings():
@@ -137,33 +155,37 @@ def plotLastTimings():
 
 
 def plotPR():
-    num_dirs = len(os.listdir(resources_dir))
-    current_palette = sns.color_palette("colorblind", num_dirs)
-    sns.set_palette(current_palette)
+
+    f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
 
     for d in sorted(os.listdir(resources_dir)):
-        if not ("FRONT_3D_SPACE_100_WEIGHTED" in d and "9_FRONT" in d):
-            continue
         print("Computing PR curve for {}".format(d))
         full_config_dir = os.path.join(resources_dir, d)
         run_directory = getLastResultsDir(full_config_dir)
         eval_directory = os.path.join(run_directory, "eval")
         localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
 
-        x_view_pr = XViewPR(filename=localization_file_name, true_threshold=0.025)
+        x_view_pr = XViewPR(filename=localization_file_name, true_threshold=0.04)
         PR = x_view_pr.computePR()
 
-        plt.plot(PR[:, 1], PR[:, 0], label=d)
+        order = PR[0:, 1].argsort()
+        ax.plot(PR[order, 1], PR[order, 0], label=d)
 
+    plt.title("PR curves")
     plt.xlabel("Recall")
     plt.ylabel("Precision")
     plt.legend()
-    plt.show()
+
+    plt.ylim([0, 1.05])
+
+    plt.tight_layout()
+    f.savefig(os.path.join(output_folder, "PR_curves.pdf"))
+    plt.close()
 
 
 if __name__ == '__main__':
-    # launchXView(runs=1)
+    launchXView(runs=1)
 
     # plotLastTimings()
 
-    plotPR()
+    # plotPR()

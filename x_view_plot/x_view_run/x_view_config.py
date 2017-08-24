@@ -36,6 +36,7 @@ class XViewConfig:
             "consistency_threshold": 5.0,
             "consistency_size": 2.0,
             "localizer_type": "OPTIMIZATION",
+            "use_robust_noise": False,
             "start_frame": 0,
             "end_frame": 200,
             "relabeling_percentage": 0.0,

@@ -34,7 +34,8 @@ Matcher: {{
 }}
 
 Localizer: {{
-    type: "{localizer_type}"
+    type: "{localizer_type}",
+    use_robust_noise: {use_robust_noise}
 }}
 
 # Parameters read exclusively by XViewBagReader
