@@ -18,7 +18,7 @@ Landmark: {
 Matcher: {
     type: "GRAPH",
     vertex_similarity_score: "WEIGHTED",
-    random_walk_sampling_type: "WEIGHTED",
+    random_walk_sampling_type: "NON_RETURNING",
     num_walks: 300,
     walk_length: 3,
     time_window: 10,
@@ -28,7 +28,7 @@ Matcher: {
     merge_distance: 2.0,
     link_close_vertices: True,
     max_link_distance: 5.0,
-    outlier_rejection: False,
+    outlier_rejection: True,
     consistency_threshold: 5.0,
     consistency_size: 2.0
 }
@@ -39,37 +39,37 @@ Localizer: {
 
 # Parameters read exclusively by XViewBagReader
 XViewBagReader: {
-  bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/Synthia_3_cams.bag",
-  back: {
-    semantics_image_topic: "/Stereo_Left/Omni_B/labels",
-    depth_image_topic: "/Stereo_Left/Omni_B/depth",
-    sensor_frame: "cam02"
-  },
-  right: {
-    semantics_image_topic: "/Stereo_Left/Omni_R/labels",
-    depth_image_topic: "/Stereo_Left/Omni_R/depth",
-    sensor_frame: "cam01"
-  },
-  front: {
-    semantics_image_topic: "/Stereo_Left/Omni_F/labels",
-    depth_image_topic: "/Stereo_Left/Omni_F/depth",
-    sensor_frame: "cam00"
-  },
+    bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/Synthia_3_cams.bag",
+    back: {
+        semantics_image_topic: "/Stereo_Left/Omni_B/labels",
+        depth_image_topic: "/Stereo_Left/Omni_B/depth",
+        sensor_frame: "cam02"
+    },
+    right: {
+        semantics_image_topic: "/Stereo_Left/Omni_R/labels",
+        depth_image_topic: "/Stereo_Left/Omni_R/depth",
+        sensor_frame: "cam01"
+    },
+    front: {
+        semantics_image_topic: "/Stereo_Left/Omni_F/labels",
+        depth_image_topic: "/Stereo_Left/Omni_F/depth",
+        sensor_frame: "cam00"
+    },
 
-  transform_topic: "/tf",
-  world_frame: "world",
+    transform_topic: "/tf",
+    world_frame: "world",
 
-  start_frame: 0,
-  end_frame: 10,
+    start_frame: 0,
+    end_frame: 100,
 
-  pause_active: False,
+    pause_active: False,
 
-  timer_type: "TIMER",
-  relabeling_percentage: 0.0,
+    timer_type: "TIMER",
+    relabeling_percentage: 0.0,
 
-  graph_construction_camera: "BACK",
-  localization_camera: "BACK",
+    graph_construction_camera: "BACK",
+    localization_camera: "BACK",
 
-  local_graph_steps: 10,
-  run_name: "AutoRun-15-54-29"
+    local_graph_steps: 10,
+    run_name: "AutoRun-16-07-39"
 }

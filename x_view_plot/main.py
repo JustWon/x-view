@@ -68,7 +68,7 @@ def launchXView(runs):
                                 "local_graph_steps": localization_step,
                                 "graph_construction_camera": construction_camera,
                                 "localization_camera": localization_camera,
-                                "end_frame": 10
+                                "end_frame": 100
                             }
 
                             # Write the config file to the x_view_config_file.
@@ -79,6 +79,7 @@ def launchXView(runs):
                             for key in custom_arguments:
                                 if key is not "run_name":
                                     folder_suffix += "_" + str(custom_arguments[key])
+
                             run_folder_name = run_name + folder_suffix
                             run_folder_name = os.path.join(resources_dir, run_folder_name)
                             x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
@@ -92,9 +93,10 @@ def launchXView(runs):
 
 
 def plotLastTimings():
-    lastDirectory = getLastResultsDir(resources_dir)
+    last_directory = getLastResultsDir(resources_dir)
+    print("Plotting results of {}".format(last_directory))
 
-    num_vertices = getVertices(base_path=lastDirectory)
+    num_vertices = getVertices(base_path=last_directory)
     # num_edges = getEdges(base_path=lastDirectory)
 
     time_names = ["DuplicateMerging",
@@ -112,7 +114,7 @@ def plotLastTimings():
                   ]
 
     for time_name in time_names:
-        times = getTimes(base_path=lastDirectory, time_name=time_name,
+        times = getTimes(base_path=last_directory, time_name=time_name,
                          timings_file_name="all_timings_graph_building_.dat")
 
         f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
@@ -140,16 +142,18 @@ def plotPR():
     sns.set_palette(current_palette)
 
     for d in sorted(os.listdir(resources_dir)):
+        if not ("FRONT_3D_SPACE_100_WEIGHTED" in d and "9_FRONT" in d):
+            continue
+        print("Computing PR curve for {}".format(d))
         full_config_dir = os.path.join(resources_dir, d)
         run_directory = getLastResultsDir(full_config_dir)
         eval_directory = os.path.join(run_directory, "eval")
         localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
 
-        x_view_pr = XViewPR(filename=localization_file_name, true_threshold=5)
+        x_view_pr = XViewPR(filename=localization_file_name, true_threshold=0.025)
         PR = x_view_pr.computePR()
 
         plt.plot(PR[:, 1], PR[:, 0], label=d)
-        print("Done")
 
     plt.xlabel("Recall")
     plt.ylabel("Precision")
@@ -158,8 +162,8 @@ def plotPR():
 
 
 if __name__ == '__main__':
-    launchXView(runs=1)
+    # launchXView(runs=1)
 
-    # plotLastResults()
+    # plotLastTimings()
 
-    # plotPR()
+    plotPR()
