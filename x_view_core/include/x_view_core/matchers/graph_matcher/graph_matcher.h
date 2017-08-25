@@ -129,11 +129,16 @@ class GraphMatcher : public AbstractMatcher {
    * corresponds to the similarity computed between the i-th vertex of the
    * global_semantic_graph_ and the j-th vertex of the query_graph passed as
    * argument.
+   * \param candidate_matches Matrix of indices of size (num_query,
+   * num_candidate_matches) such that candidate_matches(i,j) corresponds to
+   * the j-th most similar in the global semantic graph to vertex i in the
+   * query_graph.
    * \param score_type Flag indicating which score type must be used when
    * computing the pairwise similarity between vertices.
    */
   void computeSimilarityMatrix(const RandomWalker& random_walker,
                                SimilarityMatrixType* similarity_matrix,
+                               IndexMatrixType* candidate_matches,
                                const VertexSimilarity::SCORE_TYPE score_type =
                                VertexSimilarity::SCORE_TYPE::WEIGHTED) const;
 

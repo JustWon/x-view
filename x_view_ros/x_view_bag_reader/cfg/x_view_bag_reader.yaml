@@ -61,7 +61,7 @@ XViewBagReader: {
     world_frame: "world",
 
     start_frame: 0,
-    end_frame: 10,
+    end_frame: 25,
 
     pause_active: False,
 
@@ -71,6 +71,6 @@ XViewBagReader: {
     graph_construction_camera: "FRONT",
     localization_camera: "FRONT",
 
-    local_graph_steps: 8,
+    local_graph_steps: 5,
     run_name: "AutoRun-16-07-39"
 }
