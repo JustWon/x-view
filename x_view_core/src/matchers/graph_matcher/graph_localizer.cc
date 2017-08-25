@@ -261,6 +261,9 @@ real_t GraphLocalizer::localize(
 
   } else if (localizer_type == "ESTIMATION") {
 
+    // FIXME: this technique appears not to work correctly
+    LOG(ERROR) << "ESTIMATION is not fully supported.";
+
     // Retrieve locations of matching node pairs.
     const GraphMatcher::MaxSimilarityMatrixType similarity_matrix =
         matching_result.computeMaxSimilarityColwise();

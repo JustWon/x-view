@@ -52,10 +52,9 @@ def launchXView(runs):
     consistency_thresholds = [2.0, 5.0, 10.0]
     consistency_sizes = [2, 4]
 
-
-    for candidate_number in candidate_numbers:
-        for consistency_threshold in consistency_thresholds:
-            for consistency_size in consistency_sizes:
+    for consistency_threshold in consistency_thresholds:
+        for consistency_size in consistency_sizes:
+            for candidate_number in candidate_numbers:
                 custom_arguments = {
                     "run_name": run_name,
                     "random_walk_sampling_type": "WEIGHTED",
