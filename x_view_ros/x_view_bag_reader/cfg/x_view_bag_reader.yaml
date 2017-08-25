@@ -61,7 +61,7 @@ XViewBagReader: {
     world_frame: "world",
 
     start_frame: 0,
-    end_frame: 25,
+    end_frame: 85,
 
     pause_active: False,
 

@@ -145,19 +145,28 @@ real_t XView::localizeGraph(const Graph& query_graph,
       ->computeSimilarityMatrix(
           random_walker, &similarity_matrix, &candidate_matches, score_type);
 
-  const GraphMatcher::MaxSimilarityMatrixType max_similarities_colwise =
-        matching_result.computeMaxSimilarityColwise();
-
   // Filter matches with geometric consistency.
   if (Locator::getParameters()->getChildPropertyList("matcher")->getBoolean(
       "outlier_rejection")) {
-    bool filter_success = std::dynamic_pointer_cast<GraphMatcher
-    >(descriptor_matcher_)->filterMatches(query_graph, global_graph,
-                                          matching_result, &candidate_matches);
+    bool filter_success =
+        std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
+            ->filterMatches(query_graph, global_graph,
+                            matching_result, &candidate_matches);
   }
 
   // Estimate transformation between graphs (Localization).
   GraphLocalizer graph_localizer;
+
+  // Utility function to check if vertices are to be added to the localizer
+  // or not.
+  auto isValidCandidate = [&](const uint64_t index) -> bool {
+    const auto& col_i = candidate_matches.col(index);
+    for(int i = 0; i < col_i.rows(); ++i)
+      if(col_i(i) != GraphMatcher::INVALID_MATCH_INDEX)
+        return true;
+    return false;
+  };
+
 
   // Add relative pose-to-pose observations to the graph localizer, assuming
   // poses are consecutive.
@@ -167,11 +176,10 @@ real_t XView::localizeGraph(const Graph& query_graph,
   }
 
   // Add all pose-to-vertex observations.
-  const uint64_t num_vertices = boost::num_vertices(query_graph);
+  const uint64_t num_query_vertices = boost::num_vertices(query_graph);
 
-  for (size_t i = 0u; i < num_vertices; ++i) {
-    // FIXME
-    //if (!invalid_matches(i)) {
+  for (uint64_t i = 0u; i < num_query_vertices; ++i) {
+    if(isValidCandidate(i)) {
       const VertexProperty& vertex_property = query_graph[i];
       // Add a pose-node observation for each observer of node.
       for (size_t i_pose = 0u; i_pose < vertex_property.observers.size();
@@ -179,23 +187,22 @@ real_t XView::localizeGraph(const Graph& query_graph,
         graph_localizer.addPoseVertexMeasurement(
             vertex_property, vertex_property.observers[i_pose]);
       }
-    //}
+    }
   }
 
   // Add all vertex-to-vertex observations.
-  for (int j = 0; j < max_similarities_colwise.cols(); ++j) {
-    int max_i = -1;
-    max_similarities_colwise.col(j).maxCoeff(&max_i);
-    if (max_i == -1)
-      continue;
-    // FIXME
-    //if (!invalid_matches(j)) {
-      const real_t similarity = similarity_matrix(max_i, j);
+  for (uint64_t j = 0; j < num_query_vertices; ++j) {
+    // Add all candidate matches.
+    for(uint64_t i_id = 0; i_id < candidate_matches.rows(); ++i_id) {
+      if(candidate_matches(i_id, j) == GraphMatcher::INVALID_MATCH_INDEX)
+        continue;
+      const uint64_t i = candidate_matches(i_id, j);
+      const real_t similarity = similarity_matrix(i, j);
       const VertexProperty& vertex_query = query_graph[j];
-      const VertexProperty& vertex_global = global_graph[max_i];
+      const VertexProperty& vertex_global = global_graph[i];
       graph_localizer.addVertexVertexMeasurement(vertex_query, vertex_global,
                                                  similarity);
-    //}
+    }
   }
 
   const real_t error = graph_localizer.localize(matching_result, query_graph,

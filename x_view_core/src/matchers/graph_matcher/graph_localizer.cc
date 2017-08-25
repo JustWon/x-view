@@ -57,8 +57,11 @@ real_t GraphLocalizer::localize(
     SE3* transformation) {
 
   CHECK_NOTNULL(transformation);
-  CHECK_GT(pose_vertex_measurements_.size(), 0)
-      << "No pose vertex measurements given.";
+  if(pose_vertex_measurements_.size() == 0) {
+    LOG(WARNING) << "No pose-vertex measurements found.";
+    transformation->setIdentity();
+    return std::numeric_limits<real_t>::max();
+  }
 
   const auto& parameters = Locator::getParameters();
   const auto& localizer_parameters =
