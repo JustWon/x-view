@@ -306,6 +306,8 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
 
   // Fill up the query cloud consisting of all vertices in the query graph.
   for(uint64_t i = 0; i < num_query_vertices; ++i) {
+    if(!isValidCandidate(i))
+      continue;
     const Vector3r& position = query_semantic_graph[i].location_3d;
     query_cloud->points.push_back(pcl::PointXYZ(position[0],
                                                 position[1],
