@@ -10,7 +10,8 @@ import seaborn as sns
 
 # Seaborn setup.
 sns.set_style("darkgrid", {"axes.facecolor": ".9", "axes.labelcolor": "0"})
-sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.5, "lines.markersize": 5})
+sns.set_context("paper", font_scale=1.5, rc={"lines.linewidth": 1.5, "lines.markersize": 5,
+                                             "legend.fontsize": 6})
 
 line_color = "#218092"
 error_color = "#ed8d30"
@@ -71,7 +72,7 @@ def launchXView(runs):
 
                 # Create an XView executer.
                 folder_suffix = ""
-                for key in custom_arguments:
+                for key in sorted(custom_arguments.keys()):
                     if key is not "run_name":
                         folder_suffix += "_" + str(custom_arguments[key])
 
@@ -85,7 +86,6 @@ def launchXView(runs):
 
                 # Run XView with the current arguments for num_runs times and store the evaluations.
                 x_view_run.run(num_runs=runs, store_eval=True)
-
 
 def plotLastTimings():
     last_directory = getLastResultsDir(resources_dir)
@@ -132,28 +132,32 @@ def plotLastTimings():
 
 
 def plotPR():
-    num_dirs = len(os.listdir(resources_dir))
-    current_palette = sns.color_palette("colorblind", num_dirs)
-    sns.set_palette(current_palette)
+
+    f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
 
     for d in sorted(os.listdir(resources_dir)):
-        if not ("FRONT_3D_SPACE_100_WEIGHTED" in d and "9_FRONT" in d):
-            continue
         print("Computing PR curve for {}".format(d))
         full_config_dir = os.path.join(resources_dir, d)
         run_directory = getLastResultsDir(full_config_dir)
         eval_directory = os.path.join(run_directory, "eval")
         localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
 
-        x_view_pr = XViewPR(filename=localization_file_name, true_threshold=0.025)
+        x_view_pr = XViewPR(filename=localization_file_name, true_threshold=0.06)
         PR = x_view_pr.computePR()
 
-        plt.plot(PR[:, 1], PR[:, 0], label=d)
+        order = PR[0:, 1].argsort()
+        ax.plot(PR[order, 1], PR[order, 0], label=d)
 
+    plt.title("PR curves")
     plt.xlabel("Recall")
     plt.ylabel("Precision")
     plt.legend()
-    plt.show()
+
+    plt.ylim([0, 1.05])
+
+    plt.tight_layout()
+    f.savefig(os.path.join(output_folder, "PR_curves.pdf"))
+    plt.close()
 
 
 if __name__ == '__main__':

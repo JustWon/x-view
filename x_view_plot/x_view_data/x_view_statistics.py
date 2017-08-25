@@ -26,11 +26,10 @@ class XViewPR:
 
         ground_truths, estimations, errors = getLocalizations(localization_file_name=self._filename)
 
-        recall = 0
-        positive_radius = 0.0
-        positive_radius_step = 0.01
+        positive_radius = 0.5
+        positive_radius_step = 0.5
 
-        while recall < 1:
+        while positive_radius < 20:
 
             true_positives = 0
             true_negatives = 0
@@ -43,12 +42,12 @@ class XViewPR:
                     if distance < positive_radius:
                         true_positives += 1
                     else:
-                        true_negatives += 1
+                        false_positives += 1
                 else:
                     if distance < positive_radius:
-                        false_positives += 1
-                    else:
                         false_negatives += 1
+                    else:
+                        true_negatives += 1
 
             precision = 0
             if true_positives + false_positives > 0:

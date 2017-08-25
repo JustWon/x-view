@@ -68,6 +68,8 @@ real_t GraphLocalizer::localize(
   const auto& localizer_parameters =
       parameters->getChildPropertyList("localizer");
   const std::string localizer_type = localizer_parameters->getString("type");
+  const bool use_robust_noise_model =
+      localizer_parameters->getBoolean("use_robust_noise");
 
   if (localizer_type == "OPTIMIZATION") {
     if (pose_vertex_measurements_.size() < 4) {
@@ -108,7 +110,7 @@ real_t GraphLocalizer::localize(
             gtsam::Vector6::Ones() * prior_noise_);
 
     for (size_t i = 0u; i < pose_pose_measurements_.size(); ++i) {
-      SE3 T_a_b = pose_pose_measurements_[i].pose_a.pose.inverted()
+      SE3 T_a_b = pose_pose_measurements_[i].pose_a.pose.inverse()
           * pose_pose_measurements_[i].pose_b.pose;
       // Add odometry as relative movement between poses.
       graph.push_back(
@@ -119,13 +121,19 @@ real_t GraphLocalizer::localize(
     // Create noise model for position-vertex measurements.
     gtsam::Vector6 pv_noise;
     pv_noise << 5.0, 5.0, 5.0, 5.0, 5.0, 5.0;
-    gtsam::noiseModel::Diagonal::shared_ptr pv_observation_noise =
+    gtsam::noiseModel::Diagonal::shared_ptr pv_observation_noise_ =
         gtsam::noiseModel::Diagonal::Sigmas(pv_noise);
-    // Make noise model robust by adding m-estimation.
-    gtsam::noiseModel::Robust::shared_ptr temp_noise =
-        gtsam::noiseModel::Robust::Create(
-            gtsam::noiseModel::mEstimator::Cauchy::Create(1),
-            pv_observation_noise);
+
+    gtsam::noiseModel::Base::shared_ptr pv_observation_noise =
+        pv_observation_noise_;
+    if(use_robust_noise_model) {
+      // Make noise model robust by adding m-estimation.
+      gtsam::noiseModel::Robust::shared_ptr temp_noise =
+          gtsam::noiseModel::Robust::Create(
+              gtsam::noiseModel::mEstimator::Cauchy::Create(1),
+              pv_observation_noise);
+      pv_observation_noise = temp_noise;
+    }
     // Add all pose-vertex observations to the factor graph.
     for (size_t i = 0u; i < pose_vertex_measurements_.size(); ++i) {
       // Calculate translation measurement between robot position and vertex.
@@ -139,20 +147,25 @@ real_t GraphLocalizer::localize(
               transformation,
               gtsam::Symbol('p', pose_vertex_measurements_[i].observer_pose.id),
               gtsam::Symbol('x', pose_vertex_measurements_[i].vertex_property.index),
-              temp_noise));
+              pv_observation_noise));
     }
 
     // Create noise model for vertex-vertex identity matches.
     gtsam::Vector6 vv_noise;
     vv_noise << 5.0, 5.0, 5.0, 100.0, 100.0, 100.0;
-    gtsam::noiseModel::Diagonal::shared_ptr vv_observation_noise =
+    gtsam::noiseModel::Diagonal::shared_ptr vv_observation_noise_ =
         gtsam::noiseModel::Diagonal::Sigmas(
             vv_noise);
-    // Make noise model robust by adding m-estimation.
-    gtsam::noiseModel::Robust::shared_ptr vv_robust_noise =
-        gtsam::noiseModel::Robust::Create(
-            gtsam::noiseModel::mEstimator::Cauchy::Create(1),
-            vv_observation_noise);
+    gtsam::noiseModel::Base::shared_ptr vv_observation_noise =
+        vv_observation_noise_;
+    if(use_robust_noise_model) {
+      // Make noise model robust by adding m-estimation.
+      gtsam::noiseModel::Robust::shared_ptr vv_robust_noise =
+          gtsam::noiseModel::Robust::Create(
+              gtsam::noiseModel::mEstimator::Cauchy::Create(1),
+              vv_observation_noise);
+      vv_observation_noise = vv_robust_noise;
+    }
     // Add vertex-vertex measurements to graph as identity matches.
     SE3 zero_transform(Eigen::Vector3d(0, 0, 0), SO3(1, 0, 0, 0));
     for (size_t i = 0u; i < vertex_vertex_measurements_.size(); ++i) {
@@ -162,7 +175,7 @@ real_t GraphLocalizer::localize(
               zero_transform,
               gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_a.index),
               gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_b.index),
-              vv_robust_noise));
+              vv_observation_noise));
 
       // Add database vertex factors.
       if (!initials.exists(
