@@ -246,8 +246,17 @@ real_t GraphLocalizer::localize(
         .computeMaxSimilarityColwise();
 
     // Retrieve invalid matches.
-    VectorXb invalid_matches = matching_result.getInvalidMatches();
-    size_t num_valids = similarities.cols() - invalid_matches.count();
+    const GraphMatcher::IndexMatrixType& candidate_matches =
+        matching_result.getCandidateMatches();
+
+    uint64_t num_valids = 0;
+    for(int j = 0; j < candidate_matches.cols(); ++j){
+      for(int i = 0; i < candidate_matches.rows(); ++i) {
+        if(candidate_matches(i, j) != GraphMatcher::INVALID_MATCH_INDEX) {
+          ++num_valids;
+        }
+      }
+    }
 
     if (num_valids == 0) {
       LOG(WARNING) << "Unable to estimate transformation, only invalid matches.";
@@ -269,7 +278,8 @@ real_t GraphLocalizer::localize(
     size_t valid = 0u;
     for (size_t i = 0u; i < similarities.cols(); ++i) {
       // Only add matches if they are valid.
-      if (!invalid_matches(i)) {
+      // FIXME
+      // if (!invalid_matches(i)) {
         GraphMatcher::MaxSimilarityMatrixType::Index maxIndex;
         similarities.col(i).maxCoeff(&maxIndex);
         query_cloud->points[valid].getVector3fMap() = query_semantic_graph[i]
@@ -279,7 +289,7 @@ real_t GraphLocalizer::localize(
         (*correspondences)[valid].index_query = valid;
         (*correspondences)[valid].index_match = valid;
         ++valid;
-      }
+      //}
     }
 
     // Perform transformation estimation based on SVD.

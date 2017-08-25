@@ -13,6 +13,8 @@
 
 namespace x_view {
 
+const int GraphMatcher::INVALID_MATCH_INDEX = -1;
+
 GraphMatcher::MaxSimilarityMatrixType
 GraphMatcher::GraphMatchingResult::computeMaxSimilarityColwise() const {
   // Compute the index of max element per col of similarity matrix.
@@ -183,8 +185,7 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
   SimilarityMatrixType& similarity_matrix =
       matching_result->getSimilarityMatrix();
 
-  VectorXb& invalid_matches = matching_result->getInvalidMatches();
-  computeSimilarityMatrix(random_walker, &similarity_matrix, &invalid_matches,
+  computeSimilarityMatrix(random_walker, &similarity_matrix,
                           vertex_similarity_score_type_);
 
   // Merge the query graph to the database graph.
@@ -260,12 +261,12 @@ void GraphMatcher::recomputeGlobalRandomWalks() {
 
 }
 
-bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
-                                  const Graph& database_semantic_graph,
-                                  const GraphMatchingResult& matches,
-                                  VectorXb* invalid_matches) {
+bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
+                                 const Graph& database_semantic_graph,
+                                 const GraphMatchingResult& matches,
+                                 IndexMatrixType* candidate_matches) {
 
-  CHECK_NOTNULL(invalid_matches);
+  CHECK_NOTNULL(candidate_matches);
 
   const auto& parameters = Locator::getParameters();
   const auto& matcher_parameters = parameters->getChildPropertyList("matcher");
@@ -305,9 +306,12 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
   grouping.setGCThreshold(matcher_parameters->getFloat("consistency_threshold"));
   grouping.setGCSize(matcher_parameters->getFloat("consistency_size"));
 
-  size_t query_size = similarities.cols();
-  invalid_matches->resize(query_size);
-  invalid_matches->setConstant(true);
+  const uint64_t query_size = similarities.cols();
+  const int num_candidate_matches =
+      matcher_parameters->getInteger("num_candidate_matches");
+  candidate_matches->resize(num_candidate_matches, query_size);
+  // Initialize all matches as invalid.
+  candidate_matches->setConstant(INVALID_MATCH_INDEX);
   TransformationVector transformations;
   std::vector<pcl::Correspondences> clustered_correspondences(1);
   if (!grouping.recognize(transformations, clustered_correspondences)) {
@@ -316,7 +320,8 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
 
   // Update vector of invalid matches.
   for (size_t i = 0u; i < clustered_correspondences[0].size(); ++i) {
-    (*invalid_matches)((clustered_correspondences[0])[i].index_query) = false;
+    // FIXME
+    //(*invalid_matches)((clustered_correspondences[0])[i].index_query) = false;
   }
 
   LOG(INFO) << "Filtered out "
@@ -363,10 +368,8 @@ LandmarksMatcherPtr GraphMatcher::create(const RandomWalkerParams& random_walker
 
 void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
                                            SimilarityMatrixType* similarity_matrix,
-                                           VectorXb* invalid_matches,
                                            const VertexSimilarity::SCORE_TYPE score_type) const {
   CHECK_NOTNULL(similarity_matrix);
-  CHECK_NOTNULL(invalid_matches);
 
   // Extract the random walks from the RandomWalker passed as argument.
   const std::vector<RandomWalker::WalkMap>& query_walk_map_vector =
@@ -385,10 +388,6 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
   similarity_matrix->resize(num_global_vertices, num_query_vertices);
   similarity_matrix->setZero();
 
-  // Setting all invalids to false. These will be modified in the filtering.
-  invalid_matches->resize(num_query_vertices);
-  invalid_matches->setConstant(false);
-
   // Fill up dense similarity matrix.
   for (uint64_t i = 0; i < num_global_vertices; ++i) {
     const auto& vertex_d_i = boost::vertex(i, global_semantic_graph_);
@@ -402,11 +401,10 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
         const auto& mapped_walks_j = query_walk_map_vector[j];
         const real_t similarity =
             VertexSimilarity::score(mapped_walks_i, mapped_walks_j);
-        similarity_matrix->operator()(i, j) = similarity;
+        (*similarity_matrix)(i, j) = similarity;
       }
     }
   }
-
 }
 
 }

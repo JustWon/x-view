@@ -29,6 +29,7 @@ Matcher: {
     link_close_vertices: True,
     max_link_distance: 5.0,
     outlier_rejection: false,
+    num_candidate_matches: 3,
     consistency_threshold: 5.0,
     consistency_size: 2.0
 }

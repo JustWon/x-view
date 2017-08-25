@@ -27,6 +27,10 @@ class GraphMatcher : public AbstractMatcher {
 
   typedef MatrixXr SimilarityMatrixType;
   typedef MatrixXb MaxSimilarityMatrixType;
+  typedef Eigen::MatrixXi IndexMatrixType;
+
+  // Index used to define an invalid match.
+  static const int INVALID_MATCH_INDEX;
 
   GraphMatcher();
   GraphMatcher(const RandomWalkerParams& random_walker_params,
@@ -38,7 +42,7 @@ class GraphMatcher : public AbstractMatcher {
    public:
     GraphMatchingResult()
         : AbstractMatchingResult(),
-          similarity_matrix_(), invalid_matches_() {
+          similarity_matrix_(), candidate_matches_() {
     }
 
     const SimilarityMatrixType& getSimilarityMatrix() const {
@@ -49,12 +53,12 @@ class GraphMatcher : public AbstractMatcher {
       return similarity_matrix_;
     }
 
-    const VectorXb& getInvalidMatches() const {
-      return invalid_matches_;
+    const IndexMatrixType& getCandidateMatches() const {
+      return candidate_matches_;
     }
 
-    VectorXb& getInvalidMatches() {
-      return invalid_matches_;
+    IndexMatrixType& getCandidateMatches() {
+      return candidate_matches_;
     }
 
     MaxSimilarityMatrixType computeMaxSimilarityColwise() const;
@@ -62,7 +66,7 @@ class GraphMatcher : public AbstractMatcher {
 
    private:
     SimilarityMatrixType similarity_matrix_;
-    VectorXb invalid_matches_;
+    IndexMatrixType candidate_matches_;
   };
 
   virtual MatchingResultPtr match(const SemanticLandmarkPtr& query_landmark)
@@ -89,22 +93,23 @@ class GraphMatcher : public AbstractMatcher {
    * consistency.
    * \param query_semantic_graph Semantic graph that was matched against the
    * global_semantic_graph_.
+   * \param database_semantic_graph Global semantic graph.
    * \param matches the initially established matches.
-   * \param filtered matches the geometrically filtered matches.
+   * \param candidate_matches Index matrix filled up with filtered candidate
+   * matches for each vertex of the query graph.
    * \return bool indication of successful filtering.
    */
-  bool filter_matches(const Graph& query_semantic_graph,
-                      const Graph& database_semantic_graph,
-                      const GraphMatchingResult& matches,
-                      VectorXb* invalid_matches);
+  bool filterMatches(const Graph& query_semantic_graph,
+                     const Graph& database_semantic_graph,
+                     const GraphMatchingResult& matches,
+                     IndexMatrixType* candidate_matches);
 
   virtual void addDescriptor(const ConstDescriptorPtr& descriptor) override;
 
   /**
    * \brief Overloaded function that directly adds the passed Graph to the
    * matcher.
-   * \param graph Graph to be added to the matcher.r
-   * associated to the graph passed as first argument.
+   * \param graph Graph to be added to the matcher.
    */
   void addDescriptor(const Graph& graph);
 
@@ -129,7 +134,6 @@ class GraphMatcher : public AbstractMatcher {
    */
   void computeSimilarityMatrix(const RandomWalker& random_walker,
                                SimilarityMatrixType* similarity_matrix,
-                               VectorXb* invalid_matches,
                                const VertexSimilarity::SCORE_TYPE score_type =
                                VertexSimilarity::SCORE_TYPE::WEIGHTED) const;
 

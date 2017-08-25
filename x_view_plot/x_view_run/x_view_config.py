@@ -33,6 +33,7 @@ class XViewConfig:
             "link_close_vertices": True,
             "max_link_distance": 5.0,
             "outlier_rejection": False,
+            "num_candidate_matches": 1,
             "consistency_threshold": 5.0,
             "consistency_size": 2.0,
             "localizer_type": "OPTIMIZATION",
