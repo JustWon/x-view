@@ -5,6 +5,7 @@
 #include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/matchers/graph_matcher/graph_merger.h>
 #include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
+#include <x_view_core/x_view_tools.h>
 
 #include <pcl/correspondence.h>
 #include <pcl/point_types.h>
@@ -271,32 +272,54 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
   const auto& parameters = Locator::getParameters();
   const auto& matcher_parameters = parameters->getChildPropertyList("matcher");
 
-  GraphMatcher::MaxSimilarityMatrixType similarities =
-      matches.computeMaxSimilarityColwise();
+  const GraphMatcher::SimilarityMatrixType& similarities =
+      matches.getSimilarityMatrix();
+  // Number of candidate matches per query vertex.
+  const int num_candidate_matches =
+      matcher_parameters->getInteger("num_candidate_matches");
+
+  const uint64_t num_query_vertices = similarities.cols();
 
   // todo(gawela): Should we generally use PCL types for points /
   // correspondences?
-  // Prepare PCL containers with corresponding 3D points.
+  // Prepare query point cloud.
   pcl::PointCloud<pcl::PointXYZ>::Ptr query_cloud(
       new pcl::PointCloud<pcl::PointXYZ>());
+
+  // Fill up the query cloud consisting of all vertices in the query graph.
+  query_cloud->points.resize(num_query_vertices);
+  for(uint64_t i = 0; i < num_query_vertices; ++i) {
+    query_cloud->points[i].getVector3fMat() =
+        query_semantic_graph[i].location_3d.cast<float>();
+  }
+
+  // Prepare database point cloud with associated correspondences.
   pcl::PointCloud<pcl::PointXYZ>::Ptr database_cloud(
       new pcl::PointCloud<pcl::PointXYZ>());
-  query_cloud->points.resize(similarities.cols());
-  database_cloud->points.resize(similarities.cols());
   pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
-  correspondences->resize(similarities.cols());
 
-  for (size_t i = 0u; i < similarities.cols(); ++i) {
-    GraphMatcher::MaxSimilarityMatrixType::Index max_index;
-    similarities.col(i).maxCoeff(&max_index);
-    query_cloud->points[i].getVector3fMap() =
-        query_semantic_graph[i].location_3d.cast<float>();
+  // Fill up the database cloud consisting of all candidate matches.
+  for(uint64_t i = 0; i < num_query_vertices; ++i) {
+    // Retrieve the best num_candidate_matches for the i-th query vertex.
+    Eigen::VectorXi candidate_matches = argsort(similarities.col(i));
+    if(candidate_matches.rows() >= num_candidate_matches) {
+      candidate_matches = candidate_matches.head(num_candidate_matches).eval();
+    }
 
-    database_cloud->points[i].getVector3fMap() =
-        database_semantic_graph[max_index].location_3d.cast<float>();
-    (*correspondences)[i].index_query = i;
-    (*correspondences)[i].index_match = i;
+    for(int j = 0; j < candidate_matches.rows(); ++j) {
+      const Vector3r& vertex_position =
+          global_semantic_graph_[candidate_matches(j)].location_3d;
+      database_cloud->points.push_back(pcl::PointXYZ(vertex_position[0],
+                                                     vertex_position[1],
+                                                     vertex_position[2]));
+
+      pcl::Correspondence correspondence;
+      correspondence.index_query = i;
+      correspondence.index_match = candidate_matches[j];
+      correspondences->push_back(correspondence);
+    }
   }
+
 
   // Perform geometric consistency filtering.
   pcl::GeometricConsistencyGrouping <pcl::PointXYZ, pcl::PointXYZ> grouping;
@@ -306,10 +329,7 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
   grouping.setGCThreshold(matcher_parameters->getFloat("consistency_threshold"));
   grouping.setGCSize(matcher_parameters->getFloat("consistency_size"));
 
-  const uint64_t query_size = similarities.cols();
-  const int num_candidate_matches =
-      matcher_parameters->getInteger("num_candidate_matches");
-  candidate_matches->resize(num_candidate_matches, query_size);
+  candidate_matches->resize(num_candidate_matches, num_query_vertices);
   // Initialize all matches as invalid.
   candidate_matches->setConstant(INVALID_MATCH_INDEX);
   TransformationVector transformations;
@@ -318,7 +338,7 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
     return false;
   }
 
-  // Update vector of invalid matches.
+  // Update matrix of candidate matches
   for (size_t i = 0u; i < clustered_correspondences[0].size(); ++i) {
     // FIXME
     //(*invalid_matches)((clustered_correspondences[0])[i].index_query) = false;
