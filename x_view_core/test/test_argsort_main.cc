@@ -17,6 +17,8 @@ TEST(XViewSlamTestSuite, test_argsort) {
 
   testRandom();
 
+  testRepeating();
+
 }
 
 

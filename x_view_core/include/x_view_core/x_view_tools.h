@@ -102,7 +102,7 @@ Eigen::VectorXi argsort(const Eigen::MatrixBase<Derived>& x) {
   }
   std::sort(data.begin(), data.end(), argsortComp);
   for (int i = 0; i < data.size(); i++) {
-    indices(data[i].first) = i;
+    indices(i) = data[i].first;
   }
   return indices;
 }

@@ -274,9 +274,10 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
 
   const GraphMatcher::SimilarityMatrixType& similarities =
       matches.getSimilarityMatrix();
+
   // Number of candidate matches per query vertex.
-  const int num_candidate_matches =
-      matcher_parameters->getInteger("num_candidate_matches");
+  const int num_candidate_matches = 1;
+      // matcher_parameters->getInteger("num_candidate_matches");
 
   const uint64_t num_query_vertices = similarities.cols();
 
@@ -301,47 +302,60 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
   // Fill up the database cloud consisting of all candidate matches.
   for(uint64_t i = 0; i < num_query_vertices; ++i) {
     // Retrieve the best num_candidate_matches for the i-th query vertex.
-    Eigen::VectorXi candidate_matches = argsort(similarities.col(i));
-    if(candidate_matches.rows() >= num_candidate_matches) {
-      candidate_matches = candidate_matches.head(num_candidate_matches).eval();
+    Eigen::VectorXi candidate_matches_i =
+        argsort(similarities.col(i)).reverse();
+    if(candidate_matches_i.rows() >= num_candidate_matches) {
+      candidate_matches_i =
+          candidate_matches_i.head(num_candidate_matches).eval();
     }
 
-    for(int j = 0; j < candidate_matches.rows(); ++j) {
+    for(int j = 0; j < candidate_matches_i.rows(); ++j) {
+      const int candidate_match_in_global_graph = candidate_matches_i(j);
       const Vector3r& vertex_position =
-          global_semantic_graph_[candidate_matches(j)].location_3d;
+          global_semantic_graph_[candidate_match_in_global_graph].location_3d;
       database_cloud->points.push_back(pcl::PointXYZ(vertex_position[0],
                                                      vertex_position[1],
                                                      vertex_position[2]));
 
       pcl::Correspondence correspondence;
       correspondence.index_query = i;
-      correspondence.index_match = candidate_matches[j];
+      correspondence.index_match = candidate_match_in_global_graph;
       correspondences->push_back(correspondence);
     }
   }
-
-
   // Perform geometric consistency filtering.
   pcl::GeometricConsistencyGrouping <pcl::PointXYZ, pcl::PointXYZ> grouping;
   grouping.setSceneCloud(database_cloud);
   grouping.setInputCloud(query_cloud);
   grouping.setModelSceneCorrespondences(correspondences);
+  // Set the minimum cluster size.
   grouping.setGCThreshold(matcher_parameters->getFloat("consistency_threshold"));
+  // Sets the consensus set resolution in metric units.
   grouping.setGCSize(matcher_parameters->getFloat("consistency_size"));
 
   candidate_matches->resize(num_candidate_matches, num_query_vertices);
-  // Initialize all matches as invalid.
+  // Initialize all candidate matches as invalid.
   candidate_matches->setConstant(INVALID_MATCH_INDEX);
+  std::cout << "Here" << std::endl;
+
   TransformationVector transformations;
   std::vector<pcl::Correspondences> clustered_correspondences(1);
   if (!grouping.recognize(transformations, clustered_correspondences)) {
     return false;
   }
+  std::cout << "there" << std::endl;
 
   // Update matrix of candidate matches
-  for (size_t i = 0u; i < clustered_correspondences[0].size(); ++i) {
-    // FIXME
-    //(*invalid_matches)((clustered_correspondences[0])[i].index_query) = false;
+  std::cout << "Correspondence has " << transformations.size() << " "
+      "transformations, query vertices were " << num_query_vertices <<
+                                                                    std::endl;
+  for(uint64_t instance = 0; instance < transformations.size(); ++instance) {
+    std::cout << "Correspondeces for instance " << instance << " are: "
+              << clustered_correspondences[instance].size() << std::endl;
+    for (size_t i = 0u; i < clustered_correspondences[0].size(); ++i) {
+      // FIXME
+      //(*invalid_matches)((clustered_correspondences[0])[i].index_query) = false;
+    }
   }
 
   LOG(INFO) << "Filtered out "

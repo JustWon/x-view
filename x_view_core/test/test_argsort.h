@@ -11,6 +11,8 @@ void testArgsortRows();
 
 void testRandom();
 
+void testRepeating();
+
 }
 
 #endif //X_VIEW_TEST_ARGSORT_H

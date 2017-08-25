@@ -48,11 +48,27 @@ void testRandom() {
     std::sort(sorted.data(), sorted.data() + sorted.size());
 
     Eigen::VectorXi order = x_view::argsort(r);
-    r = (order.asPermutation() * r).eval();
+    Eigen::VectorXd ordered(size);
+    for(int i = 0; i < order.size(); ++i) {
+      ordered(i) = r(order(i));
+    }
 
     for (int i = 0; i < size; ++i) {
-      CHECK_DOUBLE_EQ(r[i], sorted[i]);
+      CHECK_DOUBLE_EQ(ordered[i], sorted[i]);
     }
+  }
+}
+
+void testRepeating() {
+  const int size = 5;
+  Eigen::VectorXd r;
+  r.resize(size);
+  r << 1, 2, 0, 0, 1;
+
+  const Eigen::VectorXi order = x_view::argsort(r);
+
+  for(int i = 0; i < size - 1; ++i) {
+    CHECK_LE(r(order(i)), r(order(i+1)));
   }
 }
 }

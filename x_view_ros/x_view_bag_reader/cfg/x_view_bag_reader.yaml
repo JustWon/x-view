@@ -28,7 +28,7 @@ Matcher: {
     merge_distance: 2.0,
     link_close_vertices: True,
     max_link_distance: 5.0,
-    outlier_rejection: false,
+    outlier_rejection: True,
     num_candidate_matches: 3,
     consistency_threshold: 5.0,
     consistency_size: 2.0
@@ -60,8 +60,8 @@ XViewBagReader: {
     transform_topic: "/tf",
     world_frame: "world",
 
-    start_frame: 200,
-    end_frame: 350,
+    start_frame: 0,
+    end_frame: 10,
 
     pause_active: False,
 
@@ -71,6 +71,6 @@ XViewBagReader: {
     graph_construction_camera: "FRONT",
     localization_camera: "FRONT",
 
-    local_graph_steps: 10,
+    local_graph_steps: 8,
     run_name: "AutoRun-16-07-39"
 }
