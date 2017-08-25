@@ -57,6 +57,7 @@ real_t GraphLocalizer::localize(
     SE3* transformation) {
 
   CHECK_NOTNULL(transformation);
+
   if(pose_vertex_measurements_.size() == 0) {
     LOG(WARNING) << "No pose-vertex measurements found.";
     transformation->setIdentity();
@@ -181,12 +182,15 @@ real_t GraphLocalizer::localize(
             location_db);
       }
       // Add initial guesses for query_graph at database vertex locations.
-      SE3 location(
-          vertex_vertex_measurements_[i].vertex_b.location_3d.cast<double>(),
-          SO3(1, 0, 0, 0));
-      initials.insert(
-          gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_a.index),
-          location);
+      if (!initials.exists(
+          gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_a.index))) {
+        SE3 location(
+            vertex_vertex_measurements_[i].vertex_b.location_3d.cast<double>(),
+            SO3(1, 0, 0, 0));
+        initials.insert(
+            gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_a.index),
+            location);
+      }
     }
 
     // Compute initial guess for robot and vertex positions as the

@@ -34,7 +34,7 @@ x_view_produced_graph_dir = "/home/carlo/x-view_ws_release/src/x-view/x_view_cor
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 # Resource directory containing all destination_dir s
-resources_dir = os.path.join(current_dir, "new_resources")
+resources_dir = os.path.join(current_dir, "candidate_comparison")
 
 # Path to folder used to collect generated data (local path).
 destination_dir = os.path.join(resources_dir, run_name)
@@ -47,49 +47,44 @@ def launchXView(runs):
     # Create a config file generator.
     x_view_config = XViewConfig(x_view_config_file=x_view_cfg_file)
 
-    extraction_types = ["3D_SPACE"]  # ["IMAGE", "3D_SPACE"]
-    similarity_scores = ["WEIGHTED"]  # ["WEIGHTED", "SURFACE"]
-    sampling_types = ["UNIFORM", "WEIGHTED"]  # ["UNIFORM", "AVOIDING", "NON_RETURNING", "WEIGHTED"]
-    localization_steps = [1, 5, 10]
-    construction_cameras = ["FRONT", "BACK"]
-    localization_cameras = ["FRONT", "BACK"]
+    candidate_numbers = [1, 3, 5]
+    consistency_thresholds = [2.0, 5.0, 10.0]
+    consistency_sizes = [2, 4]
 
-    for extraction_type in extraction_types:
-        for similarity_score in similarity_scores:
-            for sampling_type in sampling_types:
-                for localization_step in localization_steps:
-                    for construction_camera in construction_cameras:
-                        for localization_camera in localization_cameras:
-                            custom_arguments = {
-                                "run_name": run_name,
-                                "extraction_type": extraction_type,
-                                "vertex_similarity_score": similarity_score,
-                                "random_walk_sampling_type": sampling_type,
-                                "local_graph_steps": localization_step,
-                                "graph_construction_camera": construction_camera,
-                                "localization_camera": localization_camera,
-                                "end_frame": 100
-                            }
 
-                            # Write the config file to the x_view_config_file.
-                            x_view_config.writeConfigFile(custom_arguments)
+    for candidate_number in candidate_numbers:
+        for consistency_threshold in consistency_thresholds:
+            for consistency_size in consistency_sizes:
+                custom_arguments = {
+                    "run_name": run_name,
+                    "random_walk_sampling_type": "WEIGHTED",
+                    "local_graph_steps": 5,
+                    "end_frame": 100,
+                    "outlier_rejection": True,
+                    "num_candidate_matches": candidate_number,
+                    "consistency_threshold": consistency_threshold,
+                    "consistency_size": consistency_size
+                }
 
-                            # Create an XView executer.
-                            folder_suffix = ""
-                            for key in custom_arguments:
-                                if key is not "run_name":
-                                    folder_suffix += "_" + str(custom_arguments[key])
+                # Write the config file to the x_view_config_file.
+                x_view_config.writeConfigFile(custom_arguments)
 
-                            run_folder_name = run_name + folder_suffix
-                            run_folder_name = os.path.join(resources_dir, run_folder_name)
-                            x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
-                                                  x_view_evaluation_output_dir=x_view_evaluation_dir,
-                                                  x_view_graph_output_dir=x_view_produced_graph_dir,
-                                                  x_view_config_file=x_view_cfg_file,
-                                                  evaluation_storage_dir=run_folder_name)
+                # Create an XView executer.
+                folder_suffix = ""
+                for key in custom_arguments:
+                    if key is not "run_name":
+                        folder_suffix += "_" + str(custom_arguments[key])
 
-                            # Run XView with the current arguments for num_runs times and store the evaluations.
-                            x_view_run.run(num_runs=runs, store_eval=True)
+                run_folder_name = run_name + folder_suffix
+                run_folder_name = os.path.join(resources_dir, run_folder_name)
+                x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
+                                      x_view_evaluation_output_dir=x_view_evaluation_dir,
+                                      x_view_graph_output_dir=x_view_produced_graph_dir,
+                                      x_view_config_file=x_view_cfg_file,
+                                      evaluation_storage_dir=run_folder_name)
+
+                # Run XView with the current arguments for num_runs times and store the evaluations.
+                x_view_run.run(num_runs=runs, store_eval=True)
 
 
 def plotLastTimings():
@@ -162,7 +157,7 @@ def plotPR():
 
 
 if __name__ == '__main__':
-    # launchXView(runs=1)
+    launchXView(runs=1)
 
     # plotLastTimings()
 

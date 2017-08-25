@@ -171,7 +171,7 @@ real_t XView::localizeGraph(const Graph& query_graph,
   // Add relative pose-to-pose observations to the graph localizer, assuming
   // poses are consecutive.
 
-  for (size_t i = 0u; i < pose_ids.size() - 1; ++i) {
+  for (uint64_t i = 0u; i < pose_ids.size() - 1; ++i) {
     graph_localizer.addPosePoseMeasurement(pose_ids[i], pose_ids[i + 1]);
   }
 
@@ -182,7 +182,7 @@ real_t XView::localizeGraph(const Graph& query_graph,
     if(isValidCandidate(i)) {
       const VertexProperty& vertex_property = query_graph[i];
       // Add a pose-node observation for each observer of node.
-      for (size_t i_pose = 0u; i_pose < vertex_property.observers.size();
+      for (uint64_t i_pose = 0u; i_pose < vertex_property.observers.size();
            ++i_pose) {
         graph_localizer.addPoseVertexMeasurement(
             vertex_property, vertex_property.observers[i_pose]);
