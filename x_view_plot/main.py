@@ -35,7 +35,7 @@ x_view_produced_graph_dir = "/home/carlo/x-view_ws_release/src/x-view/x_view_cor
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 # Resource directory containing all destination_dir s
-resources_dir = os.path.join(current_dir, "new_resources")
+resources_dir = os.path.join(current_dir, "front-back-comparison")
 
 # Path to folder used to collect generated data (local path).
 destination_dir = os.path.join(resources_dir, run_name)
@@ -74,38 +74,43 @@ def launchXView(runs):
                             }
     """
 
-    use_robust_noise_model = [False, True]
+    cameras = [["FRONT", "FRONT"], ["FRONT", "BACK"]]
+    local_graph_steps = [1, 5, 10]
+    sampling_types = ["UNIFORM", "WEIGHTED"]
 
-    for noise in use_robust_noise_model:
-        custom_arguments = {
-            "run_name": run_name,
-            "extraction_type": "3D_SPACE",
-            "local_graph_steps": 5,
-            "graph_construction_camera": "FRONT",
-            "localization_camera": "FRONT",
-            "end_frame": 600,
-            "use_robust_noise": noise
-        }
+    for local_graph_step in local_graph_steps:
+        for camera in cameras:
+            for sampling_type in sampling_types:
+                custom_arguments = {
+                    "run_name": run_name,
+                    "extraction_type": "3D_SPACE",
+                    "local_graph_steps": local_graph_step,
+                    "random_walk_sampling_type": sampling_type,
+                    "graph_construction_camera": camera[0],
+                    "localization_camera": camera[1],
+                    "end_frame": 600,
+                    "use_robust_noise": True
+                }
 
-        # Write the config file to the x_view_config_file.
-        x_view_config.writeConfigFile(custom_arguments)
+                # Write the config file to the x_view_config_file.
+                x_view_config.writeConfigFile(custom_arguments)
 
-        # Create an XView executer.
-        folder_suffix = ""
-        for key in sorted(custom_arguments.keys()):
-            if key is not "run_name":
-                folder_suffix += "_" + str(custom_arguments[key])
+                # Create an XView executer.
+                folder_suffix = ""
+                for key in sorted(custom_arguments.keys()):
+                    if key is not "run_name":
+                        folder_suffix += "_" + str(custom_arguments[key])
 
-        run_folder_name = run_name + folder_suffix
-        run_folder_name = os.path.join(resources_dir, run_folder_name)
-        x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
-                              x_view_evaluation_output_dir=x_view_evaluation_dir,
-                              x_view_graph_output_dir=x_view_produced_graph_dir,
-                              x_view_config_file=x_view_cfg_file,
-                              evaluation_storage_dir=run_folder_name)
+                run_folder_name = run_name + folder_suffix
+                run_folder_name = os.path.join(resources_dir, run_folder_name)
+                x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
+                                      x_view_evaluation_output_dir=x_view_evaluation_dir,
+                                      x_view_graph_output_dir=x_view_produced_graph_dir,
+                                      x_view_config_file=x_view_cfg_file,
+                                      evaluation_storage_dir=run_folder_name)
 
-        # Run XView with the current arguments for num_runs times and store the evaluations.
-        x_view_run.run(num_runs=runs, store_eval=True)
+                # Run XView with the current arguments for num_runs times and store the evaluations.
+                x_view_run.run(num_runs=runs, store_eval=True)
 
 
 
@@ -165,7 +170,7 @@ def plotPR():
         eval_directory = os.path.join(run_directory, "eval")
         localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
 
-        x_view_pr = XViewPR(filename=localization_file_name, true_threshold=0.04)
+        x_view_pr = XViewPR(filename=localization_file_name, true_threshold=0.06)
         PR = x_view_pr.computePR()
 
         order = PR[0:, 1].argsort()
@@ -184,8 +189,8 @@ def plotPR():
 
 
 if __name__ == '__main__':
-    launchXView(runs=1)
+    # launchXView(runs=1)
 
     # plotLastTimings()
 
-    # plotPR()
+    plotPR()

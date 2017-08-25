@@ -2,8 +2,6 @@ from . import getLocalizations
 import numpy as np
 import os
 
-from matplotlib import pylab as plt
-
 
 class XViewPR:
     def __init__(self, filename, true_threshold=None):

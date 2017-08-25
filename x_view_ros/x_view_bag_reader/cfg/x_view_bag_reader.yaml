@@ -18,7 +18,7 @@ Landmark: {
 Matcher: {
     type: "GRAPH",
     vertex_similarity_score: "WEIGHTED",
-    random_walk_sampling_type: "NON_RETURNING",
+    random_walk_sampling_type: "WEIGHTED",
     num_walks: 300,
     walk_length: 3,
     time_window: 10,
@@ -40,7 +40,7 @@ Localizer: {
 
 # Parameters read exclusively by XViewBagReader
 XViewBagReader: {
-  bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/Synthia_3_cams.bag",
+  bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/synthia_town.bag",
   back: {
     semantics_image_topic: "/Stereo_Left/Omni_B/labels",
     depth_image_topic: "/Stereo_Left/Omni_B/depth",
@@ -69,8 +69,8 @@ XViewBagReader: {
   relabeling_percentage: 0.0,
 
   graph_construction_camera: "FRONT",
-  localization_camera: "FRONT",
+  localization_camera: "BACK",
 
-  local_graph_steps: 5,
-  run_name: "AutoRun-14-19-17"
+  local_graph_steps: 10,
+  run_name: "AutoRun-16-40-42"
 }
