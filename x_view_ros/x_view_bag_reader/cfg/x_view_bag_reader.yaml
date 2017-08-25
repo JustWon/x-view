@@ -28,16 +28,11 @@ Matcher: {
     merge_distance: 2.0,
     link_close_vertices: True,
     max_link_distance: 5.0,
-<<<<<<< HEAD
+
     outlier_rejection: True,
     num_candidate_matches: 1,
     consistency_threshold: 2.0,
     consistency_size: 2
-=======
-    outlier_rejection: False,
-    consistency_threshold: 5.0,
-    consistency_size: 2.0
->>>>>>> test/remove-robust-noise-models
 }
 
 Localizer: {
@@ -47,11 +42,8 @@ Localizer: {
 
 # Parameters read exclusively by XViewBagReader
 XViewBagReader: {
-<<<<<<< HEAD
-  bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/Synthia_3_cams.bag",
-=======
   bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/synthia_town.bag",
->>>>>>> test/remove-robust-noise-models
+
   back: {
     semantics_image_topic: "/Stereo_Left/Omni_B/labels",
     depth_image_topic: "/Stereo_Left/Omni_B/depth",
@@ -72,11 +64,9 @@ XViewBagReader: {
   world_frame: "world",
 
   start_frame: 0,
-<<<<<<< HEAD
+
   end_frame: 100,
-=======
-  end_frame: 600,
->>>>>>> test/remove-robust-noise-models
+
 
   pause_active: False,
 
@@ -84,15 +74,9 @@ XViewBagReader: {
   relabeling_percentage: 0.0,
 
   graph_construction_camera: "FRONT",
-<<<<<<< HEAD
+
   localization_camera: "FRONT",
 
   local_graph_steps: 5,
   run_name: "AutoRun-16-16-09"
-=======
-  localization_camera: "BACK",
-
-  local_graph_steps: 10,
-  run_name: "AutoRun-16-40-42"
->>>>>>> test/remove-robust-noise-models
 }
