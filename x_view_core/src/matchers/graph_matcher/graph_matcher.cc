@@ -295,11 +295,21 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
   pcl::PointCloud<pcl::PointXYZ>::Ptr query_cloud(
       new pcl::PointCloud<pcl::PointXYZ>());
 
+  // Function to check if a query vertex has at least one valid candidate.
+  auto isValidCandidate = [&](const uint64_t index) -> bool {
+    for(int i = 0; i < candidate_matches->rows(); ++i) {
+      if(candidate_matches->operator()(i, index) != INVALID_MATCH_INDEX)
+        return true;
+    }
+    return false;
+  };
+
   // Fill up the query cloud consisting of all vertices in the query graph.
-  query_cloud->points.resize(num_query_vertices);
   for(uint64_t i = 0; i < num_query_vertices; ++i) {
-    query_cloud->points[i].getVector3fMap() =
-        query_semantic_graph[i].location_3d.cast<float>();
+    const Vector3r& position = query_semantic_graph[i].location_3d;
+    query_cloud->points.push_back(pcl::PointXYZ(position[0],
+                                                position[1],
+                                                position[2]));
   }
 
   // Prepare database point cloud with associated correspondences.
@@ -335,6 +345,10 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
       // if the semantic similarity was low against each vertex of the
       // global semantic graph.
       if(similarity_matrix(candidate_matches_i(j), i) == 0)
+        continue;
+
+      // Check that the candidate is valid.
+      if(candidate_matches->operator()(j, i) == INVALID_MATCH_INDEX)
         continue;
 
       ++num_proposed_matches;
@@ -385,6 +399,11 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
       CHECK_LT(i, query_cloud->points.size());
       CHECK_LT(index_match, database_cloud->points.size());
     }
+  }
+
+  if(query_cloud->points.size() == 0 || database_cloud->points.size() == 0) {
+    LOG(WARNING) << "No valid matches to be filtering.";
+    return false;
   }
 
   // Perform geometric consistency filtering.
@@ -536,7 +555,9 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
       candidate_matches_j =
           candidate_matches_j.head(num_candidate_matches).eval();
     }
-    candidate_matches->col(j) = candidate_matches_j;
+
+    for(uint64_t i = 0; i < candidate_matches_j.rows(); ++i)
+      candidate_matches->operator()(i, j) = candidate_matches_j(i);
   }
 }
 

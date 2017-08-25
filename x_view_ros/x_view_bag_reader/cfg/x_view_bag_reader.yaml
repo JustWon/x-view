@@ -28,22 +28,20 @@ Matcher: {
     merge_distance: 2.0,
     link_close_vertices: True,
     max_link_distance: 5.0,
-
     outlier_rejection: True,
-    num_candidate_matches: 1,
+    num_candidate_matches: 2,
     consistency_threshold: 2.0,
     consistency_size: 2
 }
 
 Localizer: {
     type: "OPTIMIZATION",
-    use_robust_noise: True
+    use_robust_noise: False
 }
 
 # Parameters read exclusively by XViewBagReader
 XViewBagReader: {
   bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/synthia_town.bag",
-
   back: {
     semantics_image_topic: "/Stereo_Left/Omni_B/labels",
     depth_image_topic: "/Stereo_Left/Omni_B/depth",
@@ -64,9 +62,7 @@ XViewBagReader: {
   world_frame: "world",
 
   start_frame: 0,
-
-  end_frame: 100,
-
+  end_frame: 40,
 
   pause_active: False,
 
@@ -74,9 +70,8 @@ XViewBagReader: {
   relabeling_percentage: 0.0,
 
   graph_construction_camera: "FRONT",
-
   localization_camera: "FRONT",
 
   local_graph_steps: 5,
-  run_name: "AutoRun-16-16-09"
+  run_name: "AutoRun-16-30-56"
 }

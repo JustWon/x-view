@@ -262,23 +262,23 @@ real_t GraphLocalizer::localize(
   } else if (localizer_type == "ESTIMATION") {
 
     // Retrieve locations of matching node pairs.
-    GraphMatcher::MaxSimilarityMatrixType similarities = matching_result
-        .computeMaxSimilarityColwise();
+    const GraphMatcher::MaxSimilarityMatrixType similarity_matrix =
+        matching_result.computeMaxSimilarityColwise();
 
     // Retrieve invalid matches.
     const GraphMatcher::IndexMatrixType& candidate_matches =
         matching_result.getCandidateMatches();
 
-    uint64_t num_valids = 0;
+    uint64_t num_valid_query = 0;
     for(int j = 0; j < candidate_matches.cols(); ++j){
       for(int i = 0; i < candidate_matches.rows(); ++i) {
         if(candidate_matches(i, j) != GraphMatcher::INVALID_MATCH_INDEX) {
-          ++num_valids;
+          ++num_valid_query;
         }
       }
     }
 
-    if (num_valids == 0) {
+    if (num_valid_query == 0) {
       LOG(WARNING) << "Unable to estimate transformation, only invalid matches.";
       return std::numeric_limits<real_t>::max();
     }
@@ -290,26 +290,66 @@ real_t GraphLocalizer::localize(
         new pcl::PointCloud<pcl::PointXYZ>());
     pcl::PointCloud<pcl::PointXYZ>::Ptr database_cloud(
         new pcl::PointCloud<pcl::PointXYZ>());
-    query_cloud->points.resize(num_valids);
-    database_cloud->points.resize(num_valids);
-    pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
-    correspondences->resize(num_valids);
 
-    size_t valid = 0u;
-    for (size_t i = 0u; i < similarities.cols(); ++i) {
-      // Only add matches if they are valid.
-      // FIXME
-      // if (!invalid_matches(i)) {
-        GraphMatcher::MaxSimilarityMatrixType::Index maxIndex;
-        similarities.col(i).maxCoeff(&maxIndex);
-        query_cloud->points[valid].getVector3fMap() = query_semantic_graph[i]
-            .location_3d.cast<float>();
-        database_cloud->points[valid].getVector3fMap() =
-            database_semantic_graph[maxIndex].location_3d.cast<float>();
-        (*correspondences)[valid].index_query = valid;
-        (*correspondences)[valid].index_match = valid;
-        ++valid;
-      //}
+    pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
+
+    // index_in_database_cloud =
+    //     vertex_index_to_database_pointcloud[index_in_global_semantic_graph];
+    std::unordered_map<uint64_t, uint64_t>
+        vertex_index_to_database_pointcloud;
+
+
+    for (size_t i = 0u; i < similarity_matrix.cols(); ++i) {
+      // Iterate over the candidate matches.
+      for(uint64_t j_id = 0; j_id < candidate_matches.rows(); ++j_id) {
+        const int candidate_match_in_global_graph =
+            candidate_matches(j_id, i);
+        // Ignore the match in case it was markerd as invalid.
+        if(candidate_match_in_global_graph == GraphMatcher::INVALID_MATCH_INDEX)
+          continue;
+        const Vector3r& query_position = query_semantic_graph[i].location_3d;
+        query_cloud->points.push_back(pcl::PointXYZ(query_position[0],
+                                                    query_position[1],
+                                                    query_position[2]));
+
+        // Determine if the database_vertex has already been seen.
+        uint64_t index_match;
+        // If that database vertex has already been added to the
+        // database_pointcloud, we don't need to add that vertex to the
+        // pointcloud, but only need to refer to it through its index in the
+        // database_cloud.
+        if(vertex_index_to_database_pointcloud.count
+            (candidate_match_in_global_graph) > 0)
+          index_match = vertex_index_to_database_pointcloud
+          [candidate_match_in_global_graph];
+        else {
+          // Add the new vertex to the database_cloud and use its new index.
+          const Vector3r& vertex_position =
+              database_semantic_graph[candidate_match_in_global_graph].location_3d;
+          database_cloud->points.push_back(pcl::PointXYZ(vertex_position[0],
+                                                         vertex_position[1],
+                                                         vertex_position[2]));
+
+          // The index of the newly added vertex is the one corresponding to
+          // the last inserted element in the pointcoloud.
+          index_match = database_cloud->points.size() - 1;
+
+          // Store the correspondences in indices.
+          vertex_index_to_database_pointcloud[candidate_match_in_global_graph] =
+              index_match;
+        }
+
+        // Create a correspondence between the query vertex and the associated
+        // database vertex.
+        pcl::Correspondence correspondence;
+        // The index query corresponds to the index of the point in the
+        // query_cloud of th vertex of the query_graph.
+        correspondence.index_query = i;
+        // The index match corresponds to the index of the last added point in
+        // the database_cloud.
+        correspondence.index_match = index_match;
+        correspondences->push_back(correspondence);
+      }
     }
 
     // Perform transformation estimation based on SVD.
