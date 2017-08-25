@@ -289,7 +289,7 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
   // Fill up the query cloud consisting of all vertices in the query graph.
   query_cloud->points.resize(num_query_vertices);
   for(uint64_t i = 0; i < num_query_vertices; ++i) {
-    query_cloud->points[i].getVector3fMat() =
+    query_cloud->points[i].getVector3fMap() =
         query_semantic_graph[i].location_3d.cast<float>();
   }
 
@@ -345,8 +345,8 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
   }
 
   LOG(INFO) << "Filtered out "
-            << query_size - clustered_correspondences[0].size() << " of "
-            << query_size << " matches.";
+            << num_query_vertices - clustered_correspondences[0].size() << " of "
+            << num_query_vertices << " matches.";
 
   if (transformations.size() == 0) {
     LOG(WARNING) << "Geometric consistency filtering failed.";

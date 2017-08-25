@@ -112,7 +112,7 @@ void testBlobNeighborPerformance() {
   std::chrono::duration<x_view::real_t, std::ratio<1, 1000>>
       with_libnabo_duration, without_libnabo_duration;
 
-  const uint64_t repetitions = 1000;
+  const uint64_t repetitions = 2000;
   {
     const bool use_libnabo = true;
     auto start_time = std::chrono::high_resolution_clock::now();

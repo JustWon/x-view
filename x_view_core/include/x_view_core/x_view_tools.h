@@ -83,14 +83,16 @@ const real_t dist(const VertexProperty& v_p1, const VertexProperty& v_p2);
 const real_t angle(const SE3& p1, const SE3& p2);
 
 /// \brief Computes the argsort of any Eigen type matrix.
+/// \return Sorted indices in increasing order such that x[indices[i]] <
+/// x[indices[i+1]]
 template<typename Derived>
 Eigen::VectorXi argsort(const Eigen::MatrixBase<Derived>& x) {
 
   typedef std::pair<int, double> argsort_pair;
 
-  bool argsort_comp(const argsort_pair& left, const argsort_pair& right) {
+  auto argsortComp = [](const argsort_pair& left, const argsort_pair& right) {
     return left.second < right.second;
-  }
+  };
 
   Eigen::VectorXi indices(x.size());
   std::vector<argsort_pair> data(x.size());
@@ -98,7 +100,7 @@ Eigen::VectorXi argsort(const Eigen::MatrixBase<Derived>& x) {
     data[i].first = i;
     data[i].second = static_cast<double>(x(i));
   }
-  std::sort(data.begin(), data.end(), argsort_comp);
+  std::sort(data.begin(), data.end(), argsortComp);
   for (int i = 0; i < data.size(); i++) {
     indices(data[i].first) = i;
   }
