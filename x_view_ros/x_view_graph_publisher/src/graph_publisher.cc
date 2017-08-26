@@ -49,6 +49,12 @@ void GraphPublisher::publishMatches(
     const x_view::GraphMatcher::IndexMatrixType& candidate_matches,
     const ros::Time& time, double z_offset) const {
 
+  // Delete all matches of the previous frame.
+  // Delete all markers of the previous frame.
+  visualization_msgs::Marker reset_marker;
+  reset_marker.action = 3;
+  matches_publisher_.publish(reset_marker);
+
   // Iterate over all matches and publish edge between local graph and database
   // graph if there is a valid match.
   for (size_t row = 0u; row < candidate_matches.rows(); ++row) {
@@ -71,7 +77,7 @@ void GraphPublisher::publishMatches(
         marker.scale.x = 0.2f;
 
         marker.color.r = 0.0f;
-        marker.color.g = 255.0f;
+        marker.color.g = 1.0f;
         marker.color.b = 0.0f;
         marker.color.a = 0.7f;
 
