@@ -50,10 +50,27 @@ void GraphPublisher::publishMatches(
     const ros::Time& time, double z_offset) const {
 
   // Delete all matches of the previous frame.
-  // Delete all markers of the previous frame.
   visualization_msgs::Marker reset_marker;
   reset_marker.action = 3;
   matches_publisher_.publish(reset_marker);
+
+  visualization_msgs::Marker marker;
+
+  // Create marker properties which are the same for all lines.
+  marker.header.frame_id = "/world";
+  marker.header.stamp = time;
+  marker.ns = "semantic_graph_matches";
+  marker.type = visualization_msgs::Marker::LINE_LIST;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.scale.x = 0.2f;
+
+  marker.color.r = 0.0f;
+  marker.color.g = 1.0f;
+  marker.color.b = 0.0f;
+  marker.color.a = 0.7f;
+
+  marker.lifetime = ros::Duration();
 
   // Iterate over all matches and publish edge between local graph and database
   // graph if there is a valid match.
@@ -61,27 +78,6 @@ void GraphPublisher::publishMatches(
     for (size_t col = 0; col < candidate_matches.cols(); ++col) {
       if (candidate_matches(row, col)
           != x_view::GraphMatcher::INVALID_MATCH_INDEX) {
-
-        visualization_msgs::Marker marker;
-        // All coordinates are expressed in the world frame.
-        marker.header.frame_id = "/world";
-        marker.header.stamp = time;
-
-        marker.ns = "semantic_graph_matches";
-        marker.id = row + col * candidate_matches.rows();
-
-        marker.type = visualization_msgs::Marker::LINE_LIST;
-
-        marker.action = visualization_msgs::Marker::ADD;
-
-        marker.scale.x = 0.2f;
-
-        marker.color.r = 0.0f;
-        marker.color.g = 1.0f;
-        marker.color.b = 0.0f;
-        marker.color.a = 0.7f;
-
-        marker.lifetime = ros::Duration();
 
         const auto& v_p_from = query_graph[col];
         const auto& v_p_to = database_graph[candidate_matches(row, col)];
@@ -98,11 +94,10 @@ void GraphPublisher::publishMatches(
 
         marker.points.push_back(p_from);
         marker.points.push_back(p_to);
-
-        matches_publisher_.publish(marker);
       }
     }
   }
+  matches_publisher_.publish(marker);
 }
 
 void GraphPublisher::publishVertices(const x_view::Graph& graph,

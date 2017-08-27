@@ -129,8 +129,6 @@ real_t XView::localizeGraph(const Graph& query_graph,
   GraphMatcher::SimilarityMatrixType& similarity_matrix =
       matching_result.getSimilarityMatrix();
 
-  (*candidate_matches) = matching_result.getCandidateMatches();
-
   const std::string score_type_str = Locator::getParameters()
       ->getChildPropertyList("matcher")->getString("vertex_similarity_score");
   VertexSimilarity::SCORE_TYPE score_type;
@@ -143,6 +141,7 @@ real_t XView::localizeGraph(const Graph& query_graph,
   std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
       ->computeSimilarityMatrix(
           random_walker, &similarity_matrix, candidate_matches, score_type);
+  matching_result.getCandidateMatches() = (*candidate_matches);
 
   // Filter matches with geometric consistency.
   if (Locator::getParameters()->getChildPropertyList("matcher")->getBoolean(
