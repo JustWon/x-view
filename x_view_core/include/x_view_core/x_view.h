@@ -62,6 +62,9 @@ class XView {
    * global semantic graph.
    * \param query_graph Semantic graph which is localized.
    * \param pose_ids PosesIds of robot, assumed to be in consecutive order.
+   * \param candidate_matches Matrix of candidate matches filled up by this
+   * function.
+   * \param similarity_matrix Similarity matrix filled up by this function.
    * \param pose An estimation of the pose of the query graph passed as
    * argument.
    * \return Normalized optimization residual to the localization.

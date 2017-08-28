@@ -119,7 +119,7 @@ class GraphMatcher : public AbstractMatcher {
    * \param query_semantic_graph Semantic graph that was matched against the
    * global_semantic_graph_.
    * \param database_semantic_graph Global semantic graph.
-   * \param similarity_matrix Similarity matrix assiciated to the query and
+   * \param similarity_matrix Similarity matrix associated to the query and
    * database semantic graph.
    * \param candidate_matches Index matrix filled up with filtered candidate
    * matches for each vertex of the query graph.

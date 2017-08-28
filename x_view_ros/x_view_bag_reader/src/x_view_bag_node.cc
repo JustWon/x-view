@@ -198,6 +198,8 @@ int main(int argc, char** argv) {
           bag_reader.localizeGraph(query_graph, pose_ids, &locations,
                                    &candidate_matches, &similarity_matrix);
 
+      std::cout << candidate_matches << std::endl << std::endl;
+
       std::cout << "Localization " << i - start_frame + 1 << " of "
                 << end_frame - local_graph_steps - start_frame << std::endl;
       LOG(INFO) << "Estimation: \n"
