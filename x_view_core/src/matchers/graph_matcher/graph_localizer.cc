@@ -68,8 +68,11 @@ real_t GraphLocalizer::localize(
   const auto& localizer_parameters =
       parameters->getChildPropertyList("localizer");
   const std::string localizer_type = localizer_parameters->getString("type");
+
+  const bool use_robust_noise_model_default = false;
   const bool use_robust_noise_model =
-      localizer_parameters->getBoolean("use_robust_noise");
+      localizer_parameters->getBoolean("use_robust_noise",
+                                       use_robust_noise_model_default);
 
   if (localizer_type == "OPTIMIZATION") {
     if (pose_vertex_measurements_.size() < 4) {
@@ -296,18 +299,17 @@ real_t GraphLocalizer::localize(
 
     pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
 
-    // index_in_database_cloud =
-    //     vertex_index_to_database_pointcloud[index_in_global_semantic_graph];
+    // Keep track of which vertex of the global semantic graph has which index
+    // in the database_cloud.
     std::unordered_map<uint64_t, uint64_t>
         vertex_index_to_database_pointcloud;
-
 
     for (size_t i = 0u; i < similarity_matrix.cols(); ++i) {
       // Iterate over the candidate matches.
       for(uint64_t j_id = 0; j_id < candidate_matches.rows(); ++j_id) {
         const int candidate_match_in_global_graph =
             candidate_matches(j_id, i);
-        // Ignore the match in case it was markerd as invalid.
+        // Ignore the match in case it was marked as invalid.
         if(candidate_match_in_global_graph == GraphMatcher::INVALID_MATCH_INDEX)
           continue;
         const Vector3r& query_position = query_semantic_graph[i].location_3d;
