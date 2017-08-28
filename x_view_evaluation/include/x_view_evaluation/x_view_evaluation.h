@@ -1,6 +1,8 @@
 #ifndef X_VIEW_EVALUATION_H
 #define X_VIEW_EVALUATION_H
 
+#include <x_view_core/features/graph.h>
+#include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/timer/null_timer.h>
 #include <x_view_core/timer/timer.h>
 
@@ -245,6 +247,48 @@ class Evaluation {
 
   /// \brief Instance of LocalizationEvaluation accessible publicly.
   LocalizationEvaluation localization;
+
+
+  class SimilarityEvaluation {
+
+    friend class Evaluation;
+
+   public:
+
+    bool writeToFolder(const std::string& folder_name,
+                       const std::string& suffix = "") const;
+
+    void addSimilarities(
+        const x_view::Graph& database_graph, const x_view::Graph& query_graph,
+        const x_view::GraphMatcher::SimilarityMatrixType& similarity_matrix,
+        const x_view::GraphMatcher::IndexMatrixType& candidate_matches);
+
+   private:
+    SimilarityEvaluation(const EvaluationParameters* params)
+        : params_(params) {}
+
+    struct SimilaritySample {
+      SimilaritySample() {}
+      SimilaritySample(const x_view::Vector3r& db_position,
+                       const x_view::Vector3r& query_position,
+                       const x_view::real_t similarity)
+          : db_position(db_position),
+            query_position(query_position),
+            similarity(similarity) {
+      }
+
+      x_view::Vector3r db_position;
+      x_view::Vector3r query_position;
+      x_view::real_t similarity;
+    };
+
+    std::vector<SimilaritySample> similarities_vector_;
+
+    const EvaluationParameters* params_;
+  };
+
+  /// \brief Instance of SimilarityEvaluation accessible publicly.
+  SimilarityEvaluation similarity;
 
  private:
 

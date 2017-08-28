@@ -200,6 +200,13 @@ int main(int argc, char** argv) {
     LOG(ERROR) << "Impossible to log time evaluation to "
                << evaluation_output_dir << ".";
 
+  const std::string similarity_suffix = "similarity";
+  if(!evaluation.similarity.writeToFolder(evaluation_output_dir,
+                                          similarity_suffix))
+    LOG(ERROR) << "Impossible to log similarity evaluation to "
+               << evaluation_output_dir << ".";
+
+
   x_view::finalizeLogging();
 
   return 0;
