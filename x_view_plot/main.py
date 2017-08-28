@@ -35,7 +35,7 @@ x_view_produced_graph_dir = "/home/carlo/x-view_ws_release/src/x-view/x_view_cor
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 # Resource directory containing all destination_dir s
-resources_dir = os.path.join(current_dir, "candidate_comparison")
+resources_dir = os.path.join(current_dir, "new_candidate_comparison")
 
 # Path to folder used to collect generated data (local path).
 destination_dir = os.path.join(resources_dir, run_name)
@@ -48,43 +48,45 @@ def launchXView(runs):
     # Create a config file generator.
     x_view_config = XViewConfig(x_view_config_file=x_view_cfg_file)
 
-    candidate_numbers = [1, 3, 5]
+    candidate_numbers = [1, 2, 3, 4, 5]
     consistency_thresholds = [2.0, 5.0, 10.0]
-    consistency_sizes = [2, 4]
+    consistency_sizes = [2.0, 4.0, 6.0]
+    local_graph_steps = [1, 5, 10]
 
     for consistency_threshold in consistency_thresholds:
         for consistency_size in consistency_sizes:
             for candidate_number in candidate_numbers:
-                custom_arguments = {
-                    "run_name": run_name,
-                    "random_walk_sampling_type": "WEIGHTED",
-                    "local_graph_steps": 5,
-                    "end_frame": 100,
-                    "outlier_rejection": True,
-                    "num_candidate_matches": candidate_number,
-                    "consistency_threshold": consistency_threshold,
-                    "consistency_size": consistency_size
-                }
+                for local_graph_step in local_graph_steps:
+                    custom_arguments = {
+                        "run_name": run_name,
+                        "random_walk_sampling_type": "WEIGHTED",
+                        "local_graph_steps": local_graph_step,
+                        "end_frame": 400,
+                        "outlier_rejection": True,
+                        "num_candidate_matches": candidate_number,
+                        "consistency_threshold": consistency_threshold,
+                        "consistency_size": consistency_size
+                    }
 
-                # Write the config file to the x_view_config_file.
-                x_view_config.writeConfigFile(custom_arguments)
+                    # Write the config file to the x_view_config_file.
+                    x_view_config.writeConfigFile(custom_arguments)
 
-                # Create an XView executer.
-                folder_suffix = ""
-                for key in sorted(custom_arguments.keys()):
-                    if key is not "run_name":
-                        folder_suffix += "_" + str(custom_arguments[key])
+                    # Create an XView executer.
+                    folder_suffix = ""
+                    for key in sorted(custom_arguments.keys()):
+                        if key is not "run_name":
+                            folder_suffix += "_" + str(custom_arguments[key])
 
-                run_folder_name = run_name + folder_suffix
-                run_folder_name = os.path.join(resources_dir, run_folder_name)
-                x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
-                                      x_view_evaluation_output_dir=x_view_evaluation_dir,
-                                      x_view_graph_output_dir=x_view_produced_graph_dir,
-                                      x_view_config_file=x_view_cfg_file,
-                                      evaluation_storage_dir=run_folder_name)
+                    run_folder_name = run_name + folder_suffix
+                    run_folder_name = os.path.join(resources_dir, run_folder_name)
+                    x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
+                                          x_view_evaluation_output_dir=x_view_evaluation_dir,
+                                          x_view_graph_output_dir=x_view_produced_graph_dir,
+                                          x_view_config_file=x_view_cfg_file,
+                                          evaluation_storage_dir=run_folder_name)
 
-                # Run XView with the current arguments for num_runs times and store the evaluations.
-                x_view_run.run(num_runs=runs, store_eval=True)
+                    # Run XView with the current arguments for num_runs times and store the evaluations.
+                    x_view_run.run(num_runs=runs, store_eval=True)
 
 def plotLastTimings():
     last_directory = getLastResultsDir(resources_dir)
@@ -132,36 +134,45 @@ def plotLastTimings():
 
 def plotPR():
 
-    f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
 
-    for d in sorted(os.listdir(resources_dir)):
-        print("Computing PR curve for {}".format(d))
-        full_config_dir = os.path.join(resources_dir, d)
-        run_directory = getLastResultsDir(full_config_dir)
-        eval_directory = os.path.join(run_directory, "eval")
-        localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
+    for t in np.power(0.1, np.linspace(1, 3, 40)):
+        f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
+        for d in sorted(os.listdir(resources_dir)):
+            if not "5_3" in d or not "4.0" in d:
+                continue
+            print("Computing PR curve for {}".format(d))
+            full_config_dir = os.path.join(resources_dir, d)
+            run_directory = getLastResultsDir(full_config_dir)
+            eval_directory = os.path.join(run_directory, "eval")
+            localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
 
-        x_view_pr = XViewPR(filename=localization_file_name, true_threshold=0.06)
-        PR = x_view_pr.computePR()
+            x_view_pr = XViewPR(filename=localization_file_name, true_threshold=t)
+            PR = x_view_pr.computePR()
 
-        order = PR[0:, 1].argsort()
-        ax.plot(PR[order, 1], PR[order, 0], label=d)
+            order = PR[0:, 1].argsort()
+            ax.plot(PR[order, 1], PR[order, 0], label=d)
 
-    plt.title("PR curves")
-    plt.xlabel("Recall")
-    plt.ylabel("Precision")
-    plt.legend()
+        plt.title("PR curves")
+        plt.xlabel("Recall")
+        plt.ylabel("Precision")
+        plt.legend()
 
-    plt.ylim([0, 1.05])
+        plt.ylim([0, 1.05])
 
-    plt.tight_layout()
-    f.savefig(os.path.join(output_folder, "PR_curves.pdf"))
-    plt.close()
+        plt.tight_layout()
+        f.savefig(os.path.join(output_folder, "PR_curves.pdf"))
+        print(t)
+        plt.show()
+
+        plt.close()
 
 
 if __name__ == '__main__':
-    launchXView(runs=1)
+    # launchXView(runs=1)
+
+    # Seems working best: "/home/carlo/polybox/Master/Master
+    # thesis/x-view/x_view_plot/new_candidate_comparison/AutoRun-18-48-21_2.0_5.0_400_5_3_True_WEIGHTED"
 
     # plotLastTimings()
 
-    # plotPR()
+    plotPR()
