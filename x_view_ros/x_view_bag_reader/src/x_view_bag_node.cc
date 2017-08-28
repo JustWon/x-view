@@ -206,8 +206,9 @@ int main(int argc, char** argv) {
                 << x_view::formatSE3(locations.true_pose, "\t") << "\n"
                 << "Error: " << error << std::endl;
 
-        evaluation.localization.addLocalization(locations, error);
+      evaluation.localization.addLocalization(locations, error);
       evaluation.similarity.addSimilarities(database_graph, query_graph,
+                                            similarity_matrix,
                                             candidate_matches);
       ++i;
     }

@@ -401,7 +401,7 @@ bool Evaluation::SimilarityEvaluation::writeToFolder(
                                    " ", " ", "", "", "", "");
       ss << sample.db_position.format(plain_format) << " "
          << sample.query_position.format(plain_format) << " "
-         << sample.similarity;
+         << sample.similarity << " " << sample.rank;
       return ss.str();
     };
 
@@ -411,29 +411,6 @@ bool Evaluation::SimilarityEvaluation::writeToFolder(
   }
 
   return true;
-}
-
-void Evaluation::SimilarityEvaluation::addSimilarities(
-    const x_view::Graph& database_graph, const x_view::Graph& query_graph,
-    const x_view::GraphMatcher::IndexMatrixType& candidate_matches) {
-  const int INVALID_MATCH_INDEX = x_view::GraphMatcher::INVALID_MATCH_INDEX;
-  for(uint64_t j = 0; j < candidate_matches.cols(); ++j) {
-    for(uint64_t i = 0; i < candidate_matches.rows(); ++i) {
-
-      const int db_index = candidate_matches(i, j);
-      if(db_index != INVALID_MATCH_INDEX) {
-        const x_view::Vector3r& query_position = query_graph[j].location_3d;
-        const x_view::Vector3r& db_position =
-            database_graph[db_index].location_3d;
-        const x_view::real_t similarity = 0;
-
-        similarities_vector_.push_back(SimilaritySample(db_position,
-                                                        query_position,
-                                                        0));
-
-      }
-    }
-  }
 }
 
 void Evaluation::SimilarityEvaluation::addSimilarities(
@@ -454,7 +431,7 @@ void Evaluation::SimilarityEvaluation::addSimilarities(
 
         similarities_vector_.push_back(SimilaritySample(db_position,
                                                         query_position,
-                                                        similarity));
+                                                        similarity, i));
 
       }
     }

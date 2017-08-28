@@ -194,6 +194,7 @@ x_view::real_t XViewBagReader::localizeGraph(
   timer->start("GraphLocalization");
   x_view::real_t error = x_view_->localizeGraph(query_graph, pose_ids,
                                                 candidate_matches,
+                                                similarity_matrix,
                                                 &(locations->estimated_pose));
   timer->stop("GraphLocalization");
 

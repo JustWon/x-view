@@ -255,13 +255,45 @@ class Evaluation {
 
    public:
 
+    /**
+     * \brief Writes the data collected by the SimilarityEvaluation into the
+     * folder specified by the path passed as argument.
+     * \param folder_name Absolute path of the folder where to write the time
+     * measurements.
+     * \param suffix Suffix string to add to all generated files.
+     * \return Success flag.
+     * \note All similarity samples are written to a file in the following
+     * format:
+     * "
+     * x_db y_db z_db x_q y_q z_q sim rank
+     * x_db y_db z_db x_q y_q z_q sim rank
+     * ...
+     * x_db y_db z_db x_q y_q z_q sim rank
+     * "
+     * where each line corresponds to a valid candidate match between a
+     * vertex in the database graph and one in the query graph. The 'sim'
+     * value represents the semantic similarity between the two vertices,
+     * while the 'rank' is an integer going from 0 to the runtime parameter
+     * 'num_candidate_matches' - 1 which represents the rank of the match.
+     * (rank = 0 --> match with highest similarity).
+     * The 'rank' value corresponds to the row in the candidate_matches
+     * matrix containing the associated vertex pair.
+     */
     bool writeToFolder(const std::string& folder_name,
                        const std::string& suffix = "") const;
 
-    void addSimilarities(
-        const x_view::Graph& database_graph, const x_view::Graph& query_graph,
-        const x_view::GraphMatcher::IndexMatrixType& candidate_matches);
 
+    /**
+     * \brief Adds all similarity samples extracted from candidate_matches
+     * into a list of similarities.
+     * \param database_graph Const reference to the global semantic graph.
+     * \param query_graph Const reference to the query semantic graph.
+     * \param similarity_matrix Similarity matrix of size MxN where M is the
+     * number of vertices of the database_graph, and N is the number of
+     * vertices in the query_graph.
+     * \param candidate_matches Matrix of candidate matches of size RxM,
+     * where R is the value of the runtime parameter 'num_candidate_matches'.
+     */
     void addSimilarities(
         const x_view::Graph& database_graph, const x_view::Graph& query_graph,
         const x_view::GraphMatcher::SimilarityMatrixType& similarity_matrix,
@@ -275,15 +307,23 @@ class Evaluation {
       SimilaritySample() {}
       SimilaritySample(const x_view::Vector3r& db_position,
                        const x_view::Vector3r& query_position,
-                       const x_view::real_t similarity)
+                       const x_view::real_t similarity,
+                       const uint64_t rank)
           : db_position(db_position),
             query_position(query_position),
-            similarity(similarity) {
+            similarity(similarity),
+            rank(rank){
       }
 
+      /// \brief 3D position of the vertex in the database graph.
       x_view::Vector3r db_position;
+      /// \brief 3D position of the vertex in the query graph.
       x_view::Vector3r query_position;
+      /// \brief Semantic similarity between the registered vertices.
       x_view::real_t similarity;
+      /// \bried Rank of the similarity (0 if the database vertex is the most
+      /// similar to the query vertex, 1 if it is the second-most similar etc.)
+      uint64_t rank;
     };
 
     std::vector<SimilaritySample> similarities_vector_;

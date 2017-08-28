@@ -69,6 +69,7 @@ class XView {
   real_t localizeGraph(const Graph& query_graph,
                        std::vector<x_view::PoseId> pose_ids,
                        GraphMatcher::IndexMatrixType* candidate_matches,
+                       GraphMatcher::SimilarityMatrixType* similarity_matrix,
                        SE3* pose);
 
   /**
