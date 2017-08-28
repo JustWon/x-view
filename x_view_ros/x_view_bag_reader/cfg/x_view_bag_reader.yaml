@@ -9,7 +9,7 @@ Landmark: {
     dilate_and_erode: true,
     num_dilate: 4,
     num_erode: 4,
-    extraction_type: "3D_SPACE",
+    extraction_type: "IMAGE",
     max_euclidean_distance: 12.0,
     blob_neighbor_distance: 10,
     depth_clip: 50.0
@@ -29,7 +29,7 @@ Matcher: {
     link_close_vertices: True,
     max_link_distance: 5.0,
     outlier_rejection: True,
-    num_candidate_matches: 2,
+    num_candidate_matches: 4,
     consistency_threshold: 2.0,
     consistency_size: 2
 }
@@ -64,7 +64,7 @@ XViewBagReader: {
   start_frame: 0,
   end_frame: 40,
 
-  pause_active: False,
+  pause_active: True,
 
   timer_type: "TIMER",
   relabeling_percentage: 0.0,

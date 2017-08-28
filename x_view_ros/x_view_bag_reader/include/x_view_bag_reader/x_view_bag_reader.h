@@ -100,10 +100,6 @@ class XViewBagReader {
   void tfTransformToSE3(const tf::StampedTransform& tf_transform,
                         x_view::SE3* pose);
 
-  void publishRobotPosition(const x_view::Vector3r& pos,
-                            const x_view::Vector3r& color,
-                            const ros::Time& stamp,
-                            const std::string ns);
 
   std::unique_ptr<x_view::XView> x_view_;
 
@@ -133,9 +129,6 @@ class XViewBagReader {
 
   /// \brief Graph publisher object responsible for publishing the graph data.
   GraphPublisher graph_publisher_;
-
-  /// \brief Vertex publisher used to publish position of localized robot.
-  ros::Publisher vertex_publisher_;
 };
 
 }
