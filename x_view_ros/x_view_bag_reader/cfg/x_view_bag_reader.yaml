@@ -29,9 +29,9 @@ Matcher: {
     link_close_vertices: True,
     max_link_distance: 5.0,
     outlier_rejection: True,
-    num_candidate_matches: 5,
-    consistency_threshold: 10.0,
-    consistency_size: 6.0
+    num_candidate_matches: 3,
+    consistency_threshold: 5.0,
+    consistency_size: 2.0
 }
 
 Localizer: {
@@ -62,7 +62,7 @@ XViewBagReader: {
   world_frame: "world",
 
   start_frame: 0,
-  end_frame: 400,
+  end_frame: 50,
 
   pause_active: False,
 
@@ -72,6 +72,6 @@ XViewBagReader: {
   graph_construction_camera: "FRONT",
   localization_camera: "FRONT",
 
-  local_graph_steps: 10,
+  local_graph_steps: 5,
   run_name: "AutoRun-18-48-21"
 }

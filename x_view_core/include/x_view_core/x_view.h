@@ -63,7 +63,7 @@ class XView {
    * \param pose_ids PosesIds of robot, assumed to be in consecutive order.
    * \param pose An estimation of the pose of the query graph passed as
    * argument.
-   * \return Error relative to the localization.
+   * \return Normalized optimization residual to the localization.
    */
   real_t localizeGraph(const Graph& query_graph,
                        std::vector<x_view::PoseId> pose_ids,

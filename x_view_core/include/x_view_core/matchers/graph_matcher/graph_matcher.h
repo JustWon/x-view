@@ -29,7 +29,15 @@ class GraphMatcher : public AbstractMatcher {
   typedef MatrixXb MaxSimilarityMatrixType;
   typedef Eigen::MatrixXi IndexMatrixType;
 
-  // Index used to define an invalid match.
+  /// \brief Index used to define an invalid match.
+  /// \details The situations where this can happen are the following:
+  /// 1) The number of matches for j-th vertex of the query graph is smaller
+  /// than the runtime-parameter num_candidate_matches: all elements (i,j)
+  /// with i larger than the true number of matches is are set to
+  /// INVALID_MATCH_INDEX.
+  /// 2) Due to geometric filtering, most of the candidate matches associated
+  /// to each vertex in the query graph are rejected. All but the accepted
+  /// matches are therefore set to INVALID_MATCH_INDEX.
   static const int INVALID_MATCH_INDEX;
 
   GraphMatcher();
@@ -65,7 +73,24 @@ class GraphMatcher : public AbstractMatcher {
     MaxSimilarityMatrixType computeMaxSimilarityRowwise() const;
 
    private:
+    /**
+     * \brief This is a dense matrix where each coefficient (i,j) represents
+     * the semantic similarity computed between vertex i of the global
+     * semantic graph, and vertex j of the query graph.
+     */
     SimilarityMatrixType similarity_matrix_;
+
+    /**
+     * \brief This is a dense integer matrix of size num_candidates x
+     * num_query_vertices. The elements in the j-th column of this matrix
+     * correspond to the set of indices in the global semantic graph of the
+     * candidate vertices to be matched against the j-th vertex of the query
+     * graph.
+     * \note If a vertex j has less than num_candidates matches, then the
+     * remaining elements of the j-th column are filled with
+     * INVALID_MATCH_INDEX. The same happens for those matches which are
+     * rejected due to geometric inconsistency.
+     */
     IndexMatrixType candidate_matches_;
   };
 

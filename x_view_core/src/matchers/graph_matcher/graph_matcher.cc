@@ -321,14 +321,11 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
 
   // Keep track of which vertex of the global semantic graph has which index
   // in the database_cloud.
-
-  // index_in_database_cloud =
-  //     vertex_index_to_database_pointcloud[index_in_global_semantic_graph];
   std::unordered_map<uint64_t, uint64_t>
       vertex_index_to_database_pointcloud;
 
-  // index_in_global_semantic_graph =
-  //     database_index_to_global_graph_vertex_index[index_in_database_cloud];
+  // Keep also track of which index in the database cloud correspond to which
+  // vertex of the global semantic graph.
   std::unordered_map<uint64_t, uint64_t>
       database_index_to_global_graph_vertex_index;
 
@@ -520,8 +517,10 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
       boost::num_vertices(global_semantic_graph_);
   const uint64_t num_query_vertices = boost::num_vertices(query_graph);
   // Number of candidate matches per query vertex.
+  const int default_num_candidate_matches = 1;
   const int num_candidate_matches =
-      matcher_parameters->getInteger("num_candidate_matches");
+      matcher_parameters->getInteger("num_candidate_matches",
+                                     default_num_candidate_matches);
   CHECK_GE(num_candidate_matches, 1);
 
   similarity_matrix->resize(num_global_vertices, num_query_vertices);
