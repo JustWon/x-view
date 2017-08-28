@@ -61,6 +61,12 @@ class XViewBagReader {
   void relabelGlobalGraphVertices(const x_view::real_t percentage,
                                   const uint64_t seed = 0);
 
+
+  bool generateQueryGraph(const CAMERA camera_type, const int start_frame,
+                          const int steps, x_view::Graph* query_graph,
+                          std::vector<x_view::PoseId>* pose_ids,
+                          x_view::LocalizationPair* locations);
+
   /**
    * \brief Localizes the semantic graph being build between the frames
    * delimited by the passed arguments by matching it to the global semantic
@@ -73,12 +79,12 @@ class XViewBagReader {
    * true robot location respectively.
    * \return Error in localization.
    */
-  x_view::real_t localizeGraph(const CAMERA camera_type, const int start_frame,
-                               const int steps,
-                               x_view::LocalizationPair* locations,
-                               x_view::GraphMatcher::IndexMatrixType*
-                               candidate_matches,
-                               x_view::Graph* local_graph);
+  x_view::real_t localizeGraph(
+      const x_view::Graph& query_graph,
+      const std::vector<x_view::PoseId>& pose_ids,
+      x_view::LocalizationPair* locations,
+      x_view::GraphMatcher::IndexMatrixType* candidate_matches,
+      x_view::GraphMatcher::SimilarityMatrixType* similarity_matrix);
 
   const x_view::Graph& getGlobalGraph() const {
     return x_view_->getSemanticGraph();
