@@ -3,7 +3,6 @@
 #include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/landmarks/histogram_landmark.h>
 #include <x_view_core/landmarks/visual_descriptor_landmark.h>
-#include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/matchers/vector_matcher.h>
 #include <x_view_core/x_view_tools.h>
 #include <x_view_core/x_view_types.h>
@@ -105,6 +104,7 @@ void XView::writeGraphToFile() const {
 
 real_t XView::localizeGraph(const Graph& query_graph,
                           std::vector<x_view::PoseId> pose_ids,
+                          GraphMatcher::IndexMatrixType* candidate_matches,
                           SE3* pose) {
 
   // Get the existing global semantic graph before matching.
@@ -129,9 +129,6 @@ real_t XView::localizeGraph(const Graph& query_graph,
   GraphMatcher::SimilarityMatrixType& similarity_matrix =
       matching_result.getSimilarityMatrix();
 
-  GraphMatcher::IndexMatrixType& candidate_matches =
-      matching_result.getCandidateMatches();
-
   const std::string score_type_str = Locator::getParameters()
       ->getChildPropertyList("matcher")->getString("vertex_similarity_score");
   VertexSimilarity::SCORE_TYPE score_type;
@@ -143,7 +140,8 @@ real_t XView::localizeGraph(const Graph& query_graph,
     CHECK(false) << "Unrecognized score type " << score_type_str << ".";
   std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
       ->computeSimilarityMatrix(
-          random_walker, &similarity_matrix, &candidate_matches, score_type);
+          random_walker, &similarity_matrix, candidate_matches, score_type);
+  matching_result.getCandidateMatches() = (*candidate_matches);
 
   // Filter matches with geometric consistency.
   if (Locator::getParameters()->getChildPropertyList("matcher")->getBoolean(
@@ -151,7 +149,7 @@ real_t XView::localizeGraph(const Graph& query_graph,
     bool filter_success =
         std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
             ->filterMatches(query_graph, global_graph,
-                            matching_result, &candidate_matches);
+                            matching_result, candidate_matches);
   }
 
   // Estimate transformation between graphs (Localization).
@@ -160,7 +158,7 @@ real_t XView::localizeGraph(const Graph& query_graph,
   // Utility function to check if vertices are to be added to the localizer
   // or not.
   auto isValidCandidate = [&](const uint64_t index) -> bool {
-    const auto& col_i = candidate_matches.col(index);
+    const auto& col_i = candidate_matches->col(index);
     for(int i = 0; i < col_i.rows(); ++i)
       if(col_i(i) != GraphMatcher::INVALID_MATCH_INDEX)
         return true;
@@ -193,10 +191,10 @@ real_t XView::localizeGraph(const Graph& query_graph,
   // Add all vertex-to-vertex observations.
   for (uint64_t j = 0; j < num_query_vertices; ++j) {
     // Add all candidate matches.
-    for(uint64_t i_id = 0; i_id < candidate_matches.rows(); ++i_id) {
-      if(candidate_matches(i_id, j) == GraphMatcher::INVALID_MATCH_INDEX)
+    for(uint64_t i_id = 0; i_id < candidate_matches->rows(); ++i_id) {
+      if((*candidate_matches)(i_id, j) == GraphMatcher::INVALID_MATCH_INDEX)
         continue;
-      const uint64_t i = candidate_matches(i_id, j);
+      const uint64_t i = (*candidate_matches)(i_id, j);
       const real_t similarity = similarity_matrix(i, j);
       const VertexProperty& vertex_query = query_graph[j];
       const VertexProperty& vertex_global = global_graph[i];

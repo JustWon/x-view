@@ -164,11 +164,13 @@ x_view::real_t XViewBagReader::localizeGraph(
   timer->stop("QueryGraphConstruction");
 
   const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
+  x_view::GraphMatcher::IndexMatrixType candidate_matches;
 
   timer->registerTimer("GraphLocalization");
   timer->start("GraphLocalization");
-  x_view::real_t error  = x_view_->localizeGraph(local_graph, pose_ids,
-                                         &(locations->estimated_pose));
+  x_view::real_t error = x_view_->localizeGraph(local_graph, pose_ids,
+                                                &candidate_matches,
+                                                &(locations->estimated_pose));
   timer->stop("GraphLocalization");
 
   const x_view::Vector3r estimated_color(0.7, 0.15, 0.15);
@@ -176,6 +178,10 @@ x_view::real_t XViewBagReader::localizeGraph(
                            .cast<x_view::real_t>(),
                        estimated_color, time,
                        "estimated_position");
+
+  graph_publisher_.publish(local_graph, ros::Time(), 70.0);
+  graph_publisher_.publishMatches(local_graph, x_view_->getSemanticGraph(),
+                                  candidate_matches, ros::Time(), 70.0);
 
   bag_.close();
 

@@ -6,6 +6,7 @@
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/landmarks/semantic_landmark_factory.h>
 #include <x_view_core/matchers/abstract_matcher.h>
+#include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/parameters/parameters.h>
 #include <x_view_core/x_view_types.h>
 
@@ -67,6 +68,7 @@ class XView {
    */
   real_t localizeGraph(const Graph& query_graph,
                        std::vector<x_view::PoseId> pose_ids,
+                       GraphMatcher::IndexMatrixType* candidate_matches,
                        SE3* pose);
 
   /**

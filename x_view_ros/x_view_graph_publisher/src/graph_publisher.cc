@@ -6,10 +6,12 @@ namespace x_view_ros {
 
 GraphPublisher::GraphPublisher(ros::NodeHandle& nh,
                                const std::string& vertex_topic,
-                               const std::string& edge_topic)
+                               const std::string& edge_topic,
+                               const std::string& matches_topic)
     : nh_(nh),
       vertex_topic_(vertex_topic),
-      edge_topic_(edge_topic) {
+      edge_topic_(edge_topic),
+      matches_topic_(matches_topic) {
 
   // Create the publisher objects.
   vertex_publisher_ =
@@ -17,10 +19,14 @@ GraphPublisher::GraphPublisher(ros::NodeHandle& nh,
 
   edge_publisher_ =
       nh_.advertise<visualization_msgs::Marker>(edge_topic_, 10000);
+
+  matches_publisher_ =
+      nh_.advertise<visualization_msgs::Marker>(matches_topic_, 10000);
 }
 
 void GraphPublisher::publish(const x_view::Graph& graph,
-                             const ros::Time& time) const {
+                             const ros::Time& time,
+                             double z_offset) const {
 
   const uint64_t num_vertices = boost::num_vertices(graph);
   const uint64_t num_edges = boost::num_edges(graph);
@@ -34,12 +40,68 @@ void GraphPublisher::publish(const x_view::Graph& graph,
   vertex_publisher_.publish(reset_marker);
 
   // Publish all new vertices and edges.
-  publishVertices(graph, time);
-  publishEdges(graph, time);
+  publishVertices(graph, time, z_offset);
+  publishEdges(graph, time, z_offset);
+}
+
+void GraphPublisher::publishMatches(
+    const x_view::Graph& query_graph, const x_view::Graph& database_graph,
+    const x_view::GraphMatcher::IndexMatrixType& candidate_matches,
+    const ros::Time& time, double z_offset) const {
+
+  // Delete all matches of the previous frame.
+  visualization_msgs::Marker reset_marker;
+  reset_marker.action = 3;
+  matches_publisher_.publish(reset_marker);
+
+  visualization_msgs::Marker marker;
+
+  // Create marker properties which are the same for all lines.
+  marker.header.frame_id = "/world";
+  marker.header.stamp = time;
+  marker.ns = "semantic_graph_matches";
+  marker.type = visualization_msgs::Marker::LINE_LIST;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.scale.x = 0.2f;
+
+  marker.color.r = 0.0f;
+  marker.color.g = 1.0f;
+  marker.color.b = 0.0f;
+  marker.color.a = 0.7f;
+
+  marker.lifetime = ros::Duration();
+
+  // Iterate over all matches and publish edge between local graph and database
+  // graph if there is a valid match.
+  for (size_t row = 0u; row < candidate_matches.rows(); ++row) {
+    for (size_t col = 0; col < candidate_matches.cols(); ++col) {
+      if (candidate_matches(row, col)
+          != x_view::GraphMatcher::INVALID_MATCH_INDEX) {
+
+        const auto& v_p_from = query_graph[col];
+        const auto& v_p_to = database_graph[candidate_matches(row, col)];
+
+        geometry_msgs::Point p_from;
+        p_from.x = v_p_from.location_3d[0];
+        p_from.y = v_p_from.location_3d[1];
+        p_from.z = v_p_from.location_3d[2] + z_offset;
+
+        geometry_msgs::Point p_to;
+        p_to.x = v_p_to.location_3d[0];
+        p_to.y = v_p_to.location_3d[1];
+        p_to.z = v_p_to.location_3d[2];
+
+        marker.points.push_back(p_from);
+        marker.points.push_back(p_to);
+      }
+    }
+  }
+  matches_publisher_.publish(marker);
 }
 
 void GraphPublisher::publishVertices(const x_view::Graph& graph,
-                                     const ros::Time& time) const {
+                                     const ros::Time& time, double z_offset) const {
 
   const auto vertices = boost::vertices(graph);
   // Get the last time index.
@@ -67,7 +129,7 @@ void GraphPublisher::publishVertices(const x_view::Graph& graph,
 
     marker.pose.position.x = position[0];
     marker.pose.position.y = position[1];
-    marker.pose.position.z = position[2];
+    marker.pose.position.z = position[2] + z_offset;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
@@ -92,7 +154,7 @@ void GraphPublisher::publishVertices(const x_view::Graph& graph,
 }
 
 void GraphPublisher::publishEdges(const x_view::Graph& graph,
-                                  const ros::Time& time) const {
+                                  const ros::Time& time, double z_offset) const {
 
   const auto edges = boost::edges(graph);
 
@@ -138,12 +200,12 @@ void GraphPublisher::publishEdges(const x_view::Graph& graph,
     geometry_msgs::Point p_from;
     p_from.x = v_p_from.location_3d[0];
     p_from.y = v_p_from.location_3d[1];
-    p_from.z = v_p_from.location_3d[2];
+    p_from.z = v_p_from.location_3d[2] + z_offset;
 
     geometry_msgs::Point p_to;
     p_to.x = v_p_to.location_3d[0];
     p_to.y = v_p_to.location_3d[1];
-    p_to.z = v_p_to.location_3d[2];
+    p_to.z = v_p_to.location_3d[2] + z_offset;
 
     marker.points.push_back(p_from);
     marker.points.push_back(p_to);
