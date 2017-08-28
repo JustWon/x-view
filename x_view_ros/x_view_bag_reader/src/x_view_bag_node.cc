@@ -166,6 +166,7 @@ int main(int argc, char** argv) {
   bag_reader.relabelGlobalGraphVertices(
       bag_node_parameters.relabeling_percentage, vertex_relabeling_seed);
 
+  const x_view::Graph& database_graph = bag_reader.getGlobalGraph();
 
   // Try to localize the following views inside the previously constructed
   // semantic graph.
@@ -174,9 +175,12 @@ int main(int argc, char** argv) {
   for(int i = start_frame; i + local_graph_steps < end_frame;) {
     if(!pause.isPaused()) {
       x_view::LocalizationPair locations;
+      x_view::GraphMatcher::IndexMatrixType candidate_matches;
+      x_view::Graph local_graph;
       x_view::real_t error =
           bag_reader.localizeGraph(bag_node_parameters.localization_camera, i,
-                                   local_graph_steps, &locations);
+                                   local_graph_steps, &locations,
+                                   &candidate_matches, &local_graph);
       std::cout << "Localization " << i - start_frame + 1 << " of "
                 << end_frame - local_graph_steps - start_frame << std::endl;
       LOG(INFO) << "Estimation: \n"
@@ -186,6 +190,8 @@ int main(int argc, char** argv) {
                 << "Error: " << error << std::endl;
 
         evaluation.localization.addLocalization(locations, error);
+      evaluation.similarity.addSimilarities(database_graph, local_graph,
+                                            candidate_matches);
       ++i;
     }
   }

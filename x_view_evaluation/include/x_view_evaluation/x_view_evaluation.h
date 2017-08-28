@@ -260,6 +260,10 @@ class Evaluation {
 
     void addSimilarities(
         const x_view::Graph& database_graph, const x_view::Graph& query_graph,
+        const x_view::GraphMatcher::IndexMatrixType& candidate_matches);
+
+    void addSimilarities(
+        const x_view::Graph& database_graph, const x_view::Graph& query_graph,
         const x_view::GraphMatcher::SimilarityMatrixType& similarity_matrix,
         const x_view::GraphMatcher::IndexMatrixType& candidate_matches);
 

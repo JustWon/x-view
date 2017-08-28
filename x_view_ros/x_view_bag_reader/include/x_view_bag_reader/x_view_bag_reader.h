@@ -75,7 +75,14 @@ class XViewBagReader {
    */
   x_view::real_t localizeGraph(const CAMERA camera_type, const int start_frame,
                                const int steps,
-                               x_view::LocalizationPair* locations);
+                               x_view::LocalizationPair* locations,
+                               x_view::GraphMatcher::IndexMatrixType*
+                               candidate_matches,
+                               x_view::Graph* local_graph);
+
+  const x_view::Graph& getGlobalGraph() const {
+    return x_view_->getSemanticGraph();
+  }
 
  private:
 
