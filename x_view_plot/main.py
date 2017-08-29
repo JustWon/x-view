@@ -169,37 +169,62 @@ def plotPR():
 
 
 def plotSuccessRate():
-    distance_thresholds = np.linspace(1, 200, 1000)
+    def hasCandidateNumber(d, candidate_number):
+        return "{}_True".format(candidate_number) in d
 
+    def hasConsistencyThreshold(d, consistency_threshold):
+        return "{}_250".format(consistency_threshold) in d
+
+    def hasConsistencySize(d, consistency_size):
+        return "{}".format(consistency_size) in d
+
+    def hasLocalGraphSteps(d, local_graph_steps):
+        return "250_{}".format(local_graph_steps) in d
+
+    def hasSamplingType(d, sampling_type):
+        return sampling_type in d
+
+    distance_thresholds = np.linspace(0, 100, 100)
+
+    candidate_numbers = [1, 3]
+    consistency_thresholds = [2, 4, 6]
+    consistency_sizes = [1.0, 2.0, 4.0]
+    local_graph_steps = [3, 5]
     sampling_types = ["NON_RETURNING", "AVOIDING", "WEIGHTED"]
-    for sampling_type in sampling_types:
-        f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
 
-        for d in sorted(os.listdir(resources_dir)):
-            if d == ".keep" or sampling_type not in d:
-                continue
-            print("Computing success rate for {}".format(d))
-            full_config_dir = os.path.join(resources_dir, d)
-            run_directory = getLastResultsDir(full_config_dir)
-            eval_directory = os.path.join(run_directory, "eval")
-            localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
+    for consistency_thresh in consistency_thresholds:
+        for candidates in candidate_numbers:
+            f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
 
-            ground_truths, estimations, _ = getLocalizations(localization_file_name)
-            success_rate = computeSuccessRate(distance_thresholds, ground_truths, estimations)
+            for d in sorted(os.listdir(resources_dir)):
+                if d == ".keep" or \
+                        not hasCandidateNumber(d, candidates) or \
+                        not hasConsistencyThreshold(d, consistency_thresh):
+                    continue
 
-            ax.plot(distance_thresholds, success_rate, label=d)
+                print("Computing success rate for {}".format(d))
 
-        plt.title("Success rate")
-        plt.xlabel("Success distance")
-        plt.ylabel("Success rate")
-        plt.legend()
+                full_config_dir = os.path.join(resources_dir, d)
+                run_directory = getLastResultsDir(full_config_dir)
+                eval_directory = os.path.join(run_directory, "eval")
+                localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
 
-        plt.tight_layout()
+                ground_truths, estimations, _ = getLocalizations(localization_file_name)
+                success_rate, filtered = computeSuccessRate(distance_thresholds, ground_truths, estimations)
 
-        f.savefig(os.path.join(output_folder, "Success Rate {}.pdf".format(sampling_type)))
-        plt.show()
+                ax.plot(distance_thresholds, success_rate, label=d + "-{}%".format(int(filtered * 100)))
 
-        plt.close()
+            plt.title("Success rate")
+            plt.xlabel("Success distance")
+            plt.ylabel("Success rate")
+            plt.legend()
+
+            plt.ylim([0, 1])
+
+            plt.tight_layout()
+
+            f.savefig(os.path.join(output_folder, "Success Rate consistency thresh {} candidates {}.pdf".format(
+                consistency_thresh, candidates)))
 
 
 if __name__ == '__main__':
@@ -212,4 +237,4 @@ if __name__ == '__main__':
 
     # plotPR()
 
-    #  plotSuccessRate()
+    plotSuccessRate()

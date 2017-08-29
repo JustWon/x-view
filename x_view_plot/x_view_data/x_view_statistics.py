@@ -41,20 +41,28 @@ def computeSuccessRate(distance_thresholds, ground_truths, estimations):
 
     successes = []
     distances = []
+    num_accepted = 0
+    num_discarded = 0
     for gt, es in zip(ground_truths, estimations):
         dist = np.linalg.norm(gt["position"] - es["position"])
         if (es["position"] == invalid_position).all():
-            dist = np.infty
-        distances.append(dist)
+            num_discarded += 1
+            continue
+        else:
+            distances.append(dist)
+            num_accepted += 1
+
+    if num_accepted == 0:
+        return np.zeros(len(distance_thresholds)), 1.0
 
     for thresh in distance_thresholds:
         num_success = 0
         for dist in distances:
             if dist < thresh:
                 num_success += 1
-        successes.append(float(num_success) / len(distances))
+        successes.append(float(num_success) / num_accepted)
 
-    return np.array(successes)
+    return np.array(successes), float(num_discarded) / (num_discarded + num_accepted)
 
 
 class XViewPR:
