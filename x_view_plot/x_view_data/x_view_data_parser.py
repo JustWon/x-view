@@ -152,3 +152,29 @@ def getLocalizations(localization_file_name):
         return []
 
     return ground_truths, estimations, errors
+
+
+def getSimilarities(similarity_file_name):
+    db_vertices = []
+    query_vertices = []
+    similarities = []
+
+    with open(similarity_file_name, 'r') as file:
+        for line in file.readlines():
+            if line == "No similarities available.":
+                return [], [], []
+            list_of_strings = line.split(" ")
+            list_of_strings = list_of_strings[0:8]
+            db_vertex = np.array(list(map(float, list_of_strings[0:3])))
+            query_vertex = np.array(list(map(float, list_of_strings[3:6])))
+            similarity = float(list_of_strings[6])
+            rank = int(list_of_strings[7])
+
+            if rank > 0:
+                continue
+
+            db_vertices.append(db_vertex)
+            query_vertices.append(query_vertex)
+            similarities.append(similarity)
+
+    return db_vertices, query_vertices, similarities

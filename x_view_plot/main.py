@@ -1,6 +1,6 @@
 from x_view_run import XViewRun, XViewConfig
 from x_view_data import getTimes, getLastResultsDir, getLocalizations, getVertices, getEdges, XViewPR, \
-    getMeanDistance, computeSuccessRate
+    getMeanDistance, computeSuccessRate, getSimilarities
 
 import time
 from matplotlib import pylab as plt
@@ -136,12 +136,10 @@ def plotLastTimings():
         f.savefig(os.path.join(output_folder, "num_vertices_vs_{}.pdf".format(time_name)), bbox_inches='tight')
 
 
-def plotPR():
+def plotLocalizationPR():
     for t in np.power(0.1, np.linspace(1, 3, 40)):
         f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
         for d in sorted(os.listdir(resources_dir)):
-            if not "5_3" in d or not "4.0" in d:
-                continue
             print("Computing PR curve for {}".format(d))
             full_config_dir = os.path.join(resources_dir, d)
             run_directory = getLastResultsDir(full_config_dir)
@@ -227,6 +225,75 @@ def plotSuccessRate():
                 consistency_thresh, candidates)))
 
 
+def plotVertexSimilarityPR():
+    for d in sorted(os.listdir(resources_dir)):
+        if d == ".keep":
+            continue
+
+        print("Computing PR curve for {}".format(d))
+        full_config_dir = os.path.join(resources_dir, d)
+        run_directory = getLastResultsDir(full_config_dir)
+        eval_directory = os.path.join(run_directory, "eval")
+        localization_file_name = os.path.join(eval_directory, "similarities_similarity_.dat")
+
+        db_vertices, query_vertices, similarities = getSimilarities(localization_file_name)
+
+        # two vertices are a true match if their euclidean distance is smaller than true_radius
+        true_radius = 2.0
+        similarity_sweep = np.linspace(0, 1, 100)
+        precisions = []
+        recalls = []
+        distances = [np.linalg.norm(query_vertex - db_vertex) for query_vertex, db_vertex in zip(query_vertices, db_vertices)]
+
+        for similarity in similarity_sweep:
+            true_positives = 0
+            true_negatives = 0
+            false_positives = 0
+            false_negatives = 0
+
+            for dist, sim in zip(distances, similarities):
+                if sim > similarity:
+                    if dist < true_radius:
+                        true_positives += 1
+                    else:
+                        false_positives += 1
+                else:
+                    if dist < true_radius:
+                        false_negatives += 1
+                    else:
+                        true_negatives += 1
+
+            precision = 0
+            if true_positives + false_positives > 0:
+                precision = (1.0 * true_positives) / (true_positives + false_positives)
+
+            recall = 0
+            if true_positives + false_negatives > 0:
+                recall = (1.0 * true_positives) / (true_positives + false_negatives)
+
+            precisions.append(precision)
+            recalls.append(recall)
+
+        precisions = np.array(precisions)
+        recalls = np.array(recalls)
+
+        f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
+
+        order = recalls.argsort()
+        ax.plot(recalls[order], precisions[order], label=d)
+
+        plt.title("PR curve Semantic Similarity")
+        plt.xlabel("Recall")
+        plt.ylabel("Precision")
+        plt.legend()
+
+        plt.ylim([0, 1.05])
+
+        plt.tight_layout()
+        # f.savefig(os.path.join(output_folder, "PR_curves.pdf"))
+        plt.show()
+
+
 if __name__ == '__main__':
     # launchXView(runs=1)
 
@@ -235,6 +302,8 @@ if __name__ == '__main__':
 
     # plotLastTimings()
 
-    # plotPR()
+    # plotLocalizationPR()
 
-    plotSuccessRate()
+    # plotSuccessRate()
+
+    plotVertexSimilarityPR()
