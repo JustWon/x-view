@@ -30,8 +30,8 @@ Matcher: {
     max_link_distance: 5.0,
     outlier_rejection: True,
     num_candidate_matches: 3,
-    consistency_threshold: 5.0,
-    consistency_size: 2.0
+    consistency_threshold: 6,
+    consistency_size: 4.0
 }
 
 Localizer: {
@@ -62,7 +62,7 @@ XViewBagReader: {
   world_frame: "world",
 
   start_frame: 0,
-  end_frame: 70,
+  end_frame: 250,
 
   pause_active: False,
 
@@ -73,5 +73,5 @@ XViewBagReader: {
   localization_camera: "BACK",
 
   local_graph_steps: 5,
-  run_name: "AutoRun-18-48-21"
+  run_name: "AutoRun-22-58-37"
 }

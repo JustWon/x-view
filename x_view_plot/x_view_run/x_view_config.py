@@ -42,7 +42,7 @@ class XViewConfig:
             "end_frame": 200,
             "relabeling_percentage": 0.0,
             "graph_construction_camera": "FRONT",
-            "localization_camera": "FRONT",
+            "localization_camera": "BACK",
             "local_graph_steps": 5,
             "run_name": "Example_run"
 

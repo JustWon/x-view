@@ -1,5 +1,6 @@
 from x_view_run import XViewRun, XViewConfig
-from x_view_data import getTimes, getLastResultsDir, getVertices, getEdges, XViewPR
+from x_view_data import getTimes, getLastResultsDir, getLocalizations, getVertices, getEdges, XViewPR, \
+    getMeanDistance, computeSuccessRate
 
 import time
 from matplotlib import pylab as plt
@@ -35,7 +36,7 @@ x_view_produced_graph_dir = "/home/carlo/x-view_ws_release/src/x-view/x_view_cor
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 # Resource directory containing all destination_dir s
-resources_dir = os.path.join(current_dir, "new_candidate_comparison")
+resources_dir = os.path.join(current_dir, "resources")
 
 # Path to folder used to collect generated data (local path).
 destination_dir = os.path.join(resources_dir, run_name)
@@ -48,45 +49,48 @@ def launchXView(runs):
     # Create a config file generator.
     x_view_config = XViewConfig(x_view_config_file=x_view_cfg_file)
 
-    candidate_numbers = [1, 2, 3, 4, 5]
-    consistency_thresholds = [2.0, 5.0, 10.0]
-    consistency_sizes = [2.0, 4.0, 6.0]
-    local_graph_steps = [1, 5, 10]
+    candidate_numbers = [1, 3]
+    consistency_thresholds = [2, 4, 6]
+    consistency_sizes = [1.0, 2.0, 4.0]
+    local_graph_steps = [3, 5]
+    sampling_types = ["NON_RETURNING", "AVOIDING", "WEIGHTED"]
 
     for consistency_threshold in consistency_thresholds:
         for consistency_size in consistency_sizes:
             for candidate_number in candidate_numbers:
                 for local_graph_step in local_graph_steps:
-                    custom_arguments = {
-                        "run_name": run_name,
-                        "random_walk_sampling_type": "WEIGHTED",
-                        "local_graph_steps": local_graph_step,
-                        "end_frame": 400,
-                        "outlier_rejection": True,
-                        "num_candidate_matches": candidate_number,
-                        "consistency_threshold": consistency_threshold,
-                        "consistency_size": consistency_size
-                    }
+                    for sampling_type in sampling_types:
+                        custom_arguments = {
+                            "run_name": run_name,
+                            "local_graph_steps": local_graph_step,
+                            "end_frame": 250,
+                            "outlier_rejection": True,
+                            "num_candidate_matches": candidate_number,
+                            "consistency_threshold": consistency_threshold,
+                            "consistency_size": consistency_size,
+                            "random_walk_sampling_type": sampling_type
+                        }
 
-                    # Write the config file to the x_view_config_file.
-                    x_view_config.writeConfigFile(custom_arguments)
+                        # Write the config file to the x_view_config_file.
+                        x_view_config.writeConfigFile(custom_arguments)
 
-                    # Create an XView executer.
-                    folder_suffix = ""
-                    for key in sorted(custom_arguments.keys()):
-                        if key is not "run_name":
-                            folder_suffix += "_" + str(custom_arguments[key])
+                        # Create an XView executer.
+                        folder_suffix = ""
+                        for key in sorted(custom_arguments.keys()):
+                            if key is not "run_name":
+                                folder_suffix += "_" + str(custom_arguments[key])
 
-                    run_folder_name = run_name + folder_suffix
-                    run_folder_name = os.path.join(resources_dir, run_folder_name)
-                    x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
-                                          x_view_evaluation_output_dir=x_view_evaluation_dir,
-                                          x_view_graph_output_dir=x_view_produced_graph_dir,
-                                          x_view_config_file=x_view_cfg_file,
-                                          evaluation_storage_dir=run_folder_name)
+                        run_folder_name = run_name + folder_suffix
+                        run_folder_name = os.path.join(resources_dir, run_folder_name)
+                        x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
+                                              x_view_evaluation_output_dir=x_view_evaluation_dir,
+                                              x_view_graph_output_dir=x_view_produced_graph_dir,
+                                              x_view_config_file=x_view_cfg_file,
+                                              evaluation_storage_dir=run_folder_name)
 
-                    # Run XView with the current arguments for num_runs times and store the evaluations.
-                    x_view_run.run(num_runs=runs, store_eval=True)
+                        # Run XView with the current arguments for num_runs times and store the evaluations.
+                        x_view_run.run(num_runs=runs, store_eval=True)
+
 
 def plotLastTimings():
     last_directory = getLastResultsDir(resources_dir)
@@ -133,8 +137,6 @@ def plotLastTimings():
 
 
 def plotPR():
-
-
     for t in np.power(0.1, np.linspace(1, 3, 40)):
         f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
         for d in sorted(os.listdir(resources_dir)):
@@ -161,7 +163,40 @@ def plotPR():
 
         plt.tight_layout()
         f.savefig(os.path.join(output_folder, "PR_curves.pdf"))
-        print(t)
+        plt.show()
+
+        plt.close()
+
+
+def plotSuccessRate():
+    distance_thresholds = np.linspace(1, 200, 1000)
+
+    sampling_types = ["NON_RETURNING", "AVOIDING", "WEIGHTED"]
+    for sampling_type in sampling_types:
+        f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
+
+        for d in sorted(os.listdir(resources_dir)):
+            if d == ".keep" or sampling_type not in d:
+                continue
+            print("Computing success rate for {}".format(d))
+            full_config_dir = os.path.join(resources_dir, d)
+            run_directory = getLastResultsDir(full_config_dir)
+            eval_directory = os.path.join(run_directory, "eval")
+            localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
+
+            ground_truths, estimations, _ = getLocalizations(localization_file_name)
+            success_rate = computeSuccessRate(distance_thresholds, ground_truths, estimations)
+
+            ax.plot(distance_thresholds, success_rate, label=d)
+
+        plt.title("Success rate")
+        plt.xlabel("Success distance")
+        plt.ylabel("Success rate")
+        plt.legend()
+
+        plt.tight_layout()
+
+        f.savefig(os.path.join(output_folder, "Success Rate {}.pdf".format(sampling_type)))
         plt.show()
 
         plt.close()
@@ -175,4 +210,6 @@ if __name__ == '__main__':
 
     # plotLastTimings()
 
-    plotPR()
+    # plotPR()
+
+    #  plotSuccessRate()
