@@ -157,7 +157,7 @@ bool XViewBagReader::generateQueryGraph(const CAMERA camera_type,
     // Publish all ground truth poses that contribute to the estimation.
     const x_view::Vector3r ground_truth_color(0.15, 0.7, 0.15);
     graph_publisher_.publishRobotPosition(
-        pose_ids[i - start_frame].pose.getPosition().cast<x_view::real_t>(),
+        (*pose_ids)[i - start_frame].pose.getPosition().cast<x_view::real_t>(),
         ground_truth_color, trans.stamp_,
         "true_position_" +  x_view::PaddedInt(i-start_frame, 3).str());
   }
@@ -200,20 +200,21 @@ x_view::real_t XViewBagReader::localizeGraph(
   const x_view::Vector3r estimation_color(0.7, 0.15, 0.15);
   graph_publisher_.publishRobotPosition(
       locations->estimated_pose.getPosition().cast<x_view::real_t>(),
-      estimation_color, time, "estimated_position");
+      estimation_color, ros::Time(), "estimated_position");
 
+  const x_view::Graph& db_graph = x_view_->getSemanticGraph();
   // Publish database graph.
-  graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time(), 0);
+  graph_publisher_.publish(db_graph, ros::Time(), 0);
   // Publish query graph with associated matches.
 
   const double z_offset = 20;
-  graph_publisher_.publish(local_graph, ros::Time(), z_offset);
-  graph_publisher_.publishMatches(local_graph, x_view_->getSemanticGraph(),
-                                  candidate_matches, ros::Time(), z_offset);
+  graph_publisher_.publish(query_graph, ros::Time(), z_offset);
+  graph_publisher_.publishMatches(query_graph, db_graph,
+                                  (*candidate_matches), ros::Time(), z_offset);
 
   bag_.close();
 
-  return 0.0;
+  return error;
 }
 
 void XViewBagReader::parseParameters() const {
