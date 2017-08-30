@@ -13,7 +13,8 @@ EvaluationParameters::EvaluationParameters()
 Evaluation::Evaluation(const EvaluationParameters& params)
 : params_(params),
   time(&params_),
-  localization(&params_) {
+  localization(&params_),
+  similarity(&params_) {
 
   Evaluation::TimerEvaluation::initializeTimer(params_.timer_type);
 }
@@ -29,6 +30,7 @@ bool Evaluation::writeToFolder(const std::string& folder_name) const {
   bool success = true;
   success &= time.writeToFolder(folder_name);
   success &= localization.writeToFolder(folder_name);
+  success &= similarity.writeToFolder(folder_name);
 
   return success;
 }
@@ -367,5 +369,74 @@ const {
   return s + ss.str();
 
 }
+
+bool Evaluation::SimilarityEvaluation::writeToFolder(
+    const std::string& folder_name,  const std::string& suffix) const {
+
+  // Create the new folder.
+  system(("mkdir -p " + folder_name).c_str());
+
+  const std::string similarities_file_name =
+      folder_name + "similarities" +
+          (suffix == "" ? "" : "_" + suffix + "_") + ".dat";
+  std::ofstream out(similarities_file_name.c_str());
+  if(!out.is_open()) {
+    LOG(ERROR) << "Could not open file <"
+               << similarities_file_name << ">.";
+    return false;
+  }
+
+  // If there are no similarity info, then write an empty file.
+  if(similarities_vector_.size() == 0)
+    out << "No similarities available.";
+  else {
+
+    // Converts a SimilaritySample to a string of the form
+    // "x_db y_db z_db x_q y_q z_q s"
+    auto similarityToString = [](const SimilaritySample& sample) ->
+        std::string {
+
+      std::stringstream ss;
+      Eigen::IOFormat plain_format(Eigen::StreamPrecision, Eigen::DontAlignCols,
+                                   " ", " ", "", "", "", "");
+      ss << sample.db_position.format(plain_format) << " "
+         << sample.query_position.format(plain_format) << " "
+         << sample.similarity << " " << sample.rank;
+      return ss.str();
+    };
+
+    for (const SimilaritySample& s : similarities_vector_) {
+      out << similarityToString(s) << "\n";
+    }
+  }
+
+  return true;
+}
+
+void Evaluation::SimilarityEvaluation::addSimilarities(
+    const x_view::Graph& database_graph, const x_view::Graph& query_graph,
+    const x_view::GraphMatcher::SimilarityMatrixType& similarity_matrix,
+    const x_view::GraphMatcher::IndexMatrixType& candidate_matches) {
+
+  const int INVALID_MATCH_INDEX = x_view::GraphMatcher::INVALID_MATCH_INDEX;
+  for(uint64_t j = 0; j < candidate_matches.cols(); ++j) {
+    for(uint64_t i = 0; i < candidate_matches.rows(); ++i) {
+
+      const int db_index = candidate_matches(i, j);
+      if(db_index != INVALID_MATCH_INDEX) {
+        const x_view::Vector3r& query_position = query_graph[j].location_3d;
+        const x_view::Vector3r& db_position =
+            database_graph[db_index].location_3d;
+        const x_view::real_t similarity = similarity_matrix(db_index, j);
+
+        similarities_vector_.push_back(SimilaritySample(db_position,
+                                                        query_position,
+                                                        similarity, i));
+
+      }
+    }
+  }
+}
+
 }
 

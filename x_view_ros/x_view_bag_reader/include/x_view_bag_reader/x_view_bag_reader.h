@@ -61,21 +61,51 @@ class XViewBagReader {
   void relabelGlobalGraphVertices(const x_view::real_t percentage,
                                   const uint64_t seed = 0);
 
+
   /**
-   * \brief Localizes the semantic graph being build between the frames
-   * delimited by the passed arguments by matching it to the global semantic
-   * graph of x_view_.
+   * \brief Generates a query semantic graph built up between start_frame and
+   * start_frame + steps - 1. The query graph is built using the camera
+   * defined by the first parameter.
    * \param camera_type Camera type to be used in this localization.
    * \param start_frame Lower index for graph being localized.
    * \param steps Number of steps (frames) to iterate over for the
    * construction of the local graph which must be localized.
+   * \param query_graph Query graph filled up with the build graph.
+   * \param pose_ids Vector of pose IDs corresponding to the ones used in the
+   * query graph construction.
+   * \param locations A pair of 3D poses representing the estimated and
+   * true robot location respectively.
+   * \return Success in graph building.
+   */
+  bool generateQueryGraph(const CAMERA camera_type, const int start_frame,
+                          const int steps, x_view::Graph* query_graph,
+                          std::vector<x_view::PoseId>* pose_ids,
+                          x_view::LocalizationPair* locations);
+
+  /**
+   * \brief Localizes the query graph passed as argument to the global semantic
+   * graph of x_view_.
+   * \param query_graph Query semantic graph to be localized.
+   * \param pose_ids Poses associated to the query semantic graph.
    * \param locations A pair of 3D coordinates representing the estimated and
    * true robot location respectively.
-   * \return Error in localization.
+   * \param candidate_matches Candidate matches matrix representing the
+   * matches for each of the vertices in the query graph.
+   * \param similarity_matrix Similarity matrix containing the semantic
+   * similarity between each vertex of the query graph and each vertex of the
+   * global semantic graph.
+   * \return Normalized residual in optimization for localization.
    */
-  x_view::real_t localizeGraph(const CAMERA camera_type, const int start_frame,
-                               const int steps,
-                               x_view::LocalizationPair* locations);
+  x_view::real_t localizeGraph(const x_view::Graph& query_graph,
+                               const std::vector<x_view::PoseId>& pose_ids,
+                               x_view::LocalizationPair* locations,
+                               x_view::GraphMatcher::IndexMatrixType* candidate_matches,
+                               x_view::GraphMatcher::SimilarityMatrixType* similarity_matrix);
+
+  /// \brief Returns a reference to the global semantic graph built by x_view_.
+  const x_view::Graph& getGlobalGraph() const {
+    return x_view_->getSemanticGraph();
+  }
 
  private:
 

@@ -64,6 +64,9 @@ class XView {
    * \param pose_ids PosesIds of robot, assumed to be in consecutive order.
    * \param candidate_matches Candidate matches matrix filled up with
    * (filtered) candidates for each vertex in the query graph.
+   * \param similarity_matrix Similarity matrix filled up by this function.
+   * \param candidate_matches Candidate matches matrix filled up with
+   * (filtered) candidates for each vertex in the query graph.
    * \param pose An estimation of the pose of the query graph passed as
    * argument.
    * \return Normalized optimization residual to the localization.
@@ -71,6 +74,7 @@ class XView {
   real_t localizeGraph(const Graph& query_graph,
                        std::vector<x_view::PoseId> pose_ids,
                        GraphMatcher::IndexMatrixType* candidate_matches,
+                       GraphMatcher::SimilarityMatrixType* similarity_matrix,
                        SE3* pose);
 
   /**

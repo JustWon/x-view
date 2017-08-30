@@ -161,11 +161,16 @@ int main(int argc, char** argv) {
   x_view::AbstractTimer* construction_timer;
   evaluation.time.storeTimer(&construction_timer);
 
+  LOG(INFO) << "\n=============== Postprocessing XView Graph ===============\n";
+
   // Introduce noise to the global semantic graph by relabeling some vertices.
   const uint64_t vertex_relabeling_seed = 0;
   bag_reader.relabelGlobalGraphVertices(
       bag_node_parameters.relabeling_percentage, vertex_relabeling_seed);
 
+  const x_view::Graph& database_graph = bag_reader.getGlobalGraph();
+
+  LOG(INFO) << "\n======================= Localizing =======================\n";
 
   // Try to localize the following views inside the previously constructed
   // semantic graph.
@@ -173,10 +178,28 @@ int main(int argc, char** argv) {
   const uint64_t local_graph_steps = bag_node_parameters.local_graph_steps;
   for(int i = start_frame; i + local_graph_steps < end_frame;) {
     if(!pause.isPaused()) {
+
+      // Generate a query graph, and store the ground truth location of the
+      // last point of view.
       x_view::LocalizationPair locations;
+      x_view::Graph query_graph;
+      std::vector<x_view::PoseId> pose_ids;
+
+      if(!bag_reader.generateQueryGraph(
+          bag_node_parameters.localization_camera, i, local_graph_steps,
+          &query_graph, &pose_ids, &locations))
+        LOG(ERROR) << "Could not generate query graph.";
+
+      // Try to localize the query graph.
+      x_view::GraphMatcher::IndexMatrixType candidate_matches;
+      x_view::GraphMatcher::SimilarityMatrixType similarity_matrix;
+
       x_view::real_t error =
-          bag_reader.localizeGraph(bag_node_parameters.localization_camera, i,
-                                   local_graph_steps, &locations);
+          bag_reader.localizeGraph(query_graph, pose_ids, &locations,
+                                   &candidate_matches, &similarity_matrix);
+
+      std::cout << candidate_matches << std::endl << std::endl;
+
       std::cout << "Localization " << i - start_frame + 1 << " of "
                 << end_frame - local_graph_steps - start_frame << std::endl;
       LOG(INFO) << "Estimation: \n"
@@ -185,7 +208,10 @@ int main(int argc, char** argv) {
                 << x_view::formatSE3(locations.true_pose, "\t") << "\n"
                 << "Error: " << error << std::endl;
 
-        evaluation.localization.addLocalization(locations, error);
+      evaluation.localization.addLocalization(locations, error);
+      evaluation.similarity.addSimilarities(database_graph, query_graph,
+                                            similarity_matrix,
+                                            candidate_matches);
       ++i;
     }
   }
@@ -199,6 +225,13 @@ int main(int argc, char** argv) {
   if(!evaluation.localization.writeToFolder(evaluation_output_dir, localization_suffix))
     LOG(ERROR) << "Impossible to log time evaluation to "
                << evaluation_output_dir << ".";
+
+  const std::string similarity_suffix = "similarity";
+  if(!evaluation.similarity.writeToFolder(evaluation_output_dir,
+                                          similarity_suffix))
+    LOG(ERROR) << "Impossible to log similarity evaluation to "
+               << evaluation_output_dir << ".";
+
 
   x_view::finalizeLogging();
 

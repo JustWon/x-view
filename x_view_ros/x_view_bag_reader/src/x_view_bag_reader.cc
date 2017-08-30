@@ -110,10 +110,14 @@ void XViewBagReader::relabelGlobalGraphVertices(const x_view::real_t percentage,
   x_view_->relabelGlobalGraphVertices(percentage, seed);
 }
 
-x_view::real_t XViewBagReader::localizeGraph(
-    const CAMERA camera_type, const int start_frame, const int steps,
-    x_view::LocalizationPair* locations) {
-
+bool XViewBagReader::generateQueryGraph(const CAMERA camera_type,
+                                        const int start_frame,
+                                        const int steps,
+                                        x_view::Graph* query_graph,
+                                        std::vector<x_view::PoseId>* pose_ids,
+                                        x_view::LocalizationPair* locations) {
+  CHECK_NOTNULL(query_graph);
+  CHECK_NOTNULL(pose_ids);
   CHECK_NOTNULL(locations);
 
   loadCurrentTopic(getTopics(camera_type));
@@ -124,13 +128,14 @@ x_view::real_t XViewBagReader::localizeGraph(
   // against the global semantic graph built by x_view_.
   x_view::XView local_x_view;
   ros::Time time;
-  std::vector<x_view::PoseId> pose_ids;
 
+
+  pose_ids->clear();
   // Write pose ids.
   for (int i = start_frame; i < start_frame + steps; ++i) {
     x_view::PoseId pose_id;
     pose_id.id = x_view::KeyGenerator::getNextKey();
-    pose_ids.push_back(pose_id);
+    pose_ids->push_back(pose_id);
   }
 
   timer->registerTimer("QueryGraphConstruction");
@@ -141,13 +146,13 @@ x_view::real_t XViewBagReader::localizeGraph(
     const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
     const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
     const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
-    tfTransformToSE3(trans, &pose_ids[i - start_frame].pose);
+    tfTransformToSE3(trans, &(*pose_ids)[i - start_frame].pose);
     // Use the start frame as ground truth.
     if (i == start_frame) {
-      locations->true_pose = pose_ids[i - start_frame].pose;
+      locations->true_pose = (*pose_ids)[i - start_frame].pose;
     }
     x_view::FrameData frame_data(semantic_image, depth_image,
-                                 pose_ids[i - start_frame], i);
+                                 (*pose_ids)[i - start_frame], i);
     local_x_view.processFrameData(frame_data);
     // Publish all ground truth poses that contribute to the estimation.
     const x_view::Vector3r ground_truth_color(0.15, 0.7, 0.15);
@@ -159,16 +164,35 @@ x_view::real_t XViewBagReader::localizeGraph(
 
   timer->stop("QueryGraphConstruction");
 
-  const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
-  x_view::GraphMatcher::IndexMatrixType candidate_matches;
+  (*query_graph) = local_x_view.getSemanticGraph();
+
+  if(boost::num_vertices(*query_graph) == 0)
+    return false;
+
+  return true;
+
+}
+
+x_view::real_t XViewBagReader::localizeGraph(
+    const x_view::Graph& query_graph,
+    const std::vector<x_view::PoseId>& pose_ids,
+    x_view::LocalizationPair* locations,
+    x_view::GraphMatcher::IndexMatrixType* candidate_matches,
+    x_view::GraphMatcher::SimilarityMatrixType* similarity_matrix) {
+
+  CHECK_NOTNULL(locations);
+  CHECK_NOTNULL(candidate_matches);
+  CHECK_NOTNULL(similarity_matrix);
+
+  const auto& timer = x_view::Locator::getTimer();
 
   timer->registerTimer("GraphLocalization");
   timer->start("GraphLocalization");
-  x_view::real_t error = x_view_->localizeGraph(local_graph, pose_ids,
-                                                &candidate_matches,
+  x_view::real_t error = x_view_->localizeGraph(query_graph, pose_ids,
+                                                candidate_matches,
+                                                similarity_matrix,
                                                 &(locations->estimated_pose));
   timer->stop("GraphLocalization");
-
 
   // Remove all previous markers.
   graph_publisher_.clean();

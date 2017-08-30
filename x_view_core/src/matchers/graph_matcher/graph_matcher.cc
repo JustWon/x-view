@@ -267,16 +267,13 @@ void GraphMatcher::recomputeGlobalRandomWalks() {
 
 bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
                                  const Graph& database_semantic_graph,
-                                 const GraphMatchingResult& matches,
+                                 const SimilarityMatrixType& similarity_matrix,
                                  IndexMatrixType* candidate_matches) {
 
   CHECK_NOTNULL(candidate_matches);
 
   const auto& parameters = Locator::getParameters();
   const auto& matcher_parameters = parameters->getChildPropertyList("matcher");
-
-  const GraphMatcher::SimilarityMatrixType& similarity_matrix =
-      matches.getSimilarityMatrix();
 
   const uint64_t num_query_vertices = similarity_matrix.cols();
 

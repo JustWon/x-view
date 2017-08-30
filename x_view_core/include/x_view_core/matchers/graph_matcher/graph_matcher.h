@@ -119,14 +119,15 @@ class GraphMatcher : public AbstractMatcher {
    * \param query_semantic_graph Semantic graph that was matched against the
    * global_semantic_graph_.
    * \param database_semantic_graph Global semantic graph.
-   * \param matches the initially established matches.
+   * \param similarity_matrix Similarity matrix associated to the query and
+   * database semantic graph.
    * \param candidate_matches Index matrix filled up with filtered candidate
    * matches for each vertex of the query graph.
    * \return bool indication of successful filtering.
    */
   bool filterMatches(const Graph& query_semantic_graph,
                      const Graph& database_semantic_graph,
-                     const GraphMatchingResult& matches,
+                     const SimilarityMatrixType& similarity_matrix,
                      IndexMatrixType* candidate_matches);
 
   virtual void addDescriptor(const ConstDescriptorPtr& descriptor) override;
