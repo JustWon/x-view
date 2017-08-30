@@ -137,14 +137,14 @@ real_t XView::localizeGraph(const Graph& query_graph,
   // Perform full matching getting similarity scores between query graph and
   // existing global semantic graph.
 
-
+  real_t cut_threshold;
   // Filter matches with geometric consistency.
   if (Locator::getParameters()->getChildPropertyList("matcher")->getBoolean(
       "outlier_rejection")) {
     bool filter_success =
         std::dynamic_pointer_cast<GraphMatcher>(descriptor_matcher_)
             ->filterMatches(query_graph, global_graph,
-                            *similarity_matrix, candidate_matches);
+                            *similarity_matrix, candidate_matches, &cut_threshold);
   }
 
   // Estimate transformation between graphs (Localization).
@@ -205,7 +205,7 @@ real_t XView::localizeGraph(const Graph& query_graph,
   const real_t error = graph_localizer.localize(matching_result, query_graph,
                                                 global_graph, pose);
 
-  return error;
+  return cut_threshold;
 }
 
 void XView::relabelGlobalGraphVertices(const x_view::real_t percentage,

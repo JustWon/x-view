@@ -268,7 +268,8 @@ void GraphMatcher::recomputeGlobalRandomWalks() {
 bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
                                  const Graph& database_semantic_graph,
                                  const SimilarityMatrixType& similarity_matrix,
-                                 IndexMatrixType* candidate_matches) {
+                                 IndexMatrixType* candidate_matches,
+                                 real_t* cut_threshold) {
 
   CHECK_NOTNULL(candidate_matches);
 
@@ -409,18 +410,37 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
   grouping.setModelSceneCorrespondences(correspondences);
   // Set the minimum cluster size.
   grouping.setGCThreshold(matcher_parameters->getFloat("consistency_threshold"));
-  // Sets the consensus set resolution in metric units.
-  grouping.setGCSize(matcher_parameters->getFloat("consistency_size"));
-
-  // Initialize all candidate matches as invalid as the candidate_matches
-  // matrix if refilled up with geometrically filtered matches.
-  candidate_matches->setConstant(INVALID_MATCH_INDEX);
 
   TransformationVector transformations;
   std::vector<pcl::Correspondences> clustered_correspondences(1);
-  if (!grouping.recognize(transformations, clustered_correspondences)) {
-    return false;
+
+  // Sweep consistency threshold until minimum acceptable found.
+  for (real_t threshold = 20.0; threshold > 0; threshold = threshold - 0.1) {
+    // Sets the consensus set resolution in metric units.
+    grouping.setGCSize(threshold);
+//    grouping.setGCSize(matcher_parameters->getFloat("consistency_size"));
+
+    // Initialize all candidate matches as invalid as the candidate_matches
+    // matrix if refilled up with geometrically filtered matches.
+    candidate_matches->setConstant(INVALID_MATCH_INDEX);
+    if (!grouping.recognize(transformations, clustered_correspondences)) {
+      return false;
+    }
+
+    if (transformations.size() > 0) {
+      *cut_threshold = threshold + 0.2;
+    } else {
+
+      // Found minimum possible threshold.
+      // Compute last consistency set + margin 0.2 and recompute correspondences.
+      grouping.setGCSize(*cut_threshold);
+      candidate_matches->setConstant(INVALID_MATCH_INDEX);
+      grouping.recognize(transformations, clustered_correspondences);
+
+      break;
+    }
   }
+  std::cout << "Final cut threshold " << *cut_threshold << "." << std::endl;
 
   // Fill up the candidate_matches matrix with the correspondences that have
   // been recognized by the geometric verification.

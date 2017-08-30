@@ -123,12 +123,15 @@ class GraphMatcher : public AbstractMatcher {
    * database semantic graph.
    * \param candidate_matches Index matrix filled up with filtered candidate
    * matches for each vertex of the query graph.
+   * \param cut_threshold If trying different thresholds for geometric
+   * consistency, this is the lowest that still works.
    * \return bool indication of successful filtering.
    */
   bool filterMatches(const Graph& query_semantic_graph,
                      const Graph& database_semantic_graph,
                      const SimilarityMatrixType& similarity_matrix,
-                     IndexMatrixType* candidate_matches);
+                     IndexMatrixType* candidate_matches,
+                     real_t* cut_threshold);
 
   virtual void addDescriptor(const ConstDescriptorPtr& descriptor) override;
 
