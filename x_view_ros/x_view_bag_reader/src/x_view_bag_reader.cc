@@ -15,7 +15,7 @@
 namespace x_view_ros {
 
 XViewBagReader::XViewBagReader(ros::NodeHandle& n)
-    : nh_(n), parser_(nh_), graph_publisher_(n) {
+    : nh_(n), parser_(nh_), graph_publisher_(nh_) {
 
   // Load parameters used by XViewBagReader.
   getXViewBagReaderParameters();
@@ -45,11 +45,6 @@ XViewBagReader::XViewBagReader(ros::NodeHandle& n)
 
   // Create x_view only now because it has access to the parser parameters.
   x_view_ = std::unique_ptr<x_view::XView>(new x_view::XView());
-
-  // Register the vertex publisher.
-  vertex_publisher_ =
-      nh_.advertise<visualization_msgs::Marker>("/localization/position",
-                                                10000);
 }
 
 void XViewBagReader::loadCurrentTopic(const CameraTopics& current_topics) {
@@ -101,6 +96,7 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
       x_view_->processFrameData(frame_data);
       x_view_->writeGraphToFile();
 
+      graph_publisher_.clean();
       graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
       i += step;
     }
@@ -160,10 +156,10 @@ bool XViewBagReader::generateQueryGraph(const CAMERA camera_type,
     local_x_view.processFrameData(frame_data);
     // Publish all ground truth poses that contribute to the estimation.
     const x_view::Vector3r ground_truth_color(0.15, 0.7, 0.15);
-    publishRobotPosition(
-        (*pose_ids)[i - start_frame].pose.getPosition().cast<x_view::real_t>(),
+    graph_publisher_.publishRobotPosition(
+        pose_ids[i - start_frame].pose.getPosition().cast<x_view::real_t>(),
         ground_truth_color, trans.stamp_,
-        "true_position_" + x_view::PaddedInt(i - start_frame, 3).str());
+        "true_position_" +  x_view::PaddedInt(i-start_frame, 3).str());
   }
 
   timer->stop("QueryGraphConstruction");
@@ -198,19 +194,26 @@ x_view::real_t XViewBagReader::localizeGraph(
                                                 &(locations->estimated_pose));
   timer->stop("GraphLocalization");
 
-  const x_view::Vector3r estimated_color(0.7, 0.15, 0.15);
-  publishRobotPosition(locations->estimated_pose.getPosition()
-                           .cast<x_view::real_t>(),
-                       estimated_color, ros::Time(),
-                       "estimated_position");
+  // Remove all previous markers.
+  graph_publisher_.clean();
 
-  graph_publisher_.publish(query_graph, ros::Time(), 70.0);
-  graph_publisher_.publishMatches(query_graph, x_view_->getSemanticGraph(),
-                                  *candidate_matches, ros::Time(), 70.0);
+  const x_view::Vector3r estimation_color(0.7, 0.15, 0.15);
+  graph_publisher_.publishRobotPosition(
+      locations->estimated_pose.getPosition().cast<x_view::real_t>(),
+      estimation_color, time, "estimated_position");
+
+  // Publish database graph.
+  graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time(), 0);
+  // Publish query graph with associated matches.
+
+  const double z_offset = 20;
+  graph_publisher_.publish(local_graph, ros::Time(), z_offset);
+  graph_publisher_.publishMatches(local_graph, x_view_->getSemanticGraph(),
+                                  candidate_matches, ros::Time(), z_offset);
 
   bag_.close();
 
-  return error;
+  return 0.0;
 }
 
 void XViewBagReader::parseParameters() const {
@@ -313,47 +316,6 @@ void XViewBagReader::tfTransformToSE3(const tf::StampedTransform& tf_transform,
       tf_transform.getRotation().getY(),
       tf_transform.getRotation().getZ());
   *pose = x_view::SE3(pos, rot);
-}
-
-
-void XViewBagReader::publishRobotPosition(const x_view::Vector3r& pos,
-                                          const x_view::Vector3r& color,
-                                          const ros::Time& stamp,
-                                          const std::string ns) {
-
-  visualization_msgs::Marker marker;
-
-  marker.header.frame_id = "/world";
-  marker.header.stamp = stamp;
-
-  // Set the namespace and id for this marker.  This serves to create a unique ID
-  // Any marker sent with the same namespace and id will overwrite the old one
-  marker.ns = ns;
-  marker.id = 0;
-
-  marker.type = visualization_msgs::Marker::CYLINDER;
-  marker.action = visualization_msgs::Marker::ADD;
-
-  marker.pose.position.x = pos[0];
-  marker.pose.position.y = pos[1];
-  marker.pose.position.z = pos[2];
-  marker.pose.orientation.x = 0.0;
-  marker.pose.orientation.y = 0.0;
-  marker.pose.orientation.z = 0.0;
-  marker.pose.orientation.w = 1.0;
-
-  marker.scale.x = 1.0;
-  marker.scale.y = 1.0;
-  marker.scale.z = 4.0;
-
-  // Set the color -- be sure to set alpha to something non-zero!
-  marker.color.r = static_cast<float>(color[0]);
-  marker.color.g = static_cast<float>(color[1]);
-  marker.color.b = static_cast<float>(color[2]);
-  marker.color.a = 1.0;
-
-  marker.lifetime = ros::Duration();
-  vertex_publisher_.publish(marker);
 }
 
 }
