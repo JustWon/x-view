@@ -5,7 +5,7 @@ Dataset: {
 Landmark: {
     type : "GRAPH",
     blob_filter_type: "ABSOLUTE",
-    min_blob_size: 500,
+    min_blob_size: 2000,
     dilate_and_erode: true,
     num_dilate: 4,
     num_erode: 4,
@@ -19,8 +19,8 @@ Matcher: {
     type: "GRAPH",
     vertex_similarity_score: "WEIGHTED",
     random_walk_sampling_type: "WEIGHTED",
-    num_walks: 300,
-    walk_length: 3,
+    num_walks: 500,
+    walk_length: 4,
     time_window: 10,
     similarity_threshold: 0.3,
     distance_threshold: 5.0,
@@ -31,7 +31,7 @@ Matcher: {
     outlier_rejection: True,
     num_candidate_matches: 3,
     consistency_threshold: 6,
-    consistency_size: 4.0
+    consistency_size: 2.5
 }
 
 Localizer: {
@@ -62,7 +62,7 @@ XViewBagReader: {
   world_frame: "world",
 
   start_frame: 0,
-  end_frame: 250,
+  end_frame: 800,
 
   pause_active: False,
 
@@ -72,6 +72,6 @@ XViewBagReader: {
   graph_construction_camera: "FRONT",
   localization_camera: "BACK",
 
-  local_graph_steps: 5,
-  run_name: "AutoRun-22-58-37"
+  local_graph_steps: 20,
+  run_name: "AutoRun-20-35-05"
 }

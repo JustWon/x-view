@@ -36,7 +36,7 @@ x_view_produced_graph_dir = "/home/carlo/x-view_ws_release/src/x-view/x_view_cor
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 # Resource directory containing all destination_dir s
-resources_dir = os.path.join(current_dir, "resources")
+resources_dir = os.path.join(current_dir, "long_query")
 
 # Path to folder used to collect generated data (local path).
 destination_dir = os.path.join(resources_dir, run_name)
@@ -49,47 +49,44 @@ def launchXView(runs):
     # Create a config file generator.
     x_view_config = XViewConfig(x_view_config_file=x_view_cfg_file)
 
-    candidate_numbers = [1, 3]
-    consistency_thresholds = [2, 4, 6]
-    consistency_sizes = [1.0, 2.0, 4.0]
-    local_graph_steps = [3, 5]
-    sampling_types = ["NON_RETURNING", "AVOIDING", "WEIGHTED"]
+    num_walks = [200, 500]
+    walk_lengths = [2, 3, 4]
+    sampling_types = ["WEIGHTED"]
+    outlier_rejections = [True, False]
 
-    for consistency_threshold in consistency_thresholds:
-        for consistency_size in consistency_sizes:
-            for candidate_number in candidate_numbers:
-                for local_graph_step in local_graph_steps:
-                    for sampling_type in sampling_types:
-                        custom_arguments = {
-                            "run_name": run_name,
-                            "local_graph_steps": local_graph_step,
-                            "end_frame": 250,
-                            "outlier_rejection": True,
-                            "num_candidate_matches": candidate_number,
-                            "consistency_threshold": consistency_threshold,
-                            "consistency_size": consistency_size,
-                            "random_walk_sampling_type": sampling_type
-                        }
+    for num_walk in num_walks:
+        for walk_length in walk_lengths:
+            for outlier_rejection in outlier_rejections:
+                for sampling_type in sampling_types:
+                    custom_arguments = {
+                        "run_name": run_name,
+                        "local_graph_steps": 20,
+                        "end_frame": 800,
+                        "outlier_rejection": outlier_rejection,
+                        "random_walk_sampling_type": sampling_type,
+                        "num_walks": num_walk,
+                        "walk_length": walk_length
+                    }
 
-                        # Write the config file to the x_view_config_file.
-                        x_view_config.writeConfigFile(custom_arguments)
+                    # Write the config file to the x_view_config_file.
+                    x_view_config.writeConfigFile(custom_arguments)
 
-                        # Create an XView executer.
-                        folder_suffix = ""
-                        for key in sorted(custom_arguments.keys()):
-                            if key is not "run_name":
-                                folder_suffix += "_" + str(custom_arguments[key])
+                    # Create an XView executer.
+                    folder_suffix = ""
+                    for key in sorted(custom_arguments.keys()):
+                        if key is not "run_name":
+                            folder_suffix += "_" + str(custom_arguments[key])
 
-                        run_folder_name = run_name + folder_suffix
-                        run_folder_name = os.path.join(resources_dir, run_folder_name)
-                        x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
-                                              x_view_evaluation_output_dir=x_view_evaluation_dir,
-                                              x_view_graph_output_dir=x_view_produced_graph_dir,
-                                              x_view_config_file=x_view_cfg_file,
-                                              evaluation_storage_dir=run_folder_name)
+                    run_folder_name = run_name + folder_suffix
+                    run_folder_name = os.path.join(resources_dir, run_folder_name)
+                    x_view_run = XViewRun(x_view_run_dir=x_view_launch_dir,
+                                          x_view_evaluation_output_dir=x_view_evaluation_dir,
+                                          x_view_graph_output_dir=x_view_produced_graph_dir,
+                                          x_view_config_file=x_view_cfg_file,
+                                          evaluation_storage_dir=run_folder_name)
 
-                        # Run XView with the current arguments for num_runs times and store the evaluations.
-                        x_view_run.run(num_runs=runs, store_eval=True)
+                    # Run XView with the current arguments for num_runs times and store the evaluations.
+                    x_view_run.run(num_runs=runs, store_eval=True)
 
 
 def plotLastTimings():
@@ -137,20 +134,22 @@ def plotLastTimings():
 
 
 def plotLocalizationPR():
-    for t in np.power(0.1, np.linspace(1, 3, 40)):
+    for d in sorted(os.listdir(resources_dir)):
+        if d == ".keep":
+            continue
         f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
-        for d in sorted(os.listdir(resources_dir)):
-            print("Computing PR curve for {}".format(d))
-            full_config_dir = os.path.join(resources_dir, d)
-            run_directory = getLastResultsDir(full_config_dir)
-            eval_directory = os.path.join(run_directory, "eval")
-            localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
 
-            x_view_pr = XViewPR(filename=localization_file_name, true_threshold=t)
-            PR = x_view_pr.computePR()
+        print("Computing PR curve for {}".format(d))
+        full_config_dir = os.path.join(resources_dir, d)
+        run_directory = getLastResultsDir(full_config_dir)
+        eval_directory = os.path.join(run_directory, "eval")
+        localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
 
-            order = PR[0:, 1].argsort()
-            ax.plot(PR[order, 1], PR[order, 0], label=d)
+        x_view_pr = XViewPR(filename=localization_file_name, true_threshold=0.005)
+        PR = x_view_pr.computePR()
+
+        order = PR[0:, 1].argsort()
+        ax.plot(PR[order, 1], PR[order, 0], label=d)
 
         plt.title("PR curves")
         plt.xlabel("Recall")
@@ -160,7 +159,7 @@ def plotLocalizationPR():
         plt.ylim([0, 1.05])
 
         plt.tight_layout()
-        f.savefig(os.path.join(output_folder, "PR_curves.pdf"))
+        # f.savefig(os.path.join(output_folder, "PR_curves.pdf"))
         plt.show()
 
         plt.close()
@@ -184,103 +183,111 @@ def plotSuccessRate():
 
     distance_thresholds = np.linspace(0, 100, 100)
 
-    candidate_numbers = [1, 3]
-    consistency_thresholds = [2, 4, 6]
-    consistency_sizes = [1.0, 2.0, 4.0]
-    local_graph_steps = [3, 5]
-    sampling_types = ["NON_RETURNING", "AVOIDING", "WEIGHTED"]
 
-    for consistency_thresh in consistency_thresholds:
-        for candidates in candidate_numbers:
-            f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
+    f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
 
-            for d in sorted(os.listdir(resources_dir)):
-                if d == ".keep" or \
-                        not hasCandidateNumber(d, candidates) or \
-                        not hasConsistencyThreshold(d, consistency_thresh):
-                    continue
-
-                print("Computing success rate for {}".format(d))
-
-                full_config_dir = os.path.join(resources_dir, d)
-                run_directory = getLastResultsDir(full_config_dir)
-                eval_directory = os.path.join(run_directory, "eval")
-                localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
-
-                ground_truths, estimations, _ = getLocalizations(localization_file_name)
-                success_rate, filtered = computeSuccessRate(distance_thresholds, ground_truths, estimations)
-
-                ax.plot(distance_thresholds, success_rate, label=d + "-{}%".format(int(filtered * 100)))
-
-            plt.title("Success rate")
-            plt.xlabel("Success distance")
-            plt.ylabel("Success rate")
-            plt.legend()
-
-            plt.ylim([0, 1])
-
-            plt.tight_layout()
-
-            f.savefig(os.path.join(output_folder, "Success Rate consistency thresh {} candidates {}.pdf".format(
-                consistency_thresh, candidates)))
-
-
-def plotVertexSimilarityPR():
     for d in sorted(os.listdir(resources_dir)):
-        if d == ".keep":
+        if d == ".keep" or "500_True_WEIGHTED_3" in d:
             continue
 
-        print("Computing PR curve for {}".format(d))
+        print("Computing success rate for {}".format(d))
+
         full_config_dir = os.path.join(resources_dir, d)
         run_directory = getLastResultsDir(full_config_dir)
         eval_directory = os.path.join(run_directory, "eval")
-        localization_file_name = os.path.join(eval_directory, "similarities_similarity_.dat")
+        localization_file_name = os.path.join(eval_directory, "all_localizations_localization_.dat")
 
-        db_vertices, query_vertices, similarities = getSimilarities(localization_file_name)
+        ground_truths, estimations, _ = getLocalizations(localization_file_name)
+        success_rate, filtered = computeSuccessRate(distance_thresholds, ground_truths, estimations)
 
-        # two vertices are a true match if their euclidean distance is smaller than true_radius
-        true_radius = 2.0
-        similarity_sweep = np.linspace(0, 1, 100)
-        precisions = []
-        recalls = []
-        distances = [np.linalg.norm(query_vertex - db_vertex) for query_vertex, db_vertex in zip(query_vertices, db_vertices)]
+        ax.plot(distance_thresholds, success_rate, label=d + "-{}%".format(int(filtered * 100)))
 
-        for similarity in similarity_sweep:
-            true_positives = 0
-            true_negatives = 0
-            false_positives = 0
-            false_negatives = 0
+    plt.title("Success rate")
+    plt.xlabel("Success distance")
+    plt.ylabel("Success rate")
+    plt.legend()
 
-            for dist, sim in zip(distances, similarities):
-                if sim > similarity:
-                    if dist < true_radius:
-                        true_positives += 1
-                    else:
-                        false_positives += 1
-                else:
-                    if dist < true_radius:
-                        false_negatives += 1
-                    else:
-                        true_negatives += 1
+    plt.ylim([0, 1])
 
-            precision = 0
-            if true_positives + false_positives > 0:
-                precision = (1.0 * true_positives) / (true_positives + false_positives)
+    plt.tight_layout()
+    plt.show()
 
-            recall = 0
-            if true_positives + false_negatives > 0:
-                recall = (1.0 * true_positives) / (true_positives + false_negatives)
+    #f.savefig(os.path.join(output_folder, "Success Rate consistency thresh {} candidates {}.pdf".format(
+    #    consistency_thresh, candidates)))
 
-            precisions.append(precision)
-            recalls.append(recall)
 
-        precisions = np.array(precisions)
-        recalls = np.array(recalls)
+def plotVertexSimilarityPR():
 
+    rejections = [False, True]
+
+    for rejection in rejections:
         f, ax = plt.subplots(figsize=(16. / 2.5, 9. / 2.5))
+        for d in sorted(os.listdir(resources_dir)):
+            if d == ".keep":
+                continue
+            if "{}".format(rejection) not in d:
+                continue
 
-        order = recalls.argsort()
-        ax.plot(recalls[order], precisions[order], label=d)
+
+            print("Computing PR curve for {}".format(d))
+            full_config_dir = os.path.join(resources_dir, d)
+            run_directory = getLastResultsDir(full_config_dir)
+            eval_directory = os.path.join(run_directory, "eval")
+            localization_file_name = os.path.join(eval_directory, "similarities_similarity_.dat")
+
+            db_vertices, query_vertices, similarities = getSimilarities(localization_file_name)
+
+            # two vertices are a true match if their euclidean distance is smaller than true_radius
+            true_radius = 10.0
+            similarity_sweep = np.linspace(0.0, 1.0, 101)
+            precisions = []
+            recalls = []
+            distances = [np.linalg.norm(query_vertex - db_vertex) for query_vertex, db_vertex in
+                         zip(query_vertices, db_vertices)]
+
+            for similarity in similarity_sweep:
+                true_positives = 0
+                true_negatives = 0
+                false_positives = 0
+                false_negatives = 0
+
+                for dist, sim in zip(distances, similarities):
+                    if sim > similarity:
+                        if dist < true_radius:
+                            true_positives += 1
+                        else:
+                            false_positives += 1
+                    else:
+                        if dist < true_radius:
+                            false_negatives += 1
+                        else:
+                            true_negatives += 1
+
+                precision = 1
+                if true_positives + false_positives > 0:
+                    precision = (1.0 * true_positives) / (true_positives + false_positives)
+
+                recall = 0
+                if true_positives + false_negatives > 0:
+                    recall = (1.0 * true_positives) / (true_positives + false_negatives)
+
+                precisions.append(precision)
+                recalls.append(recall)
+
+            precisions = np.array(precisions)
+            recalls = np.array(recalls)
+
+            order = recalls.argsort()
+            ax.plot(recalls[order], precisions[order], label=d)
+
+            # Also plot the similarity score associate to the recall
+            step = 1000
+            for i in range(int(len(similarity_sweep) / step)):
+                index = i * step
+                s = similarity_sweep[index]
+                recall = recalls[index]
+                precision = precisions[index]
+                ax.text(recall, precision, "{:.2}".format(s))
 
         plt.title("PR curve Semantic Similarity")
         plt.xlabel("Recall")
@@ -288,9 +295,9 @@ def plotVertexSimilarityPR():
         plt.legend()
 
         plt.ylim([0, 1.05])
+        plt.xlim([0, 1])
 
         plt.tight_layout()
-        # f.savefig(os.path.join(output_folder, "PR_curves.pdf"))
         plt.show()
 
 

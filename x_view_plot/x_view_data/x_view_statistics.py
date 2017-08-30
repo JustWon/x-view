@@ -111,7 +111,7 @@ class XViewPR:
                     else:
                         true_negatives += 1
 
-            precision = 0
+            precision = 1
             if true_positives + false_positives > 0:
                 precision = (1.0 * true_positives) / (true_positives + false_positives)
 
