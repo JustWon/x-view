@@ -15,7 +15,7 @@ class XViewConfig:
         self.current_args = None
         self._default_args = {
             "dataset_name": "SYNTHIA",
-            "min_blob_size": 500,
+            "min_blob_size": 2000,
             "num_dilate_erode": 4,
             "extraction_type": "3D_SPACE",
             "max_euclidean_distance": 12.0,
@@ -33,16 +33,16 @@ class XViewConfig:
             "link_close_vertices": True,
             "max_link_distance": 5.0,
             "outlier_rejection": False,
-            "num_candidate_matches": 1,
-            "consistency_threshold": 5.0,
-            "consistency_size": 2.0,
+            "num_candidate_matches": 3,
+            "consistency_threshold": 6,
+            "consistency_size": 2.5,
             "localizer_type": "OPTIMIZATION",
             "use_robust_noise": False,
             "start_frame": 0,
             "end_frame": 200,
             "relabeling_percentage": 0.0,
             "graph_construction_camera": "FRONT",
-            "localization_camera": "FRONT",
+            "localization_camera": "BACK",
             "local_graph_steps": 5,
             "run_name": "Example_run"
 
