@@ -55,29 +55,27 @@ void GraphPublisher::publish(const x_view::Graph& graph,
   publishVertices(graph, time, z_offset);
 }
 
-void GraphPublisher::publishMatches(
+void GraphPublisher::matchesToRosMsg(
     const x_view::Graph& query_graph, const x_view::Graph& database_graph,
     const x_view::GraphMatcher::IndexMatrixType& candidate_matches,
-    const ros::Time& time, double z_offset) const {
-
-  visualization_msgs::Marker marker;
+    const ros::Time& time, double z_offset,
+    visualization_msgs::Marker* marker) const {
 
   // Create marker properties which are the same for all lines.
-  marker.header.frame_id = "/world";
-  marker.header.stamp = time;
-  marker.ns = "semantic_graph_matches";
-  marker.type = visualization_msgs::Marker::LINE_LIST;
-  marker.action = visualization_msgs::Marker::ADD;
-  marker.id = id_++;
+  marker->header.frame_id = "/world";
+  marker->header.stamp = time;
+  marker->ns = "semantic_graph_matches";
+  marker->type = visualization_msgs::Marker::LINE_LIST;
+  marker->action = visualization_msgs::Marker::ADD;
+  marker->id = id_++;
 
-  marker.scale.x = 0.2f;
+  marker->scale.x = 0.2f;
 
-  marker.color.r = 0.0f;
-  marker.color.g = 1.0f;
-  marker.color.b = 0.0f;
-  marker.color.a = 0.7f;
-
-  marker.lifetime = ros::Duration();
+  marker->color.r = 0.0f;
+  marker->color.g = 1.0f;
+  marker->color.b = 0.0f;
+  marker->color.a = 0.7f;
+  marker->lifetime = ros::Duration(1);
 
   // Iterate over all matches and publish edge between local graph and database
   // graph if there is a valid match.
@@ -99,56 +97,145 @@ void GraphPublisher::publishMatches(
         p_to.y = v_p_to.location_3d[1];
         p_to.z = v_p_to.location_3d[2];
 
-        marker.points.push_back(p_from);
-        marker.points.push_back(p_to);
+        marker->points.push_back(p_from);
+        marker->points.push_back(p_to);
       }
     }
   }
+}
+
+
+void GraphPublisher::publishMatches(
+    const x_view::Graph& query_graph, const x_view::Graph& database_graph,
+    const x_view::GraphMatcher::IndexMatrixType& candidate_matches,
+    const ros::Time& time, double z_offset) const {
+
+  visualization_msgs::Marker marker;
+  matchesToRosMsg(query_graph, database_graph, candidate_matches, time,
+                  z_offset, &marker);
   matches_publisher_.publish(marker);
+}
+
+void GraphPublisher::robotPositionToRosMsg(const x_view::Vector3r& pos,
+                                           const x_view::Vector3r& color,
+                                           const ros::Time& time,
+                                           const std::string ns,
+                                           visualization_msgs::Marker* marker) const {
+
+  marker->header.frame_id = "/world";
+  marker->header.stamp = time;
+
+  // Set the namespace and id for this marker.  This serves to create a unique ID
+  // Any marker sent with the same namespace and id will overwrite the old one
+  marker->ns = ns;
+  marker->id = 0;
+
+  marker->type = visualization_msgs::Marker::CYLINDER;
+  marker->action = visualization_msgs::Marker::ADD;
+
+  marker->pose.position.x = pos[0];
+  marker->pose.position.y = pos[1];
+  marker->pose.position.z = pos[2];
+  marker->pose.orientation.x = 0.0;
+  marker->pose.orientation.y = 0.0;
+  marker->pose.orientation.z = 0.0;
+  marker->pose.orientation.w = 1.0;
+
+  marker->scale.x = 1.0;
+  marker->scale.y = 1.0;
+  marker->scale.z = 4.0;
+
+  // Set the color -- be sure to set alpha to something non-zero!
+  marker->color.r = static_cast<float>(color[0]);
+  marker->color.g = static_cast<float>(color[1]);
+  marker->color.b = static_cast<float>(color[2]);
+  marker->color.a = 1.0;
+
+  marker->lifetime = ros::Duration();
 }
 
 void GraphPublisher::publishRobotPosition(const x_view::Vector3r& pos,
                                           const x_view::Vector3r& color,
                                           const ros::Time& time,
-                                          const std::string ns) {
+                                          const std::string ns) const {
 
   visualization_msgs::Marker marker;
-
-  marker.header.frame_id = "/world";
-  marker.header.stamp = time;
-
-  // Set the namespace and id for this marker.  This serves to create a unique ID
-  // Any marker sent with the same namespace and id will overwrite the old one
-  marker.ns = ns;
-  marker.id = 0;
-
-  marker.type = visualization_msgs::Marker::CYLINDER;
-  marker.action = visualization_msgs::Marker::ADD;
-
-  marker.pose.position.x = pos[0];
-  marker.pose.position.y = pos[1];
-  marker.pose.position.z = pos[2];
-  marker.pose.orientation.x = 0.0;
-  marker.pose.orientation.y = 0.0;
-  marker.pose.orientation.z = 0.0;
-  marker.pose.orientation.w = 1.0;
-
-  marker.scale.x = 1.0;
-  marker.scale.y = 1.0;
-  marker.scale.z = 4.0;
-
-  // Set the color -- be sure to set alpha to something non-zero!
-  marker.color.r = static_cast<float>(color[0]);
-  marker.color.g = static_cast<float>(color[1]);
-  marker.color.b = static_cast<float>(color[2]);
-  marker.color.a = 1.0;
-
-  marker.lifetime = ros::Duration();
+  robotPositionToRosMsg(pos, color, time, ns, &marker);
   position_publisher_.publish(marker);
 }
 
-void GraphPublisher::publishVertices(const x_view::Graph& graph,
-                                     const ros::Time& time, double z_offset) const {
+
+void GraphPublisher::positionBlobToRosMsg(const x_view::Vector3r& gt_pos,
+                                          const x_view::Vector3r& estimation_pos,
+                                          const ros::Time& time,
+                                          const std::string ns,
+                                          visualization_msgs::Marker* marker) const {
+
+  // Evaluate the estimation against the ground truth.
+  double distance_xy = sqrt(
+      (gt_pos(0) - estimation_pos(0)) * (gt_pos(0) - estimation_pos(0))
+      + (gt_pos(0) - estimation_pos(0)) * (gt_pos(0) - estimation_pos(0)));
+
+  marker->header.frame_id = "/world";
+  marker->header.stamp = time;
+
+  // Set the namespace and id for this marker.  This serves to create a unique ID
+  // Any marker sent with the same namespace and id will overwrite the old one
+  marker->ns = ns;
+  marker->id = id_;
+
+  marker->type = visualization_msgs::Marker::CYLINDER;
+  marker->action = visualization_msgs::Marker::ADD;
+
+  marker->pose.position.x = gt_pos[0];
+  marker->pose.position.y = gt_pos[1];
+  marker->pose.position.z = gt_pos[2];
+  marker->pose.orientation.x = 0.0;
+  marker->pose.orientation.y = 0.0;
+  marker->pose.orientation.z = 0.0;
+  marker->pose.orientation.w = 1.0;
+
+  // Set the color and marker size according to estimation result.
+  if (estimation_pos == x_view::Vector3r::Zero()) {
+    marker->color.r = 1;
+    marker->color.g = 1;
+    marker->color.b = 0;
+    marker->scale.x = 3.0;
+    marker->scale.y = 3.0;
+    marker->scale.z = 8.0;
+  } else if (distance_xy < 30.0) {
+    marker->color.r = 0;
+    marker->color.g = 1;
+    marker->color.b = 0;
+    marker->scale.x = 10.0;
+    marker->scale.y = 10.0;
+    marker->scale.z = 6.0;
+  } else {
+    marker->color.r = 1;
+    marker->color.g = 0;
+    marker->color.b = 0;
+    marker->scale.x = 3.0;
+    marker->scale.y = 3.0;
+    marker->scale.z = 8.0;
+  }
+  marker->color.a = 0.5;
+
+  marker->lifetime = ros::Duration(10000);
+}
+
+void GraphPublisher::publishPositionBlob(const x_view::Vector3r& gt_pos,
+                                         const x_view::Vector3r& estimation_pos,
+                                         const ros::Time& time,
+                                         const std::string ns) const {
+
+  visualization_msgs::Marker marker;
+  positionBlobToRosMsg(gt_pos, estimation_pos, time, ns, &marker);
+  position_publisher_.publish(marker);
+}
+
+void GraphPublisher::verticesToRosMsg(
+    const x_view::Graph& graph, const ros::Time& time, double z_offset,
+    std::vector<visualization_msgs::Marker>* markers) const {
 
   const auto vertices = boost::vertices(graph);
   // Get the last time index.
@@ -173,6 +260,7 @@ void GraphPublisher::publishVertices(const x_view::Graph& graph,
     marker.id = id_++;
     marker.type = visualization_msgs::Marker::SPHERE;
     marker.action = visualization_msgs::Marker::ADD;
+    marker.lifetime = ros::Duration(5);
 
     marker.pose.position.x = position[0];
     marker.pose.position.y = position[1];
@@ -195,14 +283,26 @@ void GraphPublisher::publishVertices(const x_view::Graph& graph,
       marker.scale.y *= 2;
       marker.scale.z *= 2;
     }
-    vertex_publisher_.publish(marker);
+    markers->push_back(marker);
   }
-
 }
 
-void GraphPublisher::publishEdges(const x_view::Graph& graph,
+void GraphPublisher::publishVertices(const x_view::Graph& graph,
+                                     const ros::Time& time,
+                                     double z_offset) const {
+
+  std::vector<visualization_msgs::Marker> markers;
+  verticesToRosMsg(graph, time, z_offset, &markers);
+
+  for (size_t i = 0u; i < markers.size(); ++i) {
+    vertex_publisher_.publish(markers[i]);
+  }
+}
+
+void GraphPublisher::edgesToRosMsg(const x_view::Graph& graph,
                                   const ros::Time& time,
-                                  double z_offset) const {
+                                  double z_offset,
+                                  std::vector<visualization_msgs::Marker>* markers) const {
 
   const auto edges = boost::edges(graph);
 
@@ -257,9 +357,20 @@ void GraphPublisher::publishEdges(const x_view::Graph& graph,
     marker.points.push_back(p_from);
     marker.points.push_back(p_to);
 
-    edge_publisher_.publish(marker);
+    markers->push_back(marker);
   }
+
 }
 
+void GraphPublisher::publishEdges(const x_view::Graph& graph,
+                                  const ros::Time& time,
+                                  double z_offset) const {
+
+  std::vector<visualization_msgs::Marker> markers;
+  edgesToRosMsg(graph, time, z_offset, &markers);
+  for (size_t i = 0u; i < markers.size(); ++i) {
+    edge_publisher_.publish(markers[i]);
+  }
+}
 }
 

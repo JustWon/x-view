@@ -45,6 +45,13 @@ XViewBagReader::XViewBagReader(ros::NodeHandle& n)
 
   // Create x_view only now because it has access to the parser parameters.
   x_view_ = std::unique_ptr<x_view::XView>(new x_view::XView());
+
+  // Open output bagfile if required.
+  record_bag_ = params_.record_bag;
+  if(record_bag_) {
+    out_bag_.open(params_.out_bag_file_name, rosbag::bagmode::Write);
+  }
+  last_time_ = ros::Time(0);
 }
 
 void XViewBagReader::loadCurrentTopic(const CameraTopics& current_topics) {
@@ -83,6 +90,7 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
   Pause pause;
   for (int i = from; step * i < step * to; ) {
     if(!pause.isPaused()) {
+      last_time_ = last_time_ + ros::Duration(1);
       std::cout << "Processing semantic image at index " << i << std::endl;
       parseParameters();
       const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
@@ -98,6 +106,28 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
 
       graph_publisher_.clean();
       graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
+
+      if(record_bag_) {
+        // Copy messages from input bag file to output bagfile.
+        out_bag_.write(getTopics(camera_type).semantics_image_topic, last_time_,
+                       semantic_topic_view_->getMessageAtFrame(i));
+        out_bag_.write(getTopics(camera_type).depth_image_topic, last_time_,
+                       depth_topic_view_->getMessageAtFrame(i));
+
+        // Write graph messages to output bagfile.
+        std::vector<visualization_msgs::Marker> edges, vertices;
+        graph_publisher_.edgesToRosMsg(x_view_->getSemanticGraph(), ros::Time(),
+                                       0.0, &edges);
+        graph_publisher_.verticesToRosMsg(x_view_->getSemanticGraph(),
+                                          ros::Time(), 0.0, &vertices);
+        for (size_t i = 0u; i < edges.size(); ++i) {
+          out_bag_.write("database_graph_edges", last_time_, edges[i]);
+        }
+        for (size_t i = 0u; i < vertices.size(); ++i) {
+          out_bag_.write("database_graph_vertices", last_time_,
+                         vertices[i]);
+        }
+      }
       i += step;
     }
   }
@@ -119,6 +149,9 @@ bool XViewBagReader::generateQueryGraph(const CAMERA camera_type,
   CHECK_NOTNULL(query_graph);
   CHECK_NOTNULL(pose_ids);
   CHECK_NOTNULL(locations);
+
+  // Increment last time for writing bagfile.
+  last_time_ = last_time_ + ros::Duration(1);
 
   loadCurrentTopic(getTopics(camera_type));
 
@@ -160,6 +193,20 @@ bool XViewBagReader::generateQueryGraph(const CAMERA camera_type,
         (*pose_ids)[i - start_frame].pose.getPosition().cast<x_view::real_t>(),
         ground_truth_color, trans.stamp_,
         "true_position_" +  x_view::PaddedInt(i-start_frame, 3).str());
+
+    if(record_bag_) {
+      // Write robot position and images messages to output bagfile.
+      visualization_msgs::Marker marker;
+      graph_publisher_.robotPositionToRosMsg(
+          (*pose_ids)[i - start_frame].pose.getPosition().cast<x_view::real_t>(),
+          ground_truth_color, trans.stamp_,
+          "true_position_" + x_view::PaddedInt(i - start_frame, 3).str(), &marker);
+      out_bag_.write(graph_publisher_.getPositionTopic(), last_time_, marker);
+      out_bag_.write(getTopics(camera_type).semantics_image_topic, last_time_,
+                     semantic_topic_view_->getMessageAtFrame(i));
+      out_bag_.write(getTopics(camera_type).depth_image_topic, last_time_,
+                     depth_topic_view_->getMessageAtFrame(i));
+    }
   }
 
   timer->stop("QueryGraphConstruction");
@@ -207,10 +254,41 @@ x_view::real_t XViewBagReader::localizeGraph(
   graph_publisher_.publish(db_graph, ros::Time(), 0);
   // Publish query graph with associated matches.
 
-  const double z_offset = 20;
+  const double z_offset = 50;
   graph_publisher_.publish(query_graph, ros::Time(), z_offset);
   graph_publisher_.publishMatches(query_graph, db_graph,
                                   (*candidate_matches), ros::Time(), z_offset);
+
+  if(record_bag_) {
+    // Write graph messages to output bagfile.
+    visualization_msgs::Marker marker, matches, blob;
+    graph_publisher_.robotPositionToRosMsg(
+        locations->estimated_pose.getPosition().cast<x_view::real_t>(),
+        estimation_color, ros::Time(), "estimated_position", &marker);
+    out_bag_.write(graph_publisher_.getPositionTopic(), last_time_, marker);
+
+    graph_publisher_.matchesToRosMsg(query_graph, db_graph,
+                                     (*candidate_matches), ros::Time(), z_offset, &matches);
+    out_bag_.write("matches", last_time_, matches);
+
+    graph_publisher_.positionBlobToRosMsg(locations->true_pose.getPosition().cast<x_view::real_t>(),
+                                          locations->estimated_pose.getPosition().cast<x_view::real_t>(),
+                                          ros::Time(),
+                                          "estimation_blob",
+                                          &blob);
+    out_bag_.write("localization_blobs", last_time_, blob);
+
+    std::vector<visualization_msgs::Marker> edges, vertices;
+    graph_publisher_.edgesToRosMsg(query_graph, ros::Time(), z_offset, &edges);
+    graph_publisher_.verticesToRosMsg(query_graph, ros::Time(), z_offset, &vertices);
+    for (size_t i = 0u; i < edges.size(); ++i) {
+      out_bag_.write("query_graph_edges", last_time_, edges[i]);
+    }
+    for (size_t i = 0u; i < vertices.size(); ++i) {
+      out_bag_.write("query_graph_vertices", last_time_,
+                     vertices[i]);
+    }
+  }
 
   bag_.close();
 
@@ -246,6 +324,12 @@ void XViewBagReader::getXViewBagReaderParameters() {
 
   if (!nh_.getParam("/XViewBagReader/bag_file_name", params_.bag_file_name)) {
     LOG(ERROR) << "Failed to get param '/XViewBagReader/bag_file_name'";
+  }
+  if (!nh_.getParam("/XViewBagReader/out_bag_file_name", params_.out_bag_file_name)) {
+    LOG(ERROR) << "Failed to get param '/XViewBagReader/out_bag_file_name'";
+  }
+  if (!nh_.getParam("/XViewBagReader/record_bag", params_.record_bag)) {
+    LOG(ERROR) << "Failed to get param '/XViewBagReader/record_bag'";
   }
   if (!nh_.getParam("/XViewBagReader/back/semantics_image_topic",
                     params_.back.semantics_image_topic)) {
