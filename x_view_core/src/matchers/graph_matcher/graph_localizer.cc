@@ -51,19 +51,28 @@ gtsam::ExpressionFactor<gtsam::Point3> GraphLocalizer::relativePointFactor(
       > (noise_model, translation, t_a_b);
 }
 
-bool GraphLocalizer::localize(
+real_t GraphLocalizer::localize(
     const GraphMatcher::GraphMatchingResult& matching_result,
     const Graph& query_semantic_graph, const Graph& database_semantic_graph,
     SE3* transformation) {
 
   CHECK_NOTNULL(transformation);
-  CHECK_GT(pose_vertex_measurements_.size(), 0)
-      << "No pose vertex measurements given.";
+
+  if(pose_vertex_measurements_.size() == 0) {
+    LOG(WARNING) << "No pose-vertex measurements found.";
+    transformation->setIdentity();
+    return std::numeric_limits<real_t>::max();
+  }
 
   const auto& parameters = Locator::getParameters();
   const auto& localizer_parameters =
       parameters->getChildPropertyList("localizer");
   const std::string localizer_type = localizer_parameters->getString("type");
+
+  const bool use_robust_noise_model_default = false;
+  const bool use_robust_noise_model =
+      localizer_parameters->getBoolean("use_robust_noise",
+                                       use_robust_noise_model_default);
 
   if (localizer_type == "OPTIMIZATION") {
     if (pose_vertex_measurements_.size() < 4) {
@@ -71,7 +80,8 @@ bool GraphLocalizer::localize(
           "observations! Given observations: "
           << pose_pose_measurements_.size() + pose_vertex_measurements_.size()
           + vertex_vertex_measurements_.size() << ".";
-      return false;
+      // Localization failed, return maximal residual.
+      return std::numeric_limits<real_t>::max();
     }
 
     if (pose_vertex_measurements_.size() < 7) {
@@ -103,7 +113,7 @@ bool GraphLocalizer::localize(
             gtsam::Vector6::Ones() * prior_noise_);
 
     for (size_t i = 0u; i < pose_pose_measurements_.size(); ++i) {
-      SE3 T_a_b = pose_pose_measurements_[i].pose_a.pose.inverted()
+      SE3 T_a_b = pose_pose_measurements_[i].pose_a.pose.inverse()
           * pose_pose_measurements_[i].pose_b.pose;
       // Add odometry as relative movement between poses.
       graph.push_back(
@@ -114,13 +124,19 @@ bool GraphLocalizer::localize(
     // Create noise model for position-vertex measurements.
     gtsam::Vector6 pv_noise;
     pv_noise << 5.0, 5.0, 5.0, 5.0, 5.0, 5.0;
-    gtsam::noiseModel::Diagonal::shared_ptr pv_observation_noise =
+    gtsam::noiseModel::Diagonal::shared_ptr pv_observation_noise_ =
         gtsam::noiseModel::Diagonal::Sigmas(pv_noise);
-    // Make noise model robust by adding m-estimation.
-    gtsam::noiseModel::Robust::shared_ptr temp_noise =
-        gtsam::noiseModel::Robust::Create(
-            gtsam::noiseModel::mEstimator::Cauchy::Create(1),
-            pv_observation_noise);
+
+    gtsam::noiseModel::Base::shared_ptr pv_observation_noise =
+        pv_observation_noise_;
+    if(use_robust_noise_model) {
+      // Make noise model robust by adding m-estimation.
+      gtsam::noiseModel::Robust::shared_ptr temp_noise =
+          gtsam::noiseModel::Robust::Create(
+              gtsam::noiseModel::mEstimator::Cauchy::Create(1),
+              pv_observation_noise);
+      pv_observation_noise = temp_noise;
+    }
     // Add all pose-vertex observations to the factor graph.
     for (size_t i = 0u; i < pose_vertex_measurements_.size(); ++i) {
       // Calculate translation measurement between robot position and vertex.
@@ -134,20 +150,25 @@ bool GraphLocalizer::localize(
               transformation,
               gtsam::Symbol('p', pose_vertex_measurements_[i].observer_pose.id),
               gtsam::Symbol('x', pose_vertex_measurements_[i].vertex_property.index),
-              temp_noise));
+              pv_observation_noise));
     }
 
     // Create noise model for vertex-vertex identity matches.
     gtsam::Vector6 vv_noise;
     vv_noise << 5.0, 5.0, 5.0, 100.0, 100.0, 100.0;
-    gtsam::noiseModel::Diagonal::shared_ptr vv_observation_noise =
+    gtsam::noiseModel::Diagonal::shared_ptr vv_observation_noise_ =
         gtsam::noiseModel::Diagonal::Sigmas(
             vv_noise);
-    // Make noise model robust by adding m-estimation.
-    gtsam::noiseModel::Robust::shared_ptr vv_robust_noise =
-        gtsam::noiseModel::Robust::Create(
-            gtsam::noiseModel::mEstimator::Cauchy::Create(1),
-            vv_observation_noise);
+    gtsam::noiseModel::Base::shared_ptr vv_observation_noise =
+        vv_observation_noise_;
+    if(use_robust_noise_model) {
+      // Make noise model robust by adding m-estimation.
+      gtsam::noiseModel::Robust::shared_ptr vv_robust_noise =
+          gtsam::noiseModel::Robust::Create(
+              gtsam::noiseModel::mEstimator::Cauchy::Create(1),
+              vv_observation_noise);
+      vv_observation_noise = vv_robust_noise;
+    }
     // Add vertex-vertex measurements to graph as identity matches.
     SE3 zero_transform(Eigen::Vector3d(0, 0, 0), SO3(1, 0, 0, 0));
     for (size_t i = 0u; i < vertex_vertex_measurements_.size(); ++i) {
@@ -157,7 +178,7 @@ bool GraphLocalizer::localize(
               zero_transform,
               gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_a.index),
               gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_b.index),
-              vv_robust_noise));
+              vv_observation_noise));
 
       // Add database vertex factors.
       if (!initials.exists(
@@ -177,12 +198,15 @@ bool GraphLocalizer::localize(
             location_db);
       }
       // Add initial guesses for query_graph at database vertex locations.
-      SE3 location(
-          vertex_vertex_measurements_[i].vertex_b.location_3d.cast<double>(),
-          SO3(1, 0, 0, 0));
-      initials.insert(
-          gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_a.index),
-          location);
+      if (!initials.exists(
+          gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_a.index))) {
+        SE3 location(
+            vertex_vertex_measurements_[i].vertex_b.location_3d.cast<double>(),
+            SO3(1, 0, 0, 0));
+        initials.insert(
+            gtsam::Symbol('x', vertex_vertex_measurements_[i].vertex_a.index),
+            location);
+      }
     }
 
     // Compute initial guess for robot and vertex positions as the
@@ -232,21 +256,37 @@ bool GraphLocalizer::localize(
     }
 
     (*transformation) = robot_position;
-    return true;
+
+    // Compute the residual of the optimization (unnormalized).
+    const real_t unnormalized_residual = graph.error(results);
+    const uint64_t num_factors = graph.nrFactors();
+    return unnormalized_residual / num_factors;
 
   } else if (localizer_type == "ESTIMATION") {
 
+    // FIXME: this technique appears not to work correctly
+    LOG(ERROR) << "ESTIMATION is not fully supported.";
+
     // Retrieve locations of matching node pairs.
-    GraphMatcher::MaxSimilarityMatrixType similarities = matching_result
-        .computeMaxSimilarityColwise();
+    const GraphMatcher::MaxSimilarityMatrixType similarity_matrix =
+        matching_result.computeMaxSimilarityColwise();
 
     // Retrieve invalid matches.
-    VectorXb invalid_matches = matching_result.getInvalidMatches();
-    size_t num_valids = similarities.cols() - invalid_matches.count();
+    const GraphMatcher::IndexMatrixType& candidate_matches =
+        matching_result.getCandidateMatches();
 
-    if (num_valids == 0) {
+    uint64_t num_valid_query = 0;
+    for(int j = 0; j < candidate_matches.cols(); ++j){
+      for(int i = 0; i < candidate_matches.rows(); ++i) {
+        if(candidate_matches(i, j) != GraphMatcher::INVALID_MATCH_INDEX) {
+          ++num_valid_query;
+        }
+      }
+    }
+
+    if (num_valid_query == 0) {
       LOG(WARNING) << "Unable to estimate transformation, only invalid matches.";
-      return false;
+      return std::numeric_limits<real_t>::max();
     }
 
     // todo(gawela): Should we generally use PCL types for points /
@@ -256,24 +296,64 @@ bool GraphLocalizer::localize(
         new pcl::PointCloud<pcl::PointXYZ>());
     pcl::PointCloud<pcl::PointXYZ>::Ptr database_cloud(
         new pcl::PointCloud<pcl::PointXYZ>());
-    query_cloud->points.resize(num_valids);
-    database_cloud->points.resize(num_valids);
-    pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
-    correspondences->resize(num_valids);
 
-    size_t valid = 0u;
-    for (size_t i = 0u; i < similarities.cols(); ++i) {
-      // Only add matches if they are valid.
-      if (!invalid_matches(i)) {
-        GraphMatcher::MaxSimilarityMatrixType::Index maxIndex;
-        similarities.col(i).maxCoeff(&maxIndex);
-        query_cloud->points[valid].getVector3fMap() = query_semantic_graph[i]
-            .location_3d.cast<float>();
-        database_cloud->points[valid].getVector3fMap() =
-            database_semantic_graph[maxIndex].location_3d.cast<float>();
-        (*correspondences)[valid].index_query = valid;
-        (*correspondences)[valid].index_match = valid;
-        ++valid;
+    pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
+
+    // Keep track of which vertex of the global semantic graph has which index
+    // in the database_cloud.
+    std::unordered_map<uint64_t, uint64_t>
+        vertex_index_to_database_pointcloud;
+
+    for (size_t i = 0u; i < similarity_matrix.cols(); ++i) {
+      // Iterate over the candidate matches.
+      for(uint64_t j_id = 0; j_id < candidate_matches.rows(); ++j_id) {
+        const int candidate_match_in_global_graph =
+            candidate_matches(j_id, i);
+        // Ignore the match in case it was marked as invalid.
+        if(candidate_match_in_global_graph == GraphMatcher::INVALID_MATCH_INDEX)
+          continue;
+        const Vector3r& query_position = query_semantic_graph[i].location_3d;
+        query_cloud->points.push_back(pcl::PointXYZ(query_position[0],
+                                                    query_position[1],
+                                                    query_position[2]));
+
+        // Determine if the database_vertex has already been seen.
+        uint64_t index_match;
+        // If that database vertex has already been added to the
+        // database_pointcloud, we don't need to add that vertex to the
+        // pointcloud, but only need to refer to it through its index in the
+        // database_cloud.
+        if(vertex_index_to_database_pointcloud.count
+            (candidate_match_in_global_graph) > 0)
+          index_match = vertex_index_to_database_pointcloud
+          [candidate_match_in_global_graph];
+        else {
+          // Add the new vertex to the database_cloud and use its new index.
+          const Vector3r& vertex_position =
+              database_semantic_graph[candidate_match_in_global_graph].location_3d;
+          database_cloud->points.push_back(pcl::PointXYZ(vertex_position[0],
+                                                         vertex_position[1],
+                                                         vertex_position[2]));
+
+          // The index of the newly added vertex is the one corresponding to
+          // the last inserted element in the pointcoloud.
+          index_match = database_cloud->points.size() - 1;
+
+          // Store the correspondences in indices.
+          vertex_index_to_database_pointcloud[candidate_match_in_global_graph] =
+              index_match;
+        }
+
+        // Create a correspondence between the query vertex and the associated
+        // database vertex.
+        pcl::Correspondence correspondence;
+        // The index query corresponds to the index of the point in the
+        // query_cloud of th vertex of the query_graph.
+        correspondence.index_query = i;
+        // The index match corresponds to the index of the last added point in
+        // the database_cloud.
+        correspondence.index_match = index_match;
+        correspondences->push_back(correspondence);
       }
     }
 
@@ -292,12 +372,13 @@ bool GraphLocalizer::localize(
         transform.block(0, 0, 3, 3).cast<double>());
     (*transformation) = SE3(transform.block(0, 3, 3, 1).cast<double>(),
                             proper_rotation);
-    return true;
+    // FIXME what is the residual here?
+    return static_cast<real_t>(0);
   } else {
     CHECK(false) << "Unrecognized localizer type <" << localizer_type << ">"
         << std::endl;
   }
-  return false;
+  return std::numeric_limits<real_t>::max();
 }
 
 void GraphLocalizer::addPosePoseMeasurement(PoseId pose_id_a, PoseId pose_id_b) {

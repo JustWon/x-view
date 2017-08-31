@@ -1,0 +1,8 @@
+.idea/
+resources/*
+results_50_eval/
+results/*
+*.dat
+*.dot
+*.cfg
+*.yaml

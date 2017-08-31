@@ -5,6 +5,7 @@
 #include <x_view_core/landmarks/graph_landmark.h>
 #include <x_view_core/matchers/graph_matcher/graph_merger.h>
 #include <x_view_core/matchers/graph_matcher/similarity_plotter.h>
+#include <x_view_core/x_view_tools.h>
 
 #include <pcl/correspondence.h>
 #include <pcl/point_types.h>
@@ -12,6 +13,8 @@
 #include <pcl/registration/transformation_estimation_svd.h>
 
 namespace x_view {
+
+const int GraphMatcher::INVALID_MATCH_INDEX = -1;
 
 GraphMatcher::MaxSimilarityMatrixType
 GraphMatcher::GraphMatchingResult::computeMaxSimilarityColwise() const {
@@ -182,9 +185,11 @@ AbstractMatcher::MatchingResultPtr GraphMatcher::match(
 
   SimilarityMatrixType& similarity_matrix =
       matching_result->getSimilarityMatrix();
+  IndexMatrixType& candidate_matches =
+      matching_result->getCandidateMatches();
 
-  VectorXb& invalid_matches = matching_result->getInvalidMatches();
-  computeSimilarityMatrix(random_walker, &similarity_matrix, &invalid_matches,
+  // Compute similarity matrix and associated candidate matches.
+  computeSimilarityMatrix(random_walker, &similarity_matrix, &candidate_matches,
                           vertex_similarity_score_type_);
 
   // Merge the query graph to the database graph.
@@ -260,41 +265,141 @@ void GraphMatcher::recomputeGlobalRandomWalks() {
 
 }
 
-bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
-                                  const Graph& database_semantic_graph,
-                                  const GraphMatchingResult& matches,
-                                  VectorXb* invalid_matches) {
+bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
+                                 const Graph& database_semantic_graph,
+                                 const SimilarityMatrixType& similarity_matrix,
+                                 IndexMatrixType* candidate_matches) {
 
-  CHECK_NOTNULL(invalid_matches);
+  CHECK_NOTNULL(candidate_matches);
 
   const auto& parameters = Locator::getParameters();
   const auto& matcher_parameters = parameters->getChildPropertyList("matcher");
 
-  GraphMatcher::MaxSimilarityMatrixType similarities =
-      matches.computeMaxSimilarityColwise();
+  const uint64_t num_query_vertices = similarity_matrix.cols();
+
+  CHECK(candidate_matches->cols() == num_query_vertices)
+        << "Candidate matches matrix must have " << num_query_vertices
+        << " cols, but has " << candidate_matches->cols() << ".";
+
+  LOG(INFO) << "Unfiltered candidate matches are:\n"
+            << (*candidate_matches);
+
 
   // todo(gawela): Should we generally use PCL types for points /
   // correspondences?
-  // Prepare PCL containers with corresponding 3D points.
+
+  // Prepare query point cloud.
   pcl::PointCloud<pcl::PointXYZ>::Ptr query_cloud(
       new pcl::PointCloud<pcl::PointXYZ>());
+
+  // Function to check if a query vertex has at least one valid candidate.
+  auto isValidCandidate = [&](const uint64_t index) -> bool {
+    for(int i = 0; i < candidate_matches->rows(); ++i) {
+      if(candidate_matches->operator()(i, index) != INVALID_MATCH_INDEX)
+        return true;
+    }
+    return false;
+  };
+
+  // Fill up the query cloud consisting of all vertices in the query graph.
+  for(uint64_t i = 0; i < num_query_vertices; ++i) {
+    if(!isValidCandidate(i))
+      continue;
+    const Vector3r& position = query_semantic_graph[i].location_3d;
+    query_cloud->points.push_back(pcl::PointXYZ(position[0],
+                                                position[1],
+                                                position[2]));
+  }
+
+  // Prepare database point cloud with associated correspondences.
   pcl::PointCloud<pcl::PointXYZ>::Ptr database_cloud(
       new pcl::PointCloud<pcl::PointXYZ>());
-  query_cloud->points.resize(similarities.cols());
-  database_cloud->points.resize(similarities.cols());
   pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
-  correspondences->resize(similarities.cols());
 
-  for (size_t i = 0u; i < similarities.cols(); ++i) {
-    GraphMatcher::MaxSimilarityMatrixType::Index max_index;
-    similarities.col(i).maxCoeff(&max_index);
-    query_cloud->points[i].getVector3fMap() =
-        query_semantic_graph[i].location_3d.cast<float>();
+  // Keep track of which vertex of the global semantic graph has which index
+  // in the database_cloud.
+  std::unordered_map<uint64_t, uint64_t>
+      vertex_index_to_database_pointcloud;
 
-    database_cloud->points[i].getVector3fMap() =
-        database_semantic_graph[max_index].location_3d.cast<float>();
-    (*correspondences)[i].index_query = i;
-    (*correspondences)[i].index_match = i;
+  // Keep also track of which index in the database cloud correspond to which
+  // vertex of the global semantic graph.
+  std::unordered_map<uint64_t, uint64_t>
+      database_index_to_global_graph_vertex_index;
+
+  // Keep track of how many matches have been proposed. This number increases
+  // with the num_candidate_matches parameter, as for each query vertex we
+  // propose multiple vertices.
+  uint64_t num_proposed_matches = 0;
+
+  // Fill up the database cloud consisting of all candidate matches.
+  for(uint64_t i = 0; i < num_query_vertices; ++i) {
+    const Eigen::VectorXi& candidate_matches_i =
+        candidate_matches->col(i);
+
+    for(int j = 0; j < candidate_matches_i.rows(); ++j) {
+      // Check that the similarity is non-zero to discard candidate_matches
+      // if the semantic similarity was low against each vertex of the
+      // global semantic graph.
+      if(similarity_matrix(candidate_matches_i(j), i) == 0)
+        continue;
+
+      // Check that the candidate is valid.
+      if(candidate_matches->operator()(j, i) == INVALID_MATCH_INDEX)
+        continue;
+
+      ++num_proposed_matches;
+      const uint64_t candidate_match_in_global_graph = candidate_matches_i(j);
+
+      // Determine if the database_vertex has already been seen.
+      uint64_t index_match;
+      // If that database vertex has already been added to the
+      // database_pointcloud, we don't need to add that vertex to the
+      // pointcloud, but only need to refer to it through its index in the
+      // database_cloud.
+      if(vertex_index_to_database_pointcloud.count
+          (candidate_match_in_global_graph) > 0)
+        index_match = vertex_index_to_database_pointcloud
+                           [candidate_match_in_global_graph];
+      else {
+        // Add the new vertex to the database_cloud and use its new index.
+        const Vector3r& vertex_position =
+            global_semantic_graph_[candidate_match_in_global_graph].location_3d;
+        database_cloud->points.push_back(pcl::PointXYZ(vertex_position[0],
+                                                       vertex_position[1],
+                                                       vertex_position[2]));
+
+        // The index of the newly added vertex is the one corresponding to
+        // the last inserted element in the pointcoloud.
+        index_match = database_cloud->points.size() - 1;
+
+        // Store the correspondences in indices.
+        vertex_index_to_database_pointcloud[candidate_match_in_global_graph] =
+            index_match;
+        database_index_to_global_graph_vertex_index[index_match] =
+            candidate_match_in_global_graph;
+
+      }
+
+      // Create a correspondence between the query vertex and the associated
+      // database vertex.
+      pcl::Correspondence correspondence;
+      // The index query corresponds to the index of the point in the
+      // query_cloud of th vertex of the query_graph.
+      correspondence.index_query = i;
+      // The index match corresponds to the index of the last added point in
+      // the database_cloud.
+      correspondence.index_match = index_match;
+      correspondences->push_back(correspondence);
+
+      // Make sure that the indices have been computed correctly.
+      CHECK_LT(i, query_cloud->points.size());
+      CHECK_LT(index_match, database_cloud->points.size());
+    }
+  }
+
+  if(query_cloud->points.size() == 0 || database_cloud->points.size() == 0) {
+    LOG(WARNING) << "No valid matches to be filtering.";
+    return false;
   }
 
   // Perform geometric consistency filtering.
@@ -302,26 +407,49 @@ bool GraphMatcher::filter_matches(const Graph& query_semantic_graph,
   grouping.setSceneCloud(database_cloud);
   grouping.setInputCloud(query_cloud);
   grouping.setModelSceneCorrespondences(correspondences);
+  // Set the minimum cluster size.
   grouping.setGCThreshold(matcher_parameters->getFloat("consistency_threshold"));
+  // Sets the consensus set resolution in metric units.
   grouping.setGCSize(matcher_parameters->getFloat("consistency_size"));
 
-  size_t query_size = similarities.cols();
-  invalid_matches->resize(query_size);
-  invalid_matches->setConstant(true);
+  // Initialize all candidate matches as invalid as the candidate_matches
+  // matrix if refilled up with geometrically filtered matches.
+  candidate_matches->setConstant(INVALID_MATCH_INDEX);
+
   TransformationVector transformations;
   std::vector<pcl::Correspondences> clustered_correspondences(1);
   if (!grouping.recognize(transformations, clustered_correspondences)) {
     return false;
   }
 
-  // Update vector of invalid matches.
+  // Fill up the candidate_matches matrix with the correspondences that have
+  // been recognized by the geometric verification.
+  // Need to keep track on how many correspondences have been already added
+  // for each query vertex in order to fill up the candidate_matrix correctly.
+  std::vector<uint64_t> num_correspondences_per_query(num_query_vertices, 0);
   for (size_t i = 0u; i < clustered_correspondences[0].size(); ++i) {
-    (*invalid_matches)((clustered_correspondences[0])[i].index_query) = false;
+
+    // Indices in the pointclouds.
+    const uint64_t index_query = clustered_correspondences[0][i].index_query;
+    const uint64_t index_match = clustered_correspondences[0][i].index_match;
+
+    // Retrieve the index of the global semantic graph from the one in the
+    // pointcloud.
+    const uint64_t index_in_global_graph =
+        database_index_to_global_graph_vertex_index[index_match];
+
+    candidate_matches->operator()(
+        num_correspondences_per_query[index_query], index_query) =
+        index_in_global_graph;
+    num_correspondences_per_query[index_query] += 1;
   }
 
+  LOG(INFO) << "Correspondence matrix is:\n" << (*candidate_matches);
+
   LOG(INFO) << "Filtered out "
-            << query_size - clustered_correspondences[0].size() << " of "
-            << query_size << " matches.";
+            << num_proposed_matches - clustered_correspondences[0].size()
+            << "of " << num_proposed_matches << " matches over "
+            << num_query_vertices << " query vertices.";
 
   if (transformations.size() == 0) {
     LOG(WARNING) << "Geometric consistency filtering failed.";
@@ -363,10 +491,14 @@ LandmarksMatcherPtr GraphMatcher::create(const RandomWalkerParams& random_walker
 
 void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
                                            SimilarityMatrixType* similarity_matrix,
-                                           VectorXb* invalid_matches,
+                                           IndexMatrixType* candidate_matches,
                                            const VertexSimilarity::SCORE_TYPE score_type) const {
   CHECK_NOTNULL(similarity_matrix);
-  CHECK_NOTNULL(invalid_matches);
+  CHECK_NOTNULL(candidate_matches);
+
+  const auto& matcher_parameters = Locator::getParameters()
+      ->getChildPropertyList("matcher");
+
 
   // Extract the random walks from the RandomWalker passed as argument.
   const std::vector<RandomWalker::WalkMap>& query_walk_map_vector =
@@ -381,13 +513,18 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
   const uint64_t num_global_vertices =
       boost::num_vertices(global_semantic_graph_);
   const uint64_t num_query_vertices = boost::num_vertices(query_graph);
+  // Number of candidate matches per query vertex.
+  const int default_num_candidate_matches = 1;
+  const int num_candidate_matches =
+      matcher_parameters->getInteger("num_candidate_matches",
+                                     default_num_candidate_matches);
+  CHECK_GE(num_candidate_matches, 1);
 
   similarity_matrix->resize(num_global_vertices, num_query_vertices);
   similarity_matrix->setZero();
 
-  // Setting all invalids to false. These will be modified in the filtering.
-  invalid_matches->resize(num_query_vertices);
-  invalid_matches->setConstant(false);
+  candidate_matches->resize(num_candidate_matches, num_query_vertices);
+  candidate_matches->setConstant(INVALID_MATCH_INDEX);
 
   // Fill up dense similarity matrix.
   for (uint64_t i = 0; i < num_global_vertices; ++i) {
@@ -407,6 +544,19 @@ void GraphMatcher::computeSimilarityMatrix(const RandomWalker& random_walker,
     }
   }
 
+  // Fill up the candidate matches.
+  for(uint64_t j = 0; j < num_query_vertices; ++j) {
+    // Retrieve the best num_candidate_matches for the j-th query vertex.
+    Eigen::VectorXi candidate_matches_j =
+        argsort(similarity_matrix->col(j)).reverse();
+    if (candidate_matches_j.rows() >= num_candidate_matches) {
+      candidate_matches_j =
+          candidate_matches_j.head(num_candidate_matches).eval();
+    }
+
+    for(uint64_t i = 0; i < candidate_matches_j.rows(); ++i)
+      candidate_matches->operator()(i, j) = candidate_matches_j(i);
+  }
 }
 
 }

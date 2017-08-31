@@ -1,6 +1,8 @@
 #ifndef X_VIEW_EVALUATION_H
 #define X_VIEW_EVALUATION_H
 
+#include <x_view_core/features/graph.h>
+#include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/timer/null_timer.h>
 #include <x_view_core/timer/timer.h>
 
@@ -45,7 +47,7 @@ class Evaluation {
    * specified by the passed argument.
    * \param folder_name Path to the folder where to write all results
    * contained in this Evaluation instance.
-   * \return Boolen flag indicating writing success.
+   * \return Boolean flag indicating writing success.
    */
   bool writeToFolder(const std::string& folder_name) const;
 
@@ -73,7 +75,7 @@ class Evaluation {
      * \brief Generates a string containing the measurements performed by the
      * current active timer (i.e. timer located at x_view::Locator::timer_).
      * \param use_colors Boolean flag to indicate if the generated string
-     * should be colorcoded (nicer for terminal output).
+     * should be color-coded (nicer for terminal output).
      * \return The table containing timing measurements under the form of a
      * human readable string.
      */
@@ -83,7 +85,7 @@ class Evaluation {
      * \brief Generates a string containing the measurements performed by the
      * current active timer (i.e. timer located at x_view::Locator::timer_).
      * \param use_colors Boolean flag to indicate if the generated string
-     * should be colorcoded (nicer for terminal output).
+     * should be color-coded (nicer for terminal output).
      * \return The tree structure containing timing measurements under the form
      * of a human readable string.
      */
@@ -142,6 +144,19 @@ class Evaluation {
      * measurements.
      * \param suffix Suffix string to add to all generated files.
      * \return Success flag.
+     * \note All localizations are written to a file in the following format:
+     * "
+     * x_gt y_gt z_gt r11_gt r12_gt r13_gt ... r33_gt
+     * x_es y_es z_es r11_es r12_es r13_es ... r33_es
+     * localization_error
+     * ...
+     * x_gt y_gt z_gt r11_gt r12_gt r13_gt ... r33_gt
+     * x_es y_es z_es r11_es r12_es r13_es ... r33_es
+     * localization_error
+     * "
+     * where each triplet of consecutive lines corresponds to the ground truth
+     * pose followed by the estimated pose, followed by the localization error.
+     * pose followed by the estimated pose, followed by the localization error.
      */
     bool writeToFolder(const std::string& folder_name,
                        const std::string& suffix = "") const;
@@ -150,77 +165,56 @@ class Evaluation {
      * \brief Adds the pair of poses to the statistic object referred to
      * by the string passed as argument. This allows to compute different
      * statistics simultaneously without mixing the samples.
-     * \param statistics_name Name used as key to refer to the statistics
-     * where to store the samples passed as argument.
      * \param localization_pair Localization pair resulting from a
      * localization query to X-View.
+     * \param error Error associated to the localization estimate.
      */
-    void addLocalization(const std::string& statistics_name,
-                         const x_view::LocalizationPair& localization_pair);
-
+    void addLocalization(const x_view::LocalizationPair& localization_pair,
+                         const x_view::real_t error);
 
     /**
      * \brief Computes the mean squared distance of the samples added to the
      * statistics associated with the statistics name passed as argument.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the mean squared distance to the ground truths is to be
-     * computed.
      * \return The mean distance squared of the measurements to the
      * corresponding ground truths.
      */
-    const x_view::real_t MSD(const std::string& statistics_name) const;
+    const x_view::real_t MSD() const;
 
     /**
      * \brief Computes the mean distance of the samples added to the
      * statistics associated with the statistics name passed as argument.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the mean squared distance to the ground truths is to be
-     * computed.
      * \return The mean distance of the measurements to the corresponding
      * ground truths.
      */
-    const x_view::real_t MD(const std::string& statistics_name) const;
+    const x_view::real_t MD() const;
 
     /**
      * \brief Computes the mean squared angle of the samples added to the
      * statistics associated with the statistics name passed as argument.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the mean squared angle to the ground truths is to be
-     * computed.
      * \return The mean angle of the measurements to the corresponding
      * ground truths.
      */
-    const x_view::real_t MSA(const std::string& statistics_name) const;
+    const x_view::real_t MSA() const;
 
     /**
      * \brief Computes the empirical standard deviation on the squared
      * distances.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the standard deviation on the squared distances is to be
-     * computed.
      * \return The empirical standard deviation of the squared distances.
      */
-    const x_view::real_t standardDeviationMeanSquaredDistance(
-        const std::string& statistics_name) const;
+    const x_view::real_t standardDeviationMeanSquaredDistance() const;
 
     /**
      * \brief Computes the empirical standard deviation on the distances.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the standard deviation on the distances is to be computed.
      * \return The empirical standard deviation of the distances.
      */
-    const x_view::real_t standardDeviationMeanDistance(
-        const std::string& statistics_name) const;
+    const x_view::real_t standardDeviationMeanDistance() const;
 
     /**
      * \brief Computes the empirical standard deviation on the squared angle
      * deviations.
-     * \param statistics_name Name used as key to refer to the statistics
-     * for which the standard deviation on the squared angles is to be computed.
      * \return The empirical standard deviation of the squared angles.
      */
-    const x_view::real_t standardDeviationMeanSquaredAngles(
-        const std::string& statistics_name) const;
+    const x_view::real_t standardDeviationMeanSquaredAngles() const;
 
     /**
      * \brief Generates a table of statistics containing information
@@ -235,14 +229,110 @@ class Evaluation {
     LocalizationEvaluation(const EvaluationParameters* params)
         : params_(params) {}
 
-    std::unordered_map<std::string, std::vector<x_view::LocalizationPair>>
-        statistics_map_;
+    struct LocalizationSample {
+      LocalizationSample() {}
+      LocalizationSample(
+          const x_view::LocalizationPair& localization_pair,
+          const x_view::real_t error)
+          : localization_pair(localization_pair),
+            error(error) {
+      }
+      x_view::LocalizationPair localization_pair;
+      x_view::real_t error;
+    };
+    std::vector<LocalizationSample> localizations_vector_;
 
     const EvaluationParameters* params_;
   };
 
   /// \brief Instance of LocalizationEvaluation accessible publicly.
   LocalizationEvaluation localization;
+
+
+  class SimilarityEvaluation {
+
+    friend class Evaluation;
+
+   public:
+
+    /**
+     * \brief Writes the data collected by the SimilarityEvaluation into the
+     * folder specified by the path passed as argument.
+     * \param folder_name Absolute path of the folder where to write the time
+     * measurements.
+     * \param suffix Suffix string to add to all generated files.
+     * \return Success flag.
+     * \note All similarity samples are written to a file in the following
+     * format:
+     * "
+     * x_db y_db z_db x_q y_q z_q sim rank
+     * x_db y_db z_db x_q y_q z_q sim rank
+     * ...
+     * x_db y_db z_db x_q y_q z_q sim rank
+     * "
+     * where each line corresponds to a valid candidate match between a
+     * vertex in the database graph and one in the query graph. The 'sim'
+     * value represents the semantic similarity between the two vertices,
+     * while the 'rank' is an integer going from 0 to the runtime parameter
+     * 'num_candidate_matches' - 1 which represents the rank of the match.
+     * (rank = 0 --> match with highest similarity).
+     * The 'rank' value corresponds to the row in the candidate_matches
+     * matrix containing the associated vertex pair.
+     */
+    bool writeToFolder(const std::string& folder_name,
+                       const std::string& suffix = "") const;
+
+
+    /**
+     * \brief Adds all similarity samples extracted from candidate_matches
+     * into a list of similarities.
+     * \param database_graph Const reference to the global semantic graph.
+     * \param query_graph Const reference to the query semantic graph.
+     * \param similarity_matrix Similarity matrix of size MxN where M is the
+     * number of vertices of the database_graph, and N is the number of
+     * vertices in the query_graph.
+     * \param candidate_matches Matrix of candidate matches of size RxM,
+     * where R is the value of the runtime parameter 'num_candidate_matches'.
+     */
+    void addSimilarities(
+        const x_view::Graph& database_graph, const x_view::Graph& query_graph,
+        const x_view::GraphMatcher::SimilarityMatrixType& similarity_matrix,
+        const x_view::GraphMatcher::IndexMatrixType& candidate_matches);
+
+   private:
+    SimilarityEvaluation(const EvaluationParameters* params)
+        : params_(params) {}
+
+    struct SimilaritySample {
+      SimilaritySample() {}
+      SimilaritySample(const x_view::Vector3r& db_position,
+                       const x_view::Vector3r& query_position,
+                       const x_view::real_t similarity,
+                       const uint64_t rank)
+          : db_position(db_position),
+            query_position(query_position),
+            similarity(similarity),
+            rank(rank){
+      }
+
+      /// \brief 3D position of the vertex in the database graph.
+      x_view::Vector3r db_position;
+      /// \brief 3D position of the vertex in the query graph.
+      x_view::Vector3r query_position;
+      /// \brief Semantic similarity between the registered vertices.
+      x_view::real_t similarity;
+      /// \bried Rank of the similarity (0 if the database vertex is the most
+      /// similar to the query vertex, 1 if it is the second-most similar etc.)
+      uint64_t rank;
+    };
+
+    std::vector<SimilaritySample> similarities_vector_;
+
+    const EvaluationParameters* params_;
+  };
+
+  /// \brief Instance of SimilarityEvaluation accessible publicly.
+  SimilarityEvaluation similarity;
 
  private:
 

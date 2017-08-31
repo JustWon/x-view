@@ -6,6 +6,7 @@
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/landmarks/semantic_landmark_factory.h>
 #include <x_view_core/matchers/abstract_matcher.h>
+#include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/parameters/parameters.h>
 #include <x_view_core/x_view_types.h>
 
@@ -61,15 +62,23 @@ class XView {
    * global semantic graph.
    * \param query_graph Semantic graph which is localized.
    * \param pose_ids PosesIds of robot, assumed to be in consecutive order.
+   * \param candidate_matches Candidate matches matrix filled up with
+   * (filtered) candidates for each vertex in the query graph.
+   * \param similarity_matrix Similarity matrix filled up by this function.
+   * \param candidate_matches Candidate matches matrix filled up with
+   * (filtered) candidates for each vertex in the query graph.
    * \param pose An estimation of the pose of the query graph passed as
    * argument.
-   * \return Success in localization.
+   * \return Normalized optimization residual to the localization.
    */
-  bool localizeGraph(const Graph& query_graph, std::vector<x_view::PoseId> pose_ids,
-                SE3* pose);
+  real_t localizeGraph(const Graph& query_graph,
+                       std::vector<x_view::PoseId> pose_ids,
+                       GraphMatcher::IndexMatrixType* candidate_matches,
+                       GraphMatcher::SimilarityMatrixType* similarity_matrix,
+                       SE3* pose);
 
   /**
-   * \brief Relabels a set of randomly choosen vertices of the current global
+   * \brief Relabels a set of randomly chosen vertices of the current global
    * semantic graph.
    * \param percentage Percentage value between 0 and 1 of vertices to be
    * relabeled randomly.
