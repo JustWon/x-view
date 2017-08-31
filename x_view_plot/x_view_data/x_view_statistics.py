@@ -2,7 +2,6 @@ from . import getLocalizations
 import numpy as np
 import os
 
-
 def getMeanDistance(ground_truths, estimations):
     if len(ground_truths) != len(estimations):
         raise RuntimeError(
@@ -76,7 +75,7 @@ class XViewPR:
 
         true_threshold_ = true_threshold
         if true_threshold_ is None:
-            true_threshold_ = 0.05
+            true_threshold_ = 20.0
         self._true_threshold = true_threshold_
 
     def computePR(self, true_threshold=None):
@@ -88,26 +87,26 @@ class XViewPR:
 
         ground_truths, estimations, errors = getLocalizations(localization_file_name=self._filename)
 
-        positive_radius = 0.5
-        positive_radius_step = 0.5
+        distances = [np.linalg.norm(gt["position"] - es["position"]) for gt, es in zip(ground_truths, estimations)]
 
-        while positive_radius < 20:
+        residual_errors = np.logspace(0, -6, 2000)
+
+        for residual_error in residual_errors:
 
             true_positives = 0
             true_negatives = 0
             false_positives = 0
             false_negatives = 0
 
-            for gt, es, err in zip(ground_truths, estimations, errors):
-                distance = np.linalg.norm(gt["position"] - es["position"])
-                if err < true_threshold:
-                    if distance < positive_radius:
+            for dist, err in zip(distances, errors):
+                if dist < true_threshold:
+                    if err < residual_error:
                         true_positives += 1
                     else:
-                        false_positives += 1
-                else:
-                    if distance < positive_radius:
                         false_negatives += 1
+                else:
+                    if err < residual_error:
+                        false_positives += 1
                     else:
                         true_negatives += 1
 
@@ -120,7 +119,5 @@ class XViewPR:
                 recall = (1.0 * true_positives) / (true_positives + false_negatives)
 
             PR.append([precision, recall])
-
-            positive_radius += positive_radius_step
 
         return np.array(PR)
