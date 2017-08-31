@@ -36,6 +36,12 @@ class XViewBagReader {
     /// \brief Bag filename of the rosbag file to be read.
     std::string bag_file_name;
 
+    /// \brief Bag filename of the rosbag file to be output.
+    std::string out_bag_file_name;
+
+    /// \brief Trigger for recording output bag file.
+    bool record_bag;
+
     CameraTopics front;
     CameraTopics right;
     CameraTopics back;
@@ -141,6 +147,15 @@ class XViewBagReader {
 
   /// \brief Rosbag file being read by this class.
   rosbag::Bag bag_;
+
+  /// \brief Rosbag file being output by this class, e.g. for visualization.
+  rosbag::Bag out_bag_;
+
+  /// \brief Last time in database graph building phase.
+  ros::Time last_time_;
+
+  /// \brief Rosbag file being output by this class, e.g. for visualization.
+  bool record_bag_;
 
   /// \brief Pointer to the View object responsible for extracting semantic
   /// images from the rosbag file.
