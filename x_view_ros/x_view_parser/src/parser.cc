@@ -267,6 +267,8 @@ std::unique_ptr<Parameters> Parser::parseGraphMatcher() const {
          graph_matcher_parameters, 3);
   addBool(nh_, "/Matcher/outlier_rejection", "outlier_rejection",
           graph_matcher_parameters, false);
+  addInt(nh_, "/Matcher/num_candidate_matches", "num_candidate_matches",
+         graph_matcher_parameters, 1);
   addFloat(nh_, "/Matcher/consistency_threshold", "consistency_threshold",
            graph_matcher_parameters, 5.0);
   addFloat(nh_, "/Matcher/consistency_size", "consistency_size",
@@ -317,6 +319,10 @@ std::unique_ptr<Parameters> Parser::parseLocalizer() const {
   // Set localizer type.
   addString(nh_, "/Localizer/type", "type", localizer_parameters,
             "OPTIMIZATION");
+
+  // Whether to use or not robust noise models.
+  addBool(nh_, "/Localizer/use_robust_noise", "use_robust_noise",
+          localizer_parameters, false);
 
   return std::move(localizer_parameters);
 }

@@ -156,6 +156,8 @@ catkin_add_gtest(${PROJECT_NAME}_tests
         test/test_neighbor_search.cc
         test/test_timer_main.cc
         test/test_timer.cc
+        test/test_argsort_main.cc
+        test/test_argsort.cc
 
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
         )

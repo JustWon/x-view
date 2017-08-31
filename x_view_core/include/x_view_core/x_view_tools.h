@@ -51,8 +51,8 @@ class PaddedInt {
   std::string str_;
 };
 
-std::string operator + (const std::string& l, const PaddedInt& r);
-std::string operator + (const PaddedInt& l, const std::string& r);
+std::string operator+(const std::string& l, const PaddedInt& r);
+std::string operator+(const PaddedInt& l, const std::string& r);
 
 const std::string formatSE3(const SE3& se3, const std::string& indent = "",
                             const int precision = Eigen::StreamPrecision);
@@ -69,7 +69,8 @@ const Matrix3r randomRotationMatrix(std::mt19937& rng);
 const real_t distSquared(const Vector3r& v1, const Vector3r& v2);
 
 /// \brief Computes the squared distance between two graph vertices in 3D space.
-const real_t distSquared(const VertexProperty& v_p1, const VertexProperty& v_p2);
+const real_t distSquared(const VertexProperty& v_p1,
+                         const VertexProperty& v_p2);
 
 /// \brief Computes the distance between two points in 3D space.
 const real_t dist(const Vector3r& v1, const Vector3r& v2);
@@ -80,6 +81,31 @@ const real_t dist(const VertexProperty& v_p1, const VertexProperty& v_p2);
 /// \brief Computes the angle between two poses.
 /// \note See here: http://www.continuummechanics.org/transformmatrix.html
 const real_t angle(const SE3& p1, const SE3& p2);
+
+/// \brief Computes the argsort of any Eigen type matrix.
+/// \return Sorted indices in increasing order such that x[indices[i]] <
+/// x[indices[i+1]]
+template<typename Derived>
+Eigen::VectorXi argsort(const Eigen::MatrixBase<Derived>& x) {
+
+  typedef std::pair<int, double> argsort_pair;
+
+  auto argsortComp = [](const argsort_pair& left, const argsort_pair& right) {
+    return left.second < right.second;
+  };
+
+  Eigen::VectorXi indices(x.size());
+  std::vector<argsort_pair> data(x.size());
+  for (int i = 0; i < x.size(); i++) {
+    data[i].first = i;
+    data[i].second = static_cast<double>(x(i));
+  }
+  std::sort(data.begin(), data.end(), argsortComp);
+  for (int i = 0; i < data.size(); i++) {
+    indices(i) = data[i].first;
+  }
+  return indices;
+}
 
 // ******************************* Logging ***********************************//
 /**
