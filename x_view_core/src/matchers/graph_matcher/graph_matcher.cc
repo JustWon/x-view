@@ -449,11 +449,14 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
   std::vector<uint64_t> num_correspondences_per_query(num_query_vertices, 0);
   for (size_t i = 0u; i < clustered_correspondences[0].size(); ++i) {
 
-    try {
     // Indices in the pointclouds.
     const uint64_t index_query = clustered_correspondences[0][i].index_query;
     const uint64_t index_match = clustered_correspondences[0][i].index_match;
 
+    if (index_query > 100000 || index_query < 0) {
+      *cut_threshold = 20.0;
+      return false;
+    }
     // Retrieve the index of the global semantic graph from the one in the
     // pointcloud.
     const uint64_t index_in_global_graph =
@@ -461,13 +464,8 @@ bool GraphMatcher::filterMatches(const Graph& query_semantic_graph,
 
     candidate_matches->operator()(
         num_correspondences_per_query[index_query], index_query) =
-        index_in_global_graph;
+            index_in_global_graph;
     num_correspondences_per_query[index_query] += 1;
-    } catch (const std::exception& e) {
-      std::cout << e.what() << std::endl;
-      *cut_threshold = 20.0;
-      return false;
-    }
   }
 
   LOG(INFO) << "Correspondence matrix is:\n" << (*candidate_matches);
