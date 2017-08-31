@@ -3,6 +3,68 @@ import numpy as np
 import os
 
 
+def getMeanDistance(ground_truths, estimations):
+    if len(ground_truths) != len(estimations):
+        raise RuntimeError(
+            "Estimation has {} poses, while ground truths has {}".format(len(estimations), len(ground_truths)))
+
+    invalid_position = np.array([0, 0, 0])
+
+    num_total = 0
+    num_valid = 0
+    num_invalid = 0
+    distance_sum = 0.0
+
+    for gt, es in zip(ground_truths, estimations):
+        gt_pos = gt["position"]
+        es_pos = es["position"]
+        num_total += 1
+        if (es_pos == invalid_position).all():
+            num_invalid += 1
+            continue
+        else:
+            distance = np.linalg.norm(gt_pos - es_pos)
+            distance_sum += distance
+            num_valid += 1
+
+    if num_valid == 0:
+        raise RuntimeError("All localizations are invalid")
+    return distance_sum / num_valid
+
+
+def computeSuccessRate(distance_thresholds, ground_truths, estimations):
+    if len(ground_truths) != len(estimations):
+        raise RuntimeError(
+            "Estimation has {} poses, while ground truths has {}".format(len(estimations), len(ground_truths)))
+
+    invalid_position = np.array([0, 0, 0])
+
+    successes = []
+    distances = []
+    num_accepted = 0
+    num_discarded = 0
+    for gt, es in zip(ground_truths, estimations):
+        dist = np.linalg.norm(gt["position"] - es["position"])
+        if (es["position"] == invalid_position).all():
+            num_discarded += 1
+            continue
+        else:
+            distances.append(dist)
+            num_accepted += 1
+
+    if num_accepted == 0:
+        return np.zeros(len(distance_thresholds)), 1.0
+
+    for thresh in distance_thresholds:
+        num_success = 0
+        for dist in distances:
+            if dist < thresh:
+                num_success += 1
+        successes.append(float(num_success) / num_accepted)
+
+    return np.array(successes), float(num_discarded) / (num_discarded + num_accepted)
+
+
 class XViewPR:
     def __init__(self, filename, true_threshold=None):
 
@@ -49,7 +111,7 @@ class XViewPR:
                     else:
                         true_negatives += 1
 
-            precision = 0
+            precision = 1
             if true_positives + false_positives > 0:
                 precision = (1.0 * true_positives) / (true_positives + false_positives)
 
@@ -62,5 +124,3 @@ class XViewPR:
             positive_radius += positive_radius_step
 
         return np.array(PR)
-
-
