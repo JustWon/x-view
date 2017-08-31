@@ -174,7 +174,7 @@ void GraphPublisher::positionBlobToRosMsg(const x_view::Vector3r& gt_pos,
   // Evaluate the estimation against the ground truth.
   double distance_xy = sqrt(
       (gt_pos(0) - estimation_pos(0)) * (gt_pos(0) - estimation_pos(0))
-      + (gt_pos(0) - estimation_pos(0)) * (gt_pos(0) - estimation_pos(0)));
+      + (gt_pos(1) - estimation_pos(1)) * (gt_pos(1) - estimation_pos(1)));
 
   marker->header.frame_id = "/world";
   marker->header.stamp = time;

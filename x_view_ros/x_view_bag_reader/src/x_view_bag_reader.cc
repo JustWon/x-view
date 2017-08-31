@@ -120,12 +120,12 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
                                        0.0, &edges);
         graph_publisher_.verticesToRosMsg(x_view_->getSemanticGraph(),
                                           ros::Time(), 0.0, &vertices);
-        for (size_t i = 0u; i < edges.size(); ++i) {
-          out_bag_.write("database_graph_edges", last_time_, edges[i]);
+        for (size_t j = 0u; j < edges.size(); ++j) {
+          out_bag_.write("database_graph_edges", last_time_, edges[j]);
         }
-        for (size_t i = 0u; i < vertices.size(); ++i) {
+        for (size_t j = 0u; j < vertices.size(); ++j) {
           out_bag_.write("database_graph_vertices", last_time_,
-                         vertices[i]);
+                         vertices[j]);
         }
       }
       i += step;
