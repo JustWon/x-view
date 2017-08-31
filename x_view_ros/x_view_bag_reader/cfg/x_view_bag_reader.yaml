@@ -42,6 +42,8 @@ Localizer: {
 # Parameters read exclusively by XViewBagReader
 XViewBagReader: {
   bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/synthia_town.bag",
+  out_bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/results_synthia_town.bag",
+  record_bag: False,
   back: {
     semantics_image_topic: "/Stereo_Left/Omni_B/labels",
     depth_image_topic: "/Stereo_Left/Omni_B/depth",
