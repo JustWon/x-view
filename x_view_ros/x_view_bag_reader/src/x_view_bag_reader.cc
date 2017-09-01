@@ -182,7 +182,7 @@ bool XViewBagReader::generateQueryGraph(const CAMERA camera_type,
     tfTransformToSE3(trans, &(*pose_ids)[i - start_frame].pose);
     // Use the last frame as ground truth.
     if (i == start_frame + steps) {
-      locations->true_pose = (*pose_ids)[i - start_frame + steps].pose;
+      locations->true_pose = pose_ids->back().pose;
     }
     x_view::FrameData frame_data(semantic_image, depth_image,
                                  (*pose_ids)[i - start_frame], i);
