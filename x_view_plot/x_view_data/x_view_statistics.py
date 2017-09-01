@@ -31,7 +31,7 @@ def getMeanDistance(ground_truths, estimations):
     return distance_sum / num_valid
 
 
-def computeSuccessRate(distance_thresholds, ground_truths, estimations):
+def computeSuccessRate(distance_thresholds, ground_truths, estimations, errors):
     if len(ground_truths) != len(estimations):
         raise RuntimeError(
             "Estimation has {} poses, while ground truths has {}".format(len(estimations), len(ground_truths)))
@@ -42,17 +42,29 @@ def computeSuccessRate(distance_thresholds, ground_truths, estimations):
     distances = []
     num_accepted = 0
     num_discarded = 0
-    for gt, es in zip(ground_truths, estimations):
-        dist = np.linalg.norm(gt["position"] - es["position"])
-        if (es["position"] == invalid_position).all():
-            num_discarded += 1
-            continue
-        else:
-            distances.append(dist)
-            num_accepted += 1
-
-    if num_accepted == 0:
-        return np.zeros(len(distance_thresholds)), 1.0
+    final_accepted = 1
+    final_discarded = 1
+    yield_rejection_rate = 0.8
+    error_thresh = 20.0
+    # Try to get equal rejection rates for all experiments, e.g., 70%.
+    while float(final_discarded) / (final_discarded + final_accepted) < yield_rejection_rate:
+        num_discarded = 0
+        num_accepted = 0
+        distances = []
+        for gt, es, error in zip(ground_truths, estimations, errors):
+            dist = np.linalg.norm(gt["position"][0:1] - es["position"][0:1])
+            if (es["position"] == invalid_position).all() or error > error_thresh:
+                num_discarded += 1
+                continue
+            else:
+                distances.append(dist)
+                num_accepted += 1
+    
+        if num_accepted == 0:
+            return np.zeros(len(distance_thresholds)), 1.0
+        final_accepted = num_accepted
+        final_discarded = num_discarded
+        error_thresh = error_thresh - 0.1
 
     for thresh in distance_thresholds:
         num_success = 0
@@ -75,7 +87,7 @@ class XViewPR:
 
         true_threshold_ = true_threshold
         if true_threshold_ is None:
-            true_threshold_ = 20.0
+            true_threshold_ = 40.0
         self._true_threshold = true_threshold_
 
     def computePR(self, true_threshold=None):
@@ -87,9 +99,9 @@ class XViewPR:
 
         ground_truths, estimations, errors = getLocalizations(localization_file_name=self._filename)
 
-        distances = [np.linalg.norm(gt["position"] - es["position"]) for gt, es in zip(ground_truths, estimations)]
+        distances = [np.linalg.norm(gt["position"][0:1] - es["position"][0:1]) for gt, es in zip(ground_truths, estimations)]
 
-        residual_errors = np.logspace(0, -6, 2000)
+        residual_errors = np.logspace(20, 0, 100)
 
         for residual_error in residual_errors:
 
