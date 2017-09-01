@@ -170,7 +170,8 @@ def getSimilarities(similarity_file_name):
             similarity = float(list_of_strings[6])
             rank = int(list_of_strings[7])
 
-
+            if rank > 0:
+                continue
 
             db_vertices.append(db_vertex)
             query_vertices.append(query_vertex)
