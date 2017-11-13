@@ -56,9 +56,27 @@ class Synthia(DataBaseclass):
                 testset.extend([{'sequence': sequence, 'image_name': filename}
                                 for filename in split['testset']])
 
+        # Set label information according to synthia README
+        labelinfo = {
+            0: {'name': 'void', 'color': [0, 0, 0]},
+            1: {'name': 'sky', 'color': [128, 128, 128]},
+            2: {'name': 'building', 'color': [128, 0, 0]},
+            3: {'name': 'road', 'color': [128, 64, 128]},
+            4: {'name': 'sidewalk', 'color': [0, 0, 192]},
+            5: {'name': 'fence', 'color': [64, 64, 128]},
+            6: {'name': 'vegetation', 'color': [128, 128, 0]},
+            7: {'name': 'pole', 'color': [192, 192, 128]},
+            8: {'name': 'car', 'color': [64, 0, 128]},
+            9: {'name': 'traffic sign', 'color': [192, 128, 128]},
+            10: {'name': 'pedestrian', 'color': [64, 64, 0]},
+            11: {'name': 'bicycle', 'color': [0, 128, 192]},
+            12: {'name': 'lanemarking', 'color': [0, 192, 0]},
+            13: {'name': 'traffic light', 'color': [0, 128, 128]}
+        }
+
         # Intitialize Baseclass
         DataBaseclass.__init__(self, trainset, testset, batchsize,
-                               ['rgb', 'depth', 'labels'])
+                               ['rgb', 'depth', 'labels'], labelinfo)
 
     @property
     def one_hot_lookup(self):
@@ -67,7 +85,7 @@ class Synthia(DataBaseclass):
             e.g. the one-hot version of class 4 is:
                 (self.one_hot_lookup == 4).astype(int)
                 -->     [0, 0, 0, 0, 1, 0, 0, 0, 0, 0,  0,  0,  0,  0]"""
-        return np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15])
+        return np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
 
     def _preprocessing(self, sequence):
         """Preprocessing of SYNTHIA data.
@@ -154,7 +172,7 @@ class Synthia(DataBaseclass):
             json.dump({'trainset': trainset, 'testset': testset}, f)
         print('INFO: Preprocessing finished.')
 
-    def _get_data(self, sequence, image_name):
+    def _get_data(self, sequence, image_name, one_hot=True):
         """Returns data for one given image number from the specified sequence."""
         filetype = {'rgb': 'png', 'depth': 'png', 'labels': 'npy'}
         rgb_filename, depth_filename, groundtruth_filename = (
@@ -170,9 +188,12 @@ class Synthia(DataBaseclass):
         # dimension is omitted
         blob['depth'] = np.expand_dims(depth, 3)
         labels = np.load(groundtruth_filename.format('.npy'))
-        # Labels still have to get converted to one-hot
-        one_hot = np.array(self.one_hot_lookup == labels[:, :, None]).astype(int)
-        blob['labels'] = one_hot
+        # Dirty fix for the class 15
+        labels[labels == 15] = 13
+        if one_hot:
+            # Labels still have to get converted to one-hot
+            labels = np.array(self.one_hot_lookup == labels[:, :, None]).astype(int)
+        blob['labels'] = labels
         return blob
 
 

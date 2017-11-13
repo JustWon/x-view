@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split
 
 from .wrapper import DataWrapper
 
@@ -8,12 +8,13 @@ class DataBaseclass(DataWrapper):
     """A basic, abstract class for splitting data into batches, compliant with DataWrapper
     interface."""
 
-    def __init__(self, trainset, testset, batchsize, modalities):
-        self.testset = testset
-        self.trainset = shuffle(trainset)
+    def __init__(self, trainset, testset, batchsize, modalities, labelinfo):
+        self.testset, self.validation_set = train_test_split(testset, test_size=10)
+        self.trainset = trainset
         self.batch_idx = 0
         self.batchsize = batchsize
         self.modalities = modalities
+        self.labelinfo = labelinfo
 
     def _get_data(self, **kwargs):
         """Returns data for one item in trainset or testset. kwargs is the unfolded dict
@@ -22,40 +23,60 @@ class DataBaseclass(DataWrapper):
         """
         raise NotImplementedError
 
-    def _increment_batch_idx(self):
+    def _next_batch_idx(self):
         """Increments the index of the next training item. Makes sure the index is reset
         as all training items were used once."""
         self.batch_idx = self.batch_idx + 1
         if self.batch_idx == len(self.trainset):
             self.batch_idx = 0
+        return self.batch_idx
 
     def next(self):
         """As specified by DataWrapper, returns a new training batch."""
+        return self._get_batch([self.trainset[self._next_batch_idx()]
+                                for _ in range(self.batchsize)])
+
+    def get_train_data(self, batch_size=10):
+        """Return generator for train-data."""
+        trainset_size = len(self.trainset)
+        for start_idx in range(0, trainset_size, batch_size):
+            yield self._get_batch((self.trainset[idx] for idx in range(start_idx,
+                                   min(start_idx + batch_size, trainset_size))),
+                                  one_hot=False)
+
+    def get_test_data(self, batch_size=10):
+        """Return generator for test-data."""
+        testset_size = len(self.testset)
+        for start_idx in range(0, testset_size, batch_size):
+            yield self._get_batch((self.testset[idx] for idx in range(start_idx,
+                                   min(start_idx + batch_size, testset_size))),
+                                  one_hot=False)
+
+    def get_validation_data(self, num_items=None):
+        """Return the test-data in one big batch."""
+        if num_items is None:
+            num_items = len(self.validation_set)
+
+        return self._get_batch((self.validation_set[i] for i in range(num_items)),
+                               one_hot=False)
+
+    def _get_batch(self, items, one_hot=True):
         # Dependent on the batchsize, we collect a list of datablobs and group them by
         # modality
         batch = {mod: [] for mod in self.modalities}
-        i = 1
-        while i <= self.batchsize:
-            item = self._get_data(**self.trainset[self.batch_idx])
+        for item in items:
+            data = self._get_data(one_hot=one_hot, **item)
             for mod in self.modalities:
-                batch[mod].append(item[mod])
-            i = i + 1
-            self._increment_batch_idx()
+                batch[mod].append(data[mod])
         # Now translate lists of arrays into arrays with first dimension the batch index
         # for each modality.
         for mod in self.modalities:
             batch[mod] = np.stack(batch[mod])
         return batch
 
-    def get_test_data(self):
-        """Return the test-data in one big batch."""
-        testdata = {mod: [] for mod in self.modalities}
-        for item in self.testset:
-            data = self._get_data(**item)
-            for mod in self.modalities:
-                testdata[mod].append(data[mod])
-        # Now translate lists of arrays into arrays with first dimension the batch index
-        # for each modality.
-        for mod in self.modalities:
-            testdata[mod] = np.stack(testdata[mod])
-        return testdata
+    def coloured_labels(self, labels):
+        """Return a coloured picture according to set label colours."""
+        # To efficiently map class label to color, we create a lookup table
+        lookup = np.array([self.labelinfo[i]['color']
+                           for i in range(max(self.labelinfo.keys()) + 1)]).astype(int)
+        return np.array(lookup[labels[:, :]]).astype('uint8')
