@@ -9,7 +9,7 @@
 namespace x_view {
 
 int VisualDescriptorLandmark::DEFAULT_NUM_VISUAL_FEATURES = 1000;
-float VisualDescriptorLandmark::DEFAULT_HESSIAN_THRESHOLD = 0.2f;
+real_t VisualDescriptorLandmark::DEFAULT_HESSIAN_THRESHOLD = 0.2;
 
 VisualDescriptorLandmark::VisualDescriptorLandmark(
     const FrameData& frame_data)
@@ -107,7 +107,7 @@ SURFVisualDescriptorLandmark::SURFVisualDescriptorLandmark(
   const int num_visual_features =
       landmark_parameters->getInteger("num_visual_features",
                                       DEFAULT_NUM_VISUAL_FEATURES);
-  const float hessian_threshold =
+  const real_t hessian_threshold =
       landmark_parameters->getFloat("hessian_threshold",
                                     DEFAULT_HESSIAN_THRESHOLD);
 

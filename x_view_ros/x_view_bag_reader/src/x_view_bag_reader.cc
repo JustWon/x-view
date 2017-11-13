@@ -1,17 +1,21 @@
 #include <x_view_bag_reader/x_view_bag_reader.h>
 #include <x_view_bag_reader/x_view_pause.h>
-
+#include <x_view_core/datasets/airsim_dataset.h>
 #include <x_view_core/datasets/synthia_dataset.h>
+#include <x_view_core/timer/timer.h>
 #include <x_view_core/x_view_locator.h>
+#include <x_view_core/x_view_tools.h>
+#include <x_view_core/x_view_types.h>
 
 #include <glog/logging.h>
 #include <opencv2/core/core.hpp>
-#include <x_view_core/x_view_tools.h>
+
+#include <iostream>
 
 namespace x_view_ros {
 
 XViewBagReader::XViewBagReader(ros::NodeHandle& n)
-    : nh_(n), parser_(nh_), graph_publisher_(n) {
+    : nh_(n), parser_(nh_), graph_publisher_(nh_) {
 
   // Load parameters used by XViewBagReader.
   getXViewBagReaderParameters();
@@ -30,22 +34,28 @@ XViewBagReader::XViewBagReader(ros::NodeHandle& n)
     std::unique_ptr<x_view::AbstractDataset> dataset(
         new x_view::SynthiaDataset());
     x_view::Locator::registerDataset(std::move(dataset));
-  } else
+  } else if (dataset_name == "AIRSIM") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::AirsimDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else {
     CHECK(false) << "Dataset '" << dataset_name
-                 << "' is not supported" << std::endl;
+        << "' is not supported" << std::endl;
+  }
 
   // Create x_view only now because it has access to the parser parameters.
   x_view_ = std::unique_ptr<x_view::XView>(new x_view::XView());
 
-  // Register the vertex publisher.
-  vertex_publisher_ =
-      nh_.advertise<visualization_msgs::Marker>("/localization/position",
-                                                10000);
+  // Open output bagfile if required.
+  record_bag_ = params_.record_bag;
+  if(record_bag_) {
+    out_bag_.open(params_.out_bag_file_name, rosbag::bagmode::Write);
+  }
+  last_time_ = ros::Time(0);
 }
 
 void XViewBagReader::loadCurrentTopic(const CameraTopics& current_topics) {
-  std::cout << "Loading topic " << current_topics.depth_image_topic <<
-                                                                    std::endl;
+
   bag_.open(params_.bag_file_name, rosbag::bagmode::Read);
 
   // Dataset used to parse the images.
@@ -80,18 +90,44 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
   Pause pause;
   for (int i = from; step * i < step * to; ) {
     if(!pause.isPaused()) {
+      last_time_ = last_time_ + ros::Duration(1);
       std::cout << "Processing semantic image at index " << i << std::endl;
       parseParameters();
       const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
       const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
       const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
-      x_view::SE3 pose;
-      tfTransformToSE3(trans, &pose);
-      x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
+      x_view::PoseId pose_id;
+      pose_id.id = x_view::KeyGenerator::getNextKey();
+      tfTransformToSE3(trans, &pose_id.pose);
+
+      x_view::FrameData frame_data(semantic_image, depth_image, pose_id, i);
       x_view_->processFrameData(frame_data);
       x_view_->writeGraphToFile();
 
+      graph_publisher_.clean();
       graph_publisher_.publish(x_view_->getSemanticGraph(), ros::Time());
+
+      if(record_bag_) {
+        // Copy messages from input bag file to output bagfile.
+        out_bag_.write(getTopics(camera_type).semantics_image_topic, last_time_,
+                       semantic_topic_view_->getMessageAtFrame(i));
+        out_bag_.write(getTopics(camera_type).depth_image_topic, last_time_,
+                       depth_topic_view_->getMessageAtFrame(i));
+
+        // Write graph messages to output bagfile.
+        std::vector<visualization_msgs::Marker> edges, vertices;
+        graph_publisher_.edgesToRosMsg(x_view_->getSemanticGraph(), ros::Time(),
+                                       0.0, &edges);
+        graph_publisher_.verticesToRosMsg(x_view_->getSemanticGraph(),
+                                          ros::Time(), 0.0, &vertices);
+        for (size_t j = 0u; j < edges.size(); ++j) {
+          out_bag_.write("database_graph_edges", last_time_, edges[j]);
+        }
+        for (size_t j = 0u; j < vertices.size(); ++j) {
+          out_bag_.write("database_graph_vertices", last_time_,
+                         vertices[j]);
+        }
+      }
       i += step;
     }
   }
@@ -99,82 +135,164 @@ void XViewBagReader::iterateBagFromTo(const CAMERA camera_type,
   pause.terminate();
 }
 
-bool XViewBagReader::localizeFrame(const CAMERA camera_type,
-                                   const int frame_index,
-                                   LocationPair* locations) {
-  CHECK_NOTNULL(locations);
-
-  loadCurrentTopic(getTopics(camera_type));
-
-  std::cout << "Localizing robot at frame " << frame_index << std::endl;
-  parseParameters();
-  const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(frame_index);
-  const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(frame_index);
-  const tf::StampedTransform trans = transform_view_->getDataAtFrame(frame_index);
-  x_view::SE3 real_pose, empty_pose;
-  tfTransformToSE3(trans, &real_pose);
-  x_view::FrameData frame_data(semantic_image, depth_image,
-                               empty_pose, frame_index);
-
-  bool localized = x_view_->localizeFrame(frame_data, &(locations->first));
-  locations->second = real_pose.getPosition();
-
-  if(localized) {
-    publishRobotPosition(locations->first, Eigen::Vector3d(1.0, 0.0, 0.0),
-                         trans.stamp_, "estimated_position");
-    publishRobotPosition(locations->second, Eigen::Vector3d(0.0, 1.0, 0.0),
-                         trans.stamp_, "true_position");
-  }
-  bag_.close();
-
-  return localized;
+void XViewBagReader::relabelGlobalGraphVertices(const x_view::real_t percentage,
+                                                const uint64_t seed) {
+  x_view_->relabelGlobalGraphVertices(percentage, seed);
 }
 
-bool XViewBagReader::localizeGraph(const CAMERA camera_type,
-                                   const int start_frame, const int steps,
-                                   LocationPair* locations) {
-
+bool XViewBagReader::generateQueryGraph(const CAMERA camera_type,
+                                        const int start_frame,
+                                        const int steps,
+                                        x_view::Graph* query_graph,
+                                        std::vector<x_view::PoseId>* pose_ids,
+                                        x_view::LocalizationPair* locations) {
+  CHECK_NOTNULL(query_graph);
+  CHECK_NOTNULL(pose_ids);
   CHECK_NOTNULL(locations);
 
+  // Increment last time for writing bagfile.
+  last_time_ = last_time_ + ros::Duration(1);
+
   loadCurrentTopic(getTopics(camera_type));
+
+  const auto& timer = x_view::Locator::getTimer();
 
   // Local X-View object used to generate local graph which will be localized
   // against the global semantic graph built by x_view_.
   x_view::XView local_x_view;
   ros::Time time;
 
+
+  pose_ids->clear();
+  // Write pose ids.
+  for (int i = start_frame; i < start_frame + steps; ++i) {
+    x_view::PoseId pose_id;
+    pose_id.id = x_view::KeyGenerator::getNextKey();
+    pose_ids->push_back(pose_id);
+  }
+
+  timer->registerTimer("QueryGraphConstruction");
+  timer->start("QueryGraphConstruction");
+
   for(int i = start_frame; i < start_frame + steps; ++i) {
     parseParameters();
     const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
     const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
     const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
-    x_view::SE3 pose;
-    tfTransformToSE3(trans, &pose);
+    tfTransformToSE3(trans, &(*pose_ids)[i - start_frame].pose);
     // Use the start frame as ground truth.
-    if(i == start_frame) {
-      locations->second = pose.getPosition();
+    if (i == start_frame) {
+      locations->true_pose = (*pose_ids)[i - start_frame].pose;
     }
-    x_view::FrameData frame_data(semantic_image, depth_image, pose, i);
+    x_view::FrameData frame_data(semantic_image, depth_image,
+                                 (*pose_ids)[i - start_frame], i);
     local_x_view.processFrameData(frame_data);
     // Publish all ground truth poses that contribute to the estimation.
-    const Eigen::Vector3d ground_truth_color(0.15, 0.7, 0.15);
-    publishRobotPosition(pose.getPosition(), ground_truth_color, trans.stamp_,
-                         "true_position_" +
-                             x_view::PaddedInt(i - start_frame, 3).str());
+    const x_view::Vector3r ground_truth_color(0.15, 0.7, 0.15);
+    graph_publisher_.publishRobotPosition(
+        (*pose_ids)[i - start_frame].pose.getPosition().cast<x_view::real_t>(),
+        ground_truth_color, trans.stamp_,
+        "true_position_" +  x_view::PaddedInt(i-start_frame, 3).str());
+
+    if(record_bag_) {
+      // Write robot position and images messages to output bagfile.
+      visualization_msgs::Marker marker;
+      graph_publisher_.robotPositionToRosMsg(
+          (*pose_ids)[i - start_frame].pose.getPosition().cast<x_view::real_t>(),
+          ground_truth_color, trans.stamp_,
+          "true_position_" + x_view::PaddedInt(i - start_frame, 3).str(), &marker);
+      out_bag_.write(graph_publisher_.getPositionTopic(), last_time_, marker);
+      out_bag_.write(getTopics(camera_type).semantics_image_topic, last_time_,
+                     semantic_topic_view_->getMessageAtFrame(i));
+      out_bag_.write(getTopics(camera_type).depth_image_topic, last_time_,
+                     depth_topic_view_->getMessageAtFrame(i));
+    }
   }
 
-  const x_view::Graph& local_graph = local_x_view.getSemanticGraph();
+  timer->stop("QueryGraphConstruction");
 
-  bool localized = x_view_->localizeGraph(local_graph, &(locations->first));
+  (*query_graph) = local_x_view.getSemanticGraph();
 
-  const Eigen::Vector3d estimated_color(0.7, 0.15, 0.15);
-  publishRobotPosition(locations->first, estimated_color, time,
-                       "estimated_position");
+  if(boost::num_vertices(*query_graph) == 0)
+    return false;
 
+  return true;
+
+}
+
+x_view::real_t XViewBagReader::localizeGraph(
+    const x_view::Graph& query_graph,
+    const std::vector<x_view::PoseId>& pose_ids,
+    x_view::LocalizationPair* locations,
+    x_view::GraphMatcher::IndexMatrixType* candidate_matches,
+    x_view::GraphMatcher::SimilarityMatrixType* similarity_matrix) {
+
+  CHECK_NOTNULL(locations);
+  CHECK_NOTNULL(candidate_matches);
+  CHECK_NOTNULL(similarity_matrix);
+
+  const auto& timer = x_view::Locator::getTimer();
+
+  timer->registerTimer("GraphLocalization");
+  timer->start("GraphLocalization");
+  x_view::real_t error = x_view_->localizeGraph(query_graph, pose_ids,
+                                                candidate_matches,
+                                                similarity_matrix,
+                                                &(locations->estimated_pose));
+  timer->stop("GraphLocalization");
+
+  // Remove all previous markers.
+  graph_publisher_.clean();
+
+  const x_view::Vector3r estimation_color(0.7, 0.15, 0.15);
+  graph_publisher_.publishRobotPosition(
+      locations->estimated_pose.getPosition().cast<x_view::real_t>(),
+      estimation_color, ros::Time(), "estimated_position");
+
+  const x_view::Graph& db_graph = x_view_->getSemanticGraph();
+  // Publish database graph.
+  graph_publisher_.publish(db_graph, ros::Time(), 0);
+  // Publish query graph with associated matches.
+
+  const double z_offset = 50;
+  graph_publisher_.publish(query_graph, ros::Time(), z_offset);
+  graph_publisher_.publishMatches(query_graph, db_graph,
+                                  (*candidate_matches), ros::Time(), z_offset);
+
+  if(record_bag_) {
+    // Write graph messages to output bagfile.
+    visualization_msgs::Marker marker, matches, blob;
+    graph_publisher_.robotPositionToRosMsg(
+        locations->estimated_pose.getPosition().cast<x_view::real_t>(),
+        estimation_color, ros::Time(), "estimated_position", &marker);
+    out_bag_.write(graph_publisher_.getPositionTopic(), last_time_, marker);
+
+    graph_publisher_.matchesToRosMsg(query_graph, db_graph,
+                                     (*candidate_matches), ros::Time(), z_offset, &matches);
+    out_bag_.write("matches", last_time_, matches);
+
+    graph_publisher_.positionBlobToRosMsg(locations->true_pose.getPosition().cast<x_view::real_t>(),
+                                          locations->estimated_pose.getPosition().cast<x_view::real_t>(),
+                                          ros::Time(),
+                                          "estimation_blob",
+                                          &blob);
+    out_bag_.write("localization_blobs", last_time_, blob);
+
+    std::vector<visualization_msgs::Marker> edges, vertices;
+    graph_publisher_.edgesToRosMsg(query_graph, ros::Time(), z_offset, &edges);
+    graph_publisher_.verticesToRosMsg(query_graph, ros::Time(), z_offset, &vertices);
+    for (size_t i = 0u; i < edges.size(); ++i) {
+      out_bag_.write("query_graph_edges", last_time_, edges[i]);
+    }
+    for (size_t i = 0u; i < vertices.size(); ++i) {
+      out_bag_.write("query_graph_vertices", last_time_,
+                     vertices[i]);
+    }
+  }
 
   bag_.close();
 
-  return localized;
+  return error;
 }
 
 void XViewBagReader::parseParameters() const {
@@ -192,15 +310,26 @@ void XViewBagReader::parseParameters() const {
     std::unique_ptr<x_view::AbstractDataset> dataset(
         new x_view::SynthiaDataset());
     x_view::Locator::registerDataset(std::move(dataset));
-  } else
+  } else if (dataset_name == "AIRSIM") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::AirsimDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else {
     CHECK(false) << "Dataset '" << dataset_name
-                 << "' is not supported" << std::endl;
+        << "' is not supported" << std::endl;
+  }
 }
 
 void XViewBagReader::getXViewBagReaderParameters() {
 
   if (!nh_.getParam("/XViewBagReader/bag_file_name", params_.bag_file_name)) {
     LOG(ERROR) << "Failed to get param '/XViewBagReader/bag_file_name'";
+  }
+  if (!nh_.getParam("/XViewBagReader/out_bag_file_name", params_.out_bag_file_name)) {
+    LOG(ERROR) << "Failed to get param '/XViewBagReader/out_bag_file_name'";
+  }
+  if (!nh_.getParam("/XViewBagReader/record_bag", params_.record_bag)) {
+    LOG(ERROR) << "Failed to get param '/XViewBagReader/record_bag'";
   }
   if (!nh_.getParam("/XViewBagReader/back/semantics_image_topic",
                     params_.back.semantics_image_topic)) {
@@ -272,47 +401,6 @@ void XViewBagReader::tfTransformToSE3(const tf::StampedTransform& tf_transform,
       tf_transform.getRotation().getY(),
       tf_transform.getRotation().getZ());
   *pose = x_view::SE3(pos, rot);
-}
-
-
-void XViewBagReader::publishRobotPosition(const Eigen::Vector3d& pos,
-                                     const Eigen::Vector3d& color,
-                                     const ros::Time& stamp,
-                                     const std::string ns) {
-
-  visualization_msgs::Marker marker;
-
-  marker.header.frame_id = "/world";
-  marker.header.stamp = stamp;
-
-  // Set the namespace and id for this marker.  This serves to create a unique ID
-  // Any marker sent with the same namespace and id will overwrite the old one
-  marker.ns = ns;
-  marker.id = 0;
-
-  marker.type = visualization_msgs::Marker::CYLINDER;
-  marker.action = visualization_msgs::Marker::ADD;
-
-  marker.pose.position.x = pos[0];
-  marker.pose.position.y = pos[1];
-  marker.pose.position.z = pos[2];
-  marker.pose.orientation.x = 0.0;
-  marker.pose.orientation.y = 0.0;
-  marker.pose.orientation.z = 0.0;
-  marker.pose.orientation.w = 1.0;
-
-  marker.scale.x = 1.0;
-  marker.scale.y = 1.0;
-  marker.scale.z = 4.0;
-
-  // Set the color -- be sure to set alpha to something non-zero!
-  marker.color.r = static_cast<float>(color[0]);
-  marker.color.g = static_cast<float>(color[1]);
-  marker.color.b = static_cast<float>(color[2]);
-  marker.color.a = 1.0;
-
-  marker.lifetime = ros::Duration();
-  vertex_publisher_.publish(marker);
 }
 
 }

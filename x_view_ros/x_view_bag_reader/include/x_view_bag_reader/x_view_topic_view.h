@@ -5,6 +5,7 @@
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
 #include <tf/transform_datatypes.h>
+#include <sensor_msgs/Image.h>
 
 #include <memory>
 #include <string>
@@ -13,9 +14,10 @@ namespace x_view_ros {
 
 /// \brief Keys determining which type of camera we are using.
 enum class CAMERA {
-  FRONT,
-  RIGHT,
-  BACK
+  FRONT = 0,
+  RIGHT = 1,
+  BACK = 2,
+  DOWN = RIGHT
 };
 
 /// \brief Topics related to a single camera.
@@ -97,6 +99,9 @@ class SemanticImageView : public RosbagTopicView<cv::Mat> {
       : RosbagTopicView<cv::Mat>(bag, topic_name) {}
 
   virtual cv::Mat getDataAtFrame(const int frame_index) const;
+
+  virtual sensor_msgs::ImageConstPtr getMessageAtFrame(
+      const int frame_index) const;
 };
 
 /**
@@ -109,6 +114,9 @@ class DepthImageView : public RosbagTopicView<cv::Mat> {
       : RosbagTopicView<cv::Mat>(bag, topic_name) {}
 
   virtual cv::Mat getDataAtFrame(const int frame_index) const;
+
+  virtual sensor_msgs::ImageConstPtr getMessageAtFrame(
+      const int frame_index) const;
 };
 
 /**

@@ -3,6 +3,7 @@
 
 #include <x_view_bag_reader/x_view_topic_view.h>
 #include <x_view_core/x_view.h>
+#include <x_view_core/x_view_types.h>
 #include <x_view_graph_publisher/graph_publisher.h>
 #include <x_view_parser/parser.h>
 
@@ -23,24 +24,28 @@ namespace x_view_ros {
 class XViewBagReader {
 
  public:
-  /// \brief Pair used in localization functions, the first element in the
-  /// pair corresponds to the Estimated location, the second element to the
-  /// ground truth location.
-  typedef std::pair<Eigen::Vector3d, Eigen::Vector3d> LocationPair;
 
   /// \brief Parameters needed by XViewBagReader.
   struct XViewBagReaderParams {
     XViewBagReaderParams()
-        : front(CAMERA::FRONT),
-          right(CAMERA::RIGHT),
-          back(CAMERA::BACK) {}
+    : front(CAMERA::FRONT),
+      right(CAMERA::RIGHT),
+      back(CAMERA::BACK),
+      down(CAMERA::RIGHT) {}
 
     /// \brief Bag filename of the rosbag file to be read.
     std::string bag_file_name;
 
+    /// \brief Bag filename of the rosbag file to be output.
+    std::string out_bag_file_name;
+
+    /// \brief Trigger for recording output bag file.
+    bool record_bag;
+
     CameraTopics front;
     CameraTopics right;
     CameraTopics back;
+    CameraTopics down;
 
     std::string transform_topic;
     std::string world_frame;
@@ -54,34 +59,59 @@ class XViewBagReader {
                         const int from, const int to);
 
   /**
-   * \brief Localizes the robot seeing the scene at frame_index through the
-   * camera camera_type.
-   * \param camera_type Camera type to be used in this localization.
-   * \param frame_index Frame to be localized inside to global semantic graph.
-   * \param locations A pair of 3D coordinates representing the estimated and
-   * true robot location respectively.
-   * \return A boolean which is true if the localization was effective, false
-   * otherwise.
+   * \brief Relabels a set of randomly selected vertices of the global
+   * semantic graph.
+   * \param percentage Percentage of vertices to be relabeled.
+   * \param seed Seed to be used for the random number generator.
    */
-  bool localizeFrame(const CAMERA camera_type, const int frame_index,
-                     LocationPair* locations);
+  void relabelGlobalGraphVertices(const x_view::real_t percentage,
+                                  const uint64_t seed = 0);
+
 
   /**
-   * \brief Localizes the semantic graph being build between the frames
-   * delimited by the passed arguments by matching it to the global semantic
-   * graph of x_view_.
+   * \brief Generates a query semantic graph built up between start_frame and
+   * start_frame + steps - 1. The query graph is built using the camera
+   * defined by the first parameter.
    * \param camera_type Camera type to be used in this localization.
    * \param start_frame Lower index for graph being localized.
    * \param steps Number of steps (frames) to iterate over for the
    * construction of the local graph which must be localized.
+   * \param query_graph Query graph filled up with the build graph.
+   * \param pose_ids Vector of pose IDs corresponding to the ones used in the
+   * query graph construction.
+   * \param locations A pair of 3D poses representing the estimated and
+   * true robot location respectively.
+   * \return Success in graph building.
+   */
+  bool generateQueryGraph(const CAMERA camera_type, const int start_frame,
+                          const int steps, x_view::Graph* query_graph,
+                          std::vector<x_view::PoseId>* pose_ids,
+                          x_view::LocalizationPair* locations);
+
+  /**
+   * \brief Localizes the query graph passed as argument to the global semantic
+   * graph of x_view_.
+   * \param query_graph Query semantic graph to be localized.
+   * \param pose_ids Poses associated to the query semantic graph.
    * \param locations A pair of 3D coordinates representing the estimated and
    * true robot location respectively.
-   * \return A boolean which is true if the localization was effective, false
-   * otherwise.
+   * \param candidate_matches Candidate matches matrix representing the
+   * matches for each of the vertices in the query graph.
+   * \param similarity_matrix Similarity matrix containing the semantic
+   * similarity between each vertex of the query graph and each vertex of the
+   * global semantic graph.
+   * \return Normalized residual in optimization for localization.
    */
-  bool localizeGraph(const CAMERA camera_type, const int start_frame,
-                     const int steps,
-                     LocationPair* locations);
+  x_view::real_t localizeGraph(const x_view::Graph& query_graph,
+                               const std::vector<x_view::PoseId>& pose_ids,
+                               x_view::LocalizationPair* locations,
+                               x_view::GraphMatcher::IndexMatrixType* candidate_matches,
+                               x_view::GraphMatcher::SimilarityMatrixType* similarity_matrix);
+
+  /// \brief Returns a reference to the global semantic graph built by x_view_.
+  const x_view::Graph& getGlobalGraph() const {
+    return x_view_->getSemanticGraph();
+  }
 
  private:
 
@@ -106,10 +136,6 @@ class XViewBagReader {
   void tfTransformToSE3(const tf::StampedTransform& tf_transform,
                         x_view::SE3* pose);
 
-  void publishRobotPosition(const Eigen::Vector3d& pos,
-                            const Eigen::Vector3d& color,
-                            const ros::Time& stamp,
-                            const std::string ns);
 
   std::unique_ptr<x_view::XView> x_view_;
 
@@ -121,6 +147,15 @@ class XViewBagReader {
 
   /// \brief Rosbag file being read by this class.
   rosbag::Bag bag_;
+
+  /// \brief Rosbag file being output by this class, e.g. for visualization.
+  rosbag::Bag out_bag_;
+
+  /// \brief Last time in database graph building phase.
+  ros::Time last_time_;
+
+  /// \brief Rosbag file being output by this class, e.g. for visualization.
+  bool record_bag_;
 
   /// \brief Pointer to the View object responsible for extracting semantic
   /// images from the rosbag file.
@@ -139,9 +174,6 @@ class XViewBagReader {
 
   /// \brief Graph publisher object responsible for publishing the graph data.
   GraphPublisher graph_publisher_;
-
-  /// \brief Vertex publisher used to publish position of localized robot.
-  ros::Publisher vertex_publisher_;
 };
 
 }

@@ -35,7 +35,7 @@ SynthiaDataset::SynthiaDataset()
   << semantic_entities_.size();
 
   // Set the intrinsic parameters for the Synthia dataset.
-  const double synthia_focal_length = 532.740352;
+  const real_t synthia_focal_length = 532.740352;
   const int synthia_px = 640;
   const int synthia_py = 380;
   camera_intrinsics_ = CameraIntrinsics(synthia_focal_length,
@@ -43,9 +43,9 @@ SynthiaDataset::SynthiaDataset()
 
   // Set up camera-to-image rotation.
   // Flipped z-axis and flipped y-axis
-  camera_to_image_rotation_ << 1,  0,  0,
-                               0, -1,  0,
-                               0,  0, -1;
+  camera_to_image_rotation_ << 1.0,  0.0,  0.0,
+                               0.0, -1.0,  0.0,
+                               0.0,  0.0, -1.0;
 }
 
 cv::Mat SynthiaDataset::convertSemanticImage(
@@ -60,19 +60,19 @@ cv::Mat SynthiaDataset::convertSemanticImage(
   const int cols = msg->width;
   const int rows = msg->height;
 
-  // new image used as container for semantic labels and instances.
+  // New image used as container for semantic labels and instances.
   // the first channel of this new image contains the semantic label
   // associated to each pixel
   // the second channel contains a unique ID associated to dynamic objects
-  // the third channel is not used
+  // the third channel is not used.
   cv::Mat labelImage(rows, cols, CV_8UC3, cv::Scalar::all(0));
 
-  // loop over the rows of the image implicitly stored into msg
+  // Loop over the rows of the image implicitly stored into msg.
   for (int i = 0; i < rows; ++i) {
-    // loop over the cols of the image implicitly stored into msg
+    // Loop over the cols of the image implicitly stored into msg.
     for (int j = 0; j < cols; ++j) {
-      // index of the pixel, need to have "6*j" because each pixel value is
-      // stored into two consecutive bytes and there are three channels
+      // Index of the pixel, need to have "6*j" because each pixel value is
+      // stored into two consecutive bytes and there are three channels.
       int idx = step_size * i + 6 * j;
       CHECK(idx < msg_size)
       << "Computed index is larger or equal to message size";
@@ -90,13 +90,17 @@ cv::Mat SynthiaDataset::convertSemanticImage(
           )
       );
 
-      labelImage.at<cv::Vec3b>(cv::Point(j, i)) = values;
+      labelImage.at<cv::Vec3b>(cv::Point2i(j, i)) = values;
     }
 
   }
-
   return labelImage;
+}
 
+const x_view::real_t SynthiaDataset::getDepth(const cv::Point2i& pixel,
+                                              const cv::Mat& depth_image) const {
+  const unsigned short point_depth_cm = depth_image.at<unsigned short>(pixel);
+  return point_depth_cm * static_cast<real_t>(0.01);
 }
 
 #undef SYNTHIA_NUM_SEMANTIC_CLASSES

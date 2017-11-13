@@ -1,0 +1,79 @@
+Dataset: {{
+    name: "{dataset_name}",
+}}
+
+Landmark: {{
+    type : "GRAPH",
+    blob_filter_type: "ABSOLUTE",
+    min_blob_size: {min_blob_size},
+    dilate_and_erode: true,
+    num_dilate: {num_dilate_erode},
+    num_erode: {num_dilate_erode},
+    extraction_type: "{extraction_type}",
+    max_euclidean_distance: {max_euclidean_distance},
+    blob_neighbor_distance: {blob_neighbor_distance},
+    depth_clip: {depth_clip}
+}}
+
+Matcher: {{
+    type: "GRAPH",
+    vertex_similarity_score: "{vertex_similarity_score}",
+    random_walk_sampling_type: "{random_walk_sampling_type}",
+    num_walks: {num_walks},
+    walk_length: {walk_length},
+    time_window: {time_window},
+    similarity_threshold: {similarity_threshold},
+    distance_threshold: {distance_threshold},
+    merge_close_vertices: {merge_close_vertices},
+    merge_distance: {merge_distance},
+    link_close_vertices: {link_close_vertices},
+    max_link_distance: {max_link_distance},
+    outlier_rejection: {outlier_rejection},
+    num_candidate_matches: {num_candidate_matches},
+    consistency_threshold: {consistency_threshold},
+    consistency_size: {consistency_size}
+}}
+
+Localizer: {{
+    type: "{localizer_type}",
+    use_robust_noise: {use_robust_noise}
+}}
+
+# Parameters read exclusively by XViewBagReader
+XViewBagReader: {{
+  bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/synthia_town.bag",
+  out_bag_file_name: "/home/carlo/polybox/Master/Master thesis/x-view/x_view_ros/x_view_node/data/results_synthia_town.bag",
+  record_bag: False,
+  back: {{
+    semantics_image_topic: "/Stereo_Left/Omni_B/labels",
+    depth_image_topic: "/Stereo_Left/Omni_B/depth",
+    sensor_frame: "cam02"
+  }},
+  right: {{
+    semantics_image_topic: "/Stereo_Left/Omni_R/labels",
+    depth_image_topic: "/Stereo_Left/Omni_R/depth",
+    sensor_frame: "cam01"
+  }},
+  front: {{
+    semantics_image_topic: "/Stereo_Left/Omni_F/labels",
+    depth_image_topic: "/Stereo_Left/Omni_F/depth",
+    sensor_frame: "cam00"
+  }},
+
+  transform_topic: "/tf",
+  world_frame: "world",
+
+  start_frame: {start_frame},
+  end_frame: {end_frame},
+
+  pause_active: False,
+
+  timer_type: "TIMER",
+  relabeling_percentage: {relabeling_percentage},
+
+  graph_construction_camera: "{graph_construction_camera}",
+  localization_camera: "{localization_camera}",
+
+  local_graph_steps: {local_graph_steps},
+  run_name: "{run_name}"
+}}

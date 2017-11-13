@@ -6,6 +6,7 @@
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/landmarks/semantic_landmark_factory.h>
 #include <x_view_core/matchers/abstract_matcher.h>
+#include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/parameters/parameters.h>
 #include <x_view_core/x_view_types.h>
 
@@ -40,10 +41,16 @@ class XView {
   void processFrameData(const FrameData& frame_data);
 
   /**
-   * \brief Returns a reference to the current global semantic graph.
-   * \return A reference to the current global semantic graph.
+   * \brief Returns a const reference to the current global semantic graph.
+   * \return A const reference to the current global semantic graph.
    */
   const Graph& getSemanticGraph() const;
+
+  /**
+  * \brief Returns a reference to the current global semantic graph.
+  * \return A reference to the current global semantic graph.
+  */
+  Graph& getSemanticGraph();
 
   /**
    * \brief Writes the current global semantic graph to a file.
@@ -51,47 +58,38 @@ class XView {
   void writeGraphToFile() const;
 
   /**
-   * \brief Localizes the robot making the observations contained in the
-   * frame_data object passed as parameter by matching the associated
-   * semantic descriptors with the global database graph. The pose_ member of
-   * frame_data is ignored.
-   * \param frame_data Data passed to XView containing the observations
-   * of the robot to be localized.
-   * \param position An estimation of the pose of the robot.
-   * \return Success in localization.
-   */
-  bool localizeFrame(const FrameData& frame_data, Eigen::Vector3d* position);
-
-  /**
    * \brief Localizes the graph passed as argument by matching it against the
    * global semantic graph.
    * \param query_graph Semantic graph which is localized.
-   * \param position An estimation of the pose of the query graph passed as
+   * \param pose_ids PosesIds of robot, assumed to be in consecutive order.
+   * \param candidate_matches Candidate matches matrix filled up with
+   * (filtered) candidates for each vertex in the query graph.
+   * \param similarity_matrix Similarity matrix filled up by this function.
+   * \param candidate_matches Candidate matches matrix filled up with
+   * (filtered) candidates for each vertex in the query graph.
+   * \param pose An estimation of the pose of the query graph passed as
    * argument.
-   * \return Success in localization.
+   * \return Normalized optimization residual to the localization.
    */
-  bool localizeGraph(const Graph& query_graph, Eigen::Vector3d* position);
+  real_t localizeGraph(const Graph& query_graph,
+                       std::vector<x_view::PoseId> pose_ids,
+                       GraphMatcher::IndexMatrixType* candidate_matches,
+                       GraphMatcher::SimilarityMatrixType* similarity_matrix,
+                       SE3* pose);
+
+  /**
+   * \brief Relabels a set of randomly chosen vertices of the current global
+   * semantic graph.
+   * \param percentage Percentage value between 0 and 1 of vertices to be
+   * relabeled randomly.
+   * \param seed Seed to be used for the random number generator.
+   * \note Since relabeling vertices affects the semantic descriptors of the
+   * semantic graph, the random walks of all vertices are recomputed.
+   */
+  void relabelGlobalGraphVertices(const x_view::real_t percentage,
+                                  const uint64_t seed = 0);
 
  private:
-  /// \brief Prints XView info.
-  void printInfo() const;
-
-  /// \brief Initializes all variables based on the parameters located in
-  /// Locator::getParameters().
-  void initialize();
-
-  /// \brief Initializes the landmark factory based on the value retrieved
-  /// from Locator::getParameters()->getChildPropertyList("landmark")->getString("type")
-  void initializeLandmarkFactory();
-
-  /// \brief Initializes the matchert based on the value retrieved
-  /// from Locator::getParameters()->getChildPropertyList("matcher")->getString("type")
-  void initializeMatcher();
-
-  //=======================================================================//
-  //        FUNCTIONS CALLED BY 'processFrameData' FUNCTION                //
-  //=======================================================================//
-
   /**
    * \brief Extract semantic descriptor from semantics image and creates a
    * semantic landamark associated to it.
@@ -103,6 +101,25 @@ class XView {
    */
   void createSemanticLandmark(const FrameData& frame_data,
                               SemanticLandmarkPtr& semantics_out) const;
+
+  /// \brief Prints XView info.
+  void printInfo() const;
+
+  /// \brief Initializes all variables based on the parameters located in
+  /// Locator::getParameters().
+  void initialize();
+
+  /// \brief Initializes the landmark factory based on the value retrieved
+  /// from Locator::getParameters()->getChildPropertyList("landmark")->getString("type")
+  void initializeLandmarkFactory();
+
+  /// \brief Initializes the matchers based on the value retrieved
+  /// from Locator::getParameters()->getChildPropertyList("matcher")->getString("type")
+  void initializeMatcher();
+
+  //=======================================================================//
+  //        FUNCTIONS CALLED BY 'processFrameData' FUNCTION                //
+  //=======================================================================//
 
   /// \brief Match semantics instance to database and return score.
   void matchSemantics(const SemanticLandmarkPtr& semantics_a,

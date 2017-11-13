@@ -1,13 +1,16 @@
 #ifndef X_VIEW_GRAPH_H
 #define X_VIEW_GRAPH_H
 
+#include <x_view_core/x_view_types.h>
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <Eigen/Core>
 #include <opencv2/core/core.hpp>
-
 #include <random>
+
+#include <x_view_core/x_view_types.h>
 
 namespace x_view {
 
@@ -15,10 +18,10 @@ namespace x_view {
 struct VertexProperty {
 
   /// \brief Index of the vertex in the graph.
-  /// \note This index should not be used to acces the vertex in the graph,
+  /// \note This index should not be used to access the vertex in the graph,
   /// as even if the vertex order is maintained, due to vertex merging
   /// operations it might happen that vertices are deleted from the graph.
-  int index;
+  uint64_t index;
 
   /// \brief Semantic label associated to this graph vertex. This label
   /// corresponds to the same specified in the dataset description.
@@ -28,16 +31,19 @@ struct VertexProperty {
   std::string semantic_entity_name;
 
   /// \brief Number of pixels contained in this vertex/blob.
-  int num_pixels;
+  uint64_t num_pixels;
 
   /// \brief Blob center.
   cv::Point2i center;
 
   /// \brief 3D location of this vertex expressed in world frame.
-  Eigen::Vector3d location_3d;
+  Vector3r location_3d;
 
   /// \brief Index referring to the last time this vertex has been observed.
   uint64_t last_time_seen_;
+
+  /// \brief Indices of poses from which the vertex was observed.
+  std::vector<PoseId> observers;
 };
 
 /// \brief Property associated to a graph edge.
@@ -51,7 +57,7 @@ struct EdgeProperty {
   /// const VertexProperty from_v_p = graph[from_v_d];
   /// \endcode
 
-  int from;
+  uint64_t from;
   /// \brief Index of the second vertex defining this edge.
   /// \note This index should not be used to access the associated vertex, as
   /// it might differ with the storage index of the graph. To access the
@@ -60,12 +66,11 @@ struct EdgeProperty {
   /// const VertexDescriptor to_v_d = boost::target(edge, graph);
   /// const VertexProperty to_v_p = graph[to_v_d];
   /// \endcode
-  int to;
+  uint64_t to;
 
   /// \brief Integer indicating how many times this edge has been observed.
   uint64_t num_times_seen;
 };
-
 /**
  * \brief A graph object represented as an adjacency list.
  * \details

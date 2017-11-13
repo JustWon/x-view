@@ -73,7 +73,8 @@ std::ostream& operator<<(std::ostream& out, const VertexProperty& v) {
       << ", name: " << std::right << std::setw(max_label_length) << v
           .semantic_entity_name
       << ", num pixels: " << v.num_pixels << ", center: " << v.center
-      << ", 3D location: " << Eigen::RowVector3d(v.location_3d);
+      << ", 3D location: " << x_view::RowVector3r(v.location_3d)
+      << ", Observed: " << v.observers.size() << " times.";
 
   return out;
 }
@@ -114,6 +115,9 @@ void writeToFile(const Graph& graph, const std::string& filename) {
     return;
   }
 
+  out << "// Num vertices: " << boost::num_vertices(graph) << std::endl;
+  out << "// Num edges: " << boost::num_edges(graph) << std::endl;
+
   auto scalarToHexString = [](const double s) {
     std::stringstream ss;
     ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(s);
@@ -142,12 +146,17 @@ void writeToFile(const Graph& graph, const std::string& filename) {
         << " label=\"" << label << "\","
         << " fillcolor=\"#" << fill_color << "\","
         << " fontcolor=\"#" << font_color << "\",";
-    if (v_p.location_3d != Eigen::Vector3d::Zero()) {
+    if (v_p.location_3d != Vector3r::Zero()) {
       out << " pos = \"" << v_p.location_3d[0] << ", "
           << v_p.location_3d[1] << "!\",";
     }
     out << " style=filled ]";
-    out << " // 3D pos: " << Eigen::RowVector3d(v_p.location_3d) << std::endl;
+    out << " // 3D pos: " << x_view::RowVector3r(v_p.location_3d);
+    out << " // Observers: ";
+    for (auto i:v_p.observers) {
+      out << i.id << ",";
+    }
+    out << std::endl;
   }
 
   // Iterate over the edges of the graph.

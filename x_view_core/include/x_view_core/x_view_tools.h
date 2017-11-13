@@ -51,8 +51,8 @@ class PaddedInt {
   std::string str_;
 };
 
-std::string operator + (const std::string& l, const PaddedInt& r);
-std::string operator + (const PaddedInt& l, const std::string& r);
+std::string operator+(const std::string& l, const PaddedInt& r);
+std::string operator+(const PaddedInt& l, const std::string& r);
 
 const std::string formatSE3(const SE3& se3, const std::string& indent = "",
                             const int precision = Eigen::StreamPrecision);
@@ -62,23 +62,50 @@ const cv::Scalar getColorFromSemanticLabel(const int semantic_label);
 
 /// \brief Generates a random rotation matrix given three uniformly sampled
 /// numbers between zero and one.
-const Eigen::Matrix3d createRotationMatrix(double r1, double r2, double r3);
-const Eigen::Matrix3d randomRotationMatrix(std::mt19937& rng);
+const Matrix3r createRotationMatrix(real_t r1, real_t r2, real_t r3);
+const Matrix3r randomRotationMatrix(std::mt19937& rng);
 
-class Statistics {
- public:
-  Statistics();
+/// \brief Computes the squared distance between two points in 3D space.
+const real_t distSquared(const Vector3r& v1, const Vector3r& v2);
 
-  void insert(const float& sample);
-  const float mean() const;
-  const float std() const;
+/// \brief Computes the squared distance between two graph vertices in 3D space.
+const real_t distSquared(const VertexProperty& v_p1,
+                         const VertexProperty& v_p2);
 
- private:
-  std::vector<float> samples_;
-  float sum_;
-  float sum_squared_;
-  uint64_t num_samples_;
-};
+/// \brief Computes the distance between two points in 3D space.
+const real_t dist(const Vector3r& v1, const Vector3r& v2);
+
+/// \brief Computes the distance between two graph vertices in 3D space.
+const real_t dist(const VertexProperty& v_p1, const VertexProperty& v_p2);
+
+/// \brief Computes the angle between two poses.
+/// \note See here: http://www.continuummechanics.org/transformmatrix.html
+const real_t angle(const SE3& p1, const SE3& p2);
+
+/// \brief Computes the argsort of any Eigen type matrix.
+/// \return Sorted indices in increasing order such that x[indices[i]] <
+/// x[indices[i+1]]
+template<typename Derived>
+Eigen::VectorXi argsort(const Eigen::MatrixBase<Derived>& x) {
+
+  typedef std::pair<int, double> argsort_pair;
+
+  auto argsortComp = [](const argsort_pair& left, const argsort_pair& right) {
+    return left.second < right.second;
+  };
+
+  Eigen::VectorXi indices(x.size());
+  std::vector<argsort_pair> data(x.size());
+  for (int i = 0; i < x.size(); i++) {
+    data[i].first = i;
+    data[i].second = static_cast<double>(x(i));
+  }
+  std::sort(data.begin(), data.end(), argsortComp);
+  for (int i = 0; i < data.size(); i++) {
+    indices(i) = data[i].first;
+  }
+  return indices;
+}
 
 // ******************************* Logging ***********************************//
 /**
@@ -161,6 +188,11 @@ void removeRandomVertexFromGraph(Graph* graph, std::mt19937& rng);
  * \param rng Instance of mersenne twister random number generator
  */
 void removeRandomEdgeFromGraph(Graph* graph, std::mt19937& rng);
+
+class KeyGenerator {
+ public:
+  static size_t getNextKey();
+};
 
 }
 

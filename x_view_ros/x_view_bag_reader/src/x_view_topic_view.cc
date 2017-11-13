@@ -23,6 +23,17 @@ cv::Mat SemanticImageView::getDataAtFrame(const int frame_index) const {
   return dataset->convertSemanticImage(msg);
 }
 
+sensor_msgs::ImageConstPtr SemanticImageView::getMessageAtFrame(const int frame_index) const {
+  const auto& dataset = x_view::Locator::getDataset();
+
+  // Retrieve the iterator which is indicating to the frame of interest.
+  CHECK(frame_index >= 0 && frame_index < iterators_.size())
+  << "Index passed to 'SemanticImageView::getDataAtFrame' is not valid";
+  auto iter = iterators_[frame_index];
+
+  return iter->instantiate<sensor_msgs::Image>();
+}
+
 cv::Mat DepthImageView::getDataAtFrame(const int frame_index) const {
   const auto& dataset = x_view::Locator::getDataset();
 
@@ -35,6 +46,17 @@ cv::Mat DepthImageView::getDataAtFrame(const int frame_index) const {
   cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, enc::MONO16);
 
   return cv_ptr->image;
+}
+
+sensor_msgs::ImageConstPtr DepthImageView::getMessageAtFrame(const int frame_index) const {
+  const auto& dataset = x_view::Locator::getDataset();
+
+  // Retrieve the iterator which is indicating to the frame of interest.
+  CHECK(frame_index >= 0 && frame_index < iterators_.size())
+  << "Index passed to 'DepthImageView::getDataAtFrame' is not valid";
+  auto iter = iterators_[frame_index];
+
+  return iter->instantiate<sensor_msgs::Image>();
 }
 
 tf::StampedTransform TransformView::getDataAtFrame(const int frame_index) const {

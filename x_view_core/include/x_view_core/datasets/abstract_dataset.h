@@ -67,7 +67,7 @@ class AbstractDataset {
 
   /// \brief Returns a reference to the rotation matrix between camera and
   /// image frame.
-  const Eigen::Matrix3d& getCameraToImageRotation() const {
+  const Matrix3r& getCameraToImageRotation() const {
     return camera_to_image_rotation_;
   }
 
@@ -81,6 +81,16 @@ class AbstractDataset {
     CHECK(index >= 0 && index < num_semantic_classes_);
     return semantic_entities_[index].semantic_entity_name;
   }
+
+  /**
+   * \brief returns depth value of pixel, depending on the dataset as depth
+   * may be encoded differently depending on the dataset.
+   * \param pixel The pixel location.
+   * \param depth_image The corresponding depth image.
+   * \return Depth value of the pixel in [m].
+   */
+  virtual const x_view::real_t getDepth(const cv::Point2i& pixel,
+                                        const cv::Mat& depth_image) const;
 
   /**
    * \brief Function called by ROS each time a new semantic image is available.
@@ -117,7 +127,7 @@ class AbstractDataset {
   const int num_semantic_classes_;
   std::vector<SemanticEntity> semantic_entities_;
   CameraIntrinsics camera_intrinsics_;
-  Eigen::Matrix3d camera_to_image_rotation_;
+  Matrix3r camera_to_image_rotation_;
 };
 
 /**

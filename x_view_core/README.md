@@ -48,7 +48,7 @@ $ sudo apt-get install python-wstool doxygen
 * Download the dependencies of X-View using `wstool`:
   ```sh
   $ wstool init
-  $ wstool merge x-view/x_view_core/dependencies.rosinstall
+  $ wstool merge x-view/dependencies.rosinstall
   $ wstool update
   ```
   
@@ -64,4 +64,15 @@ $ sudo apt-get install python-wstool doxygen
   $ catkin build --force-cmake -j8 --catkin-make-args tests
   $ ./devel/libs/x_view_core/x_view_core_tests
   ```
-
+  
+#### Note
+It is possible to build the entire __X-View__ library in _single_ or _double_
+ precision. To change the build type, you are required to manually modify the
+  [following header file](./include/x_view_core/x_view_types.h) as follows:
+  ```c++
+  // Single or double floating point precision.
+  // Change this MACRO to 0 to use single precision where possible.
+  #ifndef X_VIEW_USE_DOUBLE_PRECISION
+  #define X_VIEW_USE_DOUBLE_PRECISION 0 // Uses double precision if set to '1', single precision otherwise.
+  #endif
+  ```

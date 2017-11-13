@@ -5,6 +5,7 @@
 #include <x_view_core/matchers/graph_matcher/graph_merger.h>
 #include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
+#include <x_view_core/x_view_types.h>
 
 #include <boost/graph/random.hpp>
 
@@ -68,8 +69,8 @@ void testDuplicatesChain() {
   const std::string output_path = x_view::getOutputDirectory();
   x_view::writeToFile(database_graph, output_path + "removal_before.dot");
 
-  const float merge_distance = 0.2f;
-  x_view::GraphMerger::mergeDuplicates(&database_graph, merge_distance);
+  const x_view::real_t merge_distance = 0.2;
+  x_view::GraphMerger::mergeDuplicates(merge_distance, &database_graph);
   x_view::writeToFile(database_graph, output_path + "removal_after.dot");
 }
 
