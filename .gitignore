@@ -44,5 +44,5 @@ ENV/
 fig/
 data/
 
-# smantic segmentation system-specific settings
+# semantic segmentation system-specific settings
 semantic-segmentation/xview/settings.py
