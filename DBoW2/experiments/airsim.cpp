@@ -46,16 +46,14 @@ const int NIMAGES = 1000;
 const int NSTEP = 5;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void wait()
-{
+void wait() {
   cout << endl << "Press enter to continue" << endl;
   getchar();
 }
 
 // ----------------------------------------------------------------------------
 
-int main()
-{
+int main() {
   vector<vector<cv::Mat > > features_db, features_query;
   Eigen::Matrix3Xd waypoints;
 
@@ -90,8 +88,7 @@ int main()
 
   std::cout << "Writing to file." << std::endl;
   std::ofstream file(out_path + "dbow_airsim.txt");
-    if (file.is_open())
-    {
+    if (file.is_open()) {
       file << results;
     }
 
@@ -100,16 +97,14 @@ int main()
 
 // ----------------------------------------------------------------------------
 
-void loadFeatures(vector<vector<cv::Mat > > &features, std::string path)
-{
+void loadFeatures(vector<vector<cv::Mat > > &features, std::string path) {
   features.clear();
   features.reserve(NIMAGES);
 
   cv::Ptr<cv::ORB> orb = cv::ORB::create();
 
   cout << "Extracting ORB features..." << endl;
-  for(int i = 0; i < NIMAGES * NSTEP; i = i + NSTEP)
-  {
+  for(int i = 0; i < NIMAGES * NSTEP; i = i + NSTEP) {
     std::cout << "Feature " << i << "/" << NIMAGES * NSTEP << "." << std::endl;
     stringstream ss;
     ss << "rgb_" << i;
@@ -182,20 +177,19 @@ bool parseVectorOfDoubles(const std::string& input,
 
 // ----------------------------------------------------------------------------
 
-void changeStructure(const cv::Mat &plain, vector<cv::Mat> &out)
-{
+void changeStructure(const cv::Mat &plain, vector<cv::Mat> &out) {
   out.resize(plain.rows);
 
-  for(int i = 0; i < plain.rows; ++i)
-  {
+  for(int i = 0; i < plain.rows; ++i) {
     out[i] = plain.row(i);
   }
 }
 
 // ----------------------------------------------------------------------------
 
-void testDatabase(const vector<vector<cv::Mat > > &features_db, const vector<vector<cv::Mat > > &features_query, std::vector<QueryResults>* ret)
-{
+void testDatabase(const vector<vector<cv::Mat> > &features_db,
+                  const vector<vector<cv::Mat> > &features_query,
+                  std::vector<QueryResults>* ret) {
   cout << "Creating a small database..." << endl;
 
   ret->resize(NIMAGES);
@@ -209,8 +203,7 @@ void testDatabase(const vector<vector<cv::Mat > > &features_db, const vector<vec
   // db creates a copy of the vocabulary, we may get rid of "voc" now
 
   // add images to the database
-  for(int i = 0; i < NIMAGES; i++)
-  {
+  for(int i = 0; i < NIMAGES; i++) {
     db.add(features_db[i]);
   }
 
@@ -222,8 +215,7 @@ void testDatabase(const vector<vector<cv::Mat > > &features_db, const vector<vec
   cout << "Querying the database: " << endl;
 
 //  QueryResults ret;
-  for(int i = 0; i < NIMAGES; i++)
-  {
+  for(int i = 0; i < NIMAGES; i++) {
     db.query(features_query[i], (*ret)[i], 4);
 
     // ret[0] is always the same image in this case, because we added it to the
