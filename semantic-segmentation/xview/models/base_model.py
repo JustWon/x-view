@@ -3,6 +3,8 @@ import numpy as np
 import threading
 from os import path
 from abc import ABCMeta, abstractmethod
+from time import sleep
+from types import GeneratorType
 
 from xview.models.utils import cross_entropy
 from xview.datasets.wrapper import DataWrapper
@@ -12,16 +14,21 @@ class BaseModel(object):
     """Structure for network models. Handels basic training and IO operations.
 
     requires the following attributes:
-        class_probabilities: tensor output of shape [batch_size, , , num_classes]
-        Y: tensor output of the ground-truth label to compare class_probabilities against
-        prediction: usually argmax of class_probabilites
+        prediction: usually argmax of class_probabilites, i.e. a 2D array of pixelwise
+            classification
         close_queue_op: tensorflow op to close the input queue
+    and requries one of the following:
+        loss: a scalar value that should be minimized during training
+        _train_step: a method performing one training iteration, taking a merged summary
+            as input and returning the value of this summary and a loss value
+    if initialized with supports_training=False:
+        only required attribute is self.precition
     """
 
     __metaclass__ = ABCMeta
-    required_attributes = ["class_probabilities", "Y", "prediction", "close_queue_op"]
+    required_attributes = [["loss", "_train_step"], ["prediction"], ["close_queue_op"]]
 
-    def __init__(self, name, output_dir=None, **config):
+    def __init__(self, name, output_dir=None, supports_training=True, **config):
         """Set configuration and build the model.
 
         Requires method _build_model to build the tensorflow graph.
@@ -33,79 +40,89 @@ class BaseModel(object):
         """
         self.name = name
         self.output_dir = output_dir
+        self.supports_training = supports_training
 
-        standard_config = {
-            'image_width': 640,
-            'image_height': 480
-        }
-        standard_config.update(config)
-        self.config = standard_config
+        self.config = config
+
+        tf.reset_default_graph()
 
         # Now we build the network.
         self.graph = tf.Graph()
         with self.graph.as_default():
+            self.global_step = tf.Variable(0, trainable=False)
+
             self._build_graph()
 
             # For any child class, we require the attributes specified in the docstring
             # and defined in self.required_attributes. After self._build_graph(), we can
             # check for their existance.
-            missing_attrs = ["'%s'" % attr for attr in self.required_attributes
-                             if not hasattr(self, attr)]
-            if missing_attrs:
-                raise AttributeError("Model class requires attribute%s %s" %
-                                     ("s" * (len(missing_attrs) > 1),
-                                      ", ".join(missing_attrs)))
+            if supports_training:
+                missing_attrs = ["'%s'" % attrs for attrs in self.required_attributes
+                                 if True not in [hasattr(self, attr) for attr in attrs]]
+                if missing_attrs:
+                    raise AttributeError(
+                        "Model class requires "
+                        " and ".join(["attribute {}".format(attrs[0]) if len(attrs) < 2
+                                      else " one of the attributes {}".format(attrs)
+                                      for attrs in missing_attrs]))
+            else:
+                if not hasattr(self, 'prediction'):
+                    raise AttributeError("Model class required attribute prediction")
 
-            # Loss will always be the cross-entropy.
-            self.loss = tf.div(tf.reduce_sum(cross_entropy(self.Y,
-                                                           self.class_probabilities)),
-                               tf.reduce_sum(self.Y))
+            # To evaluate accuracy atc, we have to define soem structures here
+            self.evaluation_labels = tf.placeholder(tf.float32, shape=[None, None, None])
+            self.confusion_matrix = tf.confusion_matrix(
+                labels=tf.reshape(self.evaluation_labels, [-1]),
+                predictions=tf.reshape(self.prediction, [-1]),
+                num_classes=self.config['num_classes'])
 
-            self.global_step = tf.Variable(0, trainable=False)
+            if supports_training and not hasattr(self, '_train_step'):
+                self.global_step = tf.Variable(0, trainable=False, name='global_step')
+                self.trainer = tf.train.AdagradOptimizer(
+                    self.config['learning_rate']).minimize(
+                        self.loss, global_step=self.global_step)
 
             self.saver = tf.train.Saver()
 
             self.sess = tf.Session()
             self.sess.run(tf.global_variables_initializer())
+            # There are local variables in the metrics
+            self.sess.run(tf.local_variables_initializer())
 
     @abstractmethod
     def _build_graph(self):
         """Set up the whole network here."""
         raise NotImplementedError
 
-    @abstractmethod
     def _enqueue_batch(self, batch, sess):
-        """Load the given data into the correct inputs."""
+        """Load the given training data into the correct inputs."""
         raise NotImplementedError
 
-    def _load_and_enqueue(self, sess, data, coord, dropout_rate):
-        """Internal handler method for the input data queue. May run in a seperate thread.
+    @abstractmethod
+    def _evaluation_food(self, data):
+        """Return a feed_dict for a prediction run on the network."""
+        raise NotImplementedError
+
+    def _load_and_enqueue(self, sess, data, coord):
+        """Internal handler method for the input data queue. Will run in a seperate thread.
 
         Args:
             sess: The current session, needs to be the same as in the main thread.
             data: The data to load. See method predict for specifications.
             coord: The training coordinator (from tensorflow)
-            dropout_rate: The dropout-rate that should be enqueued with the data
         """
         with self.graph.as_default():
-            if coord is None:
-                # As there is no coordinator, enqueue simply one batch.
-                if isinstance(data, DataWrapper):
-                    # This gives one batch from the dataset.
-                    batch = data.next()
-                else:
-                    # We otherwise assume that data is already a batch-dict.
-                    batch = data
-                batch['dropout_rate'] = dropout_rate
-                self._enqueue_batch(batch, sess)
-            else:
-                # If coord is set, we enqueue new data until it tells us to stop.
+            # We enqueue new data until it tells us to stop.
+            try:
                 while not coord.should_stop():
                     batch = data.next()
-                    batch['dropout_rate'] = dropout_rate
-                    self._enqueue_batch(batch, sess)
+                    if not coord.should_stop():
+                        self._enqueue_batch(batch, sess)
+            except tf.errors.CancelledError:
+                print('INFO: Input queue is closed, cannot enqueue any more data.')
 
-    def fit(self, data, iterations, output=True):
+    def fit(self, data, iterations, output=True, validation_data=None,
+            validation_interval=100):
         """Train the model for given number of iterations.
 
         Args:
@@ -113,59 +130,118 @@ class BaseModel(object):
             iterations: The number of training iterations
             output: Boolean specifiying whether to output the loss progress
         """
-
-        learning_rate = self.config.get('learning_rate', 0.1)
-        momentum = self.config.get('momentum', 0)
+        if not self.supports_training:
+            raise UserWarning(
+                "ERROR: Model {} does not support training".format(self.name))
 
         with self.graph.as_default():
-            trainer = tf.train.AdamOptimizer(learning_rate).minimize(
-                self.loss, global_step=self.global_step)
-
             # Merge all summary creation into one op. Add summary for loss.
-            tf.summary.scalar('loss', self.loss)
+            loss_summary = tf.summary.scalar('loss', self.loss)
             merged_summary = tf.summary.merge_all()
             if self.output_dir is not None:
                 train_writer = tf.summary.FileWriter(self.output_dir, self.graph)
 
-            self.sess.run(tf.global_variables_initializer())
-
             # Create a thread to load data.
             coord = tf.train.Coordinator()
             t = threading.Thread(target=self._load_and_enqueue,
-                                 args=(self.sess, data, coord,
-                                       self.config['dropout_rate']))
+                                 args=(self.sess, data, coord))
             t.start()
 
             # Now we can make the graph read-only.
             self.graph.finalize()
 
+            print('INFO: Start training')
             for i in range(iterations):
-                summary, loss, _ = self.sess.run([merged_summary, self.loss, trainer])
-                train_writer.add_summary(summary, i)
+                if hasattr(self, '_train_step'):
+                    summary, loss = self._train_step(loss_summary)
+                else:
+                    summary, loss, _ = self.sess.run([loss_summary, self.loss,
+                                                      self.trainer])
+                if self.output_dir is not None:
+                    train_writer.add_summary(summary, i)
 
-                if output:
-                    print("{:4d}: loss {:.4f}".format(i, loss))
+                # Every validation_interval, we add a summary of validation values
+                if i % validation_interval == 0 and validation_data is not None:
+                    score, _ = self.score(validation_data)
+                    summary = self.sess.run(merged_summary)
+                    accuracy = tf.Summary(
+                        value=[tf.Summary.Value(tag='accuracy',
+                                                simple_value=score['mean_accuracy'])])
 
-            self.sess.run(self.close_queue_op)
+                    if output:
+                        print("{:4d}: loss {:.4f}, accuracy {:.2f}".format(
+                            i, loss, score['total_accuracy']))
+                    if self.output_dir is not None:
+                        train_writer.add_summary(accuracy, i)
+                        train_writer.add_summary(summary, i)
+
             coord.request_stop()
+            # Before we can close the queue, wait that the enqueue process stopped,
+            # otherwise it will produce an error.
+            sleep(20)
+            self.sess.run(self.close_queue_op)
             coord.join([t])
+            print('INFO: Training finished.')
 
     def predict(self, data):
         """Perform semantic segmentation on the input data.
 
         Args:
-            data: Either a handler to a dataclass inheriting from DataWrapper or a
-                dictionary {'rgb': <array of shape [num_images, width, height]>
-                            'depth': <array of shape [num_images, width, height]>}
+            data: a dictionary {'rgb': <array of shape [num_images, width, height]>
+                                'depth': <array of shape [num_images, width, height]>}
         Returns:
             per-pixel classification of the input image in form
                 <array of shape [num_images, width, height]>
         """
         with self.graph.as_default():
-            self._load_and_enqueue(self.sess, data, None, 0.0)
-            prediction = self.sess.run(self.prediction)
-            self.sess.run(self.close_queue_op)
-            return prediction
+            return self.sess.run(self.prediction, feed_dict=self._evaluation_food(data))
+
+    def score(self, data, max_iterations=None):
+        """Measure the performance of the model with respect to the given data.
+
+        Args:
+            data: either a dictionary as for 'predict', containing keys 'rgb', 'depth'
+                and 'labels', or a generator for several such dictionaries.
+        Returns:
+            dictionary of some measures, total confusion matrix
+        """
+
+        def get_confusion_matrix(batch):
+            """Evaluate confusion matrix of network for given batch of data."""
+            with self.graph.as_default():
+                feed_dict = self._evaluation_food(batch)
+                feed_dict[self.evaluation_labels] = batch['labels']
+                confusion = self.sess.run(self.confusion_matrix, feed_dict=feed_dict)
+                return np.array(confusion).astype(np.float32)
+
+        if isinstance(data, GeneratorType):
+            confusion_matrix = np.zeros((self.config['num_classes'],
+                                         self.config['num_classes']))
+            i = 0
+            for batch in data:
+                confusion_matrix += get_confusion_matrix(batch)
+                if max_iterations is not None:
+                    i = i + 1
+                    if i == max_iterations:
+                        break
+        else:
+            confusion_matrix = get_confusion_matrix(data)
+
+        # Now we compute several mesures from the confusion matrix
+        measures = {}
+        measures['confusion_matrix'] = confusion_matrix
+        measures['precision'] = np.diag(confusion_matrix) / confusion_matrix.sum(1)
+        measures['recall'] = np.diag(confusion_matrix) / confusion_matrix.sum(0)
+        measures['F1'] = 2 * measures['precision'] * measures['recall'] / \
+            (measures['precision'] + measures['recall'])
+        measures['mean_F1'] = np.nanmean(measures['F1'])
+        measures['total_accuracy'] = np.diag(confusion_matrix).sum() / \
+            confusion_matrix.sum()
+        measures['IoU'] = np.diag(confusion_matrix) / \
+            (confusion_matrix.sum(1) + confusion_matrix.sum(0) -
+             np.diag(confusion_matrix))
+        measures['mean_IoU'] = np.nanmean(measures['IoU'])
+        return measures, confusion_matrix
 
     def load_weights(self, filepath):
         """Load model weights stored in a tensorflow checkpoint.
@@ -227,7 +303,8 @@ class BaseModel(object):
             print('INFO: Weights saved to {}'.format(output_path))
             return output_path
 
-    def import_weights(self, filepath, translation=None):
+    def import_weights(self, filepath, translation=None, chill_mode=False,
+                       warnings=True):
         """Import weights given by a numpy file. Variables are assigned to arrays which's
         key matches the variable name.
 
@@ -235,14 +312,25 @@ class BaseModel(object):
             filepath: Full path to the file containing the weights.
             translation: Dictionary mapping variables in the network on differently named
                 keys in the file.
+            chill_mode: If True, ignores variables that do not match in shape and leaves
+                them unassigned
         """
         with self.graph.as_default():
             weights = np.load(filepath)
             for variable in tf.global_variables():
                 name = variable.op.name
+                # Optimizers like Adagrad have their own variables, do not load these
+                if 'grad' in name or 'Adam' in name:
+                    continue
                 if name not in weights and translation is not None:
                     name = translation[name]
                 if name not in weights:
-                    print('WARNING: {} not found in saved weights'.format(name))
+                    if warnings:
+                        print('WARNING: {} not found in saved weights'.format(name))
                 else:
-                    self.sess.run(variable.assign(weights[name]))
+                    if not variable.shape == weights[name].shape:
+                        if warnings:
+                            print('WARNING: wrong shape found for {}, but ignored in '
+                                  'chill mode'.format(name))
+                    else:
+                        self.sess.run(variable.assign(weights[name]))
