@@ -70,8 +70,11 @@ if(BUILD_DBoW2)
 endif(BUILD_DBoW2)
 
 if(BUILD_Experiments)
-  add_executable(synthia experiments/synthia.cpp)
-  target_link_libraries(synthia ${PROJECT_NAME} ${OpenCV_LIBS} ${DLib_LIBS})
+  add_executable(synthia_ff experiments/synthia_ff.cpp)
+  target_link_libraries(synthia_ff ${PROJECT_NAME} ${OpenCV_LIBS} ${DLib_LIBS})
+  
+  add_executable(synthia_fb experiments/synthia_fb.cpp)
+  target_link_libraries(synthia_fb ${PROJECT_NAME} ${OpenCV_LIBS} ${DLib_LIBS})
   
   add_executable(airsim experiments/airsim.cpp)
   target_link_libraries(airsim ${PROJECT_NAME} ${OpenCV_LIBS} ${DLib_LIBS})

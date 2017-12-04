@@ -1,6 +1,7 @@
 from . import getLocalizations
 import numpy as np
 import os
+import math
 
 def getMeanDistance(ground_truths, estimations):
     if len(ground_truths) != len(estimations):
@@ -131,5 +132,55 @@ class XViewPR:
                 recall = (1.0 * true_positives) / (true_positives + false_negatives)
 
             PR.append([precision, recall])
+
+        return np.array(PR)
+    
+    def computePRDBoW(self, dbow_results, true_threshold=None):
+
+        if true_threshold is None:
+            true_threshold = self._true_threshold
+
+        PR = []
+
+        positive_radius = 0.5
+        positive_radius_step = 0.5
+
+
+        residual_errors = np.linspace(1, 0, 100)
+
+        for residual_error in residual_errors:
+        
+            true_positives = 0
+            true_negatives = 0
+            false_positives = 0
+            false_negatives = 0
+            
+            for row in dbow_results:
+                gt = np.array([row[0],row[1],row[2]])
+                es = np.array([row[3],row[4],row[5]])
+                similarity = row[6]
+                distance = math.sqrt((gt[0] - es[0]) * (gt[0] - es[0]) + (gt[1] - es[1]) * (gt[1] - es[1]))
+                if similarity >= residual_error:
+                    if distance < positive_radius:
+                        true_positives += 1
+                    else:
+                        false_positives += 1
+                else:
+                    if distance < positive_radius:
+                        false_negatives += 1
+                    else:
+                        true_negatives += 1
+
+            precision = 0
+            if true_positives + false_positives > 0:
+                precision = (1.0 * true_positives) / (true_positives + false_positives)
+
+            recall = 0
+            if true_positives + false_negatives > 0:
+                recall = (1.0 * true_positives) / (true_positives + false_negatives)
+
+            PR.append([precision, recall])
+
+            positive_radius += positive_radius_step
 
         return np.array(PR)

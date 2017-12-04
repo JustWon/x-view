@@ -1,8 +1,8 @@
 /**
- * File: airsim.cpp
+ * File: synthia.cpp
  * Date: August 2017
  * Author: Abel Gawel
- * Description: DBoW2 on Airsim
+ * Description: DBoW2 on SYNTHIA
  */
 
 #include <iostream>
@@ -34,16 +34,14 @@ using namespace std;
 
 bool parseVectorOfDoubles(const std::string& input,
                           std::vector<double>* output);
+void testVocCreation(const vector<vector<cv::Mat > > &features);
 void loadFeatures(vector<vector<cv::Mat > > &features, std::string path);
 void loadWaypoints(const std::string path, Eigen::Matrix3Xd* waypoints);
 void changeStructure(const cv::Mat &plain, vector<cv::Mat> &out);
 void testDatabase(const vector<vector<cv::Mat> > &features_database,
-                  const vector<vector<cv::Mat> > &features_query,
-                  std::vector<QueryResults>* ret);
+                  const vector<vector<cv::Mat> > &features_query, std::vector<QueryResults>* ret);
 
-// number of training images
-const int NIMAGES = 1000;
-const int NSTEP = 5;
+const int NIMAGES = 900;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 void wait() {
@@ -57,12 +55,14 @@ int main() {
   vector<vector<cv::Mat > > features_db, features_query;
   Eigen::Matrix3Xd waypoints;
 
-  std::string db_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/airsim_datasets/neighbourhood/RGB/camera_downward/";
-  std::string query_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/airsim_datasets/neighbourhood/RGB/camera_forward/";
-  std::string waypoint_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/airsim_datasets/neighbourhood/";
+  std::string db_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/SYNTHIA/Video_sequences/SYNTHIA-SEQS-04-SUMMER/RGB/Stereo_Left/Omni_F/";
+  std::string query_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/SYNTHIA/Video_sequences/SYNTHIA-SEQS-04-SUMMER/RGB/Stereo_Right/Omni_F/";
+  std::string waypoint_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/SYNTHIA/Video_sequences/SYNTHIA-SEQS-04-SUMMER/CameraParams/Stereo_Left/Omni_F/";
   std::string out_path = "/tmp/";
   //Load database features (Forward run)
   loadFeatures(features_db, db_path);
+
+  testVocCreation(features_db);
   // Load query features (Backward run)
   loadFeatures(features_query, query_path);
   // Load the waypoints.
@@ -87,12 +87,47 @@ int main() {
   }
 
   std::cout << "Writing to file." << std::endl;
-  std::ofstream file(out_path + "dbow_airsim.txt");
+  std::ofstream file(out_path + "dbow_synthia_ff.txt");
     if (file.is_open()) {
       file << results;
     }
 
   return 0;
+}
+
+void testVocCreation(const vector<vector<cv::Mat > > &features) {
+  // branching factor and depth levels
+  const int k = 9;
+  const int L = 3;
+  const WeightingType weight = TF_IDF;
+  const ScoringType score = L1_NORM;
+
+  OrbVocabulary voc(k, L, weight, score);
+
+  cout << "Creating a small " << k << "^" << L << " vocabulary..." << endl;
+  voc.create(features);
+  cout << "... done!" << endl;
+
+  cout << "Vocabulary information: " << endl
+  << voc << endl << endl;
+
+  // lets do something with this vocabulary
+  cout << "Matching images against themselves (0 low, 1 high): " << endl;
+  BowVector v1, v2;
+  for(int i = 0; i < NIMAGES; i++) {
+    voc.transform(features[i], v1);
+    for(int j = 0; j < NIMAGES; j++) {
+      voc.transform(features[j], v2);
+
+      double score = voc.score(v1, v2);
+      cout << "Image " << i << " vs Image " << j << ": " << score << endl;
+    }
+  }
+
+  // save the vocabulary to disk
+  cout << endl << "Saving vocabulary..." << endl;
+  voc.save("small_voc.yml.gz");
+  cout << "Done" << endl;
 }
 
 // ----------------------------------------------------------------------------
@@ -104,10 +139,10 @@ void loadFeatures(vector<vector<cv::Mat > > &features, std::string path) {
   cv::Ptr<cv::ORB> orb = cv::ORB::create();
 
   cout << "Extracting ORB features..." << endl;
-  for(int i = 0; i < NIMAGES * NSTEP; i = i + NSTEP) {
-    std::cout << "Feature " << i << "/" << NIMAGES * NSTEP << "." << std::endl;
+  for(int i = 0; i < NIMAGES; ++i) {
+    std::cout << "Feature " << i << "/" << NIMAGES << "." << std::endl;
     stringstream ss;
-    ss << "rgb_" << i;
+    ss << setfill('0') << setw(6) << i;
     std::string filename = path + ss.str() + ".png";
 
     cv::Mat image = cv::imread(filename, 0);
@@ -124,36 +159,28 @@ void loadFeatures(vector<vector<cv::Mat > > &features, std::string path) {
 
 void loadWaypoints(const std::string path, Eigen::Matrix3Xd* waypoints) {
   waypoints->resize(3, NIMAGES);
-  std::string filename_wp = path + "waypoints_neighbourhood_forward_for_airsim.csv";
+  for(int i = 0; i < NIMAGES; ++i) {
+    stringstream ss;
+    ss << setfill('0') << setw(6) << i;
+    std::string filename = path + ss.str() + ".txt";
 
-  std::ifstream import_file_wp(filename_wp, std::ios::in);
+    Eigen::Vector3d waypoint;
 
-  std::vector<double> parsed_doubles;
-
-  // Parse camera 0.
-  std::string line;
-  int line_number = 0;
-  if (import_file_wp.is_open()) {
-    for (int i = 0; i < NIMAGES * NSTEP; ++i) {
-      getline(import_file_wp, line);
-      if (i % NSTEP == 0) {
-        parseVectorOfDoubles(line, &parsed_doubles);
-        std::cout << "parsed doubles " << parsed_doubles[0] << " " << parsed_doubles[1] << " " << parsed_doubles[2] << std::endl;
-        (*waypoints)(0, line_number) = parsed_doubles[0];
-        (*waypoints)(1, line_number) = parsed_doubles[1];
-        (*waypoints)(2, line_number) = parsed_doubles[2];
-
-        line_number++;
-      }
-    }
-    import_file_wp.close();
+    std::vector<double> parsed_doubles;
+    std::string line;
+    std::ifstream import_file_wp(filename, std::ios::in);
+    std::getline(import_file_wp, line);
+    parseVectorOfDoubles(line, &parsed_doubles);
+    (*waypoints)(0,i) = parsed_doubles[13];
+    (*waypoints)(1,i) = parsed_doubles[14];
+    (*waypoints)(2,i) = parsed_doubles[15];
   }
 }
 
 bool parseVectorOfDoubles(const std::string& input,
                           std::vector<double>* output) {
   output->clear();
-  // Parse the line as a stringstream for comma-delimeted doubles.
+  // Parse the line as a stringstream for space-delimeted doubles.
   std::stringstream line_stream(input);
   if (line_stream.eof()) {
     return false;
@@ -161,7 +188,7 @@ bool parseVectorOfDoubles(const std::string& input,
 
   while (!line_stream.eof()) {
     std::string element;
-    std::getline(line_stream, element, ',');
+    std::getline(line_stream, element, ' ');
     if (element.empty()) {
       continue;
     }
@@ -180,7 +207,8 @@ bool parseVectorOfDoubles(const std::string& input,
 void changeStructure(const cv::Mat &plain, vector<cv::Mat> &out) {
   out.resize(plain.rows);
 
-  for(int i = 0; i < plain.rows; ++i) {
+  for(int i = 0; i < plain.rows; ++i)
+  {
     out[i] = plain.row(i);
   }
 }
@@ -194,7 +222,9 @@ void testDatabase(const vector<vector<cv::Mat> > &features_db,
 
   ret->resize(NIMAGES);
   // load the vocabulary from disk
+  cout << "Loading Voc" << endl;
   OrbVocabulary voc("small_voc.yml.gz");
+  cout << "Voc loaded" << endl;
 
   OrbDatabase db(voc, false, 0); // false = do not use direct index
   // (so ignore the last param)
@@ -214,12 +244,8 @@ void testDatabase(const vector<vector<cv::Mat> > &features_db,
   // and query the database
   cout << "Querying the database: " << endl;
 
-//  QueryResults ret;
   for(int i = 0; i < NIMAGES; i++) {
     db.query(features_query[i], (*ret)[i], 4);
-
-    // ret[0] is always the same image in this case, because we added it to the
-    // database. ret[1] is the second best match.
   }
 
   cout << endl;
