@@ -6,7 +6,7 @@ namespace x_view {
 #define STREETVIEW_NUM_SEMANTIC_CLASSES 13
 
 StreetviewDataset::StreetviewDataset()
-: StreetviewDataset(STREETVIEW_NUM_SEMANTIC_CLASSES) {
+: AbstractDataset(STREETVIEW_NUM_SEMANTIC_CLASSES) {
   // See https://github.com/ethz-asl/x-view/tree/master/dataset_tools/streetview_to_rosbag
   // for the available class labels in our Streetview datasets.
 
