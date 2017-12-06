@@ -78,6 +78,9 @@ if(BUILD_Experiments)
   
   add_executable(airsim experiments/airsim.cpp)
   target_link_libraries(airsim ${PROJECT_NAME} ${OpenCV_LIBS} ${DLib_LIBS})
+  
+  add_executable(streetview experiments/streetview.cpp)
+  target_link_libraries(streetview ${PROJECT_NAME} ${OpenCV_LIBS} ${DLib_LIBS})
 endif(BUILD_Experiments)
 
 configure_file(src/DBoW2.cmake.in
