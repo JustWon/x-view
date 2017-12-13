@@ -77,14 +77,12 @@ int main() {
   loadWaypoints(waypoint_path, &waypoints);
 
   wait();
-  std::cout << "wps " << waypoints.rows() << " " << waypoints.cols() << std::endl;
   std::vector<QueryResults> ret;
   testDatabase(features_db, features_query, &ret);
 
   // Save all results to file.
   Eigen::Matrix<double, NIMAGES, 8> results;
   for (int i = 0; i < NIMAGES; ++i) {
-    std::cout << "retsize: " << ret.size() << " " << i << " " << ret[0].size() << std::endl;
     results(i, 0) = waypoints(0, i);
     results(i, 1) = waypoints(1, i);
     results(i, 2) = waypoints(2, i);
@@ -119,7 +117,6 @@ void loadFeatures(vector<vector<cv::Mat > > &features, std::string path) {
     ss << setfill('0') << setw(3) << i+1;
     std::string filename = path + ss.str() + ".png";
 
-    std::cout << "filename " << filename << std::endl;
     cv::Mat image = cv::imread(filename, 0);
     cv::Mat mask;
     vector<cv::KeyPoint> keypoints;
@@ -148,7 +145,6 @@ void loadWaypoints(const std::string path, Eigen::Matrix3Xd* waypoints) {
       getline(import_file_wp, line);
       if (i % NSTEP == 0) {
         parseVectorOfDoubles(line, &parsed_doubles);
-//        std::cout << "parsed doubles " << parsed_doubles[0] << " " << parsed_doubles[1] << " " << parsed_doubles[2] << std::endl;
         (*waypoints)(0, line_number) = parsed_doubles[0];
         (*waypoints)(1, line_number) = parsed_doubles[1];
         (*waypoints)(2, line_number) = parsed_doubles[2];
