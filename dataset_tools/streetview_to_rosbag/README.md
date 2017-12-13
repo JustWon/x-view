@@ -72,8 +72,8 @@ The environment features the following semantic classes as extracted using SegNe
 * unlabelled: 12
 
 The camera intrinsic parameters are:
-* kx = ky = 512
-* px = 512
-* py = 288
+* kx = ky = 240
+* px = 240
+* py = 180
 
 To generate depth images from the Google StreetView-depth-XML files, run the executable streetview_depth_map_to_depth_images.

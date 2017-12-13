@@ -112,14 +112,14 @@ bool StreetviewBagConverter::convertEntry(uint64_t entry) {
   for (size_t cam_id = 0; cam_id < parser_.getNumCameras(); ++cam_id) {
     if (parser_.getImageAtEntry(entry, cam_id, &timestamp_ns, &image) &&
         parser_.getDepthImageAtEntry(entry, cam_id, &timestamp_ns, &depth_image) &&
-//        parser_.getLabelImageAtEntry(entry, cam_id, &timestamp_ns, &labels_image) &&
+        parser_.getLabelImageAtEntry(entry, cam_id, &timestamp_ns, &labels_image) &&
         parser_.getLabelsAtEntry(entry, cam_id, &timestamp_ns, &labels)) {
       streetview::timestampToRos(timestamp_ns, &timestamp_ros);
 
       sensor_msgs::Image image_msg, depth_image_msg, labels_image_msg, labels_msg;
       streetview::imageToRos(image, &image_msg);
       streetview::depthImageToRos(depth_image, &depth_image_msg);
-//      streetview::imageToRos(labels_image, &labels_image_msg);
+      streetview::imageToRos(labels_image, &labels_image_msg);
       streetview::imageToRos(labels, &labels_msg);
       image_msg.header.stamp = timestamp_ros;
       image_msg.header.frame_id = streetview::getCameraFrameId(cam_id);
@@ -140,31 +140,31 @@ bool StreetviewBagConverter::convertEntry(uint64_t entry) {
       cam_info.header = image_msg.header;
 
       // Convert depth image to pointloud.
-//      sensor_msgs::PointCloud2 ptcloud_msg;
-//      ptcloud_msg.header.stamp = timestamp_ros;
-//      ptcloud_msg.header.frame_id = streetview::getCameraFrameId(cam_id);
-//      ptcloud_msg.height = depth_image_msg.height;
-//      ptcloud_msg.width  = depth_image_msg.width;
-//      ptcloud_msg.is_dense = false;
-//      ptcloud_msg.is_bigendian = false;
-//
-//      sensor_msgs::PointCloud2Modifier pcd_modifier(ptcloud_msg);
-//      pcd_modifier.setPointCloud2FieldsByString(1, "xyz");
-//      parser_.convertDepthImageToDepthCloud(depth_image_msg, image_msg,
-//                                            cam_info, &ptcloud_msg);
+      sensor_msgs::PointCloud2 ptcloud_msg;
+      ptcloud_msg.header.stamp = timestamp_ros;
+      ptcloud_msg.header.frame_id = streetview::getCameraFrameId(cam_id);
+      ptcloud_msg.height = depth_image_msg.height;
+      ptcloud_msg.width  = depth_image_msg.width;
+      ptcloud_msg.is_dense = false;
+      ptcloud_msg.is_bigendian = false;
 
-//      bag_.write(parser_.getCameraPath(cam_id) + "/image_raw", timestamp_ros,
-//                 image_msg);
+      sensor_msgs::PointCloud2Modifier pcd_modifier(ptcloud_msg);
+      pcd_modifier.setPointCloud2FieldsByString(1, "xyz");
+      parser_.convertDepthImageToDepthCloud(depth_image_msg, image_msg,
+                                            cam_info, &ptcloud_msg);
+
+      bag_.write(parser_.getCameraPath(cam_id) + "/image_raw", timestamp_ros,
+                 image_msg);
       bag_.write(parser_.getCameraPath(cam_id) + "/depth", timestamp_ros,
                  depth_image_msg);
-//      bag_.write(parser_.getCameraPath(cam_id) + "/labels_image", timestamp_ros,
-//                 labels_image_msg);
+      bag_.write(parser_.getCameraPath(cam_id) + "/labels_image", timestamp_ros,
+                 labels_image_msg);
       bag_.write(parser_.getCameraPath(cam_id) + "/labels", timestamp_ros,
                  labels_msg);
       bag_.write(parser_.getCameraPath(cam_id) + "/camera_info", timestamp_ros,
                  cam_info);
-//      bag_.write(parser_.getCameraPath(cam_id) + "/depth_cloud", timestamp_ros,
-//                 ptcloud_msg);
+      bag_.write(parser_.getCameraPath(cam_id) + "/depth_cloud", timestamp_ros,
+                 ptcloud_msg);
     }
   }
 
