@@ -43,15 +43,15 @@ bool StreetviewParser::loadCalibration() {
     calibration.rect_mat = Eigen::Matrix3d::Identity();
     calibration.projection_mat = Eigen::Matrix<double, 3, 4>::Identity();
     calibration.K = Eigen::Matrix3d::Identity();
-    calibration.K(0,0) = 512;
-    calibration.K(1,1) = 512;
-    calibration.K(0,2) = 512;
-    calibration.K(1,2) = 288;
+    calibration.K(0,0) = 240;
+    calibration.K(1,1) = 240;
+    calibration.K(0,2) = 240;
+    calibration.K(1,2) = 180;
 
-    calibration.projection_mat(0,0) = 512;
-    calibration.projection_mat(1,1) = 512;
-    calibration.projection_mat(0,2) = 512;
-    calibration.projection_mat(1,2) = 288;
+    calibration.projection_mat(0,0) = 240;
+    calibration.projection_mat(1,1) = 240;
+    calibration.projection_mat(0,2) = 240;
+    calibration.projection_mat(1,2) = 180;
 
     calibration.D = Eigen::Matrix<double, 1, 5>::Zero();
 
