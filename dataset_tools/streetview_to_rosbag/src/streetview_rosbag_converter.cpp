@@ -6,23 +6,23 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 
-#include "synthia_to_rosbag/synthia_parser.h"
-#include "synthia_to_rosbag/synthia_ros_conversions.h"
+#include "streetview_to_rosbag/streetview_parser.h"
+#include "streetview_to_rosbag/streetview_ros_conversions.h"
 
-namespace synthia {
+namespace streetview {
 
-class SynthiaBagConverter {
+class StreetviewBagConverter {
  public:
-  SynthiaBagConverter(const std::string& dataset_path,
-                      const std::string& output_filename);
+  StreetviewBagConverter(const std::string& dataset_path,
+                     const std::string& output_filename);
 
   void convertAll();
   bool convertEntry(uint64_t entry);
-  void convertTf(uint64_t timestamp_ns, const synthia::Transformation& imu_pose,
-                 const std::vector<synthia::Transformation>& camera_poses);
+  void convertTf(uint64_t timestamp_ns, const streetview::Transformation& imu_pose,
+                 const std::vector<streetview::Transformation>& camera_poses);
 
  private:
-  synthia::SynthiaParser parser_;
+  streetview::StreetviewParser parser_;
 
   rosbag::Bag bag_;
 
@@ -38,8 +38,8 @@ class SynthiaBagConverter {
   std::vector<geometry_msgs::PoseStamped> poses_;
 };
 
-SynthiaBagConverter::SynthiaBagConverter(const std::string& dataset_path,
-                                         const std::string& output_filename)
+StreetviewBagConverter::StreetviewBagConverter(const std::string& dataset_path,
+                                       const std::string& output_filename)
 : parser_(dataset_path, true),
   world_frame_id_("world"),
   imu_frame_id_("imu"),
@@ -54,27 +54,27 @@ SynthiaBagConverter::SynthiaBagConverter(const std::string& dataset_path,
   bag_.open(output_filename, rosbag::bagmode::Write);
 }
 
-void SynthiaBagConverter::convertAll() {
+void StreetviewBagConverter::convertAll() {
   uint64_t entry = 0;
   while (convertEntry(entry)) {
-    entry++;
+    ++entry;
   }
   std::cout << "Converted " << entry << " entries into a rosbag.\n";
 }
 
-bool SynthiaBagConverter::convertEntry(uint64_t entry) {
+bool StreetviewBagConverter::convertEntry(uint64_t entry) {
   ros::Time timestamp_ros;
   uint64_t timestamp_ns;
 
   // Convert poses + TF transforms + path.
-  synthia::Transformation pose;
-  std::vector<synthia::Transformation> camera_poses;
+  streetview::Transformation pose;
+  std::vector<streetview::Transformation> camera_poses;
   if (parser_.getPoseAtEntry(entry, &timestamp_ns, &pose)) {
     geometry_msgs::PoseStamped pose_msg;
     geometry_msgs::TransformStamped transform_msg;
     nav_msgs::Path path_msg;
 
-    synthia::timestampToRos(timestamp_ns, &timestamp_ros);
+    streetview::timestampToRos(timestamp_ns, &timestamp_ros);
     pose_msg.header.frame_id = world_frame_id_;
     pose_msg.header.stamp = timestamp_ros;
     transform_msg.header.frame_id = world_frame_id_;
@@ -82,18 +82,20 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
     path_msg.header.frame_id = world_frame_id_;
     path_msg.header.stamp = timestamp_ros;
 
-    synthia::poseToRos(pose, &pose_msg);
-    synthia::transformToRos(pose, &transform_msg);
+    std::cout << "entry " << entry << std::endl;
+    streetview::poseToRos(pose, &pose_msg);
+    streetview::transformToRos(pose, &transform_msg);
     bag_.write(pose_topic_, timestamp_ros, pose_msg);
     bag_.write(transform_topic_, timestamp_ros, transform_msg);
 
     poses_.push_back(pose_msg);
-    synthia::posesToPath(poses_, &path_msg);
+    streetview::posesToPath(poses_, &path_msg);
     bag_.write(path_topic_, timestamp_ros, path_msg);
 
-    // Get all camera poses.
+//     Get all camera poses.
     for (size_t id = 0u; id < parser_.getNumCameras(); ++id) {
-      synthia::Transformation camera_pose;
+      streetview::Transformation camera_pose;
+      std::cout << __LINE__ << __FILE__ << std::endl;
       if(!parser_.getCameraPoseAtEntry(entry, id, &camera_pose)) {
         return false;
       }
@@ -107,40 +109,40 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
 
   // Convert images.
   cv::Mat image, depth_image, labels_image, labels;
-  for (size_t cam_id = 0; cam_id < parser_.getNumCameras(); ++cam_id) { // 5; cam_id = cam_id + 4)
+  for (size_t cam_id = 0; cam_id < parser_.getNumCameras(); ++cam_id) {
     if (parser_.getImageAtEntry(entry, cam_id, &timestamp_ns, &image) &&
         parser_.getDepthImageAtEntry(entry, cam_id, &timestamp_ns, &depth_image) &&
         parser_.getLabelImageAtEntry(entry, cam_id, &timestamp_ns, &labels_image) &&
         parser_.getLabelsAtEntry(entry, cam_id, &timestamp_ns, &labels)) {
-      synthia::timestampToRos(timestamp_ns, &timestamp_ros);
+      streetview::timestampToRos(timestamp_ns, &timestamp_ros);
 
       sensor_msgs::Image image_msg, depth_image_msg, labels_image_msg, labels_msg;
-      synthia::imageToRos(image, &image_msg);
-      synthia::depthImageToRos(depth_image, &depth_image_msg);
-      synthia::imageToRos(labels_image, &labels_image_msg);
-      synthia::imageToRos(labels, &labels_msg);
+      streetview::imageToRos(image, &image_msg);
+      streetview::depthImageToRos(depth_image, &depth_image_msg);
+      streetview::imageToRos(labels_image, &labels_image_msg);
+      streetview::imageToRos(labels, &labels_msg);
       image_msg.header.stamp = timestamp_ros;
-      image_msg.header.frame_id = synthia::getCameraFrameId(cam_id);
+      image_msg.header.frame_id = streetview::getCameraFrameId(cam_id);
       depth_image_msg.header.stamp = timestamp_ros;
-      depth_image_msg.header.frame_id = synthia::getCameraFrameId(cam_id);
+      depth_image_msg.header.frame_id = streetview::getCameraFrameId(cam_id);
 
       labels_image_msg.header.stamp = timestamp_ros;
-      labels_image_msg.header.frame_id = synthia::getCameraFrameId(cam_id);
+      labels_image_msg.header.frame_id = streetview::getCameraFrameId(cam_id);
 
       labels_msg.header.stamp = timestamp_ros;
-      labels_msg.header.frame_id = synthia::getCameraFrameId(cam_id);
+      labels_msg.header.frame_id = streetview::getCameraFrameId(cam_id);
 
       // Get the calibration info for this camera.
-      synthia::CameraCalibration cam_calib;
+      streetview::CameraCalibration cam_calib;
       parser_.getCameraCalibration(cam_id, &cam_calib);
       sensor_msgs::CameraInfo cam_info;
-      synthia::calibrationToRos(cam_id, cam_calib, &cam_info);
+      streetview::calibrationToRos(cam_id, cam_calib, &cam_info);
       cam_info.header = image_msg.header;
 
       // Convert depth image to pointloud.
       sensor_msgs::PointCloud2 ptcloud_msg;
       ptcloud_msg.header.stamp = timestamp_ros;
-      ptcloud_msg.header.frame_id = synthia::getCameraFrameId(cam_id);
+      ptcloud_msg.header.frame_id = streetview::getCameraFrameId(cam_id);
       ptcloud_msg.height = depth_image_msg.height;
       ptcloud_msg.width  = depth_image_msg.width;
       ptcloud_msg.is_dense = false;
@@ -169,23 +171,23 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
   return true;
 }
 
-void SynthiaBagConverter::convertTf(uint64_t timestamp_ns,
-                                    const synthia::Transformation& imu_pose,
-                                    const std::vector<synthia::Transformation>& camera_poses) {
+void StreetviewBagConverter::convertTf(uint64_t timestamp_ns,
+                                   const streetview::Transformation& imu_pose,
+                                   const std::vector<streetview::Transformation>& camera_poses) {
   tf::tfMessage tf_msg;
   ros::Time timestamp_ros;
-  synthia::timestampToRos(timestamp_ns, &timestamp_ros);
+  streetview::timestampToRos(timestamp_ns, &timestamp_ros);
 
   // Create the full transform chain.
   Eigen::Matrix4d identity = Eigen::Matrix4d::Identity();
-  synthia::Transformation identity_transform(identity);
-  synthia::Transformation T_imu_world = imu_pose;
-  synthia::Transformation T_vel_imu = identity_transform;
-  synthia::Transformation T_cam_world = identity_transform;
-  synthia::Transformation T_cam_imu = identity_transform;
+  streetview::Transformation identity_transform(identity);
+  streetview::Transformation T_imu_world = imu_pose;
+  streetview::Transformation T_vel_imu = identity_transform;
+  streetview::Transformation T_cam_world = identity_transform;
+  streetview::Transformation T_cam_imu = identity_transform;
 
   geometry_msgs::TransformStamped tf_imu_world, tf_vel_imu, tf_cam_imu;
-  synthia::transformToRos(T_imu_world, &tf_imu_world);
+  streetview::transformToRos(T_imu_world, &tf_imu_world);
   tf_imu_world.header.frame_id = world_frame_id_;
   tf_imu_world.child_frame_id = imu_frame_id_;
   tf_imu_world.header.stamp = timestamp_ros;
@@ -195,13 +197,13 @@ void SynthiaBagConverter::convertTf(uint64_t timestamp_ns,
 
   // Get all of the camera transformations as well.
   for (size_t cam_id = 0; cam_id < parser_.getNumCameras(); ++cam_id) {
-    synthia::CameraCalibration calibration;
+    streetview::CameraCalibration calibration;
     parser_.getCameraCalibration(cam_id, &calibration);
     T_cam_world = camera_poses[cam_id].inverse();
     T_cam_imu = T_cam_world * T_imu_world;
-    synthia::transformToRos(T_cam_imu.inverse(), &tf_cam_imu);
+    streetview::transformToRos(T_cam_imu.inverse(), &tf_cam_imu);
     tf_cam_imu.header.frame_id = imu_frame_id_;
-    tf_cam_imu.child_frame_id = synthia::getCameraFrameId(cam_id);
+    tf_cam_imu.child_frame_id = streetview::getCameraFrameId(cam_id);
     tf_cam_imu.header.stamp = timestamp_ros;
     tf_msg.transforms.push_back(tf_cam_imu);
   }
@@ -209,7 +211,7 @@ void SynthiaBagConverter::convertTf(uint64_t timestamp_ns,
   bag_.write("/tf", timestamp_ros, tf_msg);
 }
 
-}  // namespace Synthia
+}  // namespace streetview
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
@@ -217,7 +219,7 @@ int main(int argc, char** argv) {
   google::InstallFailureSignalHandler();
 
   if (argc < 3) {
-    std::cout << "Usage: rosrun synthia_to_rosbag synthia_rosbag_converter "
+    std::cout << "Usage: rosrun streetview_to_rosbag streetview_rosbag_converter "
         "dataset_path output_path\n";
     std::cout << "Note: no trailing slashes.\n";
     return 0;
@@ -226,8 +228,8 @@ int main(int argc, char** argv) {
   const std::string dataset_path = argv[1];
   const std::string output_path = argv[2];
 
-  synthia::SynthiaBagConverter converter(dataset_path,
-                                         output_path);
+  streetview::StreetviewBagConverter converter(dataset_path,
+                                       output_path);
   converter.convertAll();
 
   return 0;

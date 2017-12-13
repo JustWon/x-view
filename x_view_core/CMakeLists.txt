@@ -34,6 +34,7 @@ cs_add_library(${PROJECT_NAME}
         src/datasets/abstract_dataset.cc
         src/datasets/synthia_dataset.cc
         src/datasets/airsim_dataset.cc
+        src/datasets/streetview_dataset.cc
 
         # Descriptors
         src/features/abstract_descriptor.cc

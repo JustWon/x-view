@@ -1,8 +1,8 @@
 /**
- * File: airsim.cpp
- * Date: August 2017
+ * File: streetview.cpp
+ * Date: December 2017
  * Author: Abel Gawel
- * Description: DBoW2 on Airsim
+ * Description: DBoW2 on StreetView
  */
 
 #include <iostream>
@@ -50,8 +50,8 @@ void testDatabase(const vector<vector<cv::Mat> > &features_database,
                   std::vector<QueryResults>* ret);
 
 // number of training images
-const int NIMAGES = 1000;
-const int NSTEP = 5;
+const int NIMAGES = 70;
+const int NSTEP = 1;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 void wait() {
@@ -65,9 +65,9 @@ int main() {
   vector<vector<cv::Mat > > features_db, features_query;
   Eigen::Matrix3Xd waypoints;
 
-  std::string db_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/airsim_datasets/neighbourhood/RGB/camera_downward/";
-  std::string query_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/airsim_datasets/neighbourhood/RGB/camera_forward/";
-  std::string waypoint_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/airsim_datasets/neighbourhood/";
+  std::string db_path = "/home/johnny/segnet/datasets/streetview/RGB_PNG/forward/";
+  std::string query_path = "/home/johnny/segnet/datasets/streetview/RGB_PNG/backward/";
+  std::string waypoint_path = "/home/johnny/segnet/datasets/streetview/";
   std::string out_path = "/tmp/";
   //Load database features (Forward run)
   loadFeatures(features_db, db_path);
@@ -77,11 +77,10 @@ int main() {
   loadWaypoints(waypoint_path, &waypoints);
 
   wait();
-
   std::vector<QueryResults> ret;
   testDatabase(features_db, features_query, &ret);
 
-  // Save all results to file.a similar
+  // Save all results to file.
   Eigen::Matrix<double, NIMAGES, 8> results;
   for (int i = 0; i < NIMAGES; ++i) {
     results(i, 0) = waypoints(0, i);
@@ -95,7 +94,7 @@ int main() {
   }
 
   std::cout << "Writing to file." << std::endl;
-  std::ofstream file(out_path + "dbow_airsim.txt");
+  std::ofstream file(out_path + "dbow_streetview.txt");
     if (file.is_open()) {
       file << results;
     }
@@ -115,7 +114,7 @@ void loadFeatures(vector<vector<cv::Mat > > &features, std::string path) {
   for(int i = 0; i < NIMAGES * NSTEP; i = i + NSTEP) {
     std::cout << "Feature " << i << "/" << NIMAGES * NSTEP << "." << std::endl;
     stringstream ss;
-    ss << "rgb_" << i;
+    ss << setfill('0') << setw(3) << i+1;
     std::string filename = path + ss.str() + ".png";
 
     cv::Mat image = cv::imread(filename, 0);
@@ -132,7 +131,7 @@ void loadFeatures(vector<vector<cv::Mat > > &features, std::string path) {
 
 void loadWaypoints(const std::string path, Eigen::Matrix3Xd* waypoints) {
   waypoints->resize(3, NIMAGES);
-  std::string filename_wp = path + "waypoints_neighbourhood_forward_for_airsim.csv";
+  std::string filename_wp = path + "waypoints_forward.txt";
 
   std::ifstream import_file_wp(filename_wp, std::ios::in);
 
@@ -146,7 +145,6 @@ void loadWaypoints(const std::string path, Eigen::Matrix3Xd* waypoints) {
       getline(import_file_wp, line);
       if (i % NSTEP == 0) {
         parseVectorOfDoubles(line, &parsed_doubles);
-        std::cout << "parsed doubles " << parsed_doubles[0] << " " << parsed_doubles[1] << " " << parsed_doubles[2] << std::endl;
         (*waypoints)(0, line_number) = parsed_doubles[0];
         (*waypoints)(1, line_number) = parsed_doubles[1];
         (*waypoints)(2, line_number) = parsed_doubles[2];
