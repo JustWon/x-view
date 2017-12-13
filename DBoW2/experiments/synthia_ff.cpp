@@ -18,9 +18,17 @@
 #include <DVision/DVision.h>
 
 // OpenCV
+#if CV_MAJOR_VERSION == 2
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/features2d/features2d.hpp>
+#endif
+
+#if CV_MAJOR_VERSION == 3
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/features2d.hpp>
+#endif
 
 // Eigen
 #include <Eigen/Dense>
@@ -55,9 +63,9 @@ int main() {
   vector<vector<cv::Mat > > features_db, features_query;
   Eigen::Matrix3Xd waypoints;
 
-  std::string db_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/SYNTHIA/Video_sequences/SYNTHIA-SEQS-04-SUMMER/RGB/Stereo_Left/Omni_F/";
-  std::string query_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/SYNTHIA/Video_sequences/SYNTHIA-SEQS-04-SUMMER/RGB/Stereo_Right/Omni_F/";
-  std::string waypoint_path = "/media/johnny/082e0614-ce4c-45cc-abc5-dbde7ae882bb/SYNTHIA/Video_sequences/SYNTHIA-SEQS-04-SUMMER/CameraParams/Stereo_Left/Omni_F/";
+  std::string db_path = "/media/johnny/ASL_ext_1/SYNTHIA/Summer_Fall/RGB/Stereo_Left/Omni_F/";
+  std::string query_path = "/media/johnny/ASL_ext_1/SYNTHIA/Summer_Fall/RGB/Stereo_Right/Omni_F/";
+  std::string waypoint_path = "/media/johnny/ASL_ext_1/SYNTHIA/SYNTHIA-SEQS-04-SUMMER/CameraParams/Stereo_Left/Omni_F/";
   std::string out_path = "/tmp/";
   //Load database features (Forward run)
   loadFeatures(features_db, db_path);
@@ -87,7 +95,7 @@ int main() {
   }
 
   std::cout << "Writing to file." << std::endl;
-  std::ofstream file(out_path + "dbow_synthia_ff.txt");
+  std::ofstream file(out_path + "dbow_synthia_ff_summer_fall.txt");
     if (file.is_open()) {
       file << results;
     }
