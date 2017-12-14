@@ -165,7 +165,7 @@ bool XViewBagReader::generateQueryGraph(const CAMERA camera_type,
 
   pose_ids->clear();
   // Write pose ids.
-  for (int i = start_frame; i < start_frame + steps; ++i) {
+  for (int i = start_frame; i <= start_frame + steps; ++i) {
     x_view::PoseId pose_id;
     pose_id.id = x_view::KeyGenerator::getNextKey();
     pose_ids->push_back(pose_id);
@@ -174,15 +174,15 @@ bool XViewBagReader::generateQueryGraph(const CAMERA camera_type,
   timer->registerTimer("QueryGraphConstruction");
   timer->start("QueryGraphConstruction");
 
-  for(int i = start_frame; i < start_frame + steps; ++i) {
+  for(int i = start_frame; i <= start_frame + steps; ++i) {
     parseParameters();
     const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
     const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
     const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
     tfTransformToSE3(trans, &(*pose_ids)[i - start_frame].pose);
-    // Use the start frame as ground truth.
-    if (i == start_frame) {
-      locations->true_pose = (*pose_ids)[i - start_frame].pose;
+    // Use the last frame as ground truth.
+    if (i == start_frame + steps) {
+      locations->true_pose = pose_ids->back().pose;
     }
     x_view::FrameData frame_data(semantic_image, depth_image,
                                  (*pose_ids)[i - start_frame], i);
