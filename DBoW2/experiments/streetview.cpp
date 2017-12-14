@@ -18,9 +18,17 @@
 #include <DVision/DVision.h>
 
 // OpenCV
+#if CV_MAJOR_VERSION == 2
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/features2d/features2d.hpp>
+#endif
+
+#if CV_MAJOR_VERSION == 3
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/features2d.hpp>
+#endif
 
 // Eigen
 #include <Eigen/Dense>
@@ -57,8 +65,8 @@ int main() {
   vector<vector<cv::Mat > > features_db, features_query;
   Eigen::Matrix3Xd waypoints;
 
-  std::string db_path = "/home/johnny/segnet/datasets/streetview/RGB/forward/";
-  std::string query_path = "/home/johnny/segnet/datasets/streetview/RGB/backward/";
+  std::string db_path = "/home/johnny/segnet/datasets/streetview/RGB_PNG/forward/";
+  std::string query_path = "/home/johnny/segnet/datasets/streetview/RGB_PNG/backward/";
   std::string waypoint_path = "/home/johnny/segnet/datasets/streetview/";
   std::string out_path = "/tmp/";
   //Load database features (Forward run)
@@ -69,11 +77,10 @@ int main() {
   loadWaypoints(waypoint_path, &waypoints);
 
   wait();
-
   std::vector<QueryResults> ret;
   testDatabase(features_db, features_query, &ret);
 
-  // Save all results to file.a similar
+  // Save all results to file.
   Eigen::Matrix<double, NIMAGES, 8> results;
   for (int i = 0; i < NIMAGES; ++i) {
     results(i, 0) = waypoints(0, i);
@@ -107,7 +114,7 @@ void loadFeatures(vector<vector<cv::Mat > > &features, std::string path) {
   for(int i = 0; i < NIMAGES * NSTEP; i = i + NSTEP) {
     std::cout << "Feature " << i << "/" << NIMAGES * NSTEP << "." << std::endl;
     stringstream ss;
-    ss << "rgb_" << i;
+    ss << setfill('0') << setw(3) << i+1;
     std::string filename = path + ss.str() + ".png";
 
     cv::Mat image = cv::imread(filename, 0);
@@ -138,7 +145,6 @@ void loadWaypoints(const std::string path, Eigen::Matrix3Xd* waypoints) {
       getline(import_file_wp, line);
       if (i % NSTEP == 0) {
         parseVectorOfDoubles(line, &parsed_doubles);
-        std::cout << "parsed doubles " << parsed_doubles[0] << " " << parsed_doubles[1] << " " << parsed_doubles[2] << std::endl;
         (*waypoints)(0, line_number) = parsed_doubles[0];
         (*waypoints)(1, line_number) = parsed_doubles[1];
         (*waypoints)(2, line_number) = parsed_doubles[2];

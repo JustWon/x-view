@@ -52,26 +52,28 @@ int main(int argc, char** argv) {
   
 ```
 
-## streetview dataset "Neighbourhood"
+## streetview dataset "Weinbergstrasse"
 
-Consisting of several UAV flights over a simulated static rural environment with different viewpoints (front / bird's eye).
-The environment features the following semantic classes with respective labels:
+Consisting of Google-StreetView forward- and backward images from Weinbergstrasse in Zurich.
+The environment features the following semantic classes as extracted using SegNet (http://mi.eng.cam.ac.uk/projects/segnet/) with respective labels:
 
-* misc: 0
-* street: 1
-* building: 2
-* car: 3
-* sign: 4
-* fence: 5
-* hedge: 6
-* tree: 7
-* wall: 8
-* bench: 9
-* powerline: 10
-* rock: 11
-* pool: 12
+* sky: 0
+* building: 1
+* pole: 2
+* road marking: 3
+* road: 4
+* pavement: 5
+* tree: 6
+* signsymbol: 7
+* fence: 8
+* car: 9
+* pedestrian: 10
+* bicyclist: 11
+* unlabelled: 12
 
 The camera intrinsic parameters are:
-* kx = ky = 512
-* px = 512
-* py = 288
+* kx = ky = 240
+* px = 240
+* py = 180
+
+To generate depth images from the Google StreetView-depth-XML files, run the executable streetview_depth_map_to_depth_images.

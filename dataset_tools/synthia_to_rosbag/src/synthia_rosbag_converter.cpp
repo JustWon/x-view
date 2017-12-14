@@ -107,7 +107,7 @@ bool SynthiaBagConverter::convertEntry(uint64_t entry) {
 
   // Convert images.
   cv::Mat image, depth_image, labels_image, labels;
-  for (size_t cam_id = 0; cam_id < parser_.getNumCameras(); ++cam_id) {
+  for (size_t cam_id = 0; cam_id < parser_.getNumCameras(); ++cam_id) { // 5; cam_id = cam_id + 4)
     if (parser_.getImageAtEntry(entry, cam_id, &timestamp_ns, &image) &&
         parser_.getDepthImageAtEntry(entry, cam_id, &timestamp_ns, &depth_image) &&
         parser_.getLabelImageAtEntry(entry, cam_id, &timestamp_ns, &labels_image) &&
