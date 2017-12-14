@@ -46,7 +46,8 @@ RandomWalker::RandomWalker(const Graph& graph,
     : random_distribution_(0.0, 1.0),
       random_engine_(random_seed),
       graph_(graph),
-      params_(params) {
+      params_(params),
+      distance_from_center_(0.0){
 
   // Check that the graph type being used has a vertex_list_selector which
   // corresponds to boost::vecS! If an other selector would be used, the
@@ -91,6 +92,7 @@ void RandomWalker::generateRandomWalks() {
       RandomWalk random_walk(params_.walk_length);
 
       // Prepare variables for iteration over the random walk.
+      distance_from_center_ = 0.0;
       VertexDescriptor current_vertex_index = source_vertex_index;
       // Set the previous vertex index to a value which will never be met in
       // a real world graph. In this way the first step is "free" and has no
@@ -100,8 +102,9 @@ void RandomWalker::generateRandomWalks() {
 
       for (int step = 0; step < params_.walk_length; ++step) {
 
-        VertexDescriptor next_vertex_index =
-            nextVertex(current_vertex_index, previous_vertex_index);
+        VertexDescriptor next_vertex_index = nextVertex(
+            current_vertex_index, previous_vertex_index,
+            graph_[source_vertex_index].location_3d);
 
         // Add the vertex to the random_walk.
         const VertexProperty& next_vertex_p = graph_[next_vertex_index];
@@ -140,7 +143,8 @@ void RandomWalker::generateRandomWalks() {
 
 const VertexDescriptor RandomWalker::nextVertex(
     const VertexDescriptor current_vertex_index,
-    const VertexDescriptor previous_vertex_index) const {
+    const VertexDescriptor previous_vertex_index,
+    const Vector3r& center_location) {
 
   // Sample from a uniform probability distribution p \in [0,1).
   const real_t p = random_distribution_(random_engine_);
@@ -241,6 +245,36 @@ const VertexDescriptor RandomWalker::nextVertex(
       // Sample the next vertex by choosing from the updated neighbor_list.
       const int advance_step = static_cast<int>(p * neighbor_descriptors.size());
       return *(std::next(neighbor_descriptors.begin(), advance_step));
+    }
+    case RandomWalkerParams::SAMPLING_TYPE::INCREASING_DISTANCE: {
+      // Generate a list of vertex descriptors associated to the neighbors.
+      std::vector<VertexDescriptor> neighbor_descriptors(num_neighbor_vertices);
+      uint64_t neighbor_index = 0;
+      for(auto iter = neighbors.first; iter != neighbors.second; ++iter) {
+        neighbor_descriptors[neighbor_index++] = *iter;
+      }
+
+      neighbor_index = 0;
+      std::vector<Vector3r> neighbor_locations(num_neighbor_vertices);
+      for (auto iter = neighbors.first; iter != neighbors.second; ++iter) {
+        neighbor_locations[neighbor_index++] = (graph_[*iter].location_3d);
+      }
+
+      // Shift the previous_vertex_index to the end of this list and remove it.
+      for (int j = 0; j < 10; ++j) {
+        // Sample the next vertex by choosing from the updated neighbor_list.
+        int random_index = static_cast<int>(p * num_neighbor_vertices);
+        // Check if selected node increases distance and stays within boundary.
+        real_t distance = (center_location - neighbor_locations[random_index]).norm();
+        if (distance > distance_from_center_) {
+          distance_from_center_ = distance;
+          return *(std::next(neighbors.first, random_index));
+        }
+      }
+      // If we can't increase distance further, choose random.
+      const int advance_step = static_cast<int>(p * num_neighbor_vertices);
+      return *(std::next(neighbors.first, advance_step));
+      CHECK(false) << "Can't increase distance. Implement handling of this case now!!!";
     }
     default:
       LOG(ERROR) << "Unrecognized random walk sampling type.";

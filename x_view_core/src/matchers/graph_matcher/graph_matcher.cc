@@ -104,6 +104,9 @@ GraphMatcher::GraphMatcher() {
   else if(random_walk_sampling_type == "NON_RETURNING")
     random_walker_params_.random_sampling_type =
         RandomWalkerParams::SAMPLING_TYPE::NON_RETURNING;
+  else if(random_walk_sampling_type == "INCREASING_DISTANCE")
+    random_walker_params_.random_sampling_type =
+        RandomWalkerParams::SAMPLING_TYPE::INCREASING_DISTANCE;
   else
     LOG(ERROR) << "Unrecognized random walker sampling type <"
                << random_walk_sampling_type << ">.";
