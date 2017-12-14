@@ -4,7 +4,7 @@ DBoW2
 This is a port of the DBoW2 from https://github.com/dorian3d/DBoW2 for running reference place recognition experiments.
 In the experiments folder, there are presently 2 expeirments performed on the Airsim and the SYNTHIA raw image data.
 
-## Setting up and running expreiments
+## Setting up and running experiments
 
 First, build the package:
 
@@ -15,6 +15,7 @@ First, build the package:
     $ make
 
 For running the three experiments, make sure you have the dataset paths correctly set up in `experiments/airsim.cc`, `experiments/synthia_ff.cc`, and `experiments/synthia_fb.cc`.
+
 Then simply run:
 
     $ ./experiments/airsim
