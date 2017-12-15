@@ -14,18 +14,18 @@ StreetviewDataset::StreetviewDataset()
   // {name, id, is_to_include_in_graph, is_static, is_to_render}
   semantic_entities_ = {
       {"sky", 0, false, true, false},
-      {"building", 1, true, true, true},
-      {"pole", 2, true, true, true},
-      {"road marking", 3, true, true, true},
+      {"building", 1, false, true, true},
+      {"pole", 2, false, true, true},
+      {"road marking", 3, false, true, true},
       {"road", 4, true, true, true},
       {"pavement", 5, true, true, true},
       {"tree", 6, true, true, true},
-      {"signsymbol", 7, true, true, true},
+      {"signsymbol", 7, false, true, true},
       {"fence", 8, true, true, true},
       {"car", 9, true, true, true},
-      {"pedestrian", 10, false, true, true},
-      {"bicyclist", 11, true, true, true},
-      {"unlabelled", 12, true, true, true}
+      {"pedestrian", 10, false, false, true},
+      {"bicyclist", 11, true, false, true},
+      {"unlabelled", 12, false, false, true}
   };
 
   CHECK(semantic_entities_.size() == STREETVIEW_NUM_SEMANTIC_CLASSES)
@@ -82,9 +82,9 @@ cv::Mat StreetviewDataset::convertSemanticImage(
       << "Computed index is larger or equal to message size";
 
       cv::Vec3b values;
+      values[0] = msg->data[idx];
+      values[1] = static_cast<uchar>(0);
       values[2] = static_cast<uchar>(0);
-      values[1] = static_cast<uchar>(twoBytesToInt(&(msg->data[idx + 1])) - 1);
-      values[0] = static_cast<uchar>(msg->data[idx + 2]);
 
       labelImage.at<cv::Vec3b>(cv::Point2i(j, i)) = values;
     }

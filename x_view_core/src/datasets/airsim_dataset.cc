@@ -17,15 +17,15 @@ AirsimDataset::AirsimDataset()
       {"street", 1, true, true, true},
       {"building", 2, true, true, true},
       {"car", 3, true, true, true},
-      {"sign", 4, true, true, true},
+      {"sign", 4, false, true, true},
       {"fence", 5, true, true, true},
       {"hedge", 6, true, true, true},
       {"tree", 7, true, true, true},
-      {"wall", 8, true, true, true},
-      {"bench", 9, true, true, true},
+      {"wall", 8, false, true, true},
+      {"bench", 9, false, true, true},
       {"powerline", 10, false, true, true},
-      {"rock", 11, true, true, true},
-      {"pool", 12, true, true, true}
+      {"rock", 11, false, true, true},
+      {"pool", 12, false, true, true}
   };
 
   CHECK(semantic_entities_.size() == AIRSIM_NUM_SEMANTIC_CLASSES)

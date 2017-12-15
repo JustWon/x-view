@@ -56,7 +56,7 @@ Here follows a description of the parameters being used by X-View:
  
 * __Dataset__:
    * __name__: string referring to the name of the dataset being used.<br/>
-   _supported values_: {"SYNTHIA", "AIRSIM"} 
+   _supported values_: {"SYNTHIA", "AIRSIM", "STREETVIEW"} 
   
 * __Landmark__
    * __type__ : string referring the type of landmark to be used. <br/>

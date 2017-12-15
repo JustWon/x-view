@@ -2,6 +2,7 @@
 #include <x_view_bag_reader/x_view_pause.h>
 #include <x_view_core/datasets/airsim_dataset.h>
 #include <x_view_core/datasets/synthia_dataset.h>
+#include <x_view_core/datasets/streetview_dataset.h>
 #include <x_view_core/timer/timer.h>
 #include <x_view_core/x_view_locator.h>
 #include <x_view_core/x_view_tools.h>
@@ -37,6 +38,10 @@ XViewBagReader::XViewBagReader(ros::NodeHandle& n)
   } else if (dataset_name == "AIRSIM") {
     std::unique_ptr<x_view::AbstractDataset> dataset(
         new x_view::AirsimDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else if (dataset_name == "STREETVIEW") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::StreetviewDataset());
     x_view::Locator::registerDataset(std::move(dataset));
   } else {
     CHECK(false) << "Dataset '" << dataset_name
@@ -165,7 +170,7 @@ bool XViewBagReader::generateQueryGraph(const CAMERA camera_type,
 
   pose_ids->clear();
   // Write pose ids.
-  for (int i = start_frame; i <= start_frame + steps; ++i) {
+  for (int i = start_frame; i < start_frame + steps; ++i) {
     x_view::PoseId pose_id;
     pose_id.id = x_view::KeyGenerator::getNextKey();
     pose_ids->push_back(pose_id);
@@ -174,15 +179,15 @@ bool XViewBagReader::generateQueryGraph(const CAMERA camera_type,
   timer->registerTimer("QueryGraphConstruction");
   timer->start("QueryGraphConstruction");
 
-  for(int i = start_frame; i <= start_frame + steps; ++i) {
+  for(int i = start_frame; i < start_frame + steps; ++i) {
     parseParameters();
     const cv::Mat semantic_image = semantic_topic_view_->getDataAtFrame(i);
     const cv::Mat depth_image = depth_topic_view_->getDataAtFrame(i);
     const tf::StampedTransform trans = transform_view_->getDataAtFrame(i);
     tfTransformToSE3(trans, &(*pose_ids)[i - start_frame].pose);
-    // Use the last frame as ground truth.
-    if (i == start_frame + steps) {
-      locations->true_pose = pose_ids->back().pose;
+    // Use the start frame as ground truth.
+    if (i == start_frame + steps - 1) {
+      locations->true_pose = (*pose_ids)[i - start_frame].pose;
     }
     x_view::FrameData frame_data(semantic_image, depth_image,
                                  (*pose_ids)[i - start_frame], i);
@@ -313,6 +318,10 @@ void XViewBagReader::parseParameters() const {
   } else if (dataset_name == "AIRSIM") {
     std::unique_ptr<x_view::AbstractDataset> dataset(
         new x_view::AirsimDataset());
+    x_view::Locator::registerDataset(std::move(dataset));
+  } else if (dataset_name == "STREETVIEW") {
+    std::unique_ptr<x_view::AbstractDataset> dataset(
+        new x_view::StreetviewDataset());
     x_view::Locator::registerDataset(std::move(dataset));
   } else {
     CHECK(false) << "Dataset '" << dataset_name

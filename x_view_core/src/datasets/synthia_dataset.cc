@@ -15,13 +15,13 @@ SynthiaDataset::SynthiaDataset()
   semantic_entities_ = {
       {"misc", 0, false, true, false},
       {"sky", 1, false, true, false},
-      {"building", 2, true, true, true},
+      {"building", 2, false, true, true},
       {"road", 3, true, true, true},
       {"sidewalk", 4, true, true, true},
       {"fence", 5, true, true, true},
       {"vegetation", 6, true, true, true},
       {"pole", 7, true, true, true},
-      {"car", 8, true, false, true},
+      {"car", 8, false, false, true},
       {"sign", 9, true, true, true},
       {"pedestrian", 10, false, false, true},
       {"cyclist", 11, false, false, true},
@@ -73,7 +73,8 @@ cv::Mat SynthiaDataset::convertSemanticImage(
     for (int j = 0; j < cols; ++j) {
       // Index of the pixel, need to have "6*j" because each pixel value is
       // stored into two consecutive bytes and there are three channels.
-      int idx = step_size * i + 6 * j;
+      int idx = step_size * i + 6 * j; // for adapnet use 3 step length
+
       CHECK(idx < msg_size)
       << "Computed index is larger or equal to message size";
 
@@ -90,6 +91,10 @@ cv::Mat SynthiaDataset::convertSemanticImage(
           )
       );
 
+      // for adapnet:
+//      values[0] = msg->data[idx];
+//      values[1] = static_cast<uchar>(0);
+//      values[2] = static_cast<uchar>(0);
       labelImage.at<cv::Vec3b>(cv::Point2i(j, i)) = values;
     }
 
