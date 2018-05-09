@@ -39,6 +39,7 @@ class AbstractDataset;
 class AbstractDescriptor;
 class AbstractSemanticLandmark;
 class AbstractMatcher;
+class SemanticGraph;
 
 /// \brief Factor graph used for graph optimization.
 typedef gtsam::NonlinearFactorGraph FactorGraph;
@@ -65,6 +66,9 @@ typedef std::shared_ptr<const AbstractDescriptor> ConstDescriptorPtr;
 
 /// \brief Pointer to semantic landmark.
 typedef std::shared_ptr<AbstractSemanticLandmark> SemanticLandmarkPtr;
+
+/// \brief Pointer to semantic graph.
+typedef std::shared_ptr<SemanticGraph> SemanticGraphPtr;
 
 /// \brief Pointer to landmark matchers.
 typedef std::shared_ptr<AbstractMatcher> LandmarksMatcherPtr;

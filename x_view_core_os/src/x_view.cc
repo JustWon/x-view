@@ -36,6 +36,8 @@ void XView::processFrameData_2(const FrameData& frame_data) {
   SemanticGraph landmark(frame_data);
 
 
+
+
   // Generate a new semantic landmark pointer.
 //  SemanticLandmarkPtr landmark_ptr;
 //

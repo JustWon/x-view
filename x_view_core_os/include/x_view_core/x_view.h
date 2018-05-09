@@ -5,6 +5,7 @@
 #include <x_view_core/features/graph.h>
 #include <x_view_core/landmarks/abstract_semantic_landmark.h>
 #include <x_view_core/landmarks/semantic_landmark_factory.h>
+#include <x_view_core/landmarks/semantic_graph.h>
 #include <x_view_core/matchers/abstract_matcher.h>
 #include <x_view_core/matchers/graph_matcher.h>
 #include <x_view_core/parameters/parameters.h>
@@ -153,6 +154,9 @@ class XView {
 
   /// \brief Vector of semantic landmarks pointers visited by XView.
   std::vector<SemanticLandmarkPtr> semantics_db_;
+
+  /// \brief Vector of semantic graphs visited by XView.
+  std::vector<SemanticGraph> semantic_graphs_;
 
   /// \brief Current number of frames processed by XView.
   int64_t frame_number_;
