@@ -58,8 +58,6 @@ class GraphBuilder {
                                     const ImageBlobs& blobs,
                                     const GraphBuilderParams& params = GraphBuilderParams());
 
- private:
-
   // Dummy vector used as default argument for the the addBlobsToGraph function.
   static std::vector<const Blob*> DEFAULT_BLOB_VECTOR;
 

@@ -1,6 +1,9 @@
 #include <x_view_core_os/features/graph.h>
+#include <x_view_core_os/landmarks/graph_landmark/graph_builder.h>
 #include <x_view_core_os/landmarks/graph_landmark/graph_landmark.h>
 #include <x_view_core_os/landmarks/graph_merger_2.h>
+
+#include <boost/graph/connected_components.hpp>
 
 #include <nabo/nabo.h>
 
@@ -41,7 +44,6 @@ out_graph) {
             // Update observers.
             (*out_graph)[*d].observers.push_back(graph_query[*q]
                                                      .observers[0]);
-
             break;
           }
         }
@@ -52,8 +54,6 @@ out_graph) {
       }
     }
   }
-
-  // todo(gawela): Check that merged_graph_ is actually growing.
 
   // Create matrix of vertex locations for nearest neighbor search.
   auto vertices_db = boost::vertices(*out_graph);
@@ -144,6 +144,7 @@ void GraphMerger2::mergeGraphs(const Graph &graph_a, Graph *out_graph) {
   }
 
   // Use KDTree to establish edges between nodes.
+      // todo(gawela): KDTree might be overkill for the iterative merging.
   Nabo::NNSearchF *nns = Nabo::NNSearchF::createKDTreeLinearHeap(locations);
   // todo(gawela): Make k parametric.
   const int k = std::min(8, int(num_db_vertices - 1));
@@ -164,6 +165,18 @@ void GraphMerger2::mergeGraphs(const Graph &graph_a, Graph *out_graph) {
     }
     ++iter;
   }
-  // todo(gawela): Merge unconnected graphs.
+
+  // Check that the generated graph is a single connected component.
+  std::vector<int> component(boost::num_vertices(*out_graph));
+  int num_components = boost::connected_components(*out_graph, &component[0]);
+  while(num_components > 1) {
+    LOG(WARNING) << "Graph built upon semantic image presents "
+                 << num_components << " disconnected components over "
+                 << boost::num_vertices(*out_graph) << " vertices.";
+    GraphBuilder::connectComponentsInSpace(component, out_graph);
+    num_components = boost::connected_components(*out_graph, &component[0]);
+  }
+
+  // todo(gawela): Potentially migrate graph builder merging function here.
 }
 }
