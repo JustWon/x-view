@@ -1,8 +1,8 @@
-#include <x_view_core/datasets/abstract_dataset.h>
-#include <x_view_core/landmarks/graph_landmark/blob.h>
-#include <x_view_core/landmarks/graph_landmark/depth_projector.h>
-#include <x_view_core/landmarks/graph_landmark/graph_builder.h>
-#include <x_view_core/x_view_tools.h>
+#include <x_view_core_os/datasets/abstract_dataset.h>
+#include <x_view_core_os/landmarks/graph_landmark/blob.h>
+#include <x_view_core_os/landmarks/graph_landmark/depth_projector.h>
+#include <x_view_core_os/landmarks/graph_landmark/graph_builder.h>
+#include <x_view_core_os/x_view_tools.h>
 
 #include <boost/graph/connected_components.hpp>
 

@@ -1,10 +1,10 @@
-#include <x_view_core/landmarks/graph_landmark/blob.h>
-#include <x_view_core/landmarks/graph_landmark/blob_extractor.h>
-#include <x_view_core/landmarks/graph_landmark/graph_builder.h>
-#include <x_view_core/landmarks/graph_landmark/graph_drawer.h>
-#include <x_view_core/landmarks/graph_landmark/depth_projector.h>
+#include <x_view_core_os/landmarks/graph_landmark/blob.h>
+#include <x_view_core_os/landmarks/graph_landmark/blob_extractor.h>
+#include <x_view_core_os/landmarks/graph_landmark/graph_builder.h>
+#include <x_view_core_os/landmarks/graph_landmark/graph_drawer.h>
+#include <x_view_core_os/landmarks/graph_landmark/depth_projector.h>
 
-#include "x_view_core/landmarks/semantic_graph.h"
+#include "x_view_core_os/landmarks/semantic_graph.h"
 
 namespace x_view {
 
@@ -78,22 +78,48 @@ SemanticGraph::SemanticGraph(
                                                   graph_builder_params);
 }
 
+//SemanticGraph::SemanticGraph(const SemanticGraph& semantic_graph) :
+//semantic_image_(semantic_graph.semantic_image_),
+//depth_image_ (semantic_graph.depth_image_),
+//pose_(semantic_graph.pose_),
+//image_blobs_(semantic_graph.image_blobs_),
+//descriptor_(semantic_graph.descriptor_) {}
+
+SemanticGraph::SemanticGraph() {}
+
 SemanticGraph::~SemanticGraph() {}
 
-const cv::Mat& SemanticGraph::getSemanticImage() const {
-  return semantic_image_;
+void SemanticGraph::getSemanticImage(cv::Mat* out_semantic_image) {
+  *out_semantic_image = semantic_image_;
 }
 
-const cv::Mat& SemanticGraph::getDepthImage() const {
-  return depth_image_;
+void SemanticGraph::getDepthImage(cv::Mat* out_depth_image) {
+  *out_depth_image = depth_image_;
 }
 
-const SE3& SemanticGraph::getPose() const {
-  return pose_;
+void SemanticGraph::getPose(SE3* out_pose) {
+  *out_pose = pose_;
 }
 
-const Graph& SemanticGraph::getDescriptor() const {
-  return descriptor_;
+void SemanticGraph::getDescriptor(Graph* out_graph) {
+  *out_graph = descriptor_;
 }
+
+
+//cv::Mat& SemanticGraph::getSemanticImage() const {
+//  return semantic_image_;
+//}
+//
+//cv::Mat& SemanticGraph::getDepthImage() const {
+//  return depth_image_;
+//}
+//
+//SE3& SemanticGraph::getPose() const {
+//  return pose_;
+//}
+//
+//Graph& SemanticGraph::getDescriptor() const {
+//  return descriptor_;
+//}
 
 }

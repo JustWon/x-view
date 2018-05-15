@@ -1,8 +1,8 @@
-#include <x_view_core/matchers/graph_matcher/graph_merger.h>
+#include <x_view_core_os/matchers/graph_matcher/graph_merger.h>
 
-#include <x_view_core/matchers/graph_matcher.h>
-#include <x_view_core/x_view_tools.h>
-#include <x_view_core/x_view_locator.h>
+#include <x_view_core_os/matchers/graph_matcher.h>
+#include <x_view_core_os/x_view_tools.h>
+#include <x_view_core_os/x_view_locator.h>
 
 #include <boost/graph/connected_components.hpp>
 

@@ -1,10 +1,10 @@
-#include <x_view_core/x_view.h>
+#include <x_view_core_os/x_view.h>
 
-#include <x_view_core/landmarks/graph_landmark.h>
-#include <x_view_core/landmarks/semantic_graph.h>
-#include <x_view_core/matchers/vector_matcher.h>
-#include <x_view_core/x_view_tools.h>
-#include <x_view_core/x_view_types.h>
+#include <x_view_core_os/landmarks/graph_landmark.h>
+#include <x_view_core_os/landmarks/semantic_graph.h>
+#include <x_view_core_os/matchers/vector_matcher.h>
+#include <x_view_core_os/x_view_tools.h>
+#include <x_view_core_os/x_view_types.h>
 
 #include <boost/graph/random.hpp>
 
@@ -28,42 +28,21 @@ void XView::processFrameData_2(const FrameData& frame_data) {
   LOG(INFO) << "Associated robot pose:\n"
             << formatSE3(frame_data.getPose(), "\t\t", 3);
 
-  const auto& timer = Locator::getTimer();
-  timer->registerTimer("ProcessFrameData");
-  timer->start("ProcessFrameData");
-
   // Generate graph on frame.
   SemanticGraph landmark(frame_data);
 
+  // Add graph to database.
+  semantic_graphs_.push_back(landmark);
+  LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
+}
 
-
-
-  // Generate a new semantic landmark pointer.
-//  SemanticLandmarkPtr landmark_ptr;
-//
-//  // Extract semantics associated to the semantic image and pose.
-//  timer->registerTimer("SemanticLandmarkExtraction", "ProcessFrameData");
-//  timer->start("SemanticLandmarkExtraction");
-//  createSemanticLandmark(frame_data, landmark_ptr);
-//  timer->stop("SemanticLandmarkExtraction");
-//
-//  // Compute the matches between the new feature and the ones
-//  // stored in the database.
-//  if (frame_number_ == 0) {
-//    // Simply add the landmark to the matcher without matching anything.
-//    descriptor_matcher_->addDescriptor(landmark_ptr->getDescriptor());
-//  } else {
-//    // Perform full matching.
-//    AbstractMatcher::MatchingResultPtr matching_result_ptr;
-//    matchSemantics(landmark_ptr, matching_result_ptr);
-//
-//  }
-//  // Add the semantic landmark to the database.
-//  semantics_db_.push_back(landmark_ptr);
-//
-//  timer->stop("ProcessFrameData");
-//
-//  LOG(INFO) << "XView ended processing frame " << frame_number_ << ".";
+void XView::computeGraph(const int graph_size, Graph* out_graph) {
+  CHECK_EQ(semantic_graphs_.size(), graph_size)
+    << "Requested graph size does not match number of saved frames.";
+  CHECK_NOTNULL(out_graph);
+  Graph latest_graph;
+  semantic_graphs_.back().getDescriptor(&latest_graph);
+  graph_merger_.mergeGraphs(latest_graph, out_graph);
 }
 
 void XView::processFrameData(const FrameData& frame_data) {

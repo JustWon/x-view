@@ -1,4 +1,4 @@
-#include <x_view_core/features/vector_descriptor.h>
+#include <x_view_core_os/features/vector_descriptor.h>
 
 namespace x_view {
 

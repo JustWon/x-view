@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>	
+	
+<launch>
+  <!-- X_View configuration file -->
+  <arg name="x_view_configuration_file" default="$(find x_view_node)/cfg/x_view_basic.yaml"/>
+  	
+  <!-- ROS parameters -->
+  <rosparam command="load" file="$(arg x_view_configuration_file)"/>
+  	
+  <!-- X_View node -->
+  <node name="x_view" pkg="x_view_node" type="x_view" output="screen" respawn="true"/>
+
+</launch>

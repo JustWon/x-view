@@ -1,7 +1,7 @@
-#include <x_view_core/x_view_tools.h>
+#include <x_view_core_os/x_view_tools.h>
 
-#include <x_view_core/x_view_locator.h>
-#include <x_view_core/datasets/abstract_dataset.h>
+#include <x_view_core_os/x_view_locator.h>
+#include <x_view_core_os/datasets/abstract_dataset.h>
 
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/random.hpp>

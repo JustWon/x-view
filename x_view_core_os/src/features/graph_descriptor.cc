@@ -1,4 +1,4 @@
-#include <x_view_core/features/graph_descriptor.h>
+#include <x_view_core_os/features/graph_descriptor.h>
 
 namespace x_view {
 

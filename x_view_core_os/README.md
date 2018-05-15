@@ -68,7 +68,7 @@ $ sudo apt-get install python-wstool doxygen
 #### Note
 It is possible to build the entire __X-View__ library in _single_ or _double_
  precision. To change the build type, you are required to manually modify the
-  [following header file](./include/x_view_core/x_view_types.h) as follows:
+  [following header file](include/x_view_core_os/x_view_types.h) as follows:
   ```c++
   // Single or double floating point precision.
   // Change this MACRO to 0 to use single precision where possible.

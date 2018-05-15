@@ -1,4 +1,4 @@
-#include <x_view_core/matchers/graph_matcher/vertex_similarity.h>
+#include <x_view_core_os/matchers/graph_matcher/vertex_similarity.h>
 
 namespace x_view {
 

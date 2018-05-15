@@ -1,4 +1,4 @@
-#include <x_view_core/features/abstract_descriptor.h>
+#include <x_view_core_os/features/abstract_descriptor.h>
 
 namespace x_view {
 

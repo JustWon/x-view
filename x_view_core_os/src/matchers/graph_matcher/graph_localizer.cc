@@ -1,5 +1,5 @@
-#include <x_view_core/matchers/graph_matcher/graph_localizer.h>
-#include <x_view_core/x_view_locator.h>
+#include <x_view_core_os/matchers/graph_matcher/graph_localizer.h>
+#include <x_view_core_os/x_view_locator.h>
 
 #include <gtsam/geometry/Point3.h>
 #include <gtsam/inference/Symbol.h>

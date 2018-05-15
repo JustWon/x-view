@@ -1,6 +1,6 @@
-#include <x_view_core/datasets/synthia_dataset.h>
+#include <x_view_core_os/datasets/synthia_dataset.h>
 
-#include <x_view_core/x_view_tools.h>
+#include <x_view_core_os/x_view_tools.h>
 
 namespace x_view {
 

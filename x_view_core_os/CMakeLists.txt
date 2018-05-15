@@ -47,6 +47,7 @@ cs_add_library(${PROJECT_NAME}
         src/landmarks/semantic_landmark_factory.cc
         src/landmarks/semantic_graph.cc
         src/landmarks/graph_factory.cc
+        src/landmarks/graph_merger_2.cc
         src/landmarks/graph_landmark/graph_landmark.cc
         src/landmarks/graph_landmark/blob.cc
         src/landmarks/graph_landmark/blob_extractor.cc
@@ -73,55 +74,55 @@ cs_add_library(${PROJECT_NAME}
 
         #### HEADER FILES ####
 
-        include/x_view_core/x_view.h
-        include/x_view_core/x_view_locator.h
-        include/x_view_core/x_view_tools.h
-        include/x_view_core/x_view_types.h
+        include/x_view_core_os/x_view.h
+        include/x_view_core_os/x_view_locator.h
+        include/x_view_core_os/x_view_tools.h
+        include/x_view_core_os/x_view_types.h
 
         # Datasets
-        include/x_view_core/datasets/abstract_dataset.h
-        include/x_view_core/datasets/airsim_dataset.h
-        include/x_view_core/datasets/synthia_dataset.h
+        include/x_view_core_os/datasets/abstract_dataset.h
+        include/x_view_core_os/datasets/airsim_dataset.h
+        include/x_view_core_os/datasets/synthia_dataset.h
 
         # Descriptors
-        include/x_view_core/features/abstract_descriptor.h
-        include/x_view_core/features/graph.h
-        include/x_view_core/features/graph_descriptor.h
-        include/x_view_core/features/vector_descriptor.h
+        include/x_view_core_os/features/abstract_descriptor.h
+        include/x_view_core_os/features/graph.h
+        include/x_view_core_os/features/graph_descriptor.h
+        include/x_view_core_os/features/vector_descriptor.h
 
         # Landmarks
-        include/x_view_core/landmarks/abstract_semantic_landmark.h
-        include/x_view_core/landmarks/graph_landmark.h
-        include/x_view_core/landmarks/semantic_graph.h
-        include/x_view_core/landmarks/graph_factory.h
-        include/x_view_core/landmarks/semantic_landmark_factory.h
-        include/x_view_core/landmarks/graph_landmark/blob.h
-        include/x_view_core/landmarks/graph_landmark/blob_extractor.h
-        include/x_view_core/landmarks/graph_landmark/graph_builder.h
-        include/x_view_core/landmarks/graph_landmark/graph_drawer.h
-        include/x_view_core/landmarks/graph_landmark/graph_landmark.h
-        include/x_view_core/landmarks/graph_landmark/graph_landmark_types.h
-        include/x_view_core/landmarks/graph_landmark/depth_projector.h
+        include/x_view_core_os/landmarks/abstract_semantic_landmark.h
+        include/x_view_core_os/landmarks/graph_landmark.h
+        include/x_view_core_os/landmarks/semantic_graph.h
+        include/x_view_core_os/landmarks/graph_factory.h
+        include/x_view_core_os/landmarks/semantic_landmark_factory.h
+        include/x_view_core_os/landmarks/graph_landmark/blob.h
+        include/x_view_core_os/landmarks/graph_landmark/blob_extractor.h
+        include/x_view_core_os/landmarks/graph_landmark/graph_builder.h
+        include/x_view_core_os/landmarks/graph_landmark/graph_drawer.h
+        include/x_view_core_os/landmarks/graph_landmark/graph_landmark.h
+        include/x_view_core_os/landmarks/graph_landmark/graph_landmark_types.h
+        include/x_view_core_os/landmarks/graph_landmark/depth_projector.h
 
         # Feature matchers
-        include/x_view_core/matchers/abstract_matcher.h
-        include/x_view_core/matchers/graph_matcher.h
-        include/x_view_core/matchers/vector_matcher.h
-        include/x_view_core/matchers/graph_matcher/graph_localizer.h
-        include/x_view_core/matchers/graph_matcher/graph_matcher.h
-        include/x_view_core/matchers/graph_matcher/graph_merger.h
-        include/x_view_core/matchers/graph_matcher/random_walker.h
-        include/x_view_core/matchers/graph_matcher/similarity_plotter.h
-        include/x_view_core/matchers/graph_matcher/vertex_similarity.h
+        include/x_view_core_os/matchers/abstract_matcher.h
+        include/x_view_core_os/matchers/graph_matcher.h
+        include/x_view_core_os/matchers/vector_matcher.h
+        include/x_view_core_os/matchers/graph_matcher/graph_localizer.h
+        include/x_view_core_os/matchers/graph_matcher/graph_matcher.h
+        include/x_view_core_os/matchers/graph_matcher/graph_merger.h
+        include/x_view_core_os/matchers/graph_matcher/random_walker.h
+        include/x_view_core_os/matchers/graph_matcher/similarity_plotter.h
+        include/x_view_core_os/matchers/graph_matcher/vertex_similarity.h
 
         # Parameters
-        include/x_view_core/parameters/parameters.h
+        include/x_view_core_os/parameters/parameters.h
 
         # Timer
-        include/x_view_core/timer/abstract_timer.h
-        include/x_view_core/timer/null_timer.h
-        include/x_view_core/timer/timer.h
-        include/x_view_core/timer/timer_printer.h
+        include/x_view_core_os/timer/abstract_timer.h
+        include/x_view_core_os/timer/null_timer.h
+        include/x_view_core_os/timer/timer.h
+        include/x_view_core_os/timer/timer_printer.h
         )
 
 

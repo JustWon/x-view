@@ -1,4 +1,4 @@
-#include <x_view_core/landmarks/semantic_landmark_factory.h>
+#include <x_view_core_os/landmarks/semantic_landmark_factory.h>
 
 namespace x_view {
 

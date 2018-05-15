@@ -1,4 +1,4 @@
-#include <x_view_core/landmarks/graph_factory.h>
+#include <x_view_core_os/landmarks/graph_factory.h>
 
 namespace x_view {
 
